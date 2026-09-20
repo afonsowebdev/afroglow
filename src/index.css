@@ -1,0 +1,73 @@
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'Lamoric Rowen';
+  src: url('/fonts/lamoric-rowen.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Griffiths';
+  src: url('/fonts/griffiths.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --color-onyx: #1a1008;
+  --color-cocoa: #3b1f0e;
+  --color-gold: #c9a84c;
+  --color-gold-deep: #8c6a24;
+  --color-cream: #f5efdf;
+  --color-muted: #9c8a72;
+  --color-muted-dark: #6b5b47;
+
+  --font-display: 'Cormorant Garamond', serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-logo: 'Lamoric Rowen', cursive;
+  --font-subtitle: 'Poppins', sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-gold);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #ffffff;
+    color: var(--color-onyx);
+    font-family: var(--font-body);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold-deep);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
