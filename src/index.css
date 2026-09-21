@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @font-face {
   font-family: 'Lamoric Rowen';
   src: url('/fonts/lamoric-rowen.ttf') format('truetype');
@@ -31,6 +33,21 @@
   --font-subtitle: 'Poppins', sans-serif;
 }
 
+/*
+ * Dark mode re-maps the same semantic tokens instead of introducing new
+ * dark: variants everywhere: every component already pairs bg-white/bg-cream
+ * with text-onyx (and bg-onyx with text-cream) as light/dark opposites, so
+ * swapping the underlying values here flips the whole site consistently.
+ * Gold stays the same in both themes — it reads fine on light and dark.
+ */
+.dark {
+  --color-white: #2b1d12;
+  --color-cream: #3a2818;
+  --color-onyx: #f0e6d6;
+  --color-muted: #b39c7d;
+  --color-muted-dark: #d9c7a8;
+}
+
 @layer base {
   * {
     border-color: var(--color-gold);
@@ -40,8 +57,25 @@
     scroll-behavior: smooth;
   }
 
+  /*
+   * Scoped to the big surface elements only (never `*`) — a blanket
+   * transition on every element overrides transition-property globally,
+   * which silently killed the MotionButton hover circle's width/transform
+   * animation (it relies on the browser's default transition-property: all
+   * plus its own duration-500 utility, and this rule was clobbering that).
+   */
+  body,
+  section,
+  header,
+  footer {
+    transition:
+      background-color 0.35s ease,
+      color 0.35s ease,
+      border-color 0.35s ease;
+  }
+
   body {
-    background-color: #ffffff;
+    background-color: var(--color-white, #ffffff);
     color: var(--color-onyx);
     font-family: var(--font-body);
   }

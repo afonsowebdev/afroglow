@@ -96,8 +96,8 @@ function StackCard({
 
 export function StackSpreadStage({
   images,
-  bgColor = '#FFFFFF',
-  textColor = '#1A1008',
+  bgColor = 'var(--color-white)',
+  textColor = 'var(--color-onyx)',
   scrollLength = 350,
   stackScale = 0.82,
   cardRadius = 10,
@@ -132,7 +132,11 @@ export function StackSpreadStage({
     >
       <div
         className="sticky top-0 flex h-screen w-full flex-col items-center justify-center overflow-hidden"
-        style={{ backgroundColor: bgColor, color: textColor }}
+        style={{
+          backgroundColor: bgColor,
+          color: textColor,
+          transition: 'background-color 0.35s ease, color 0.35s ease',
+        }}
       >
         {cards.map((image, i) => (
           <StackCard
@@ -165,15 +169,13 @@ export function StackSpreadStage({
 
         {showScrollHint && (
           <motion.div
-            className="absolute bottom-8 left-1/2 z-40 -translate-x-1/2"
+            className="absolute bottom-8 left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-1"
             style={{ opacity: hintOpacity }}
+            animate={shouldReduceMotion ? undefined : { y: [0, 8, 0] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <motion.i
-              className="bx bx-chevron-down text-3xl text-gold-deep"
-              aria-hidden="true"
-              animate={shouldReduceMotion ? undefined : { y: [0, 8, 0] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
-            />
+            <span className="font-body text-[0.65rem] uppercase tracking-[0.3em] text-gold-deep">Scroll</span>
+            <i className="bx bx-chevron-down text-3xl text-gold-deep" aria-hidden="true" />
           </motion.div>
         )}
       </div>

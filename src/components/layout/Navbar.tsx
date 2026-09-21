@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { MotionButton } from '@/components/ui/motion-button'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { instagramDmUrl, whatsappUrl } from '@/lib/site-config'
 
 const NAV_LINKS = [
@@ -114,6 +115,10 @@ export default function Navbar() {
           <SocialIcons className="hidden items-center gap-2 md:flex" />
 
           <div className="hidden md:block">
+            <ThemeToggle />
+          </div>
+
+          <div className="hidden md:block">
             <BookButton size="sm" />
           </div>
 
@@ -161,7 +166,10 @@ export default function Navbar() {
                 </li>
               ))}
             </ul>
-            <SocialIcons className="flex items-center gap-4" />
+            <div className="flex items-center gap-4">
+              <SocialIcons className="flex items-center gap-4" />
+              <ThemeToggle />
+            </div>
             <BookButton onClick={() => setOpen(false)} />
           </motion.div>
         )}

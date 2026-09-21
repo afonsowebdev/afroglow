@@ -14,8 +14,6 @@ export default function Hero() {
     <div id="top">
       <StackSpreadStage
         images={images}
-        bgColor="#FFFFFF"
-        textColor="#1A1008"
         scrollLength={350}
         stackScale={0.82}
         cardRadius={10}

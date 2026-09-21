@@ -6,9 +6,27 @@ const CIRCLE_BY_VARIANT = {
   secondary: 'bg-onyx',
 } as const
 
+// Icon circle sits inset by `p-1` on the track; on hover it slides from the
+// right edge to the left edge while the button's padding mirrors, so the
+// label appears to shift over to make room — matches the button's own
+// height/circle proportions rather than the reference's fixed pixel values.
 const SIZE = {
-  default: { button: 'h-14 w-56', circle: 'h-12 w-12', icon: 'left-4', text: 'text-sm ml-4' },
-  sm: { button: 'h-11 w-44', circle: 'h-9 w-9', icon: 'left-3', text: 'text-xs ml-3' },
+  default: {
+    button: 'h-14',
+    circle: 'h-12 w-12',
+    text: 'text-sm',
+    // `hover:`, not `group-hover:` — this padding lives on the `.group`
+    // element itself, and group-hover only ever matches descendants of it.
+    pad: 'ps-7 pe-16 hover:ps-16 hover:pe-7',
+    travel: 'group-hover:right-[calc(100%-52px)]',
+  },
+  sm: {
+    button: 'h-11',
+    circle: 'h-9 w-9',
+    text: 'text-xs',
+    pad: 'ps-5 pe-12 hover:ps-12 hover:pe-5',
+    travel: 'group-hover:right-[calc(100%-40px)]',
+  },
 } as const
 
 interface MotionButtonProps {
@@ -45,34 +63,26 @@ export function MotionButton({
       onClick={onClick}
       type={href ? undefined : 'button'}
       className={cn(
-        'group relative inline-flex shrink-0 cursor-pointer items-center rounded-full border border-gold/30 bg-white p-1 outline-none',
+        'group relative inline-flex w-fit shrink-0 cursor-pointer items-center overflow-hidden rounded-full border border-gold/30 bg-white p-1 outline-none transition-all duration-500 ease-out',
         s.button,
+        s.pad,
         className,
       )}
     >
-      <span
-        className={cn(
-          'block shrink-0 rounded-full duration-500 ease-out group-hover:w-full',
-          s.circle,
-          CIRCLE_BY_VARIANT[variant],
-        )}
-        aria-hidden="true"
-      />
-      <span
-        className={cn(
-          'absolute top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center text-cream duration-500 ease-out group-hover:translate-x-1.5',
-          s.icon,
-        )}
-      >
-        {icon ?? <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />}
+      <span className={cn('relative z-10 whitespace-nowrap font-body tracking-wide text-onyx', s.text)}>
+        {label}
       </span>
       <span
         className={cn(
-          'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap font-body tracking-wide text-onyx duration-500 ease-out group-hover:text-cream',
-          s.text,
+          'absolute right-1 top-1 flex items-center justify-center rounded-full text-cream transition-all duration-500 ease-out',
+          s.circle,
+          s.travel,
+          CIRCLE_BY_VARIANT[variant],
+          !icon && 'group-hover:rotate-45',
         )}
+        aria-hidden="true"
       >
-        {label}
+        {icon ?? <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />}
       </span>
     </Comp>
   )

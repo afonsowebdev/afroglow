@@ -64,7 +64,6 @@ export default function Gallery() {
           <MotionButton
             label="Ver no Instagram"
             variant="primary"
-            className="w-60"
             icon={<i className="bx bxl-instagram text-lg" aria-hidden="true" />}
             href={instagramDmUrl()}
             target="_blank"

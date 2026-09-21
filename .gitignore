@@ -8,3 +8,5 @@ dist-ssr
 !.env.example
 server/node_modules
 server/dist
+.claude/
+teste.txt
