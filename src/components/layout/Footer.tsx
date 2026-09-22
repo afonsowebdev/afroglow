@@ -25,7 +25,7 @@ export default function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="relative m-4 overflow-hidden rounded-3xl bg-cream sm:m-8">
+    <footer className="relative overflow-hidden bg-cream">
       <FooterBackgroundGradient />
 
       <div className="relative z-10 mx-auto max-w-6xl p-8 sm:p-14">
