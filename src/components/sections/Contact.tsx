@@ -8,7 +8,10 @@ const PLACEHOLDER_IMAGES: StreamImage[] = Array.from({ length: 6 }, (_, index) =
 
 export default function Contact() {
   return (
-    <section id="contacto" className="relative overflow-hidden bg-white px-5 py-24 sm:px-8 md:py-32">
+    <section
+      id="contacto"
+      className="relative flex min-h-[640px] items-center overflow-hidden bg-white px-5 py-32 sm:min-h-[760px] sm:px-8 sm:py-40 md:py-48"
+    >
       <ImageStreamHero images={PLACEHOLDER_IMAGES} className="absolute inset-0" />
 
       <div className="relative z-10 mx-auto flex max-w-2xl flex-col items-center text-center">
