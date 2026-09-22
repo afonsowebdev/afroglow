@@ -35,18 +35,19 @@ model AvailabilitySlot {
   startsAt  DateTime   @unique
   status    SlotStatus @default(OPEN)
   createdAt DateTime   @default(now())
-  booking   Booking?
+  bookings  Booking[]
 }
 
 enum BookingStatus {
   PENDING
   ACCEPTED
   REJECTED
+  CANCELLED
 }
 
 model Booking {
   id            String           @id @default(cuid())
-  slotId        String           @unique
+  slotId        String
   slot          AvailabilitySlot @relation(fields: [slotId], references: [id])
   serviceId     String
   service       Service          @relation(fields: [serviceId], references: [id])

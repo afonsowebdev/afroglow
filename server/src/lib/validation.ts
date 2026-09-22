@@ -9,6 +9,17 @@ export const createSlotSchema = z.object({
   startsAt: z.string().datetime(),
 })
 
+export const createSlotsBatchSchema = z.object({
+  startsAtList: z.array(z.string().datetime()).min(1).max(50),
+})
+
+export const updateServiceSchema = z.object({
+  name: z.string().trim().min(1).max(80).optional(),
+  description: z.string().trim().min(1).max(300).optional(),
+  durationLabel: z.string().trim().min(1).max(40).optional(),
+  priceCents: z.number().int().min(0).max(100000).optional(),
+})
+
 export const createBookingSchema = z.object({
   slotId: z.string().min(1),
   serviceId: z.string().min(1),

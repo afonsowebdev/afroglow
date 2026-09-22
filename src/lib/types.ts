@@ -16,7 +16,7 @@ export interface AvailabilitySlot {
   createdAt: string
 }
 
-export type BookingStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED'
+export type BookingStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED'
 
 export interface Booking {
   id: string

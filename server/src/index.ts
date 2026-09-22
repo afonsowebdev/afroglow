@@ -4,7 +4,7 @@ import express from 'express'
 import { adminAvailabilityRouter, availabilityRouter } from './routes/availability.js'
 import { authRouter } from './routes/auth.js'
 import { adminBookingsRouter, bookingsRouter } from './routes/bookings.js'
-import { servicesRouter } from './routes/services.js'
+import { adminServicesRouter, servicesRouter } from './routes/services.js'
 
 const app = express()
 
@@ -16,6 +16,7 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }))
 
 app.use('/api/auth', authRouter)
 app.use('/api/services', servicesRouter)
+app.use('/api/admin/services', adminServicesRouter)
 app.use('/api/availability', availabilityRouter)
 app.use('/api/admin/availability', adminAvailabilityRouter)
 app.use('/api/bookings', bookingsRouter)

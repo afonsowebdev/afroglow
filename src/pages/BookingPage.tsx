@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
+import { MotionButton } from '@/components/ui/motion-button'
 import { api, ApiError } from '@/lib/api'
 import { formatPrice, type AvailabilitySlot, type Service } from '@/lib/types'
 
@@ -24,8 +24,18 @@ function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString('pt-PT', { timeZone: LISBON_TZ, hour: '2-digit', minute: '2-digit' })
 }
 
+function StepHeading({ number, children }: { number: string; children: ReactNode }) {
+  return (
+    <div className="flex items-baseline gap-3">
+      <span className="font-logo text-sm text-gold-deep">{number}</span>
+      <h2 className="font-subtitle text-xl text-onyx sm:text-2xl">{children}</h2>
+    </div>
+  )
+}
+
 export default function BookingPage() {
   const [searchParams] = useSearchParams()
+  const [scrolled, setScrolled] = useState(false)
   const [services, setServices] = useState<Service[]>([])
   const [slots, setSlots] = useState<AvailabilitySlot[]>([])
   const [loading, setLoading] = useState(true)
@@ -40,6 +50,13 @@ export default function BookingPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   useEffect(() => {
     async function load() {
@@ -104,59 +121,71 @@ export default function BookingPage() {
     }
   }
 
+  const pillClasses = `flex items-center rounded-full bg-white/95 shadow-lg shadow-black/10 backdrop-blur transition-shadow duration-500 ${
+    scrolled ? 'shadow-xl shadow-black/15' : ''
+  }`
+
   return (
     <div className="min-h-screen bg-white">
-      <header className="border-b border-gold/20 px-5 py-5 sm:px-8">
-        <Link to="/" className="font-logo text-2xl leading-none text-gold-deep">
-          AfroGlow
-        </Link>
-      </header>
+      <div className="fixed inset-x-0 top-0 z-50 mt-4 px-4 sm:mt-6 sm:px-6">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+          <Link to="/" className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
+            <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AfroGlow</span>
+          </Link>
 
-      <main className="mx-auto max-w-3xl px-5 py-16 sm:px-8">
-        <h1 className="font-display text-4xl italic sm:text-5xl">Marcar sessão</h1>
-        <p className="mt-3 font-body text-muted-dark">
+          <Link
+            to="/"
+            className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-deep sm:px-6 ${pillClasses}`}
+          >
+            <span>Sair</span>
+            <i className="bx bx-x text-xl" aria-hidden="true" />
+          </Link>
+        </div>
+      </div>
+
+      <main className="mx-auto max-w-3xl px-5 pb-24 pt-28 sm:px-8 sm:pt-32">
+        <h1 className="font-logo text-4xl text-onyx sm:text-5xl">Marcar sessão</h1>
+        <p className="mt-4 font-subtitle text-lg font-light text-muted-dark">
           Escolhe uma data, o tipo de trança, e confirma os teus dados.
         </p>
 
         {success ? (
-          <div className="mt-12 border border-gold/30 bg-cream px-6 py-10 text-center">
+          <div className="mt-14 flex flex-col items-center rounded-3xl border border-gold/20 bg-cream px-6 py-14 text-center">
             <i className="bx bx-check-circle text-4xl text-gold-deep" aria-hidden="true" />
-            <h2 className="mt-4 font-display text-2xl italic">Pedido enviado!</h2>
-            <p className="mt-2 font-body text-muted-dark">
+            <h2 className="mt-4 font-logo text-3xl text-onyx">Pedido enviado!</h2>
+            <p className="mt-3 max-w-sm font-subtitle text-base font-light text-muted-dark">
               A tua marcação foi enviada e está pendente de confirmação. Entraremos em contacto em breve.
             </p>
             <div className="mt-8">
-              <Link to="/" className="font-body text-sm tracking-wide text-gold-deep hover:text-onyx">
-                &larr; Voltar à página inicial
-              </Link>
+              <MotionButton label="Voltar ao início" href="/" size="sm" />
             </div>
           </div>
         ) : loading ? (
-          <p className="mt-12 font-body text-muted-dark">A carregar horários disponíveis...</p>
+          <p className="mt-14 font-subtitle text-muted-dark">A carregar horários disponíveis...</p>
         ) : loadError ? (
-          <p className="mt-12 font-body text-red-700">{loadError}</p>
+          <p className="mt-14 font-subtitle text-red-700">{loadError}</p>
         ) : (
-          <div className="mt-12 flex flex-col gap-12">
+          <div className="mt-14 flex flex-col gap-14">
             <section>
-              <h2 className="font-display text-2xl italic">1. Escolhe uma data e hora</h2>
+              <StepHeading number="01">Escolhe uma data e hora</StepHeading>
               {slotsByDate.length === 0 ? (
-                <p className="mt-4 font-body text-sm text-muted-dark">
+                <p className="mt-5 font-subtitle text-sm font-light text-muted-dark">
                   De momento não há horários disponíveis. Contacta-nos diretamente pelo Instagram ou WhatsApp.
                 </p>
               ) : (
-                <div className="mt-5 flex flex-col gap-5">
+                <div className="mt-6 flex flex-col gap-6">
                   {slotsByDate.map(([key, daySlots]) => (
                     <div key={key}>
-                      <p className="font-ui text-xs uppercase tracking-wide text-muted-dark">
+                      <p className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
                         {formatDateHeading(daySlots[0].startsAt)}
                       </p>
-                      <div className="mt-2 flex flex-wrap gap-2">
+                      <div className="mt-3 flex flex-wrap gap-2">
                         {daySlots.map((slot) => (
                           <button
                             key={slot.id}
                             type="button"
                             onClick={() => setSelectedSlotId(slot.id)}
-                            className={`border px-4 py-2 font-body text-sm transition-colors ${
+                            className={`rounded-full border px-5 py-2 font-subtitle text-sm transition-colors duration-300 ${
                               selectedSlotId === slot.id
                                 ? 'border-gold-deep bg-gold-deep text-cream'
                                 : 'border-gold/30 text-onyx hover:border-gold-deep'
@@ -173,82 +202,86 @@ export default function BookingPage() {
             </section>
 
             <section>
-              <h2 className="font-display text-2xl italic">2. Escolhe o tipo de trança</h2>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <StepHeading number="02">Escolhe o tipo de trança</StepHeading>
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 {services.map((service) => (
                   <button
                     key={service.id}
                     type="button"
                     onClick={() => setSelectedServiceId(service.id)}
-                    className={`flex flex-col border p-4 text-left transition-colors ${
+                    className={`flex flex-col rounded-2xl border p-5 text-left transition-all duration-300 ${
                       selectedServiceId === service.id
                         ? 'border-gold-deep bg-cream'
-                        : 'border-gold/30 hover:border-gold-deep'
+                        : 'border-gold/20 hover:border-gold-deep'
                     }`}
                   >
-                    <span className="font-display text-lg">{service.name}</span>
-                    <span className="mt-1 font-body text-xs text-muted-dark">{service.durationLabel}</span>
-                    <span className="mt-2 font-display text-xl font-bold text-gold-deep">
-                      {formatPrice(service.priceCents)}
+                    <span className="font-subtitle text-lg text-onyx">{service.name}</span>
+                    <span className="mt-1 font-logo text-sm tracking-wide text-muted-dark">
+                      {service.durationLabel}
                     </span>
+                    <span className="mt-3 font-logo text-2xl text-gold-deep">{formatPrice(service.priceCents)}</span>
                   </button>
                 ))}
               </div>
             </section>
 
             {selectedService && selectedSlot && (
-              <section className="border border-gold/30 bg-cream px-5 py-4">
-                <p className="font-body text-sm text-onyx">
-                  <strong>{selectedService.name}</strong> · {formatDateHeading(selectedSlot.startsAt)} às{' '}
-                  {formatTime(selectedSlot.startsAt)}
+              <section className="rounded-2xl border border-gold/20 bg-cream px-6 py-5">
+                <p className="font-subtitle text-sm text-onyx">
+                  <strong className="font-medium">{selectedService.name}</strong> · {formatDateHeading(selectedSlot.startsAt)}{' '}
+                  às {formatTime(selectedSlot.startsAt)}
                 </p>
-                <p className="mt-1 font-display text-2xl font-bold text-gold-deep">
-                  {formatPrice(selectedService.priceCents)}
-                </p>
+                <p className="mt-1 font-logo text-2xl text-gold-deep">{formatPrice(selectedService.priceCents)}</p>
               </section>
             )}
 
             <section>
-              <h2 className="font-display text-2xl italic">3. Os teus dados</h2>
-              <div className="mt-5 flex flex-col gap-4">
+              <StepHeading number="03">Os teus dados</StepHeading>
+              <div className="mt-6 flex flex-col gap-4">
                 <label className="flex flex-col gap-1.5">
-                  <span className="font-ui text-xs uppercase tracking-wide text-muted-dark">Nome</span>
+                  <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Nome</span>
                   <input
                     type="text"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="border border-gold/30 bg-white px-4 py-2.5 font-body text-onyx outline-none focus-visible:border-gold-deep"
+                    className="rounded-xl border border-gold/30 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-gold-deep"
                     placeholder="O teu nome"
                   />
                 </label>
                 <label className="flex flex-col gap-1.5">
-                  <span className="font-ui text-xs uppercase tracking-wide text-muted-dark">Telemóvel</span>
+                  <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Telemóvel</span>
                   <input
                     type="tel"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="border border-gold/30 bg-white px-4 py-2.5 font-body text-onyx outline-none focus-visible:border-gold-deep"
+                    className="rounded-xl border border-gold/30 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-gold-deep"
                     placeholder="912 345 678"
                   />
                 </label>
                 <label className="flex flex-col gap-1.5">
-                  <span className="font-ui text-xs uppercase tracking-wide text-muted-dark">Notas (opcional)</span>
+                  <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+                    Notas (opcional)
+                  </span>
                   <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     rows={3}
-                    className="border border-gold/30 bg-white px-4 py-2.5 font-body text-onyx outline-none focus-visible:border-gold-deep"
+                    className="rounded-xl border border-gold/30 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-gold-deep"
                     placeholder="Alguma preferência ou informação extra"
                   />
                 </label>
               </div>
             </section>
 
-            {submitError && <p className="font-body text-sm text-red-700">{submitError}</p>}
+            {submitError && <p className="font-subtitle text-sm text-red-700">{submitError}</p>}
 
-            <Button disabled={!canSubmit || submitting} onClick={handleSubmit} className="w-full justify-center">
-              {submitting ? 'A enviar...' : 'Confirmar Marcação'}
-            </Button>
+            <div className="flex justify-center sm:justify-start">
+              <MotionButton
+                label={submitting ? 'A enviar...' : 'Confirmar marcação'}
+                disabled={!canSubmit || submitting}
+                onClick={handleSubmit}
+              />
+            </div>
           </div>
         )}
       </main>

@@ -15,3 +15,11 @@ export function whatsappUrl(message: string) {
   const encoded = encodeURIComponent(message)
   return `https://wa.me/${siteConfig.whatsappNumber}?text=${encoded}`
 }
+
+/** Builds a wa.me link from a customer-entered phone number (assumes PT if no country code was typed). */
+export function customerWhatsappUrl(rawPhone: string, message: string) {
+  const digits = rawPhone.replace(/\D/g, '')
+  const withCountryCode = digits.startsWith('351') ? digits : `351${digits}`
+  const encoded = encodeURIComponent(message)
+  return `https://wa.me/${withCountryCode}?text=${encoded}`
+}

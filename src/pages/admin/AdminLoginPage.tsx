@@ -1,6 +1,6 @@
 import { type FormEvent, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
+import { Link, useNavigate } from 'react-router-dom'
+import { MotionButton } from '@/components/ui/motion-button'
 import { api, ApiError } from '@/lib/api'
 
 export default function AdminLoginPage() {
@@ -25,35 +25,39 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-cream px-5">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm border border-gold/30 bg-white p-8">
-        <h1 className="font-display text-3xl italic">Área de Admin</h1>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-cream px-5 py-16">
+      <Link to="/" className="mb-8 font-logo text-3xl leading-none tracking-wide text-gold-deep">
+        AfroGlow
+      </Link>
+
+      <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-3xl border border-gold/20 bg-white p-8">
+        <h1 className="font-logo text-2xl text-onyx">Área de Admin</h1>
         <div className="mt-6 flex flex-col gap-4">
           <label className="flex flex-col gap-1.5">
-            <span className="font-ui text-xs uppercase tracking-wide text-muted-dark">Email</span>
+            <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Email</span>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="border border-gold/30 px-4 py-2.5 font-body text-onyx outline-none focus-visible:border-gold-deep"
+              className="rounded-xl border border-gold/30 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-gold-deep"
             />
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="font-ui text-xs uppercase tracking-wide text-muted-dark">Password</span>
+            <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Password</span>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="border border-gold/30 px-4 py-2.5 font-body text-onyx outline-none focus-visible:border-gold-deep"
+              className="rounded-xl border border-gold/30 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-gold-deep"
             />
           </label>
         </div>
-        {error && <p className="mt-4 font-body text-sm text-red-700">{error}</p>}
-        <Button type="submit" disabled={loading} className="mt-6 w-full justify-center">
-          {loading ? 'A entrar...' : 'Entrar'}
-        </Button>
+        {error && <p className="mt-4 font-subtitle text-sm text-red-700">{error}</p>}
+        <div className="mt-6 flex justify-center">
+          <MotionButton label={loading ? 'A entrar...' : 'Entrar'} disabled={loading} type="submit" className="w-full" />
+        </div>
       </form>
     </div>
   )

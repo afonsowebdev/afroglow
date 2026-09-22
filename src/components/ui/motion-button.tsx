@@ -38,6 +38,8 @@ interface MotionButtonProps {
   href?: string
   target?: string
   rel?: string
+  disabled?: boolean
+  type?: 'button' | 'submit'
   onClick?: MouseEventHandler<HTMLElement>
 }
 
@@ -50,6 +52,8 @@ export function MotionButton({
   href,
   target,
   rel,
+  disabled,
+  type = 'button',
   onClick,
 }: MotionButtonProps) {
   const Comp = href ? 'a' : 'button'
@@ -61,11 +65,14 @@ export function MotionButton({
       target={target}
       rel={rel}
       onClick={onClick}
-      type={href ? undefined : 'button'}
+      disabled={href ? undefined : disabled}
+      aria-disabled={href ? disabled : undefined}
+      type={href ? undefined : type}
       className={cn(
         'group relative inline-flex w-fit shrink-0 cursor-pointer items-center overflow-hidden rounded-full border border-gold/30 bg-white p-1 outline-none transition-all duration-500 ease-out',
         s.button,
         s.pad,
+        disabled && 'pointer-events-none opacity-50',
         className,
       )}
     >
@@ -78,7 +85,7 @@ export function MotionButton({
           s.circle,
           s.travel,
           CIRCLE_BY_VARIANT[variant],
-          !icon && 'group-hover:rotate-45',
+          !icon && 'group-hover:-rotate-45',
         )}
         aria-hidden="true"
       >

@@ -73,18 +73,23 @@ adminBookingsRouter.get('/', async (_req, res) => {
 })
 
 adminBookingsRouter.post('/:id/accept', async (req, res) => {
-  await resolveBooking(req.params.id, 'ACCEPTED', 'BOOKED', res)
+  await resolveBooking(req.params.id, 'ACCEPTED', 'BOOKED', res, ['PENDING'])
 })
 
 adminBookingsRouter.post('/:id/reject', async (req, res) => {
-  await resolveBooking(req.params.id, 'REJECTED', 'OPEN', res)
+  await resolveBooking(req.params.id, 'REJECTED', 'OPEN', res, ['PENDING'])
+})
+
+adminBookingsRouter.post('/:id/cancel', async (req, res) => {
+  await resolveBooking(req.params.id, 'CANCELLED', 'OPEN', res, ['ACCEPTED'])
 })
 
 async function resolveBooking(
   bookingId: string,
-  bookingStatus: 'ACCEPTED' | 'REJECTED',
+  bookingStatus: 'ACCEPTED' | 'REJECTED' | 'CANCELLED',
   slotStatus: 'BOOKED' | 'OPEN',
   res: import('express').Response,
+  allowedFrom: Array<'PENDING' | 'ACCEPTED'>,
 ) {
   try {
     const booking = await prisma.booking.findUnique({ where: { id: bookingId } })
@@ -92,7 +97,7 @@ async function resolveBooking(
       res.status(404).json({ error: 'Marcação não encontrada.' })
       return
     }
-    if (booking.status !== 'PENDING') {
+    if (!allowedFrom.includes(booking.status as 'PENDING' | 'ACCEPTED')) {
       res.status(400).json({ error: 'Esta marcação já foi respondida.' })
       return
     }

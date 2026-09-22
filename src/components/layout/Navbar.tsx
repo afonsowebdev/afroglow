@@ -157,20 +157,52 @@ export default function Navbar() {
             transition={{ duration: 0.3 }}
             className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-10 bg-white md:hidden"
           >
-            <ul className="flex flex-col items-center gap-8 font-body text-2xl">
-              {NAV_LINKS.map((link) => (
-                <li key={link.href}>
-                  <a href={link.href} onClick={() => setOpen(false)} className="text-onyx hover:text-gold-deep">
-                    {link.label}
-                  </a>
-                </li>
-              ))}
+            <ul className="flex flex-col items-center gap-3">
+              {NAV_LINKS.map((link, index) => {
+                const isActive = activeSection === link.href.slice(1)
+                return (
+                  <motion.li
+                    key={link.href}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.08 + index * 0.05, ease: 'easeOut' }}
+                  >
+                    <a
+                      href={link.href}
+                      onClick={() => setOpen(false)}
+                      className={`flex items-baseline gap-3 px-2 py-1.5 transition-colors duration-300 ${
+                        isActive ? 'text-onyx' : 'text-onyx/50'
+                      }`}
+                    >
+                      <span
+                        className={`font-logo text-sm transition-colors duration-300 ${
+                          isActive ? 'text-gold-deep' : 'text-onyx/30'
+                        }`}
+                      >
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span className="font-subtitle text-2xl">{link.label}</span>
+                    </a>
+                  </motion.li>
+                )
+              })}
             </ul>
-            <div className="flex items-center gap-4">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.08 + NAV_LINKS.length * 0.05, ease: 'easeOut' }}
+              className="flex items-center gap-4"
+            >
               <SocialIcons className="flex items-center gap-4" />
               <ThemeToggle />
-            </div>
-            <BookButton onClick={() => setOpen(false)} />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.13 + NAV_LINKS.length * 0.05, ease: 'easeOut' }}
+            >
+              <BookButton onClick={() => setOpen(false)} />
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
