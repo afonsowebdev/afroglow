@@ -23,8 +23,8 @@ interface CardTarget {
   opacity: number
 }
 
-const CARD_WIDTH = 60
-const CARD_HEIGHT = 85
+const CARD_WIDTH = 92
+const CARD_HEIGHT = 130
 const TOTAL_CARDS = 12
 const LOOP_MS = 22000
 
@@ -165,14 +165,14 @@ export function ScrollMorphHero({ className }: { className?: string }) {
           if (phase === 'scatter') {
             target = scatterPositions[i]
           } else if (phase === 'line') {
-            const spacing = 70
+            const spacing = 105
             const totalWidth = TOTAL_CARDS * spacing
             target = { x: i * spacing - totalWidth / 2, y: 0, rotation: 0, scale: 1, opacity: 1 }
           } else {
             const isMobile = containerSize.width < 768
             const minDimension = Math.min(containerSize.width, containerSize.height)
 
-            const circleRadius = Math.min(minDimension * 0.35, 260)
+            const circleRadius = Math.min(minDimension * 0.35, 300)
             const circleAngle = (i / TOTAL_CARDS) * 360
             const circleRad = (circleAngle * Math.PI) / 180
             const circlePos = {
@@ -197,7 +197,7 @@ export function ScrollMorphHero({ className }: { className?: string }) {
               x: Math.cos(arcRad) * arcRadius + parallaxValue,
               y: Math.sin(arcRad) * arcRadius + arcCenterY,
               rotation: currentArcAngle + 90,
-              scale: isMobile ? 1.3 : 1.6,
+              scale: isMobile ? 1.4 : 1.8,
             }
 
             target = {
