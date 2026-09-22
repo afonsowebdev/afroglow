@@ -490,14 +490,14 @@ export default function AdminDashboardPage() {
                       onClick={() => handleBookingDecision(booking.id, 'accept')}
                       icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
                     />
-                    <Button
+                    <MotionButton
+                      label="Recusar"
                       size="sm"
-                      variant="destructive"
+                      variant="danger"
                       disabled={busyId === booking.id}
                       onClick={() => handleBookingDecision(booking.id, 'reject')}
-                    >
-                      Recusar
-                    </Button>
+                      icon={<i className="bx bx-x text-lg" aria-hidden="true" />}
+                    />
                   </div>
                 </div>
               ))}

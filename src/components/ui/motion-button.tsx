@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 const CIRCLE_BY_VARIANT = {
   primary: 'bg-gold-deep',
   secondary: 'bg-onyx',
+  danger: 'bg-red-700',
 } as const
 
 // Icon circle sits inset by `p-1` on the track; on hover it slides from the
