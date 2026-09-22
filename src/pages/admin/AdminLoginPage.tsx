@@ -1,7 +1,7 @@
 import { type FormEvent, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Gallery } from '@/components/ui/gallery'
 import { MotionButton } from '@/components/ui/motion-button'
+import { ScrollMorphHero } from '@/components/ui/scroll-morph-hero'
 import { api, ApiError } from '@/lib/api'
 
 export default function AdminLoginPage() {
@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-cream px-5 py-16">
-      <Gallery className="absolute inset-0" />
+      <ScrollMorphHero className="absolute inset-0" />
 
       <Link to="/" className="relative z-10 mb-8 font-logo text-3xl leading-none tracking-wide text-gold-deep">
         AfroGlow
