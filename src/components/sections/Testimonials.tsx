@@ -31,8 +31,8 @@ const TESTIMONIALS: Testimonial[] = [
 
 export default function Testimonials() {
   return (
-    <section id="testemunhos" className="bg-white px-5 py-24 sm:px-8 md:py-32">
-      <div className="mx-auto max-w-6xl">
+    <section id="testemunhos" className="flex min-h-screen items-center bg-white px-5 py-24 sm:px-8 md:py-32">
+      <div className="mx-auto w-full max-w-6xl">
         <h2 className="text-center font-logo text-4xl sm:text-5xl">O que dizem as nossas clientes</h2>
 
         <div className="mt-20 sm:mt-24">
