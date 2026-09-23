@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { MotionButton } from '@/components/ui/motion-button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { instagramDmUrl, whatsappUrl } from '@/lib/site-config'
@@ -195,6 +196,20 @@ export default function Navbar() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.08 + NAV_LINKS.length * 0.05, ease: 'easeOut' }}
+            >
+              <Link
+                to="/ceo"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 px-2 py-1.5 font-subtitle text-sm uppercase tracking-wide text-gold-deep transition-colors duration-300 hover:text-onyx"
+              >
+                Conhecer a CEO
+                <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+              </Link>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.13 + NAV_LINKS.length * 0.05, ease: 'easeOut' }}
               className="flex items-center gap-4"
             >
               <SocialIcons className="flex items-center gap-4" />
@@ -203,7 +218,7 @@ export default function Navbar() {
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.13 + NAV_LINKS.length * 0.05, ease: 'easeOut' }}
+              transition={{ duration: 0.4, delay: 0.18 + NAV_LINKS.length * 0.05, ease: 'easeOut' }}
             >
               <BookButton onClick={() => setOpen(false)} />
             </motion.div>
