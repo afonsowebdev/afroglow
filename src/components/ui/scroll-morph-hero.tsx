@@ -28,9 +28,6 @@ const CARD_HEIGHT = 130
 const TOTAL_CARDS = 12
 const LOOP_MS = 22000
 
-const PLACEHOLDER_TILE =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='340'%3E%3Crect width='240' height='340' fill='%23f5efdf'/%3E%3Cg fill='none' stroke='%231a1008' stroke-opacity='0.25' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='55' y='95' width='130' height='95' rx='10'/%3E%3Ccircle cx='95' cy='130' r='11'/%3E%3Cpath d='M55 165l35-30 30 24 35-40 30 34'/%3E%3C/g%3E%3C/svg%3E"
-
 const lerp = (start: number, end: number, t: number) => start * (1 - t) + end * t
 
 function FlipCard({ target }: { target: CardTarget }) {
@@ -48,10 +45,10 @@ function FlipCard({ target }: { target: CardTarget }) {
         whileHover={{ rotateY: 180 }}
       >
         <div
-          className="absolute inset-0 h-full w-full overflow-hidden rounded-xl bg-cream shadow-lg"
+          className="absolute inset-0 flex h-full w-full items-center justify-center overflow-hidden rounded-xl border border-gold/20 bg-cream shadow-lg"
           style={{ backfaceVisibility: 'hidden' }}
         >
-          <img src={PLACEHOLDER_TILE} alt="" aria-hidden="true" className="h-full w-full object-cover" />
+          <span className="font-logo text-xs uppercase tracking-[0.2em] text-onyx/30">AFROGLOW</span>
         </div>
 
         <div
