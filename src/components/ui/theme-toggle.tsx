@@ -10,7 +10,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       type="button"
       onClick={toggleTheme}
       aria-label={isDark ? 'Ativar tema claro' : 'Ativar tema escuro'}
-      className={`relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-muted/50 text-muted-dark transition-colors duration-300 hover:border-muted-dark hover:bg-muted-dark hover:text-cream ${className ?? ''}`}
+      className={`relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-onyx/20 text-onyx/60 transition-colors duration-300 hover:text-onyx ${className ?? ''}`}
     >
       <AnimatePresence initial={false}>
         <motion.span
