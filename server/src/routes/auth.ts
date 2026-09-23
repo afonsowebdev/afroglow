@@ -31,7 +31,7 @@ authRouter.post('/login', async (req, res) => {
 })
 
 authRouter.post('/logout', (_req, res) => {
-  res.clearCookie(SESSION_COOKIE)
+  res.clearCookie(SESSION_COOKIE, sessionCookieOptions())
   res.status(204).end()
 })
 

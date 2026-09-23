@@ -24,10 +24,16 @@ export function signSession(adminId: string) {
 }
 
 export function sessionCookieOptions() {
+  // In production the frontend (Vercel) and backend live on different
+  // domains, so the session cookie must be sent cross-site — that requires
+  // SameSite=None, which browsers only honor when the cookie is Secure too.
+  // Locally both run on http://localhost, which is same-site, so Lax (and
+  // no Secure, since there's no HTTPS in dev) works there instead.
+  const isProduction = process.env.NODE_ENV === 'production'
   return {
     httpOnly: true as const,
-    sameSite: 'lax' as const,
-    secure: process.env.NODE_ENV === 'production',
+    sameSite: isProduction ? ('none' as const) : ('lax' as const),
+    secure: isProduction,
     maxAge: SESSION_MAX_AGE_MS,
   }
 }
