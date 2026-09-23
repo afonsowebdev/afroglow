@@ -1,7 +1,6 @@
 import bcrypt from 'bcryptjs'
 import type { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import { prisma } from './prisma.js'
 
 const rawSecret = process.env.JWT_SECRET
 if (!rawSecret) {
@@ -41,23 +40,7 @@ declare global {
   }
 }
 
-// TEMPORARY: set SKIP_ADMIN_AUTH=true in server/.env to bypass login entirely while
-// developing. This removes ALL protection from /api/admin/* — never leave this on
-// outside your own machine. Set it back to false (or delete the line) when done.
 export async function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  if (process.env.SKIP_ADMIN_AUTH === 'true') {
-    try {
-      const admin = await prisma.admin.findFirst()
-      if (admin) {
-        req.adminId = admin.id
-        next()
-        return
-      }
-    } catch (error) {
-      console.error('[auth] SKIP_ADMIN_AUTH lookup failed:', error)
-    }
-  }
-
   const token = req.cookies?.[SESSION_COOKIE]
   if (!token) {
     res.status(401).json({ error: 'Não autenticado.' })
