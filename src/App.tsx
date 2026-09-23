@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import LandingPage from '@/pages/LandingPage'
 import BookingPage from '@/pages/BookingPage'
+import CeoPage from '@/pages/CeoPage'
 
 const AdminLoginPage = lazy(() => import('@/pages/admin/AdminLoginPage'))
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage'))
@@ -11,6 +12,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/agendar" element={<BookingPage />} />
+      <Route path="/ceo" element={<CeoPage />} />
       <Route
         path="/admin/login"
         element={

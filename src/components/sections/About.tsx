@@ -1,4 +1,5 @@
 import { motion } from 'motion/react'
+import { Link } from 'react-router-dom'
 
 const STATS = [
   { value: '2020', label: 'Ano de fundação' },
@@ -38,6 +39,14 @@ export default function About() {
             penteado é feito à mão, com técnica apurada e respeito pela identidade de quem o usa —
             uma prática que atravessa gerações e continua viva em cada fio entrançado.
           </p>
+
+          <Link
+            to="/ceo"
+            className="mt-6 inline-flex items-center gap-2 font-subtitle text-sm text-gold-deep transition-colors duration-300 hover:text-onyx"
+          >
+            Conhecer a nossa CEO
+            <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+          </Link>
         </motion.div>
       </div>
 
