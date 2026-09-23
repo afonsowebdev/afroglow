@@ -120,7 +120,7 @@ export default function Navbar() {
             <ThemeToggle />
           </div>
 
-          <div className="hidden md:block">
+          <div className={`hidden p-1.5 md:block ${pillBg}`}>
             <BookButton size="sm" />
           </div>
 
