@@ -1,5 +1,4 @@
 import { motion } from 'motion/react'
-import { ScrollMorphHero } from '@/components/ui/scroll-morph-hero'
 
 const STATS = [
   { value: '2020', label: 'Ano de fundação' },
@@ -10,7 +9,16 @@ const STATS = [
 export default function About() {
   return (
     <section id="sobre" className="relative flex min-h-screen items-center overflow-hidden bg-white">
-      <ScrollMorphHero className="absolute inset-0" />
+      <motion.span
+        aria-hidden="true"
+        initial={{ opacity: 0, scale: 0.94 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+        className="pointer-events-none absolute inset-0 flex select-none items-center justify-center whitespace-nowrap font-logo text-[20vw] leading-none tracking-tight text-onyx/5"
+      >
+        AFROGLOW
+      </motion.span>
 
       <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center px-5 pt-28 pb-36 text-center sm:px-8 sm:pt-32 sm:pb-44">
         <motion.div
