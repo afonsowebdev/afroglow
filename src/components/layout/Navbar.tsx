@@ -81,19 +81,21 @@ export default function Navbar() {
     return () => observer.disconnect()
   }, [])
 
-  const pillClasses = `flex items-center rounded-full bg-white/95 shadow-lg shadow-black/10 backdrop-blur transition-shadow duration-500 ${
+  const pillBg = `rounded-full bg-white/95 shadow-lg shadow-black/10 backdrop-blur transition-shadow duration-500 ${
     scrolled ? 'shadow-xl shadow-black/15' : ''
   }`
 
   return (
     <div className="fixed inset-x-0 top-0 z-50 mt-4 px-4 sm:mt-6 sm:px-6">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-        <a href="#top" className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
+        <a href="#top" className={`flex items-center px-5 py-3 sm:px-6 ${pillBg}`}>
           <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AfroGlow</span>
         </a>
 
-        <div className={`gap-4 px-4 py-2 sm:px-6 sm:py-3 ${pillClasses}`}>
-          <ul className="hidden items-center gap-1 font-body text-sm text-onyx md:flex">
+        <div className="flex items-center gap-4">
+          <ul
+            className={`hidden items-center gap-1 px-4 py-2 font-body text-sm text-onyx sm:px-6 sm:py-3 md:flex ${pillBg}`}
+          >
             {NAV_LINKS.map((link) => {
               const isActive = activeSection === link.href.slice(1)
               return (
@@ -113,7 +115,7 @@ export default function Navbar() {
             })}
           </ul>
 
-          <div className="hidden items-center gap-2 md:flex">
+          <div className={`hidden items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 md:flex ${pillBg}`}>
             <SocialIcons className="flex items-center gap-2" />
             <ThemeToggle />
           </div>
@@ -122,29 +124,31 @@ export default function Navbar() {
             <BookButton size="sm" />
           </div>
 
-          <button
-            type="button"
-            aria-label={open ? 'Fechar menu' : 'Abrir menu'}
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-            className="relative flex h-10 w-10 flex-col items-center justify-center gap-[6px] md:hidden"
-          >
-            <motion.span
-              className="h-[1.5px] w-6 bg-onyx"
-              animate={{ rotate: open ? 45 : 0, y: open ? 7.5 : 0 }}
-              transition={{ duration: 0.25 }}
-            />
-            <motion.span
-              className="h-[1.5px] w-6 bg-onyx"
-              animate={{ opacity: open ? 0 : 1 }}
-              transition={{ duration: 0.2 }}
-            />
-            <motion.span
-              className="h-[1.5px] w-6 bg-onyx"
-              animate={{ rotate: open ? -45 : 0, y: open ? -7.5 : 0 }}
-              transition={{ duration: 0.25 }}
-            />
-          </button>
+          <div className={`flex items-center px-4 py-2 sm:px-6 sm:py-3 md:hidden ${pillBg}`}>
+            <button
+              type="button"
+              aria-label={open ? 'Fechar menu' : 'Abrir menu'}
+              aria-expanded={open}
+              onClick={() => setOpen((v) => !v)}
+              className="relative flex h-10 w-10 flex-col items-center justify-center gap-[6px]"
+            >
+              <motion.span
+                className="h-[1.5px] w-6 bg-onyx"
+                animate={{ rotate: open ? 45 : 0, y: open ? 7.5 : 0 }}
+                transition={{ duration: 0.25 }}
+              />
+              <motion.span
+                className="h-[1.5px] w-6 bg-onyx"
+                animate={{ opacity: open ? 0 : 1 }}
+                transition={{ duration: 0.2 }}
+              />
+              <motion.span
+                className="h-[1.5px] w-6 bg-onyx"
+                animate={{ rotate: open ? -45 : 0, y: open ? -7.5 : 0 }}
+                transition={{ duration: 0.25 }}
+              />
+            </button>
+          </div>
         </div>
       </div>
 
