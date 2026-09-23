@@ -30,7 +30,7 @@ export default function About() {
           </motion.div>
         </motion.div>
 
-        <div className="flex flex-col justify-center px-5 py-16 sm:px-8 md:px-16 md:py-24 lg:px-20">
+        <div className="flex flex-col justify-center px-5 py-16 sm:px-8 md:justify-between md:px-16 md:py-20 lg:px-20">
           <div className="max-w-lg">
             <h2 className="font-logo text-4xl sm:text-5xl">Quem somos</h2>
             <p className="mt-8 font-subtitle text-base font-light leading-[1.7] text-onyx/80 sm:text-lg">
@@ -42,21 +42,21 @@ export default function About() {
               Trabalhamos com atenção ao detalhe, higiene rigorosa e conforto durante todo o
               processo, para que cada sessão seja também um momento de cuidado.
             </p>
+          </div>
 
-            <div className="mt-12 grid grid-cols-3 gap-6 border-t border-gold/20 pt-8">
-              {STATS.map((stat, index) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 14 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.6 }}
-                  transition={{ duration: 0.5, delay: 0.15 + index * 0.1 }}
-                >
-                  <p className="font-logo text-2xl text-gold-deep sm:text-3xl">{stat.value}</p>
-                  <p className="mt-1 font-subtitle text-xs uppercase tracking-wide text-muted-dark">{stat.label}</p>
-                </motion.div>
-              ))}
-            </div>
+          <div className="mt-12 grid max-w-lg grid-cols-3 gap-6 border-t border-gold/20 pt-8 md:mt-0">
+            {STATS.map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.6 }}
+                transition={{ duration: 0.5, delay: 0.15 + index * 0.1 }}
+              >
+                <p className="font-logo text-2xl text-gold-deep sm:text-3xl">{stat.value}</p>
+                <p className="mt-1 font-subtitle text-xs uppercase tracking-wide text-muted-dark">{stat.label}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>
