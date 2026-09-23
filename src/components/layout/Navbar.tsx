@@ -28,7 +28,7 @@ function SocialIcons({ className }: { className?: string }) {
           target="_blank"
           rel="noreferrer"
           aria-label={social.label}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-muted/50 text-muted-dark transition-colors duration-300 hover:border-muted-dark hover:bg-muted-dark hover:text-cream"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-onyx/60 transition-colors duration-300 hover:border-onyx/20 hover:text-onyx"
         >
           <i className={social.icon} aria-hidden="true" />
         </a>
