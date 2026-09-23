@@ -113,9 +113,8 @@ export default function Navbar() {
             })}
           </ul>
 
-          <SocialIcons className="hidden items-center gap-2 md:flex" />
-
-          <div className="hidden md:block">
+          <div className="hidden items-center gap-2 md:flex">
+            <SocialIcons className="flex items-center gap-2" />
             <ThemeToggle />
           </div>
 
