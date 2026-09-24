@@ -30,7 +30,7 @@ export default function AdminLoginPage() {
       <ScrollMorphHero className="absolute inset-0" />
 
       <Link to="/" className="relative z-10 mb-8 font-logo text-3xl leading-none tracking-wide text-gold-deep">
-        AfroGlow
+        AFROGLOW
       </Link>
 
       <form

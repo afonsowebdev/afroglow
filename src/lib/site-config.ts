@@ -1,5 +1,5 @@
 export const siteConfig = {
-  name: 'AfroGlow',
+  name: 'AFROGLOW',
   instagramHandle: 'afroogloww',
   instagramUrl: 'https://www.instagram.com/afroogloww',
   // TODO(cliente): substituir pelo número real, formato internacional sem espaços (ex: 351912345678)

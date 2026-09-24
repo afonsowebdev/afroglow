@@ -30,14 +30,14 @@ export async function sendBookingNotification(booking: BookingNotificationInput)
 
   try {
     await resend.emails.send({
-      from: 'AfroGlow <onboarding@resend.dev>',
+      from: 'AFROGLOW <onboarding@resend.dev>',
       to: notificationEmail,
       subject: `Nova marcação: ${booking.serviceName}`,
       html: `
         <h2>Nova marcação pendente</h2>
         <p><strong>Serviço:</strong> ${booking.serviceName} (${formatPrice(booking.priceCents)})</p>
         <p><strong>Data:</strong> ${formatDate(booking.startsAt)}</p>
-        <p><strong>Cliente:</strong> ${booking.customerName} — ${booking.customerPhone}</p>
+        <p><strong>Cliente:</strong> ${booking.customerName}, ${booking.customerPhone}</p>
         <p>Entra na área de admin para aceitar ou recusar este pedido.</p>
       `,
     })

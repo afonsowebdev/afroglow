@@ -19,7 +19,7 @@ export default function Hero() {
         cardRadius={10}
         clusterRotation
         showScrollHint
-        eyebrow="AfroGlow · Portugal"
+        eyebrow="AFROGLOW · Portugal"
         headline={
           <>
             Arte que parte

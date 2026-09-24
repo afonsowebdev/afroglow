@@ -90,7 +90,7 @@ export default function Navbar() {
     <div className="fixed inset-x-0 top-0 z-50 mt-4 px-4 sm:mt-6 sm:px-6">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
         <a href="#top" className={`flex items-center px-5 py-3 sm:px-6 ${pillBg}`}>
-          <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AfroGlow</span>
+          <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
         </a>
 
         <div className="flex items-center gap-4">

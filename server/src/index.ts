@@ -25,7 +25,4 @@ app.use('/api/admin/bookings', adminBookingsRouter)
 const port = Number(process.env.PORT) || 3001
 app.listen(port, () => {
   console.log(`[server] listening on http://localhost:${port}`)
-  if (process.env.SKIP_ADMIN_AUTH === 'true') {
-    console.warn('[server] ⚠️  SKIP_ADMIN_AUTH is ON — admin routes are unprotected. Do not expose this publicly.')
-  }
 })

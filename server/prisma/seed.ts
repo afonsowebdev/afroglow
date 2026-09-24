@@ -18,7 +18,7 @@ const SERVICES = [
 async function main() {
   const existingAdmin = await prisma.admin.findUnique({ where: { email: ADMIN_EMAIL } })
   if (existingAdmin) {
-    console.log(`[seed] Admin ${ADMIN_EMAIL} já existe — password não foi alterada.`)
+    console.log(`[seed] Admin ${ADMIN_EMAIL} já existe. A password não foi alterada.`)
   } else {
     const tempPassword = randomBytes(9).toString('base64url')
     const passwordHash = await bcrypt.hash(tempPassword, 10)
@@ -26,7 +26,7 @@ async function main() {
     console.log('\n[seed] Conta de admin criada:')
     console.log(`  email:    ${ADMIN_EMAIL}`)
     console.log(`  password: ${tempPassword}`)
-    console.log('  (guarda esta password agora — não volta a ser mostrada. Troca-a depois de entrares.)\n')
+    console.log('  (guarda esta password agora, porque não volta a ser mostrada. Troca-a depois de entrares.)\n')
   }
 
   for (const service of SERVICES) {

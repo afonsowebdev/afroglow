@@ -55,7 +55,7 @@ function FlipCard({ target }: { target: CardTarget }) {
           className="absolute inset-0 flex h-full w-full items-center justify-center overflow-hidden rounded-xl border border-gold/30 bg-onyx shadow-lg"
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
         >
-          <span className="font-logo text-[10px] tracking-wide text-gold-deep">AfroGlow</span>
+          <span className="font-logo text-[10px] tracking-wide text-gold-deep">AFROGLOW</span>
         </div>
       </motion.div>
     </motion.div>

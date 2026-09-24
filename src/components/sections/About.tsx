@@ -29,15 +29,15 @@ export default function About() {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
           <span className="font-subtitle text-xs uppercase tracking-[0.3em] text-gold-deep">
-            AfroGlow · Desde 2020
+            AFROGLOW · Desde 2020
           </span>
 
           <h2 className="mt-6 font-logo text-4xl text-onyx sm:text-6xl">Quem somos</h2>
 
           <p className="mt-8 max-w-xl font-subtitle text-base font-light leading-[1.7] text-muted-dark sm:text-lg">
-            A AfroGlow nasceu da paixão por preservar e celebrar a arte das tranças afro. Cada
-            penteado é feito à mão, com técnica apurada e respeito pela identidade de quem o usa —
-            uma prática que atravessa gerações e continua viva em cada fio entrançado.
+            A AFROGLOW nasceu da paixão por preservar e celebrar a arte das tranças afro. Cada
+            penteado é feito à mão, com técnica apurada e respeito pela identidade de quem o usa.
+            É uma prática que atravessa gerações e continua viva em cada fio entrançado.
           </p>
 
           <Link

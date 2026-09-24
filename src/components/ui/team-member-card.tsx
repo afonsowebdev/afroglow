@@ -17,7 +17,7 @@ interface TeamMemberCardProps {
  */
 export function TeamMemberCard({
   position = 'left',
-  jobPosition = 'Equipa AfroGlow',
+  jobPosition = 'Equipa AFROGLOW',
   firstName = 'Nome',
   lastName = 'Apelido',
   description = '',
