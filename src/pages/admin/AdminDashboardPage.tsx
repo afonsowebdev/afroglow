@@ -84,6 +84,13 @@ export default function AdminDashboardPage() {
   const [editPrice, setEditPrice] = useState('')
   const [savingServiceId, setSavingServiceId] = useState<string | null>(null)
 
+  const [showAddService, setShowAddService] = useState(false)
+  const [newServiceName, setNewServiceName] = useState('')
+  const [newServiceDescription, setNewServiceDescription] = useState('')
+  const [newServiceDuration, setNewServiceDuration] = useState('')
+  const [newServicePrice, setNewServicePrice] = useState('')
+  const [addingService, setAddingService] = useState(false)
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
     onScroll()
@@ -206,6 +213,39 @@ export default function AdminDashboardPage() {
       setError(err instanceof ApiError ? err.message : 'Erro ao atualizar serviço.')
     } finally {
       setSavingServiceId(null)
+    }
+  }
+
+  async function handleCreateService(e: FormEvent) {
+    e.preventDefault()
+    const price = Number(newServicePrice.replace(',', '.'))
+    if (!newServiceName.trim() || !newServiceDescription.trim() || !newServiceDuration.trim()) {
+      setError('Preenche o nome, a descrição e a duração do novo modelo.')
+      return
+    }
+    if (Number.isNaN(price) || price < 0) {
+      setError('Preço inválido.')
+      return
+    }
+    setAddingService(true)
+    setError(null)
+    try {
+      await api.post('/admin/services', {
+        name: newServiceName.trim(),
+        description: newServiceDescription.trim(),
+        durationLabel: newServiceDuration.trim(),
+        priceCents: Math.round(price * 100),
+      })
+      setNewServiceName('')
+      setNewServiceDescription('')
+      setNewServiceDuration('')
+      setNewServicePrice('')
+      setShowAddService(false)
+      await loadDashboard()
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Erro ao adicionar modelo de tranças.')
+    } finally {
+      setAddingService(false)
     }
   }
 
@@ -356,6 +396,77 @@ export default function AdminDashboardPage() {
                 </div>
               )
             })}
+          </div>
+
+          <div className="mt-4">
+            {showAddService ? (
+              <form onSubmit={handleCreateService} className="flex flex-col gap-4 rounded-2xl border border-gold/20 p-5">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="flex flex-col gap-1.5">
+                    <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Nome</span>
+                    <input
+                      value={newServiceName}
+                      onChange={(e) => setNewServiceName(e.target.value)}
+                      placeholder="Ex: Twist Braids"
+                      className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Duração</span>
+                    <input
+                      value={newServiceDuration}
+                      onChange={(e) => setNewServiceDuration(e.target.value)}
+                      placeholder="Ex: 3-5h"
+                      className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5 sm:col-span-2">
+                    <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Descrição</span>
+                    <input
+                      value={newServiceDescription}
+                      onChange={(e) => setNewServiceDescription(e.target.value)}
+                      placeholder="Breve descrição para as clientes"
+                      className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Preço (€)</span>
+                    <input
+                      value={newServicePrice}
+                      onChange={(e) => setNewServicePrice(e.target.value)}
+                      inputMode="decimal"
+                      placeholder="Ex: 65"
+                      className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                    />
+                  </label>
+                </div>
+                <div className="flex items-center gap-3">
+                  <MotionButton
+                    label={addingService ? 'A adicionar...' : 'Adicionar modelo'}
+                    size="sm"
+                    type="submit"
+                    disabled={addingService}
+                    icon={<i className="bx bx-plus text-lg" aria-hidden="true" />}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowAddService(false)}
+                    className="font-subtitle text-sm text-muted-dark transition-colors hover:text-onyx"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowAddService(true)}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-gold/30 py-4 font-subtitle text-sm text-muted-dark transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
+              >
+                <i className="bx bx-plus text-lg" aria-hidden="true" />
+                Adicionar novo modelo de tranças
+              </button>
+            )}
           </div>
         </section>
 

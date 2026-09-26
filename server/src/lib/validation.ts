@@ -20,6 +20,13 @@ export const updateServiceSchema = z.object({
   priceCents: z.number().int().min(0).max(100000).optional(),
 })
 
+export const createServiceSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  description: z.string().trim().min(1).max(300),
+  durationLabel: z.string().trim().min(1).max(40),
+  priceCents: z.number().int().min(0).max(100000),
+})
+
 export const createBookingSchema = z.object({
   slotId: z.string().min(1),
   serviceId: z.string().min(1),
