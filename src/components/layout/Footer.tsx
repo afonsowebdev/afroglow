@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { FooterBackgroundGradient, TextHoverEffect } from '@/components/ui/hover-footer'
 import { MotionButton } from '@/components/ui/motion-button'
 import { instagramDmUrl, siteConfig, whatsappUrl } from '@/lib/site-config'
@@ -101,17 +100,10 @@ export default function Footer() {
 
         <hr className="border-t border-gold/20" />
 
-        <div className="flex flex-col items-center justify-between gap-4 pt-8 text-center sm:flex-row sm:text-left">
+        <div className="flex justify-center pt-8 text-center sm:justify-start sm:text-left">
           <p className="font-body text-sm text-muted-dark">
             &copy; {year} {siteConfig.name}. Todos os direitos reservados.
           </p>
-          <Link
-            to="/admin"
-            className="inline-flex items-center gap-1.5 rounded-full border border-gold/20 px-3.5 py-1.5 font-subtitle text-[11px] uppercase tracking-[0.15em] text-muted-dark transition-colors hover:border-gold-deep hover:text-gold-deep"
-          >
-            <i className="bx bx-lock-alt text-sm" aria-hidden="true" />
-            Admin
-          </Link>
         </div>
       </div>
 
