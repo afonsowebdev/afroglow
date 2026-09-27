@@ -98,7 +98,7 @@ export default function AdminDashboardPage() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const loadDashboard = useCallback(async () => {
+  const loadDashboard = useCallback(async (opts: { silent?: boolean } = {}) => {
     try {
       const [servicesData, slotsData, bookingsData] = await Promise.all([
         api.get<Service[]>('/services'),
@@ -108,8 +108,9 @@ export default function AdminDashboardPage() {
       setServices(servicesData)
       setSlots(slotsData)
       setBookings(bookingsData)
+      if (!opts.silent) setError(null)
     } catch {
-      setError('Não foi possível carregar os dados do painel.')
+      if (!opts.silent) setError('Não foi possível carregar os dados do painel.')
     }
   }, [])
 
@@ -127,6 +128,28 @@ export default function AdminDashboardPage() {
     }
     void checkAuth()
   }, [navigate, loadDashboard])
+
+  // Keeps pending bookings (and everything else) live while the dashboard is
+  // open, so a new request shows up on its own — no manual refresh, no
+  // leaving and reopening the app. Polls only while authenticated and the
+  // app is actually in the foreground, and refreshes immediately the moment
+  // it comes back to the foreground rather than waiting for the next tick.
+  useEffect(() => {
+    if (checkingAuth || !adminEmail) return
+
+    const poll = () => {
+      if (document.visibilityState === 'visible') {
+        void loadDashboard({ silent: true })
+      }
+    }
+
+    const interval = setInterval(poll, 8000)
+    document.addEventListener('visibilitychange', poll)
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', poll)
+    }
+  }, [checkingAuth, adminEmail, loadDashboard])
 
   async function handleLogout() {
     await api.post('/auth/logout')
