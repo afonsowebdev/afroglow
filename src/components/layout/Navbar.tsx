@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MotionButton } from '@/components/ui/motion-button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { cn } from '@/lib/utils'
 import { instagramDmUrl, whatsappUrl } from '@/lib/site-config'
 
 const NAV_LINKS = [
@@ -20,7 +19,7 @@ const SOCIAL_LINKS = [
   { label: 'WhatsApp', href: whatsappUrl('Olá! Gostaria de saber mais sobre os vossos serviços.'), icon: 'bx bxl-whatsapp' },
 ]
 
-function SocialIcons({ className, iconClassName }: { className?: string; iconClassName?: string }) {
+function SocialIcons({ className }: { className?: string }) {
   return (
     <div className={className}>
       {SOCIAL_LINKS.map((social) => (
@@ -30,10 +29,7 @@ function SocialIcons({ className, iconClassName }: { className?: string; iconCla
           target="_blank"
           rel="noreferrer"
           aria-label={social.label}
-          className={cn(
-            'flex h-9 w-9 items-center justify-center rounded-full border transition-colors duration-300',
-            iconClassName ?? 'border-onyx/20 text-onyx/60 hover:text-onyx',
-          )}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-onyx/20 text-onyx/60 transition-colors duration-300 hover:text-onyx"
         >
           <i className={social.icon} aria-hidden="true" />
         </a>
@@ -42,40 +38,19 @@ function SocialIcons({ className, iconClassName }: { className?: string; iconCla
   )
 }
 
-function BookButton({
-  size,
-  onClick,
-  overVideo,
-}: {
-  size?: 'default' | 'sm'
-  onClick?: () => void
-  overVideo?: boolean
-}) {
-  return (
-    <MotionButton
-      label="Agendar"
-      size={size}
-      href="/agendar"
-      onClick={onClick}
-      className={overVideo ? 'border-[#ffffff]/40 bg-[#ffffff]/10 backdrop-blur-xl' : undefined}
-      labelClassName={overVideo ? 'text-[#ffffff]' : undefined}
-    />
-  )
+function BookButton({ size, onClick }: { size?: 'default' | 'sm'; onClick?: () => void }) {
+  return <MotionButton label="Agendar" size={size} href="/agendar" onClick={onClick} />
 }
 
 const SECTION_IDS = NAV_LINKS.map((link) => link.href.slice(1))
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
-  const [overVideo, setOverVideo] = useState(true)
   const [open, setOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('top')
 
   useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 24)
-      setOverVideo(window.scrollY < window.innerHeight * 0.7)
-    }
+    const onScroll = () => setScrolled(window.scrollY > 24)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -107,19 +82,9 @@ export default function Navbar() {
     return () => observer.disconnect()
   }, [])
 
-  const pillBg = cn(
-    'rounded-full shadow-lg shadow-black/10 backdrop-blur-xl transition-colors duration-500',
-    overVideo ? 'border border-[#ffffff]/40 bg-[#ffffff]/25' : 'border border-transparent bg-white/95',
-    scrolled ? 'shadow-xl shadow-black/15' : '',
-  )
-
-  const accentClassName = overVideo
-    ? 'border-[#ffffff]/50 text-[#ffffff]/70 hover:text-[#ffffff]'
-    : 'border-onyx/20 text-onyx/60 hover:text-onyx'
-
-  const themeToggleAccentClassName = overVideo
-    ? 'border-gold text-[#ffffff]/70 hover:text-[#ffffff]'
-    : 'border-onyx/20 text-onyx/60 hover:text-onyx'
+  const pillBg = `rounded-full bg-white/95 shadow-lg shadow-black/10 backdrop-blur transition-shadow duration-500 ${
+    scrolled ? 'shadow-xl shadow-black/15' : ''
+  }`
 
   return (
     <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
@@ -130,7 +95,7 @@ export default function Navbar() {
 
         <div className="flex items-center gap-4">
           <ul
-            className={`hidden items-center gap-1 px-4 py-2 font-body text-sm sm:px-6 sm:py-3 md:flex ${pillBg}`}
+            className={`hidden items-center gap-1 px-4 py-2 font-body text-sm text-onyx sm:px-6 sm:py-3 md:flex ${pillBg}`}
           >
             {NAV_LINKS.map((link) => {
               const isActive = activeSection === link.href.slice(1)
@@ -138,16 +103,11 @@ export default function Navbar() {
                 <li key={link.href}>
                   <a
                     href={link.href}
-                    className={cn(
-                      'inline-block rounded-full border px-4 py-1.5 transition-colors duration-300',
+                    className={`inline-block rounded-full border px-4 py-1.5 transition-colors duration-300 ${
                       isActive
-                        ? overVideo
-                          ? 'border-[#ffffff]/70 text-[#ffffff]'
-                          : 'border-onyx/40 text-onyx'
-                        : overVideo
-                          ? 'border-transparent text-[#ffffff]/70 hover:border-[#ffffff]/40 hover:text-[#ffffff]'
-                          : 'border-transparent text-onyx/60 hover:border-onyx/20 hover:text-onyx',
-                    )}
+                        ? 'border-onyx/40 text-onyx'
+                        : 'border-transparent text-onyx/60 hover:border-onyx/20 hover:text-onyx'
+                    }`}
                   >
                     {link.label}
                   </a>
@@ -157,12 +117,12 @@ export default function Navbar() {
           </ul>
 
           <div className={`hidden items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 md:flex ${pillBg}`}>
-            <SocialIcons className="flex items-center gap-2" iconClassName={accentClassName} />
-            <ThemeToggle className={cn('border', themeToggleAccentClassName)} />
+            <SocialIcons className="flex items-center gap-2" />
+            <ThemeToggle />
           </div>
 
           <div className={`hidden p-1.5 md:block ${pillBg}`}>
-            <BookButton size="sm" overVideo={overVideo} />
+            <BookButton size="sm" />
           </div>
 
           <div className={`flex items-center px-4 py-2 sm:px-6 sm:py-3 md:hidden ${pillBg}`}>
