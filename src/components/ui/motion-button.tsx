@@ -36,6 +36,7 @@ interface MotionButtonProps {
   variant?: keyof typeof CIRCLE_BY_VARIANT
   size?: keyof typeof SIZE
   className?: string
+  labelClassName?: string
   href?: string
   target?: string
   rel?: string
@@ -50,6 +51,7 @@ export function MotionButton({
   variant = 'primary',
   size = 'default',
   className,
+  labelClassName,
   href,
   target,
   rel,
@@ -77,7 +79,7 @@ export function MotionButton({
         className,
       )}
     >
-      <span className={cn('relative z-10 whitespace-nowrap font-body tracking-wide text-onyx', s.text)}>
+      <span className={cn('relative z-10 whitespace-nowrap font-body tracking-wide text-onyx', s.text, labelClassName)}>
         {label}
       </span>
       <span

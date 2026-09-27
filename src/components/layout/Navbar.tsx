@@ -42,8 +42,25 @@ function SocialIcons({ className, iconClassName }: { className?: string; iconCla
   )
 }
 
-function BookButton({ size, onClick }: { size?: 'default' | 'sm'; onClick?: () => void }) {
-  return <MotionButton label="Agendar" size={size} href="/agendar" onClick={onClick} />
+function BookButton({
+  size,
+  onClick,
+  overVideo,
+}: {
+  size?: 'default' | 'sm'
+  onClick?: () => void
+  overVideo?: boolean
+}) {
+  return (
+    <MotionButton
+      label="Agendar"
+      size={size}
+      href="/agendar"
+      onClick={onClick}
+      className={overVideo ? 'border-white/40 bg-white/10 backdrop-blur-xl' : undefined}
+      labelClassName={overVideo ? 'text-white' : undefined}
+    />
+  )
 }
 
 const SECTION_IDS = NAV_LINKS.map((link) => link.href.slice(1))
@@ -100,6 +117,10 @@ export default function Navbar() {
     ? 'border-white/50 text-white/70 hover:text-white'
     : 'border-onyx/20 text-onyx/60 hover:text-onyx'
 
+  const themeToggleAccentClassName = overVideo
+    ? 'border-gold text-white/70 hover:text-white'
+    : 'border-onyx/20 text-onyx/60 hover:text-onyx'
+
   return (
     <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
@@ -137,11 +158,11 @@ export default function Navbar() {
 
           <div className={`hidden items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 md:flex ${pillBg}`}>
             <SocialIcons className="flex items-center gap-2" iconClassName={accentClassName} />
-            <ThemeToggle className={cn('border', accentClassName)} />
+            <ThemeToggle className={cn('border', themeToggleAccentClassName)} />
           </div>
 
           <div className={`hidden p-1.5 md:block ${pillBg}`}>
-            <BookButton size="sm" />
+            <BookButton size="sm" overVideo={overVideo} />
           </div>
 
           <div className={`flex items-center px-4 py-2 sm:px-6 sm:py-3 md:hidden ${pillBg}`}>
