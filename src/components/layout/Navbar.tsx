@@ -57,8 +57,8 @@ function BookButton({
       size={size}
       href="/agendar"
       onClick={onClick}
-      className={overVideo ? 'border-white/40 bg-white/10 backdrop-blur-xl' : undefined}
-      labelClassName={overVideo ? 'text-white' : undefined}
+      className={overVideo ? 'border-[#ffffff]/40 bg-[#ffffff]/10 backdrop-blur-xl' : undefined}
+      labelClassName={overVideo ? 'text-[#ffffff]' : undefined}
     />
   )
 }
@@ -109,16 +109,16 @@ export default function Navbar() {
 
   const pillBg = cn(
     'rounded-full shadow-lg shadow-black/10 backdrop-blur-xl transition-colors duration-500',
-    overVideo ? 'border border-white/40 bg-white/25' : 'border border-transparent bg-white/95',
+    overVideo ? 'border border-[#ffffff]/40 bg-[#ffffff]/25' : 'border border-transparent bg-white/95',
     scrolled ? 'shadow-xl shadow-black/15' : '',
   )
 
   const accentClassName = overVideo
-    ? 'border-white/50 text-white/70 hover:text-white'
+    ? 'border-[#ffffff]/50 text-[#ffffff]/70 hover:text-[#ffffff]'
     : 'border-onyx/20 text-onyx/60 hover:text-onyx'
 
   const themeToggleAccentClassName = overVideo
-    ? 'border-gold text-white/70 hover:text-white'
+    ? 'border-gold text-[#ffffff]/70 hover:text-[#ffffff]'
     : 'border-onyx/20 text-onyx/60 hover:text-onyx'
 
   return (
@@ -142,10 +142,10 @@ export default function Navbar() {
                       'inline-block rounded-full border px-4 py-1.5 transition-colors duration-300',
                       isActive
                         ? overVideo
-                          ? 'border-white/70 text-white'
+                          ? 'border-[#ffffff]/70 text-[#ffffff]'
                           : 'border-onyx/40 text-onyx'
                         : overVideo
-                          ? 'border-transparent text-white/70 hover:border-white/40 hover:text-white'
+                          ? 'border-transparent text-[#ffffff]/70 hover:border-[#ffffff]/40 hover:text-[#ffffff]'
                           : 'border-transparent text-onyx/60 hover:border-onyx/20 hover:text-onyx',
                     )}
                   >
