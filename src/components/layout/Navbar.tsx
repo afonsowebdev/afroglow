@@ -131,7 +131,7 @@ export default function Navbar() {
             })}
           </ul>
 
-          <div className="hidden items-center gap-2 md:flex">
+          <div className="hidden items-center gap-3 md:flex">
             <div className={`flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 ${pillBg}`}>
               <SocialIcons className="flex items-center gap-2" />
             </div>
