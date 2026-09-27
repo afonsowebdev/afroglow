@@ -5,7 +5,7 @@ import { prisma } from './prisma.js'
 const teamId = process.env.APNS_TEAM_ID
 const keyId = process.env.APNS_KEY_ID
 const privateKey = process.env.APNS_PRIVATE_KEY?.replace(/\\n/g, '\n')
-const bundleId = 'com.afroglow.app'
+const bundleId = 'com.afroglow.app2'
 const apnsHost = process.env.APNS_PRODUCTION === 'true' ? 'api.push.apple.com' : 'api.sandbox.push.apple.com'
 
 let cachedToken: { token: string; issuedAt: number } | null = null

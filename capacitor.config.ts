@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  appId: 'com.afroglow.app',
+  appId: 'com.afroglow.app2',
   appName: 'AFROGLOW Admin',
   webDir: 'dist',
   // Routes fetch/XHR through native URLSession instead of WKWebView's own
