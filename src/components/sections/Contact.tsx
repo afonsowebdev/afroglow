@@ -2,8 +2,17 @@ import { ImageStreamHero, type StreamImage } from '@/components/ui/image-stream-
 import { MotionButton } from '@/components/ui/motion-button'
 import { instagramDmUrl, whatsappUrl } from '@/lib/site-config'
 
+const HERO_PHOTOS = [
+  '/images/hero/hero-1.jpg',
+  '/images/hero/hero-2.jpg',
+  '/images/hero/hero-3.jpg',
+  '/images/hero/hero-4.jpg',
+  '/images/hero/hero-5.jpg',
+]
+
 const PLACEHOLDER_IMAGES: StreamImage[] = Array.from({ length: 6 }, (_, index) => ({
-  alt: `Em breve ${index + 1}`,
+  src: HERO_PHOTOS[index % HERO_PHOTOS.length],
+  alt: 'Knotless braids com pontas cacheadas',
 }))
 
 export default function Contact() {

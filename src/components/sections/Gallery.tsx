@@ -5,11 +5,11 @@ import { MotionButton } from '@/components/ui/motion-button'
 import { instagramDmUrl } from '@/lib/site-config'
 
 const featuredItems: ImageGalleryItem[] = [
-  { alt: 'Box braids longas com acabamento dourado' },
-  { alt: 'Detalhe de cornrows geométricas' },
-  { alt: 'Knotless braids em movimento' },
-  { alt: 'Fulani braids com contas' },
-  { alt: 'Goddess braids volumosas' },
+  { src: '/images/hero/hero-1.jpg', alt: 'Knotless braids com pontas cacheadas' },
+  { src: '/images/hero/hero-2.jpg', alt: 'Detalhe de knotless braids com pontas cacheadas' },
+  { src: '/images/hero/hero-3.jpg', alt: 'Vista lateral de knotless braids com pontas cacheadas' },
+  { src: '/images/hero/hero-4.jpg', alt: 'Padrão de repartição triangular em knotless braids' },
+  { src: '/images/hero/hero-5.jpg', alt: 'Detalhe do couro cabeludo com repartição triangular' },
   { alt: 'Feed-in braids acabamento natural' },
 ]
 
