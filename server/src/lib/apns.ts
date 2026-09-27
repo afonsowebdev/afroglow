@@ -69,6 +69,32 @@ function sendToToken(deviceToken: string, title: string, body: string): Promise<
   })
 }
 
+/** Temporary diagnostic helper — reports exactly what Apple said, instead of just logging server-side. */
+export async function sendTestPushAndReport() {
+  const configured = { teamId: Boolean(teamId), keyId: Boolean(keyId), privateKey: Boolean(privateKey) }
+  if (!teamId || !keyId || !privateKey) {
+    return { configured, error: 'APNs credentials missing on this server' }
+  }
+
+  let providerToken: string | null
+  try {
+    providerToken = getProviderToken()
+  } catch (error) {
+    return { configured, error: `Failed to sign provider JWT: ${error instanceof Error ? error.message : String(error)}` }
+  }
+
+  const tokens = await prisma.pushToken.findMany()
+  if (tokens.length === 0) {
+    return { configured, error: 'No device tokens registered' }
+  }
+
+  const results = await Promise.all(
+    tokens.map((t) => sendToToken(t.token, 'Teste de diagnóstico', 'Se vires isto, funciona!')),
+  )
+
+  return { configured, apnsHost, bundleId, teamId, keyId, hadProviderToken: Boolean(providerToken), results }
+}
+
 export async function sendBookingPushNotification(booking: { customerName: string; serviceName: string }) {
   if (!teamId || !keyId || !privateKey) {
     console.warn('[apns] Push ignorado: APNS_TEAM_ID, APNS_KEY_ID ou APNS_PRIVATE_KEY não configurados.')
