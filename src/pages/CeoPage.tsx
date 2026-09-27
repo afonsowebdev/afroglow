@@ -18,7 +18,7 @@ export default function CeoPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="fixed inset-x-0 top-0 z-50 mt-4 px-4 sm:mt-6 sm:px-6">
+      <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link to="/" className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
             <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
