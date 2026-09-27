@@ -34,7 +34,7 @@ export default function CeoPage() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-4xl px-5 pb-24 pt-32 sm:px-8 sm:pt-40">
+      <main className="mx-auto max-w-4xl px-5 pb-24 pt-[calc(8rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(10rem+env(safe-area-inset-top))]">
         <span className="font-subtitle text-xs uppercase tracking-[0.3em] text-gold-deep">A nossa fundadora</span>
         <h1 className="mt-4 font-logo text-4xl text-onyx sm:text-5xl">Quem lidera a AFROGLOW</h1>
 

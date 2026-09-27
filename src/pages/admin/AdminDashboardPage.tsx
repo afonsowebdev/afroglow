@@ -317,7 +317,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-4xl px-5 pb-24 pt-28 sm:px-8 sm:pt-32">
+      <main className="mx-auto max-w-4xl px-5 pb-24 pt-[calc(7rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(8rem+env(safe-area-inset-top))]">
         <h1 className="font-logo text-4xl text-onyx sm:text-5xl">Painel de Admin</h1>
         <p className="mt-4 font-subtitle text-lg font-light text-muted-dark">{adminEmail}</p>
 
