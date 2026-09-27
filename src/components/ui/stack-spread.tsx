@@ -41,6 +41,7 @@ export interface StackSpreadStageProps {
   cardRadius?: number
   clusterRotation?: boolean
   showScrollHint?: boolean
+  watermark?: string
   eyebrow?: string
   headline: ReactNode
   subtitle?: string
@@ -103,6 +104,7 @@ export function StackSpreadStage({
   cardRadius = 10,
   clusterRotation = true,
   showScrollHint = true,
+  watermark,
   eyebrow,
   headline,
   subtitle,
@@ -138,6 +140,15 @@ export function StackSpreadStage({
           transition: 'background-color 0.35s ease, color 0.35s ease',
         }}
       >
+        {watermark && (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-0 flex select-none items-center justify-center whitespace-nowrap font-logo text-[20vw] leading-none tracking-tight text-onyx/5"
+          >
+            {watermark}
+          </span>
+        )}
+
         {cards.map((image, i) => (
           <StackCard
             key={i}

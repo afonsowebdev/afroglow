@@ -19,6 +19,7 @@ export default function Hero() {
         cardRadius={10}
         clusterRotation
         showScrollHint
+        watermark="AFROGLOW"
         eyebrow="AFROGLOW · Portugal"
         headline={
           <>
