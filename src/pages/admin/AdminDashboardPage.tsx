@@ -5,6 +5,7 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { MotionButton } from '@/components/ui/motion-button'
 import { TimePicker } from '@/components/ui/time-picker'
 import { api, ApiError } from '@/lib/api'
+import { registerForPushNotifications } from '@/lib/push-notifications'
 import { customerWhatsappUrl } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service } from '@/lib/types'
 
@@ -120,6 +121,7 @@ export default function AdminDashboardPage() {
         const me = await api.get<{ email: string }>('/auth/me')
         setAdminEmail(me.email)
         await loadDashboard()
+        void registerForPushNotifications()
       } catch {
         navigate('/admin/login')
       } finally {

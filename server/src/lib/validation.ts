@@ -27,6 +27,10 @@ export const createServiceSchema = z.object({
   priceCents: z.number().int().min(0).max(100000),
 })
 
+export const registerPushTokenSchema = z.object({
+  token: z.string().trim().min(10).max(500),
+})
+
 export const createBookingSchema = z.object({
   slotId: z.string().min(1),
   serviceId: z.string().min(1),

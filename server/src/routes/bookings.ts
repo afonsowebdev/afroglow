@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { sendBookingPushNotification } from '../lib/apns.js'
 import { requireAdmin } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
 import { sendBookingNotification } from '../lib/resend.js'
@@ -45,6 +46,7 @@ bookingsRouter.post('/', async (req, res) => {
       priceCents: service.priceCents,
       startsAt: slot.startsAt,
     })
+    void sendBookingPushNotification({ customerName, serviceName: service.name })
 
     res.status(201).json({ id: booking.id, status: booking.status })
   } catch (error) {

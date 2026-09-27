@@ -4,6 +4,7 @@ import express from 'express'
 import { adminAvailabilityRouter, availabilityRouter } from './routes/availability.js'
 import { authRouter } from './routes/auth.js'
 import { adminBookingsRouter, bookingsRouter } from './routes/bookings.js'
+import { pushRouter } from './routes/push.js'
 import { adminServicesRouter, servicesRouter } from './routes/services.js'
 
 const app = express()
@@ -39,6 +40,7 @@ app.use('/api/availability', availabilityRouter)
 app.use('/api/admin/availability', adminAvailabilityRouter)
 app.use('/api/bookings', bookingsRouter)
 app.use('/api/admin/bookings', adminBookingsRouter)
+app.use('/api/admin/push-token', pushRouter)
 
 const port = Number(process.env.PORT) || 3001
 app.listen(port, () => {
