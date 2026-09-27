@@ -39,14 +39,20 @@ bookingsRouter.post('/', async (req, res) => {
       return { booking, slot, service }
     })
 
-    void sendBookingNotification({
-      customerName,
-      customerPhone,
-      serviceName: service.name,
-      priceCents: service.priceCents,
-      startsAt: slot.startsAt,
-    })
-    void sendBookingPushNotification({ customerName, serviceName: service.name })
+    // Awaited (not fire-and-forget) — a detached push send was observed to
+    // get cut off before completing once the response for this request went
+    // out, even though the exact same send logic works fine when awaited
+    // directly (confirmed via the diagnostic endpoint).
+    await Promise.all([
+      sendBookingNotification({
+        customerName,
+        customerPhone,
+        serviceName: service.name,
+        priceCents: service.priceCents,
+        startsAt: slot.startsAt,
+      }),
+      sendBookingPushNotification({ customerName, serviceName: service.name }),
+    ])
 
     res.status(201).json({ id: booking.id, status: booking.status })
   } catch (error) {
