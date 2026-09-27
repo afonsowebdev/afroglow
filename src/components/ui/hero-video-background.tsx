@@ -1,24 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
-const VIDEOS = ['/videos/hero-1.mp4', '/videos/hero-2.mp4', '/videos/hero-3.mp4', '/videos/hero-4.mp4']
+const VIDEOS = ['/videos/hero-1.mp4', '/videos/hero-2.mp4', '/videos/hero-3.mp4']
 
-// Slowed down from real playback speed — the raw clips read as quick, hand-held
-// phone footage; playing them back at 60% speed gives the loop a calmer,
-// more deliberate feel that suits a background rather than a foreground clip.
-const PLAYBACK_RATE = 0.6
-
-// Cuts each clip well before it actually finishes — the full clips run long
-// for a background loop, so this keeps the cadence snappier than waiting for
-// each one to play out completely.
-const SEGMENT_MS = 4000
+// Slowed well below real playback speed for a calm, ambient loop rather than
+// quick hand-held footage.
+const PLAYBACK_RATE = 0.5
 
 /**
- * Full-bleed looping background: cycles through the hero clips with a
- * crossfade on each transition, plus a fixed dark scrim so the overlaid
- * text stays legible — the treatment (dark video + light text) is meant to
- * look the same regardless of the site's own light/dark theme, so colors
- * here are literal rather than the theme-adaptive onyx/cream tokens.
+ * Full-bleed looping background for the dark-theme Hero: cycles through the
+ * clips, crossfading slowly into the next one once each finishes playing
+ * (at the slowed rate), plus a fixed dark scrim so the overlaid text stays
+ * legible. Colors here are literal rather than the theme-adaptive onyx/cream
+ * tokens, since this treatment only ever renders in dark mode. Respects
+ * prefers-reduced-motion by not autoplaying.
  */
 export function HeroVideoBackground() {
   const shouldReduceMotion = useReducedMotion()
@@ -27,12 +22,6 @@ export function HeroVideoBackground() {
   const advance = () => {
     setIndex((current) => (current + 1) % VIDEOS.length)
   }
-
-  useEffect(() => {
-    if (shouldReduceMotion) return
-    const timer = setTimeout(advance, SEGMENT_MS)
-    return () => clearTimeout(timer)
-  }, [index, shouldReduceMotion])
 
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#1a1008]">
@@ -50,7 +39,7 @@ export function HeroVideoBackground() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1.4, ease: 'easeInOut' }}
+          transition={{ duration: 3, ease: 'easeInOut' }}
           className="absolute inset-0 h-full w-full object-cover"
         />
       </AnimatePresence>
