@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MotionButton } from '@/components/ui/motion-button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { useCustomerAuth } from '@/lib/customer-auth'
 import { instagramDmUrl, whatsappUrl } from '@/lib/site-config'
 
 const NAV_LINKS = [
@@ -42,9 +43,23 @@ function BookButton({ size, onClick }: { size?: 'default' | 'sm'; onClick?: () =
   return <MotionButton label="Agendar" size={size} href="/agendar" onClick={onClick} />
 }
 
+function AccountButton({ loggedIn, onClick }: { loggedIn: boolean; onClick?: () => void }) {
+  return (
+    <a
+      href={loggedIn ? '/conta' : '/entrar'}
+      onClick={onClick}
+      aria-label={loggedIn ? 'A minha conta' : 'Entrar ou criar conta'}
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-onyx/20 text-onyx/60 transition-colors duration-300 hover:text-onyx"
+    >
+      <i className="bx bx-user" aria-hidden="true" />
+    </a>
+  )
+}
+
 const SECTION_IDS = NAV_LINKS.map((link) => link.href.slice(1))
 
 export default function Navbar() {
+  const { customer } = useCustomerAuth()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('top')
@@ -116,9 +131,18 @@ export default function Navbar() {
             })}
           </ul>
 
-          <div className={`hidden items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 md:flex ${pillBg}`}>
-            <SocialIcons className="flex items-center gap-2" />
-            <ThemeToggle />
+          <div className="hidden items-center gap-2 md:flex">
+            <div className={`flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 ${pillBg}`}>
+              <SocialIcons className="flex items-center gap-2" />
+            </div>
+
+            <div className={`p-2 sm:p-2.5 ${pillBg}`}>
+              <ThemeToggle />
+            </div>
+
+            <div className={`p-2 sm:p-2.5 ${pillBg}`}>
+              <AccountButton loggedIn={!!customer} />
+            </div>
           </div>
 
           <div className={`hidden p-1.5 md:block ${pillBg}`}>
@@ -214,6 +238,7 @@ export default function Navbar() {
             >
               <SocialIcons className="flex items-center gap-4" />
               <ThemeToggle />
+              <AccountButton loggedIn={!!customer} onClick={() => setOpen(false)} />
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 16 }}
