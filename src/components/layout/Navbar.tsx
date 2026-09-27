@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MotionButton } from '@/components/ui/motion-button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { cn } from '@/lib/utils'
 import { instagramDmUrl, whatsappUrl } from '@/lib/site-config'
 
 const NAV_LINKS = [
@@ -19,7 +20,7 @@ const SOCIAL_LINKS = [
   { label: 'WhatsApp', href: whatsappUrl('Olá! Gostaria de saber mais sobre os vossos serviços.'), icon: 'bx bxl-whatsapp' },
 ]
 
-function SocialIcons({ className }: { className?: string }) {
+function SocialIcons({ className, iconClassName }: { className?: string; iconClassName?: string }) {
   return (
     <div className={className}>
       {SOCIAL_LINKS.map((social) => (
@@ -29,7 +30,10 @@ function SocialIcons({ className }: { className?: string }) {
           target="_blank"
           rel="noreferrer"
           aria-label={social.label}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-onyx/20 text-onyx/60 transition-colors duration-300 hover:text-onyx"
+          className={cn(
+            'flex h-9 w-9 items-center justify-center rounded-full border transition-colors duration-300',
+            iconClassName ?? 'border-onyx/20 text-onyx/60 hover:text-onyx',
+          )}
         >
           <i className={social.icon} aria-hidden="true" />
         </a>
@@ -46,11 +50,15 @@ const SECTION_IDS = NAV_LINKS.map((link) => link.href.slice(1))
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
+  const [overVideo, setOverVideo] = useState(true)
   const [open, setOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('top')
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24)
+    const onScroll = () => {
+      setScrolled(window.scrollY > 24)
+      setOverVideo(window.scrollY < window.innerHeight * 0.7)
+    }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -82,9 +90,15 @@ export default function Navbar() {
     return () => observer.disconnect()
   }, [])
 
-  const pillBg = `rounded-full border border-white/40 bg-white/25 shadow-lg shadow-black/10 backdrop-blur-xl transition-shadow duration-500 ${
-    scrolled ? 'shadow-xl shadow-black/15' : ''
-  }`
+  const pillBg = cn(
+    'rounded-full shadow-lg shadow-black/10 backdrop-blur-xl transition-colors duration-500',
+    overVideo ? 'border border-white/40 bg-white/25' : 'border border-transparent bg-white/95',
+    scrolled ? 'shadow-xl shadow-black/15' : '',
+  )
+
+  const accentClassName = overVideo
+    ? 'border-white/50 text-white/70 hover:text-white'
+    : 'border-onyx/20 text-onyx/60 hover:text-onyx'
 
   return (
     <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
@@ -95,7 +109,7 @@ export default function Navbar() {
 
         <div className="flex items-center gap-4">
           <ul
-            className={`hidden items-center gap-1 px-4 py-2 font-body text-sm text-onyx sm:px-6 sm:py-3 md:flex ${pillBg}`}
+            className={`hidden items-center gap-1 px-4 py-2 font-body text-sm sm:px-6 sm:py-3 md:flex ${pillBg}`}
           >
             {NAV_LINKS.map((link) => {
               const isActive = activeSection === link.href.slice(1)
@@ -103,11 +117,16 @@ export default function Navbar() {
                 <li key={link.href}>
                   <a
                     href={link.href}
-                    className={`inline-block rounded-full border px-4 py-1.5 transition-colors duration-300 ${
+                    className={cn(
+                      'inline-block rounded-full border px-4 py-1.5 transition-colors duration-300',
                       isActive
-                        ? 'border-onyx/40 text-onyx'
-                        : 'border-transparent text-onyx/60 hover:border-onyx/20 hover:text-onyx'
-                    }`}
+                        ? overVideo
+                          ? 'border-white/70 text-white'
+                          : 'border-onyx/40 text-onyx'
+                        : overVideo
+                          ? 'border-transparent text-white/70 hover:border-white/40 hover:text-white'
+                          : 'border-transparent text-onyx/60 hover:border-onyx/20 hover:text-onyx',
+                    )}
                   >
                     {link.label}
                   </a>
@@ -117,8 +136,8 @@ export default function Navbar() {
           </ul>
 
           <div className={`hidden items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 md:flex ${pillBg}`}>
-            <SocialIcons className="flex items-center gap-2" />
-            <ThemeToggle />
+            <SocialIcons className="flex items-center gap-2" iconClassName={accentClassName} />
+            <ThemeToggle className={cn('border', accentClassName)} />
           </div>
 
           <div className={`hidden p-1.5 md:block ${pillBg}`}>

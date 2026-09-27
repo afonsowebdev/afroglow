@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useTheme } from '@/lib/theme'
+import { cn } from '@/lib/utils'
 
 export function ThemeToggle({ className }: { className?: string }) {
   const { theme, toggleTheme } = useTheme()
@@ -10,7 +11,10 @@ export function ThemeToggle({ className }: { className?: string }) {
       type="button"
       onClick={toggleTheme}
       aria-label={isDark ? 'Ativar tema claro' : 'Ativar tema escuro'}
-      className={`relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-onyx/20 text-onyx/60 transition-colors duration-300 hover:text-onyx ${className ?? ''}`}
+      className={cn(
+        'relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-onyx/20 text-onyx/60 transition-colors duration-300 hover:text-onyx',
+        className,
+      )}
     >
       <AnimatePresence initial={false}>
         <motion.span
