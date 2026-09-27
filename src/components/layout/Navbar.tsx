@@ -82,7 +82,7 @@ export default function Navbar() {
     return () => observer.disconnect()
   }, [])
 
-  const pillBg = `rounded-full bg-white/95 shadow-lg shadow-black/10 backdrop-blur transition-shadow duration-500 ${
+  const pillBg = `rounded-full border border-white/40 bg-white/25 shadow-lg shadow-black/10 backdrop-blur-xl transition-shadow duration-500 ${
     scrolled ? 'shadow-xl shadow-black/15' : ''
   }`
 

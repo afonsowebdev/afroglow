@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
 const VIDEOS = ['/videos/hero-1.mp4', '/videos/hero-2.mp4', '/videos/hero-3.mp4', '/videos/hero-4.mp4']
@@ -7,6 +7,11 @@ const VIDEOS = ['/videos/hero-1.mp4', '/videos/hero-2.mp4', '/videos/hero-3.mp4'
 // phone footage; playing them back at 60% speed gives the loop a calmer,
 // more deliberate feel that suits a background rather than a foreground clip.
 const PLAYBACK_RATE = 0.6
+
+// Cuts each clip well before it actually finishes — the full clips run long
+// for a background loop, so this keeps the cadence snappier than waiting for
+// each one to play out completely.
+const SEGMENT_MS = 4000
 
 /**
  * Full-bleed looping background: cycles through the hero clips with a
@@ -19,9 +24,15 @@ export function HeroVideoBackground() {
   const shouldReduceMotion = useReducedMotion()
   const [index, setIndex] = useState(0)
 
-  const handleEnded = () => {
+  const advance = () => {
     setIndex((current) => (current + 1) % VIDEOS.length)
   }
+
+  useEffect(() => {
+    if (shouldReduceMotion) return
+    const timer = setTimeout(advance, SEGMENT_MS)
+    return () => clearTimeout(timer)
+  }, [index, shouldReduceMotion])
 
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#1a1008]">
@@ -32,7 +43,7 @@ export function HeroVideoBackground() {
           autoPlay={!shouldReduceMotion}
           muted
           playsInline
-          onEnded={handleEnded}
+          onEnded={advance}
           onLoadedMetadata={(e) => {
             e.currentTarget.playbackRate = PLAYBACK_RATE
           }}
