@@ -53,3 +53,7 @@ export const rescheduleBookingSchema = z.object({
 export const createTestimonialSchema = z.object({
   content: z.string().trim().min(10).max(600),
 })
+
+export const clearMonthSchema = z.object({
+  password: z.string().min(1),
+})

@@ -2,6 +2,7 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
 import { accountRouter } from './routes/account.js'
+import { adminMaintenanceRouter } from './routes/admin-maintenance.js'
 import { adminAvailabilityRouter, availabilityRouter } from './routes/availability.js'
 import { authRouter } from './routes/auth.js'
 import { adminBookingsRouter, bookingsRouter } from './routes/bookings.js'
@@ -46,6 +47,7 @@ app.use('/api/admin/push-token', pushRouter)
 app.use('/api/account', accountRouter)
 app.use('/api/testimonials', testimonialsRouter)
 app.use('/api/admin/testimonials', adminTestimonialsRouter)
+app.use('/api/admin/maintenance', adminMaintenanceRouter)
 
 const port = Number(process.env.PORT) || 3001
 app.listen(port, () => {

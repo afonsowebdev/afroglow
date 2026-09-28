@@ -15,6 +15,29 @@ function dateKey(iso: string) {
   return new Date(iso).toLocaleDateString('en-CA', { timeZone: LISBON_TZ })
 }
 
+// Slots/bookings store UTC timestamps, but the admin thinks in Lisbon-local
+// months — resolving via Intl (not a raw UTC range) keeps this consistent
+// with the same calculation the backend does for the month-clear endpoint.
+function getLisbonYearMonth(date: Date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: LISBON_TZ,
+    year: 'numeric',
+    month: 'numeric',
+  }).formatToParts(date)
+  return {
+    year: Number(parts.find((p) => p.type === 'year')!.value),
+    month: Number(parts.find((p) => p.type === 'month')!.value),
+  }
+}
+
+function formatMonthLabel(viewMonth: { year: number; month: number }) {
+  const label = new Date(viewMonth.year, viewMonth.month - 1, 1).toLocaleDateString('pt-PT', {
+    month: 'long',
+    year: 'numeric',
+  })
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
+
 function formatDateTime(iso: string) {
   const label = new Date(iso).toLocaleString('pt-PT', {
     timeZone: LISBON_TZ,
@@ -92,6 +115,13 @@ export default function AdminDashboardPage() {
   const [newServiceDuration, setNewServiceDuration] = useState('')
   const [newServicePrice, setNewServicePrice] = useState('')
   const [addingService, setAddingService] = useState(false)
+
+  const [viewMonth, setViewMonth] = useState(() => getLisbonYearMonth(new Date()))
+  const [clearingOpen, setClearingOpen] = useState(false)
+  const [clearSummary, setClearSummary] = useState<{ slotCount: number; bookingCount: number } | null>(null)
+  const [clearPassword, setClearPassword] = useState('')
+  const [clearBusy, setClearBusy] = useState(false)
+  const [clearError, setClearError] = useState<string | null>(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -229,6 +259,51 @@ export default function AdminDashboardPage() {
     }
   }
 
+  function shiftMonth(delta: number) {
+    setViewMonth((prev) => {
+      const zeroBased = prev.month - 1 + delta
+      const year = prev.year + Math.floor(zeroBased / 12)
+      const month = ((zeroBased % 12) + 12) % 12 + 1
+      return { year, month }
+    })
+    setClearingOpen(false)
+    setClearSummary(null)
+    setClearPassword('')
+    setClearError(null)
+  }
+
+  async function openClearPanel() {
+    setClearingOpen(true)
+    setClearError(null)
+    try {
+      const summary = await api.get<{ slotCount: number; bookingCount: number }>(
+        `/admin/maintenance/months/${viewMonth.year}/${viewMonth.month}/summary`,
+      )
+      setClearSummary(summary)
+    } catch {
+      setClearError('Não foi possível carregar o resumo deste mês.')
+    }
+  }
+
+  async function handleClearMonth() {
+    if (!clearPassword) return
+    setClearBusy(true)
+    setClearError(null)
+    try {
+      await api.post(`/admin/maintenance/months/${viewMonth.year}/${viewMonth.month}/clear`, {
+        password: clearPassword,
+      })
+      setClearingOpen(false)
+      setClearSummary(null)
+      setClearPassword('')
+      await loadDashboard()
+    } catch (err) {
+      setClearError(err instanceof ApiError ? err.message : 'Erro ao limpar dados do mês.')
+    } finally {
+      setClearBusy(false)
+    }
+  }
+
   function startEditService(service: Service) {
     setEditingServiceId(service.id)
     setEditDuration(service.durationLabel)
@@ -290,9 +365,18 @@ export default function AdminDashboardPage() {
     }
   }
 
+  const monthSlots = slots.filter((s) => {
+    const { year, month } = getLisbonYearMonth(new Date(s.startsAt))
+    return year === viewMonth.year && month === viewMonth.month
+  })
+  const monthBookings = bookings.filter((b) => {
+    const { year, month } = getLisbonYearMonth(new Date(b.slot.startsAt))
+    return year === viewMonth.year && month === viewMonth.month
+  })
+
   const slotsByDate = (() => {
     const groups = new Map<string, AvailabilitySlot[]>()
-    for (const slot of slots) {
+    for (const slot of monthSlots) {
       const key = dateKey(slot.startsAt)
       const existing = groups.get(key) ?? []
       existing.push(slot)
@@ -302,11 +386,11 @@ export default function AdminDashboardPage() {
   })()
 
   const nowMs = Date.now()
-  const pendingBookings = bookings.filter((b) => b.status === 'PENDING')
-  const upcomingConfirmed = bookings
+  const pendingBookings = monthBookings.filter((b) => b.status === 'PENDING')
+  const upcomingConfirmed = monthBookings
     .filter((b) => b.status === 'ACCEPTED' && new Date(b.slot.startsAt).getTime() >= nowMs)
     .sort((a, b) => new Date(a.slot.startsAt).getTime() - new Date(b.slot.startsAt).getTime())
-  const history = bookings
+  const history = monthBookings
     .filter(
       (b) =>
         b.status === 'REJECTED' ||
@@ -315,21 +399,14 @@ export default function AdminDashboardPage() {
     )
     .sort((a, b) => new Date(b.slot.startsAt).getTime() - new Date(a.slot.startsAt).getTime())
 
-  const weekAheadMs = nowMs + 7 * 24 * 60 * 60 * 1000
-  const confirmedThisWeekCount = upcomingConfirmed.filter((b) => new Date(b.slot.startsAt).getTime() <= weekAheadMs).length
-
   const pendingTestimonials = testimonials.filter((t) => t.status === 'PENDING')
   const resolvedTestimonials = testimonials
     .filter((t) => t.status !== 'PENDING')
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-  const currentMonth = new Date()
-  const monthRevenueCents = bookings
-    .filter((b) => {
-      if (b.status !== 'ACCEPTED') return false
-      const d = new Date(b.slot.startsAt)
-      return d.getFullYear() === currentMonth.getFullYear() && d.getMonth() === currentMonth.getMonth()
-    })
+  const monthConfirmedCount = monthBookings.filter((b) => b.status === 'ACCEPTED').length
+  const monthRevenueCents = monthBookings
+    .filter((b) => b.status === 'ACCEPTED')
     .reduce((sum, b) => sum + b.service.priceCents, 0)
 
   const pillClasses = `flex items-center rounded-full bg-white/95 shadow-lg shadow-black/10 backdrop-blur transition-shadow duration-500 ${
@@ -369,10 +446,30 @@ export default function AdminDashboardPage() {
 
         {error && <p className="mt-6 font-subtitle text-sm text-red-700">{error}</p>}
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-3">
+        <div className="mt-10 flex items-center justify-center gap-4 rounded-full border border-gold/20 bg-cream px-4 py-2 sm:justify-start">
+          <button
+            type="button"
+            aria-label="Mês anterior"
+            onClick={() => shiftMonth(-1)}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted-dark transition-colors hover:bg-white hover:text-gold-deep"
+          >
+            <i className="bx bx-chevron-left" aria-hidden="true" />
+          </button>
+          <span className="font-logo text-sm text-onyx">{formatMonthLabel(viewMonth)}</span>
+          <button
+            type="button"
+            aria-label="Mês seguinte"
+            onClick={() => shiftMonth(1)}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted-dark transition-colors hover:bg-white hover:text-gold-deep"
+          >
+            <i className="bx bx-chevron-right" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
           <StatCard icon="bx bx-time-five" label="Marcações pendentes" value={String(pendingBookings.length)} />
-          <StatCard icon="bx bx-calendar-check" label="Confirmadas esta semana" value={String(confirmedThisWeekCount)} />
-          <StatCard icon="bx bx-euro" label="Receita confirmada este mês" value={formatPrice(monthRevenueCents)} />
+          <StatCard icon="bx bx-calendar-check" label="Confirmadas no mês" value={String(monthConfirmedCount)} />
+          <StatCard icon="bx bx-euro" label="Receita confirmada no mês" value={formatPrice(monthRevenueCents)} />
         </div>
 
         <section className="mt-16">
@@ -601,6 +698,60 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="mt-8 rounded-2xl border border-red-700/30 p-5">
+            {!clearingOpen ? (
+              <button
+                type="button"
+                onClick={openClearPanel}
+                className="flex items-center gap-2 font-subtitle text-sm text-red-700 transition-colors hover:text-red-800"
+              >
+                <i className="bx bx-trash text-lg" aria-hidden="true" />
+                Limpar dados de {formatMonthLabel(viewMonth)}
+              </button>
+            ) : (
+              <div className="flex flex-col gap-4">
+                <p className="font-subtitle text-sm text-onyx">
+                  Isto apaga permanentemente {clearSummary ? clearSummary.slotCount : '...'} vaga(s) e{' '}
+                  {clearSummary ? clearSummary.bookingCount : '...'} marcação(ões) de {formatMonthLabel(viewMonth)},
+                  incluindo marcações já aceites. Não pode ser desfeito.
+                </p>
+                <label className="flex max-w-xs flex-col gap-1.5">
+                  <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+                    Confirma com a tua password
+                  </span>
+                  <input
+                    type="password"
+                    value={clearPassword}
+                    onChange={(e) => setClearPassword(e.target.value)}
+                    className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-red-700"
+                  />
+                </label>
+                {clearError && <p className="font-subtitle text-sm text-red-700">{clearError}</p>}
+                <div className="flex items-center gap-3">
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    disabled={!clearPassword || clearBusy}
+                    onClick={handleClearMonth}
+                  >
+                    {clearBusy ? 'A limpar...' : 'Confirmar limpeza'}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setClearingOpen(false)
+                      setClearPassword('')
+                      setClearError(null)
+                    }}
+                    className="font-subtitle text-sm text-muted-dark transition-colors hover:text-onyx"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
