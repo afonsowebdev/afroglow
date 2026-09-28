@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { AccountAuthForm } from '@/components/ui/account-auth-form'
 import { MotionButton } from '@/components/ui/motion-button'
 import { api, ApiError } from '@/lib/api'
+import { useCustomerAuth } from '@/lib/customer-auth'
 import { formatPrice, type AvailabilitySlot, type Service } from '@/lib/types'
 
 const LISBON_TZ = 'Europe/Lisbon'
@@ -34,6 +36,7 @@ function StepHeading({ number, children }: { number: string; children: ReactNode
 }
 
 export default function BookingPage() {
+  const { customer, loading: authLoading } = useCustomerAuth()
   const [searchParams] = useSearchParams()
   const [scrolled, setScrolled] = useState(false)
   const [services, setServices] = useState<Service[]>([])
@@ -57,6 +60,13 @@ export default function BookingPage() {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  useEffect(() => {
+    if (customer) {
+      setCustomerName((prev) => prev || customer.name)
+      setCustomerPhone((prev) => prev || customer.phone)
+    }
+  }, [customer])
 
   useEffect(() => {
     async function load() {
@@ -149,7 +159,16 @@ export default function BookingPage() {
           Escolhe uma data, o tipo de trança, e confirma os teus dados.
         </p>
 
-        {success ? (
+        {authLoading ? (
+          <p className="mt-14 font-subtitle text-muted-dark">A carregar...</p>
+        ) : !customer ? (
+          <div className="mt-14 max-w-md">
+            <p className="mb-6 font-subtitle text-sm font-light text-muted-dark">
+              Precisas de iniciar sessão ou criar conta para marcar uma sessão.
+            </p>
+            <AccountAuthForm />
+          </div>
+        ) : success ? (
           <div className="mt-14 flex flex-col items-center rounded-3xl border border-gold/20 bg-cream px-6 py-14 text-center">
             <i className="bx bx-check-circle text-4xl text-gold-deep" aria-hidden="true" />
             <h2 className="mt-4 font-logo text-3xl text-onyx">Pedido enviado!</h2>
@@ -185,7 +204,7 @@ export default function BookingPage() {
                             key={slot.id}
                             type="button"
                             onClick={() => setSelectedSlotId(slot.id)}
-                            className={`rounded-full border px-5 py-2 font-subtitle text-sm transition-colors duration-300 ${
+                            className={`inline-flex items-center justify-center rounded-full border px-5 py-2 font-subtitle text-sm transition-colors duration-300 ${
                               selectedSlotId === slot.id
                                 ? 'border-gold-deep bg-gold-deep text-cream'
                                 : 'border-gold/30 text-onyx hover:border-gold-deep'

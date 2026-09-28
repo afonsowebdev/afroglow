@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { sendBookingPushNotification } from '../lib/apns.js'
-import { requireAdmin } from '../lib/auth.js'
+import { requireAdmin, requireCustomer } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
 import { sendBookingNotification } from '../lib/resend.js'
 import { createBookingSchema } from '../lib/validation.js'
@@ -10,7 +10,7 @@ export const bookingsRouter = Router()
 class SlotUnavailableError extends Error {}
 class ServiceNotFoundError extends Error {}
 
-bookingsRouter.post('/', async (req, res) => {
+bookingsRouter.post('/', requireCustomer, async (req, res) => {
   const parsed = createBookingSchema.safeParse(req.body)
   if (!parsed.success) {
     res.status(400).json({ error: 'Dados de marcação inválidos.' })
@@ -18,6 +18,7 @@ bookingsRouter.post('/', async (req, res) => {
   }
 
   const { slotId, serviceId, customerName, customerPhone, notes } = parsed.data
+  const customerId = req.customerId!
 
   try {
     const { booking, slot, service } = await prisma.$transaction(async (tx) => {
@@ -33,7 +34,7 @@ bookingsRouter.post('/', async (req, res) => {
 
       await tx.availabilitySlot.update({ where: { id: slot.id }, data: { status: 'PENDING' } })
       const booking = await tx.booking.create({
-        data: { slotId: slot.id, serviceId: service.id, customerName, customerPhone, notes },
+        data: { slotId: slot.id, serviceId: service.id, customerId, customerName, customerPhone, notes },
       })
 
       return { booking, slot, service }

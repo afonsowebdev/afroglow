@@ -7,7 +7,7 @@ import { TimePicker } from '@/components/ui/time-picker'
 import { api, ApiError } from '@/lib/api'
 import { registerForPushNotifications } from '@/lib/push-notifications'
 import { customerWhatsappUrl } from '@/lib/site-config'
-import { formatPrice, type AvailabilitySlot, type Booking, type Service } from '@/lib/types'
+import { formatPrice, type AvailabilitySlot, type Booking, type Service, type Testimonial } from '@/lib/types'
 
 const LISBON_TZ = 'Europe/Lisbon'
 
@@ -72,6 +72,7 @@ export default function AdminDashboardPage() {
   const [services, setServices] = useState<Service[]>([])
   const [slots, setSlots] = useState<AvailabilitySlot[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const [newDate, setNewDate] = useState('')
@@ -101,14 +102,16 @@ export default function AdminDashboardPage() {
 
   const loadDashboard = useCallback(async (opts: { silent?: boolean } = {}) => {
     try {
-      const [servicesData, slotsData, bookingsData] = await Promise.all([
+      const [servicesData, slotsData, bookingsData, testimonialsData] = await Promise.all([
         api.get<Service[]>('/services'),
         api.get<AvailabilitySlot[]>('/admin/availability'),
         api.get<Booking[]>('/admin/bookings'),
+        api.get<Testimonial[]>('/admin/testimonials'),
       ])
       setServices(servicesData)
       setSlots(slotsData)
       setBookings(bookingsData)
+      setTestimonials(testimonialsData)
       if (!opts.silent) setError(null)
     } catch {
       if (!opts.silent) setError('Não foi possível carregar os dados do painel.')
@@ -213,6 +216,19 @@ export default function AdminDashboardPage() {
     }
   }
 
+  async function handleTestimonialDecision(id: string, decision: 'approve' | 'reject') {
+    setBusyId(id)
+    setError(null)
+    try {
+      await api.post(`/admin/testimonials/${id}/${decision}`)
+      await loadDashboard()
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Erro ao atualizar testemunho.')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   function startEditService(service: Service) {
     setEditingServiceId(service.id)
     setEditDuration(service.durationLabel)
@@ -301,6 +317,11 @@ export default function AdminDashboardPage() {
 
   const weekAheadMs = nowMs + 7 * 24 * 60 * 60 * 1000
   const confirmedThisWeekCount = upcomingConfirmed.filter((b) => new Date(b.slot.startsAt).getTime() <= weekAheadMs).length
+
+  const pendingTestimonials = testimonials.filter((t) => t.status === 'PENDING')
+  const resolvedTestimonials = testimonials
+    .filter((t) => t.status !== 'PENDING')
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
   const currentMonth = new Date()
   const monthRevenueCents = bookings
@@ -710,6 +731,70 @@ export default function AdminDashboardPage() {
                     }`}
                   >
                     {HISTORY_STATUS_LABEL[booking.status]}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="mt-16">
+          <SectionHeading number="06">Testemunhos pendentes</SectionHeading>
+          {pendingTestimonials.length === 0 ? (
+            <p className="mt-5 font-subtitle text-sm text-muted-dark">Sem testemunhos por rever.</p>
+          ) : (
+            <div className="mt-6 flex flex-col gap-3">
+              {pendingTestimonials.map((testimonial) => (
+                <div
+                  key={testimonial.id}
+                  className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gold/20 p-5"
+                >
+                  <div>
+                    <p className="font-subtitle text-base text-onyx">
+                      <span className="font-medium">{testimonial.customer.name}</span>
+                    </p>
+                    <p className="mt-1 max-w-xl font-subtitle text-sm italic text-muted-dark">
+                      "{testimonial.content}"
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MotionButton
+                      label="Aprovar"
+                      size="sm"
+                      disabled={busyId === testimonial.id}
+                      onClick={() => handleTestimonialDecision(testimonial.id, 'approve')}
+                      icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
+                    />
+                    <MotionButton
+                      label="Recusar"
+                      size="sm"
+                      variant="danger"
+                      disabled={busyId === testimonial.id}
+                      onClick={() => handleTestimonialDecision(testimonial.id, 'reject')}
+                      icon={<i className="bx bx-x text-lg" aria-hidden="true" />}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {resolvedTestimonials.length > 0 && (
+            <div className="mt-6 flex flex-col gap-2">
+              {resolvedTestimonials.map((testimonial) => (
+                <div
+                  key={testimonial.id}
+                  className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/20 py-3"
+                >
+                  <p className="font-subtitle text-sm text-muted-dark">
+                    {testimonial.customer.name} · "{testimonial.content}"
+                  </p>
+                  <span
+                    className={`font-subtitle text-xs uppercase tracking-wide ${
+                      testimonial.status === 'APPROVED' ? 'text-gold-deep' : 'text-red-700'
+                    }`}
+                  >
+                    {testimonial.status === 'APPROVED' ? 'Aprovado' : 'Recusado'}
                   </span>
                 </div>
               ))}

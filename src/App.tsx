@@ -2,6 +2,8 @@ import { Capacitor } from '@capacitor/core'
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import LandingPage from '@/pages/LandingPage'
+import AccountAuthPage from '@/pages/AccountAuthPage'
+import AccountPage from '@/pages/AccountPage'
 import BookingPage from '@/pages/BookingPage'
 import CeoPage from '@/pages/CeoPage'
 
@@ -13,6 +15,8 @@ export default function App() {
     <Routes>
       <Route path="/" element={Capacitor.isNativePlatform() ? <Navigate to="/admin" replace /> : <LandingPage />} />
       <Route path="/agendar" element={<BookingPage />} />
+      <Route path="/entrar" element={<AccountAuthPage />} />
+      <Route path="/conta" element={<AccountPage />} />
       <Route path="/ceo" element={<CeoPage />} />
       <Route
         path="/admin/login"

@@ -1,10 +1,10 @@
 import { useState } from 'react'
 
 export interface Testimonial {
-  id: number
+  id: string
   quote: string
   name: string
-  service: string
+  service?: string
 }
 
 export function TestimonialsEditorial({ testimonials }: { testimonials: Testimonial[] }) {
@@ -62,7 +62,9 @@ export function TestimonialsEditorial({ testimonials }: { testimonials: Testimon
               </div>
               <div>
                 <p className="font-subtitle font-medium text-onyx">{current.name}</p>
-                <p className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">{current.service}</p>
+                {current.service && (
+                  <p className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">{current.service}</p>
+                )}
               </div>
             </div>
           </div>

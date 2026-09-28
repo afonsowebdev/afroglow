@@ -22,6 +22,7 @@ export interface Booking {
   id: string
   slotId: string
   serviceId: string
+  customerId: string
   customerName: string
   customerPhone: string
   notes: string | null
@@ -30,6 +31,23 @@ export interface Booking {
   updatedAt: string
   slot: AvailabilitySlot
   service: Service
+}
+
+export interface Customer {
+  id: string
+  name: string
+  email: string
+  phone: string
+}
+
+export type TestimonialStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+
+export interface Testimonial {
+  id: string
+  content: string
+  status: TestimonialStatus
+  createdAt: string
+  customer: { name: string }
 }
 
 export function formatPrice(cents: number) {

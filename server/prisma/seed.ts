@@ -15,6 +15,31 @@ const SERVICES = [
   { name: 'Feed-in Braids', description: 'Tranças com integração gradual, acabamento natural.', durationLabel: '2–3h', priceCents: 4500 },
 ]
 
+const SEED_TESTIMONIALS = [
+  {
+    name: 'Beatriz Almeida',
+    email: 'seed-beatriz.almeida@afroglow.placeholder',
+    content:
+      'Fui pela primeira vez e voltei encantada. As tranças ficaram impecáveis e duraram muito mais do que esperava.',
+  },
+  {
+    name: 'Carolina Ferreira',
+    email: 'seed-carolina.ferreira@afroglow.placeholder',
+    content:
+      'Atendimento incrível do início ao fim. Sinto que finalmente encontrei um sítio de confiança para cuidar do meu cabelo.',
+  },
+  {
+    name: 'Inês Rodrigues',
+    email: 'seed-ines.rodrigues@afroglow.placeholder',
+    content: 'O cuidado com o detalhe é impressionante. Recomendo a todas as amigas que procuram tranças bem feitas.',
+  },
+  {
+    name: 'Marta Sousa',
+    email: 'seed-marta.sousa@afroglow.placeholder',
+    content: 'Profissionalismo e simpatia em cada sessão. Já não marco tranças em mais lado nenhum.',
+  },
+]
+
 async function main() {
   const existingAdmin = await prisma.admin.findUnique({ where: { email: ADMIN_EMAIL } })
   if (existingAdmin) {
@@ -37,6 +62,20 @@ async function main() {
     })
   }
   console.log(`[seed] ${SERVICES.length} serviços garantidos.`)
+
+  const placeholderPasswordHash = await bcrypt.hash(randomBytes(24).toString('hex'), 10)
+  for (const { name, email, content } of SEED_TESTIMONIALS) {
+    const customer = await prisma.customer.upsert({
+      where: { email },
+      update: {},
+      create: { name, email, phone: '000000000', passwordHash: placeholderPasswordHash },
+    })
+    const existingTestimonial = await prisma.testimonial.findFirst({ where: { customerId: customer.id } })
+    if (!existingTestimonial) {
+      await prisma.testimonial.create({ data: { customerId: customer.id, content, status: 'APPROVED' } })
+    }
+  }
+  console.log(`[seed] ${SEED_TESTIMONIALS.length} testemunhos garantidos.`)
 }
 
 main()

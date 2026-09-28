@@ -11,6 +11,9 @@ const JWT_SECRET: string = rawSecret
 export const SESSION_COOKIE = 'admin_session'
 const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000
 
+export const CUSTOMER_SESSION_COOKIE = 'customer_session'
+const CUSTOMER_SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000
+
 export function hashPassword(password: string) {
   return bcrypt.hash(password, 10)
 }
@@ -23,7 +26,11 @@ export function signSession(adminId: string) {
   return jwt.sign({ adminId }, JWT_SECRET, { expiresIn: '7d' })
 }
 
-export function sessionCookieOptions() {
+export function signCustomerSession(customerId: string) {
+  return jwt.sign({ customerId }, JWT_SECRET, { expiresIn: '30d' })
+}
+
+export function sessionCookieOptions(maxAgeMs: number = SESSION_MAX_AGE_MS) {
   // In production the frontend (Vercel) and backend live on different
   // domains, so the session cookie must be sent cross-site — that requires
   // SameSite=None, which browsers only honor when the cookie is Secure too.
@@ -34,14 +41,19 @@ export function sessionCookieOptions() {
     httpOnly: true as const,
     sameSite: isProduction ? ('none' as const) : ('lax' as const),
     secure: isProduction,
-    maxAge: SESSION_MAX_AGE_MS,
+    maxAge: maxAgeMs,
   }
+}
+
+export function customerSessionCookieOptions() {
+  return sessionCookieOptions(CUSTOMER_SESSION_MAX_AGE_MS)
 }
 
 declare global {
   namespace Express {
     interface Request {
       adminId?: string
+      customerId?: string
     }
   }
 }
@@ -56,6 +68,22 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
   try {
     const payload = jwt.verify(token, JWT_SECRET) as { adminId: string }
     req.adminId = payload.adminId
+    next()
+  } catch {
+    res.status(401).json({ error: 'Sessão inválida ou expirada.' })
+  }
+}
+
+export async function requireCustomer(req: Request, res: Response, next: NextFunction) {
+  const token = req.cookies?.[CUSTOMER_SESSION_COOKIE]
+  if (!token) {
+    res.status(401).json({ error: 'Não autenticado.' })
+    return
+  }
+
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as { customerId: string }
+    req.customerId = payload.customerId
     next()
   } catch {
     res.status(401).json({ error: 'Sessão inválida ou expirada.' })

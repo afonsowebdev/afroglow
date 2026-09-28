@@ -55,12 +55,25 @@ enum BookingStatus {
   CANCELLED
 }
 
+model Customer {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  phone        String
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  bookings     Booking[]
+  testimonials Testimonial[]
+}
+
 model Booking {
   id            String           @id @default(cuid())
   slotId        String
   slot          AvailabilitySlot @relation(fields: [slotId], references: [id])
   serviceId     String
   service       Service          @relation(fields: [serviceId], references: [id])
+  customerId    String
+  customer      Customer         @relation(fields: [customerId], references: [id])
   customerName  String
   customerPhone String
   notes         String?
@@ -69,6 +82,18 @@ model Booking {
   updatedAt     DateTime         @updatedAt
 }
 
+enum TestimonialStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
 
-
+model Testimonial {
+  id         String            @id @default(cuid())
+  customerId String
+  customer   Customer          @relation(fields: [customerId], references: [id])
+  content    String
+  status     TestimonialStatus @default(PENDING)
+  createdAt  DateTime          @default(now())
+}
 

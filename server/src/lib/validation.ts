@@ -38,3 +38,18 @@ export const createBookingSchema = z.object({
   customerPhone: z.string().trim().min(6).max(30),
   notes: z.string().trim().max(500).optional(),
 })
+
+export const customerRegisterSchema = z.object({
+  name: z.string().trim().min(2).max(100),
+  email: z.string().email(),
+  phone: z.string().trim().min(6).max(30),
+  password: z.string().min(8).max(100),
+})
+
+export const rescheduleBookingSchema = z.object({
+  slotId: z.string().min(1),
+})
+
+export const createTestimonialSchema = z.object({
+  content: z.string().trim().min(10).max(600),
+})

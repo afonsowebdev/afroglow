@@ -30,7 +30,7 @@ function SocialIcons({ className }: { className?: string }) {
           target="_blank"
           rel="noreferrer"
           aria-label={social.label}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-onyx/20 text-onyx/60 transition-colors duration-300 hover:text-onyx"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-onyx/20 text-lg text-onyx/60 transition-colors duration-300 hover:text-onyx"
         >
           <i className={social.icon} aria-hidden="true" />
         </a>
@@ -49,7 +49,7 @@ function AccountButton({ loggedIn, onClick }: { loggedIn: boolean; onClick?: () 
       href={loggedIn ? '/conta' : '/entrar'}
       onClick={onClick}
       aria-label={loggedIn ? 'A minha conta' : 'Entrar ou criar conta'}
-      className="flex h-9 w-9 items-center justify-center rounded-full border border-onyx/20 text-onyx/60 transition-colors duration-300 hover:text-onyx"
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-onyx/20 text-lg text-onyx/60 transition-colors duration-300 hover:text-onyx"
     >
       <i className="bx bx-user" aria-hidden="true" />
     </a>
@@ -132,7 +132,7 @@ export default function Navbar() {
           </ul>
 
           <div className="hidden items-center gap-3 md:flex">
-            <div className={`flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 ${pillBg}`}>
+            <div className={`flex items-center gap-2 p-2 sm:p-2.5 ${pillBg}`}>
               <SocialIcons className="flex items-center gap-2" />
             </div>
 
