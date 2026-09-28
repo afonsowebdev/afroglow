@@ -15,9 +15,14 @@ const app = express()
 // The admin app is a Capacitor iOS shell, not a browser tab — it makes its
 // API requests from the `capacitor://localhost` origin (iOS) rather than the
 // site's own domain, so that origin needs to be allowed alongside FRONTEND_URL.
-const allowedOrigins = [process.env.FRONTEND_URL, 'capacitor://localhost', 'ionic://localhost'].filter(
-  (origin): origin is string => Boolean(origin),
-)
+// FRONTEND_URL itself accepts a comma-separated list, since the apex domain
+// (afroglow.pt) redirects to www at the CDN level — a browser tab on either
+// one can end up making the actual fetch from either origin.
+const allowedOrigins = (process.env.FRONTEND_URL ?? '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+  .concat(['capacitor://localhost', 'ionic://localhost'])
 
 app.use(
   cors({
