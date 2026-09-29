@@ -2,7 +2,12 @@ import { Router } from 'express'
 import { sendBookingPushNotification } from '../lib/apns.js'
 import { requireAdmin, requireCustomer } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
-import { sendBookingNotification } from '../lib/resend.js'
+import {
+  sendBookingAcceptedEmail,
+  sendBookingConfirmationEmail,
+  sendBookingNotification,
+  sendBookingRejectedEmail,
+} from '../lib/resend.js'
 import { createBookingSchema } from '../lib/validation.js'
 
 export const bookingsRouter = Router()
@@ -21,7 +26,7 @@ bookingsRouter.post('/', requireCustomer, async (req, res) => {
   const customerId = req.customerId!
 
   try {
-    const { booking, slot, service } = await prisma.$transaction(async (tx) => {
+    const { booking, slot, service, customer } = await prisma.$transaction(async (tx) => {
       const slot = await tx.availabilitySlot.findUnique({ where: { id: slotId } })
       if (!slot || slot.status !== 'OPEN') {
         throw new SlotUnavailableError()
@@ -32,12 +37,14 @@ bookingsRouter.post('/', requireCustomer, async (req, res) => {
         throw new ServiceNotFoundError()
       }
 
+      const customer = await tx.customer.findUniqueOrThrow({ where: { id: customerId } })
+
       await tx.availabilitySlot.update({ where: { id: slot.id }, data: { status: 'PENDING' } })
       const booking = await tx.booking.create({
         data: { slotId: slot.id, serviceId: service.id, customerId, customerName, customerPhone, notes },
       })
 
-      return { booking, slot, service }
+      return { booking, slot, service, customer }
     })
 
     // Awaited (not fire-and-forget) — a detached push send was observed to
@@ -45,12 +52,19 @@ bookingsRouter.post('/', requireCustomer, async (req, res) => {
     // out, even though the exact same send logic works fine when awaited
     // directly (confirmed via the diagnostic endpoint).
     await Promise.all([
+      sendBookingConfirmationEmail(customer.email, {
+        serviceName: service.name,
+        priceCents: service.priceCents,
+        startsAt: slot.startsAt,
+        durationLabel: service.durationLabel,
+      }),
       sendBookingNotification({
         customerName,
         customerPhone,
         serviceName: service.name,
         priceCents: service.priceCents,
         startsAt: slot.startsAt,
+        durationLabel: service.durationLabel,
       }),
       sendBookingPushNotification({ customerName, serviceName: service.name }),
     ])
@@ -101,7 +115,10 @@ async function resolveBooking(
   allowedFrom: Array<'PENDING' | 'ACCEPTED'>,
 ) {
   try {
-    const booking = await prisma.booking.findUnique({ where: { id: bookingId } })
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { slot: true, service: true, customer: true },
+    })
     if (!booking) {
       res.status(404).json({ error: 'Marcação não encontrada.' })
       return
@@ -115,6 +132,20 @@ async function resolveBooking(
       await tx.availabilitySlot.update({ where: { id: booking.slotId }, data: { status: slotStatus } })
       return tx.booking.update({ where: { id: booking.id }, data: { status: bookingStatus } })
     })
+
+    if (bookingStatus === 'ACCEPTED') {
+      await sendBookingAcceptedEmail(booking.customer.email, {
+        serviceName: booking.service.name,
+        priceCents: booking.service.priceCents,
+        startsAt: booking.slot.startsAt,
+        durationLabel: booking.service.durationLabel,
+      })
+    } else if (bookingStatus === 'REJECTED') {
+      await sendBookingRejectedEmail(booking.customer.email, {
+        serviceName: booking.service.name,
+        startsAt: booking.slot.startsAt,
+      })
+    }
 
     res.json(updated)
   } catch (error) {

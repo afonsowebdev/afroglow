@@ -39,11 +39,28 @@ export const createBookingSchema = z.object({
   notes: z.string().trim().max(500).optional(),
 })
 
-export const customerRegisterSchema = z.object({
+const strongPasswordSchema = z
+  .string()
+  .min(8, 'A password deve ter pelo menos 8 caracteres.')
+  .max(100)
+  .regex(/[A-Z]/, 'A password deve ter pelo menos 1 letra maiúscula.')
+  .regex(/[0-9]/, 'A password deve ter pelo menos 1 número.')
+  .regex(/[^A-Za-z0-9]/, 'A password deve ter pelo menos 1 caractere especial.')
+
+export const registerStartSchema = z.object({
   name: z.string().trim().min(2).max(100),
   email: z.string().email(),
   phone: z.string().trim().min(6).max(30),
-  password: z.string().min(8).max(100),
+  password: strongPasswordSchema,
+})
+
+export const verifyEmailSchema = z.object({
+  email: z.string().email(),
+  code: z.string().regex(/^\d{6}$/, 'O código deve ter exatamente 6 dígitos.'),
+})
+
+export const resendCodeSchema = z.object({
+  email: z.string().email(),
 })
 
 export const rescheduleBookingSchema = z.object({

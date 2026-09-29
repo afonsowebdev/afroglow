@@ -2,43 +2,14 @@ import { Router } from 'express'
 import {
   customerSessionCookieOptions,
   CUSTOMER_SESSION_COOKIE,
-  hashPassword,
   requireCustomer,
   signCustomerSession,
   verifyPassword,
 } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
-import { createTestimonialSchema, customerRegisterSchema, loginSchema, rescheduleBookingSchema } from '../lib/validation.js'
+import { createTestimonialSchema, loginSchema, rescheduleBookingSchema } from '../lib/validation.js'
 
 export const accountRouter = Router()
-
-accountRouter.post('/register', async (req, res) => {
-  const parsed = customerRegisterSchema.safeParse(req.body)
-  if (!parsed.success) {
-    res.status(400).json({ error: 'Dados de registo inválidos.' })
-    return
-  }
-
-  const { name, email, phone, password } = parsed.data
-
-  try {
-    const existing = await prisma.customer.findUnique({ where: { email } })
-    if (existing) {
-      res.status(409).json({ error: 'Já existe uma conta com este email.' })
-      return
-    }
-
-    const passwordHash = await hashPassword(password)
-    const customer = await prisma.customer.create({ data: { name, email, phone, passwordHash } })
-
-    const token = signCustomerSession(customer.id)
-    res.cookie(CUSTOMER_SESSION_COOKIE, token, customerSessionCookieOptions())
-    res.status(201).json({ id: customer.id, name: customer.name, email: customer.email, phone: customer.phone })
-  } catch (error) {
-    console.error('[account] register failed:', error)
-    res.status(500).json({ error: 'Erro ao criar conta.' })
-  }
-})
 
 accountRouter.post('/login', async (req, res) => {
   const parsed = loginSchema.safeParse(req.body)

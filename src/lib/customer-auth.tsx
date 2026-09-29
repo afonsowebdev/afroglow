@@ -6,7 +6,9 @@ interface CustomerAuthContextValue {
   customer: Customer | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
-  register: (data: { name: string; email: string; phone: string; password: string }) => Promise<void>
+  startRegistration: (data: { name: string; email: string; phone: string; password: string }) => Promise<void>
+  verifyEmail: (email: string, code: string) => Promise<void>
+  resendCode: (email: string) => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -34,13 +36,21 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
     setCustomer(data)
   }, [])
 
-  const register = useCallback(
+  const startRegistration = useCallback(
     async (data: { name: string; email: string; phone: string; password: string }) => {
-      const customer = await api.post<Customer>('/account/register', data)
-      setCustomer(customer)
+      await api.post('/auth/register', data)
     },
     [],
   )
+
+  const verifyEmail = useCallback(async (email: string, code: string) => {
+    const customer = await api.post<Customer>('/auth/verify-email', { email, code })
+    setCustomer(customer)
+  }, [])
+
+  const resendCode = useCallback(async (email: string) => {
+    await api.post('/auth/resend-code', { email })
+  }, [])
 
   const logout = useCallback(async () => {
     await api.post('/account/logout')
@@ -48,7 +58,9 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <CustomerAuthContext.Provider value={{ customer, loading, login, register, logout }}>
+    <CustomerAuthContext.Provider
+      value={{ customer, loading, login, startRegistration, verifyEmail, resendCode, logout }}
+    >
       {children}
     </CustomerAuthContext.Provider>
   )

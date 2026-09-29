@@ -7,10 +7,18 @@ import { adminAvailabilityRouter, availabilityRouter } from './routes/availabili
 import { authRouter } from './routes/auth.js'
 import { adminBookingsRouter, bookingsRouter } from './routes/bookings.js'
 import { pushRouter } from './routes/push.js'
+import { registerRouter } from './routes/register.js'
 import { adminServicesRouter, servicesRouter } from './routes/services.js'
 import { adminTestimonialsRouter, testimonialsRouter } from './routes/testimonials.js'
 
 const app = express()
+
+// Behind a reverse proxy in production, req.ip would otherwise resolve to the
+// proxy's own address for every request — which would make the /api/auth/register
+// IP rate limit apply to all users collectively instead of per client.
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1)
+}
 
 // The admin app is a Capacitor iOS shell, not a browser tab — it makes its
 // API requests from the `capacitor://localhost` origin (iOS) rather than the
@@ -42,6 +50,7 @@ app.use(cookieParser())
 app.get('/api/health', (_req, res) => res.json({ ok: true }))
 
 app.use('/api/auth', authRouter)
+app.use('/api/auth', registerRouter)
 app.use('/api/services', servicesRouter)
 app.use('/api/admin/services', adminServicesRouter)
 app.use('/api/availability', availabilityRouter)

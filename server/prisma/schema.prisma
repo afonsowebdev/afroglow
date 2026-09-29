@@ -66,6 +66,18 @@ model Customer {
   testimonials Testimonial[]
 }
 
+model PendingRegistration {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  phone        String
+  passwordHash String
+  code         String
+  attempts     Int      @default(0)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+}
+
 model Booking {
   id            String           @id @default(cuid())
   slotId        String

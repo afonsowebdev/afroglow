@@ -15,7 +15,7 @@ export const CUSTOMER_SESSION_COOKIE = 'customer_session'
 const CUSTOMER_SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000
 
 export function hashPassword(password: string) {
-  return bcrypt.hash(password, 10)
+  return bcrypt.hash(password, 12)
 }
 
 export function verifyPassword(password: string, hash: string) {
