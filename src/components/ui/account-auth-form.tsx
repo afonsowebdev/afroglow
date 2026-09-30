@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { MotionButton } from '@/components/ui/motion-button'
 import { ApiError } from '@/lib/api'
 import { useCustomerAuth } from '@/lib/customer-auth'
@@ -17,6 +18,83 @@ function Field({
       <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">{label}</span>
       <input className={inputClasses} {...props} />
     </label>
+  )
+}
+
+const EASE = [0.22, 1, 0.36, 1] as const
+
+// Mounts/unmounts with a smooth height + fade so the form reflows instead of jumping.
+function Collapse({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: 'auto', opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      transition={{ duration: 0.45, ease: EASE }}
+      className="overflow-hidden"
+    >
+      <div className="pb-4">{children}</div>
+    </motion.div>
+  )
+}
+
+function ErrorMessage({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.p
+      role="alert"
+      initial={{ opacity: 0, y: -6, x: 0 }}
+      animate={{ opacity: 1, y: 0, x: [0, -6, 6, -4, 4, 0] }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4, ease: EASE }}
+      className="font-subtitle text-sm text-red-700"
+    >
+      {children}
+    </motion.p>
+  )
+}
+
+function PasswordField({ label, ...props }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+  const [visible, setVisible] = useState(false)
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">{label}</span>
+      <span className="relative">
+        <input className={`${inputClasses} w-full pr-12`} type={visible ? 'text' : 'password'} {...props} />
+        <button
+          type="button"
+          tabIndex={-1}
+          onClick={() => setVisible((v) => !v)}
+          aria-label={visible ? 'Esconder password' : 'Mostrar password'}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-onyx/40 transition-colors duration-300 hover:text-gold-deep"
+        >
+          <i className={`bx ${visible ? 'bx-hide' : 'bx-show'} text-xl`} aria-hidden="true" />
+        </button>
+      </span>
+    </label>
+  )
+}
+
+function PasswordChecklist({ password }: { password: string }) {
+  const rules = [
+    { ok: password.length >= 8, text: '8+ caracteres' },
+    { ok: /[A-Z]/.test(password), text: '1 maiúscula' },
+    { ok: /[0-9]/.test(password), text: '1 número' },
+    { ok: /[^A-Za-z0-9]/.test(password), text: '1 especial' },
+  ]
+  return (
+    <ul className="flex flex-wrap gap-x-4 gap-y-1">
+      {rules.map((r) => (
+        <li
+          key={r.text}
+          className={`flex items-center gap-1 font-subtitle text-xs transition-colors duration-300 ${
+            r.ok ? 'text-gold-deep' : 'text-muted-dark'
+          }`}
+        >
+          <i className={`bx ${r.ok ? 'bxs-check-circle' : 'bx-circle'} text-sm`} aria-hidden="true" />
+          {r.text}
+        </li>
+      ))}
+    </ul>
   )
 }
 
@@ -101,8 +179,14 @@ export function AccountAuthForm({ onSuccess }: { onSuccess?: () => void }) {
     }
   }
 
-  if (mode === 'verify') {
-    return (
+  const view = mode === 'verify' ? (
+    <motion.div
+      key="verify"
+      initial={{ opacity: 0, x: 32 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -32 }}
+      transition={{ duration: 0.4, ease: EASE }}
+    >
       <div className="flex flex-col gap-6">
         <div>
           <h2 className="font-subtitle text-lg text-onyx">Confirma o teu email</h2>
@@ -122,7 +206,7 @@ export function AccountAuthForm({ onSuccess }: { onSuccess?: () => void }) {
             placeholder="000000"
           />
 
-          {error && <p className="font-subtitle text-sm text-red-700">{error}</p>}
+          <AnimatePresence>{error && <ErrorMessage>{error}</ErrorMessage>}</AnimatePresence>
 
           <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
             <MotionButton
@@ -141,72 +225,109 @@ export function AccountAuthForm({ onSuccess }: { onSuccess?: () => void }) {
           </div>
         </form>
       </div>
-    )
-  }
-
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="flex gap-2 rounded-full border border-gold/20 bg-cream p-1">
-        <button
-          type="button"
-          onClick={() => setMode('login')}
-          className={`flex flex-1 items-center justify-center rounded-full py-2 font-subtitle text-sm transition-colors duration-300 ${
-            mode === 'login' ? 'bg-gold-deep text-cream' : 'text-onyx/60 hover:text-onyx'
-          }`}
-        >
-          Entrar
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode('register')}
-          className={`flex flex-1 items-center justify-center rounded-full py-2 font-subtitle text-sm transition-colors duration-300 ${
-            mode === 'register' ? 'bg-gold-deep text-cream' : 'text-onyx/60 hover:text-onyx'
-          }`}
-        >
-          Criar conta
-        </button>
+    </motion.div>
+  ) : (
+    <motion.div
+      key="main"
+      initial={{ opacity: 0, x: -32 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -32 }}
+      transition={{ duration: 0.4, ease: EASE }}
+      className="flex flex-col gap-6"
+    >
+      <div className="relative flex rounded-full border border-gold/20 bg-cream p-1">
+        {(
+          [
+            ['login', 'Entrar'],
+            ['register', 'Criar conta'],
+          ] as const
+        ).map(([value, text]) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => {
+              setMode(value)
+              setError(null)
+            }}
+            className="relative flex flex-1 items-center justify-center rounded-full py-2 font-subtitle text-sm"
+          >
+            {mode === value && (
+              <motion.span
+                layoutId="auth-tab-pill"
+                className="absolute inset-0 rounded-full bg-gold-deep shadow-md shadow-gold-deep/30"
+                transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+              />
+            )}
+            <span
+              className={`relative transition-colors duration-300 ${
+                mode === value ? 'text-cream' : 'text-onyx/60 hover:text-onyx'
+              }`}
+            >
+              {text}
+            </span>
+          </button>
+        ))}
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        {mode === 'register' && (
-          <>
-            <Field label="Nome" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="O teu nome" />
-            <Field
-              label="Telemóvel"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="912 345 678"
-            />
-          </>
-        )}
-        <Field label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" />
-        <Field
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={mode === 'register' ? 'Mínimo 8 caracteres' : 'A tua password'}
-        />
-        {mode === 'register' && password.length > 0 && !passwordValid && (
-          <p className="-mt-2 font-subtitle text-xs text-muted-dark">
-            A password precisa de pelo menos 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial.
-          </p>
-        )}
-        {mode === 'register' && (
-          <Field
-            label="Confirmar password"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Repete a password"
-          />
-        )}
-        {mode === 'register' && confirmPassword.length > 0 && confirmPassword !== password && (
-          <p className="-mt-2 font-subtitle text-xs text-red-700">As passwords não coincidem.</p>
-        )}
+      <form onSubmit={handleSubmit} className="flex flex-col">
+        <AnimatePresence initial={false}>
+          {mode === 'register' && (
+            <Collapse key="name">
+              <Field label="Nome" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="O teu nome" />
+            </Collapse>
+          )}
+          {mode === 'register' && (
+            <Collapse key="phone">
+              <Field
+                label="Telemóvel"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="912 345 678"
+              />
+            </Collapse>
+          )}
+        </AnimatePresence>
 
-        {error && <p className="font-subtitle text-sm text-red-700">{error}</p>}
+        <div className="pb-4">
+          <Field label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" />
+        </div>
+        <div className="pb-4">
+          <PasswordField
+            label="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={mode === 'register' ? 'Mínimo 8 caracteres' : 'A tua password'}
+          />
+        </div>
+
+        <AnimatePresence initial={false}>
+          {mode === 'register' && password.length > 0 && !passwordValid && (
+            <Collapse key="rules">
+              <PasswordChecklist password={password} />
+            </Collapse>
+          )}
+          {mode === 'register' && (
+            <Collapse key="confirm">
+              <PasswordField
+                label="Confirmar password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repete a password"
+              />
+            </Collapse>
+          )}
+          {mode === 'register' && confirmPassword.length > 0 && confirmPassword !== password && (
+            <Collapse key="mismatch">
+              <p className="font-subtitle text-xs text-red-700">As passwords não coincidem.</p>
+            </Collapse>
+          )}
+          {error && (
+            <Collapse key="error">
+              <ErrorMessage>{error}</ErrorMessage>
+            </Collapse>
+          )}
+        </AnimatePresence>
 
         <div className="flex justify-center sm:justify-start">
           <MotionButton
@@ -216,6 +337,12 @@ export function AccountAuthForm({ onSuccess }: { onSuccess?: () => void }) {
           />
         </div>
       </form>
-    </div>
+    </motion.div>
+  )
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      {view}
+    </AnimatePresence>
   )
 }
