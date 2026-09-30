@@ -1,6 +1,7 @@
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
+import { sendDueBookingReminders } from './lib/reminders.js'
 import { accountRouter } from './routes/account.js'
 import { adminMaintenanceRouter } from './routes/admin-maintenance.js'
 import { adminAvailabilityRouter, availabilityRouter } from './routes/availability.js'
@@ -67,3 +68,14 @@ const port = Number(process.env.PORT) || 3001
 app.listen(port, () => {
   console.log(`[server] listening on http://localhost:${port}`)
 })
+
+// Runs inside this same process instead of a separate scheduled service —
+// Render Cron Jobs require their own paid instance, while this reuses the
+// web service's already-running (already-paid-for) compute.
+const REMINDER_CHECK_INTERVAL_MS = 15 * 60 * 1000
+setInterval(() => {
+  sendDueBookingReminders().catch((error) => console.error('[reminders] falha ao verificar lembretes:', error))
+}, REMINDER_CHECK_INTERVAL_MS)
+setTimeout(() => {
+  sendDueBookingReminders().catch((error) => console.error('[reminders] falha ao verificar lembretes:', error))
+}, 30_000)
