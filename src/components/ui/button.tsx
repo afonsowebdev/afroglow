@@ -11,7 +11,7 @@ const buttonVariants = cva(
         solid: 'bg-gold text-onyx hover:brightness-95',
         outline: 'border border-gold text-gold-deep hover:bg-gold hover:text-onyx',
         ghost: 'text-onyx hover:text-gold-deep',
-        destructive: 'border border-red-700/40 text-red-700 hover:bg-red-700 hover:text-white',
+        destructive: 'bg-red-700 text-white hover:bg-red-800',
       },
       size: {
         default: 'px-7 py-3',
