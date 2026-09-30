@@ -700,23 +700,31 @@ export default function AdminDashboardPage() {
             ))}
           </div>
 
-          <div className="mt-8 rounded-2xl border border-red-700/30 p-5">
+          <div className="mt-8 rounded-2xl border border-red-700/20 bg-red-700/5 p-5">
             {!clearingOpen ? (
-              <button
-                type="button"
-                onClick={openClearPanel}
-                className="flex items-center gap-2 font-subtitle text-sm text-red-700 transition-colors hover:text-red-800"
-              >
-                <i className="bx bx-trash text-lg" aria-hidden="true" />
-                Limpar dados de {formatMonthLabel(viewMonth)}
+              <button type="button" onClick={openClearPanel} className="flex w-full items-center gap-3 text-left">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-700/10 text-red-700">
+                  <i className="bx bx-trash text-lg" aria-hidden="true" />
+                </span>
+                <span>
+                  <span className="block font-subtitle text-sm font-medium text-red-700">
+                    Limpar dados de {formatMonthLabel(viewMonth)}
+                  </span>
+                  <span className="block font-subtitle text-xs text-muted-dark">
+                    Apaga vagas e marcações do mês, permanentemente
+                  </span>
+                </span>
               </button>
             ) : (
               <div className="flex flex-col gap-4">
-                <p className="font-subtitle text-sm text-onyx">
-                  Isto apaga permanentemente {clearSummary ? clearSummary.slotCount : '...'} vaga(s) e{' '}
-                  {clearSummary ? clearSummary.bookingCount : '...'} marcação(ões) de {formatMonthLabel(viewMonth)},
-                  incluindo marcações já aceites. Não pode ser desfeito.
-                </p>
+                <div className="flex items-start gap-3 rounded-xl bg-red-700/10 p-4">
+                  <i className="bx bx-error mt-0.5 shrink-0 text-xl text-red-700" aria-hidden="true" />
+                  <p className="font-subtitle text-sm text-red-800">
+                    Isto apaga permanentemente {clearSummary ? clearSummary.slotCount : '...'} vaga(s) e{' '}
+                    {clearSummary ? clearSummary.bookingCount : '...'} marcação(ões) de {formatMonthLabel(viewMonth)},
+                    incluindo marcações já aceites. <strong>Não pode ser desfeito.</strong>
+                  </p>
+                </div>
                 <label className="flex max-w-xs flex-col gap-1.5">
                   <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
                     Confirma com a tua password
@@ -745,7 +753,7 @@ export default function AdminDashboardPage() {
                       setClearPassword('')
                       setClearError(null)
                     }}
-                    className="font-subtitle text-sm text-muted-dark transition-colors hover:text-onyx"
+                    className="rounded-full px-4 py-2 font-subtitle text-sm text-muted-dark transition-colors hover:bg-cream hover:text-onyx"
                   >
                     Cancelar
                   </button>
