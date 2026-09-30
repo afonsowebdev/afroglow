@@ -51,8 +51,8 @@ function emailLayout(bodyHtml: string) {
                     />
                     <img
                       src="${WORDMARK_URL}"
-                      width="172"
-                      height="27"
+                      width="169"
+                      height="28"
                       alt="AFROGLOW"
                       style="display:block; margin:0 auto;"
                     />
