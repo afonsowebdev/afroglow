@@ -5,7 +5,7 @@ import { ApiError } from '@/lib/api'
 import { useCustomerAuth } from '@/lib/customer-auth'
 
 const inputClasses =
-  'rounded-xl border border-gold/30 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-gold-deep'
+  'rounded-xl border border-gold/30 bg-white px-4 py-2.5 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-gold-deep'
 
 const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$/
 
@@ -30,7 +30,7 @@ function Collapse({ children }: { children: React.ReactNode }) {
       transition={{ duration: 0.45, ease: EASE }}
       className="overflow-hidden"
     >
-      <div className="pb-4">{children}</div>
+      <div className="pb-3.5">{children}</div>
     </motion.div>
   )
 }
@@ -294,30 +294,28 @@ export function AccountAuthForm({
         <form onSubmit={handleSubmit} className="flex flex-col">
           <AnimatePresence initial={false}>
             {mode === 'register' && (
-              <Collapse key="name">
-                <Field
-                  label="Nome"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="O teu nome"
-                />
-              </Collapse>
-            )}
-            {mode === 'register' && (
-              <Collapse key="phone">
-                <Field
-                  label="Telemóvel"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="912 345 678"
-                />
+              <Collapse key="identity">
+                <div className={hideTabs ? 'grid gap-3 sm:grid-cols-2' : 'flex flex-col gap-4'}>
+                  <Field
+                    label="Nome"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="O teu nome"
+                  />
+                  <Field
+                    label="Telemóvel"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="912 345 678"
+                  />
+                </div>
               </Collapse>
             )}
           </AnimatePresence>
 
-          <div className="pb-4">
+          <div className="pb-3.5">
             <Field
               label="Email"
               type="email"
@@ -326,7 +324,7 @@ export function AccountAuthForm({
               placeholder="tu@email.com"
             />
           </div>
-          <div className="pb-4">
+          <div className="pb-3.5">
             <PasswordField
               label="Password"
               value={password}

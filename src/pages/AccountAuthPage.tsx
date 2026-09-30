@@ -44,7 +44,7 @@ export default function AccountAuthPage() {
         </div>
       </div>
 
-      <main className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-5 pb-16 pt-[calc(6.5rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(7.5rem+env(safe-area-inset-top))]">
+      <main className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-5 pb-8 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(6.5rem+env(safe-area-inset-top))]">
         <AuthSwitch onSuccess={() => navigate('/conta')} />
       </main>
     </div>
