@@ -8,7 +8,7 @@ import {
   signCustomerSession,
 } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
-import { sendVerificationCodeEmail } from '../lib/resend.js'
+import { sendVerificationCodeEmail, sendWelcomeEmail } from '../lib/resend.js'
 import { registerStartSchema, resendCodeSchema, verifyEmailSchema } from '../lib/validation.js'
 
 export const registerRouter = Router()
@@ -111,6 +111,7 @@ registerRouter.post('/verify-email', async (req, res) => {
 
     const token = signCustomerSession(customer.id)
     res.cookie(CUSTOMER_SESSION_COOKIE, token, customerSessionCookieOptions())
+    await sendWelcomeEmail(customer.email, customer.name)
     res.status(201).json({ id: customer.id, name: customer.name, email: customer.email, phone: customer.phone })
   } catch (error) {
     if ((error as { code?: string }).code === 'P2002') {

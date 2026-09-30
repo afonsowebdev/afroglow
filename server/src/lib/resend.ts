@@ -263,6 +263,36 @@ export async function sendBookingReminderEmail(to: string, booking: BookingEmail
   }
 }
 
+export async function sendWelcomeEmail(to: string, name: string) {
+  if (!resend) {
+    console.warn('[resend] Email de boas-vindas ignorado: RESEND_API_KEY não configurada.')
+    return
+  }
+
+  try {
+    await resend.emails.send({
+      from: FROM_NOREPLY,
+      to,
+      replyTo: REPLY_TO_RESERVAS,
+      subject: 'Bem-vinda à Afroglow!',
+      html: emailLayout(`
+        ${heading(`Bem-vinda, ${escapeHtml(name)}`)}
+        <p style="margin:0 0 22px; font-size:15px; line-height:1.6; color:#6B5B47;">
+          A tua conta está pronta. Já podes marcar a tua primeira sessão de tranças quando te der jeito.
+        </p>
+        <a
+          href="https://afroglow.pt/agendar"
+          style="display:inline-block; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; font-size:14px; font-weight:600; color:#8C6A24; text-decoration:none; border-bottom:1px solid #C9A84C; padding-bottom:2px;"
+        >
+          Marcar sessão →
+        </a>
+      `),
+    })
+  } catch (error) {
+    console.error('[resend] Falha ao enviar email de boas-vindas:', error)
+  }
+}
+
 export async function sendVerificationCodeEmail(to: string, code: string) {
   if (!resend) {
     throw new Error('RESEND_API_KEY não configurada.')
