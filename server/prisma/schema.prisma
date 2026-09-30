@@ -90,6 +90,7 @@ model Booking {
   customerPhone String
   notes         String?
   status        BookingStatus    @default(PENDING)
+  reminderSentAt DateTime?
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 }

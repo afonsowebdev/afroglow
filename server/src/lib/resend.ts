@@ -211,6 +211,31 @@ export async function sendBookingRejectedEmail(
   }
 }
 
+export async function sendBookingReminderEmail(to: string, booking: BookingEmailInput) {
+  if (!resend) {
+    console.warn('[resend] Lembrete de marcação ignorado: RESEND_API_KEY não configurada.')
+    return
+  }
+
+  try {
+    await resend.emails.send({
+      from: FROM_NOREPLY,
+      to,
+      replyTo: REPLY_TO_RESERVAS,
+      subject: 'Lembrete: a tua marcação é daqui a 2 dias — Afroglow',
+      html: emailLayout(`
+        <h1 style="margin:0 0 12px; font-size:22px; color:#F5EFDF;">Não te esqueças da tua marcação</h1>
+        <p style="margin:0 0 8px; font-size:15px; line-height:1.6; color:#F5EFDF; opacity:0.85;">
+          Isto é só um lembrete de que tens uma marcação a chegar. Até já!
+        </p>
+        ${bookingDetailsTable(booking)}
+      `),
+    })
+  } catch (error) {
+    console.error('[resend] Falha ao enviar lembrete de marcação:', error)
+  }
+}
+
 export async function sendVerificationCodeEmail(to: string, code: string) {
   if (!resend) {
     throw new Error('RESEND_API_KEY não configurada.')

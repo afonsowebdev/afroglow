@@ -10,7 +10,8 @@
     "start": "node dist/index.js",
     "migrate": "prisma migrate deploy",
     "seed": "tsx --env-file=.env prisma/seed.ts",
-    "set-admin": "tsx --env-file=.env prisma/set-admin.ts"
+    "set-admin": "tsx --env-file=.env prisma/set-admin.ts",
+    "send-reminders": "tsx --env-file=.env src/jobs/send-reminders.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
