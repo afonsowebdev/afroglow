@@ -18,7 +18,7 @@ export default function AccountAuthPage() {
     'flex items-center rounded-full bg-white/95 shadow-lg shadow-black/10 backdrop-blur transition-shadow duration-500'
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-white">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-white">
       <motion.span
         aria-hidden="true"
         animate={{ opacity: [0.035, 0.07, 0.035], scale: [1, 1.04, 1] }}
@@ -44,7 +44,7 @@ export default function AccountAuthPage() {
         </div>
       </div>
 
-      <main className="relative mx-auto max-w-4xl px-5 pb-16 pt-[calc(6.5rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(7.5rem+env(safe-area-inset-top))]">
+      <main className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-5 pb-16 pt-[calc(6.5rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(7.5rem+env(safe-area-inset-top))]">
         <AuthSwitch onSuccess={() => navigate('/conta')} />
       </main>
     </div>
