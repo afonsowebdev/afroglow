@@ -112,7 +112,9 @@ registerRouter.post('/verify-email', async (req, res) => {
     const token = signCustomerSession(customer.id)
     res.cookie(CUSTOMER_SESSION_COOKIE, token, customerSessionCookieOptions())
     await sendWelcomeEmail(customer.email, customer.name)
-    res.status(201).json({ id: customer.id, name: customer.name, email: customer.email, phone: customer.phone })
+    res
+      .status(201)
+      .json({ id: customer.id, name: customer.name, email: customer.email, phone: customer.phone, sessionToken: token })
   } catch (error) {
     if ((error as { code?: string }).code === 'P2002') {
       res.status(409).json({ error: 'Já existe uma conta com este email.' })

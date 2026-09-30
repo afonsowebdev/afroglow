@@ -8,11 +8,37 @@ export class ApiError extends Error {
   }
 }
 
+const TOKEN_KEY = 'afroglow-customer-token'
+
+// Fallback for browsers that refuse to keep the cross-site session cookie.
+export const customerToken = {
+  get() {
+    try {
+      return localStorage.getItem(TOKEN_KEY)
+    } catch {
+      return null
+    }
+  },
+  set(token: string | null) {
+    try {
+      if (token) localStorage.setItem(TOKEN_KEY, token)
+      else localStorage.removeItem(TOKEN_KEY)
+    } catch {
+      // storage unavailable (private mode) — cookie auth still applies
+    }
+  },
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = customerToken.get()
   const res = await fetch(`${API_URL}${path}`, {
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
     ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
   })
 
   if (!res.ok) {

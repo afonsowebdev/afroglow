@@ -29,7 +29,7 @@ accountRouter.post('/login', async (req, res) => {
 
     const token = signCustomerSession(customer.id)
     res.cookie(CUSTOMER_SESSION_COOKIE, token, customerSessionCookieOptions())
-    res.json({ id: customer.id, name: customer.name, email: customer.email, phone: customer.phone })
+    res.json({ id: customer.id, name: customer.name, email: customer.email, phone: customer.phone, sessionToken: token })
   } catch (error) {
     console.error('[account] login failed:', error)
     res.status(500).json({ error: 'Erro ao iniciar sessão.' })

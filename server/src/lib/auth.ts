@@ -74,8 +74,21 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
   }
 }
 
+// The cookie is the primary carrier, but the frontend and API live on
+// different sites, and browsers that block third-party cookies (Safari/ITP,
+// in-app browsers, Chrome with tracking protection) silently drop it — which
+// logs customers out on reload and makes bookings fail with "Não autenticado".
+// The same JWT is therefore also accepted as a Bearer token.
+function customerTokenFrom(req: Request) {
+  const cookieToken = req.cookies?.[CUSTOMER_SESSION_COOKIE]
+  if (cookieToken) return cookieToken as string
+  const header = req.headers.authorization
+  if (header?.startsWith('Bearer ')) return header.slice('Bearer '.length)
+  return undefined
+}
+
 export async function requireCustomer(req: Request, res: Response, next: NextFunction) {
-  const token = req.cookies?.[CUSTOMER_SESSION_COOKIE]
+  const token = customerTokenFrom(req)
   if (!token) {
     res.status(401).json({ error: 'Não autenticado.' })
     return
