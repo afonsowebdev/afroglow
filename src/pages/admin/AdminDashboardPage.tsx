@@ -143,10 +143,17 @@ export default function AdminDashboardPage() {
       setBookings(bookingsData)
       setTestimonials(testimonialsData)
       if (!opts.silent) setError(null)
-    } catch {
+    } catch (err) {
+      // An expired/invalid session used to be swallowed by the silent poll, leaving
+      // the dashboard frozen on stale data with no new requests ever appearing.
+      if (err instanceof ApiError && err.status === 401) {
+        adminToken.set(null)
+        navigate('/admin/login')
+        return
+      }
       if (!opts.silent) setError('Não foi possível carregar os dados do painel.')
     }
-  }, [])
+  }, [navigate])
 
   useEffect(() => {
     async function checkAuth() {
