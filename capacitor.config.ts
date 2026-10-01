@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
   appId: 'com.afroglow.app2',
-  appName: 'AFROGLOW Admin',
+  appName: 'AFRO ADMIN',
   webDir: 'dist',
   // Routes fetch/XHR through native URLSession instead of WKWebView's own
   // network stack — WKWebView's cookie jar won't reliably persist a
