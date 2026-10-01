@@ -40,7 +40,7 @@ registerRouter.post('/register', registerRateLimit, async (req, res) => {
   try {
     await prisma.pendingRegistration.deleteMany({ where: { expiresAt: { lt: new Date() } } })
 
-    const existingCustomer = await prisma.customer.findUnique({ where: { email } })
+    const existingCustomer = await prisma.customer.findFirst({ where: { email: { equals: email, mode: 'insensitive' } } })
     if (existingCustomer) {
       res.status(409).json({ error: 'Já existe uma conta com este email.' })
       return

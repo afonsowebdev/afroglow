@@ -1,7 +1,11 @@
 import { z } from 'zod'
 
+// Emails are case-insensitive in practice; normalise so "Maria@x.com" at signup
+// and "maria@x.com" at login are the same account.
+const emailSchema = z.string().trim().toLowerCase().email()
+
 export const loginSchema = z.object({
-  email: z.string().email(),
+  email: emailSchema,
   password: z.string().min(1),
 })
 
@@ -49,18 +53,18 @@ const strongPasswordSchema = z
 
 export const registerStartSchema = z.object({
   name: z.string().trim().min(2).max(100),
-  email: z.string().email(),
+  email: emailSchema,
   phone: z.string().trim().min(6).max(30),
   password: strongPasswordSchema,
 })
 
 export const verifyEmailSchema = z.object({
-  email: z.string().email(),
+  email: emailSchema,
   code: z.string().regex(/^\d{6}$/, 'O código deve ter exatamente 6 dígitos.'),
 })
 
 export const resendCodeSchema = z.object({
-  email: z.string().email(),
+  email: emailSchema,
 })
 
 export const rescheduleBookingSchema = z.object({

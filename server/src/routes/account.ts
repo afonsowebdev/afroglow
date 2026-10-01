@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   customerSessionCookieOptions,
+  loginRateLimit,
   CUSTOMER_SESSION_COOKIE,
   requireCustomer,
   signCustomerSession,
@@ -11,7 +12,7 @@ import { createTestimonialSchema, loginSchema, rescheduleBookingSchema } from '.
 
 export const accountRouter = Router()
 
-accountRouter.post('/login', async (req, res) => {
+accountRouter.post('/login', loginRateLimit, async (req, res) => {
   const parsed = loginSchema.safeParse(req.body)
   if (!parsed.success) {
     res.status(400).json({ error: 'Email ou password inválidos.' })
@@ -21,7 +22,7 @@ accountRouter.post('/login', async (req, res) => {
   const { email, password } = parsed.data
 
   try {
-    const customer = await prisma.customer.findUnique({ where: { email } })
+    const customer = await prisma.customer.findFirst({ where: { email: { equals: email, mode: 'insensitive' } } })
     if (!customer || !(await verifyPassword(password, customer.passwordHash))) {
       res.status(401).json({ error: 'Credenciais incorretas.' })
       return
@@ -29,7 +30,13 @@ accountRouter.post('/login', async (req, res) => {
 
     const token = signCustomerSession(customer.id)
     res.cookie(CUSTOMER_SESSION_COOKIE, token, customerSessionCookieOptions())
-    res.json({ id: customer.id, name: customer.name, email: customer.email, phone: customer.phone, sessionToken: token })
+    res.json({
+      id: customer.id,
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      sessionToken: token,
+    })
   } catch (error) {
     console.error('[account] login failed:', error)
     res.status(500).json({ error: 'Erro ao iniciar sessão.' })

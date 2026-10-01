@@ -2,7 +2,7 @@ import { type FormEvent, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MotionButton } from '@/components/ui/motion-button'
 import { ScrollMorphHero } from '@/components/ui/scroll-morph-hero'
-import { api, ApiError } from '@/lib/api'
+import { adminToken, api, ApiError } from '@/lib/api'
 
 export default function AdminLoginPage() {
   const navigate = useNavigate()
@@ -16,7 +16,11 @@ export default function AdminLoginPage() {
     setLoading(true)
     setError(null)
     try {
-      await api.post('/auth/login', { email, password })
+      const { sessionToken } = await api.post<{ email: string; sessionToken?: string }>('/auth/login', {
+        email,
+        password,
+      })
+      adminToken.set(sessionToken ?? null)
       navigate('/admin')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Erro ao iniciar sessão.')

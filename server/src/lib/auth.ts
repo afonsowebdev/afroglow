@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs'
 import type { NextFunction, Request, Response } from 'express'
+import rateLimit from 'express-rate-limit'
 import jwt from 'jsonwebtoken'
+import { isHosted } from './env.js'
 
 const rawSecret = process.env.JWT_SECRET
 if (!rawSecret) {
@@ -36,7 +38,7 @@ export function sessionCookieOptions(maxAgeMs: number = SESSION_MAX_AGE_MS) {
   // SameSite=None, which browsers only honor when the cookie is Secure too.
   // Locally both run on http://localhost, which is same-site, so Lax (and
   // no Secure, since there's no HTTPS in dev) works there instead.
-  const isProduction = process.env.NODE_ENV === 'production'
+  const isProduction = isHosted
   return {
     httpOnly: true as const,
     sameSite: isProduction ? ('none' as const) : ('lax' as const),
@@ -58,47 +60,67 @@ declare global {
   }
 }
 
-export async function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  const token = req.cookies?.[SESSION_COOKIE]
-  if (!token) {
-    res.status(401).json({ error: 'Não autenticado.' })
-    return
-  }
-
-  try {
-    const payload = jwt.verify(token, JWT_SECRET) as { adminId: string }
-    req.adminId = payload.adminId
-    next()
-  } catch {
-    res.status(401).json({ error: 'Sessão inválida ou expirada.' })
-  }
-}
-
 // The cookie is the primary carrier, but the frontend and API live on
 // different sites, and browsers that block third-party cookies (Safari/ITP,
 // in-app browsers, Chrome with tracking protection) silently drop it — which
-// logs customers out on reload and makes bookings fail with "Não autenticado".
-// The same JWT is therefore also accepted as a Bearer token.
-function customerTokenFrom(req: Request) {
-  const cookieToken = req.cookies?.[CUSTOMER_SESSION_COOKIE]
-  if (cookieToken) return cookieToken as string
+// logs people out on reload and makes requests fail with "Não autenticado".
+// The same JWT is therefore also accepted as a Bearer token. Both candidates
+// are tried so a stale cookie can't shadow a valid Bearer token.
+function tokenCandidates(req: Request, cookieName: string) {
+  const candidates: string[] = []
+  const cookieToken = req.cookies?.[cookieName]
+  if (cookieToken) candidates.push(cookieToken as string)
   const header = req.headers.authorization
-  if (header?.startsWith('Bearer ')) return header.slice('Bearer '.length)
-  return undefined
+  if (header?.startsWith('Bearer ')) candidates.push(header.slice('Bearer '.length))
+  return candidates
 }
 
-export async function requireCustomer(req: Request, res: Response, next: NextFunction) {
-  const token = customerTokenFrom(req)
-  if (!token) {
+function verifyFirstValid<T>(tokens: string[]): T | null {
+  for (const token of tokens) {
+    try {
+      return jwt.verify(token, JWT_SECRET) as T
+    } catch {
+      // try the next candidate
+    }
+  }
+  return null
+}
+
+export async function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  const tokens = tokenCandidates(req, SESSION_COOKIE)
+  if (tokens.length === 0) {
     res.status(401).json({ error: 'Não autenticado.' })
     return
   }
-
-  try {
-    const payload = jwt.verify(token, JWT_SECRET) as { customerId: string }
-    req.customerId = payload.customerId
-    next()
-  } catch {
+  const payload = verifyFirstValid<{ adminId?: string }>(tokens)
+  if (!payload?.adminId) {
     res.status(401).json({ error: 'Sessão inválida ou expirada.' })
+    return
   }
+  req.adminId = payload.adminId
+  next()
 }
+
+export async function requireCustomer(req: Request, res: Response, next: NextFunction) {
+  const tokens = tokenCandidates(req, CUSTOMER_SESSION_COOKIE)
+  if (tokens.length === 0) {
+    res.status(401).json({ error: 'Não autenticado.' })
+    return
+  }
+  const payload = verifyFirstValid<{ customerId?: string }>(tokens)
+  if (!payload?.customerId) {
+    res.status(401).json({ error: 'Sessão inválida ou expirada.' })
+    return
+  }
+  req.customerId = payload.customerId
+  next()
+}
+
+// Throttles credential guessing on the login endpoints (per client IP).
+export const loginRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiadas tentativas. Tenta novamente dentro de alguns minutos.' },
+})

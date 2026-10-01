@@ -6,6 +6,7 @@ import AccountAuthPage from '@/pages/AccountAuthPage'
 import AccountPage from '@/pages/AccountPage'
 import BookingPage from '@/pages/BookingPage'
 import CeoPage from '@/pages/CeoPage'
+import NotFoundPage from '@/pages/NotFoundPage'
 
 const AdminLoginPage = lazy(() => import('@/pages/admin/AdminLoginPage'))
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage'))
@@ -34,6 +35,7 @@ export default function App() {
           </Suspense>
         }
       />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
 }

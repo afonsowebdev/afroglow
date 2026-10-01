@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/date-picker'
 import { MotionButton } from '@/components/ui/motion-button'
 import { TimePicker } from '@/components/ui/time-picker'
-import { api, ApiError } from '@/lib/api'
+import { adminToken, api, ApiError } from '@/lib/api'
 import { registerForPushNotifications } from '@/lib/push-notifications'
 import { customerWhatsappUrl } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service, type Testimonial } from '@/lib/types'
@@ -155,7 +155,8 @@ export default function AdminDashboardPage() {
         setAdminEmail(me.email)
         await loadDashboard()
         void registerForPushNotifications()
-      } catch {
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) adminToken.set(null)
         navigate('/admin/login')
       } finally {
         setCheckingAuth(false)
@@ -187,8 +188,12 @@ export default function AdminDashboardPage() {
   }, [checkingAuth, adminEmail, loadDashboard])
 
   async function handleLogout() {
-    await api.post('/auth/logout')
-    navigate('/admin/login')
+    try {
+      await api.post('/auth/logout')
+    } finally {
+      adminToken.set(null)
+      navigate('/admin/login')
+    }
   }
 
   function addTimeToBatch() {

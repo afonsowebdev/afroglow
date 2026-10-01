@@ -10,6 +10,8 @@ interface CustomerAuthContextValue {
   verifyEmail: (email: string, code: string) => Promise<void>
   resendCode: (email: string) => Promise<void>
   logout: () => Promise<void>
+  // Re-checks the session with the server (e.g. after a request came back 401).
+  refresh: () => Promise<void>
 }
 
 const CustomerAuthContext = createContext<CustomerAuthContextValue | null>(null)
@@ -74,7 +76,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <CustomerAuthContext.Provider
-      value={{ customer, loading, login, startRegistration, verifyEmail, resendCode, logout }}
+      value={{ customer, loading, login, startRegistration, verifyEmail, resendCode, logout, refresh }}
     >
       {children}
     </CustomerAuthContext.Provider>

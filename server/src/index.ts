@@ -1,6 +1,7 @@
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import express from 'express'
+import express, { type NextFunction, type Request, type Response } from 'express'
+import { isHosted } from './lib/env.js'
 import { sendDueBookingReminders } from './lib/reminders.js'
 import { accountRouter } from './routes/account.js'
 import { adminMaintenanceRouter } from './routes/admin-maintenance.js'
@@ -17,7 +18,7 @@ const app = express()
 // Behind a reverse proxy in production, req.ip would otherwise resolve to the
 // proxy's own address for every request — which would make the /api/auth/register
 // IP rate limit apply to all users collectively instead of per client.
-if (process.env.NODE_ENV === 'production') {
+if (isHosted) {
   app.set('trust proxy', 1)
 }
 
@@ -63,6 +64,17 @@ app.use('/api/account', accountRouter)
 app.use('/api/testimonials', testimonialsRouter)
 app.use('/api/admin/testimonials', adminTestimonialsRouter)
 app.use('/api/admin/maintenance', adminMaintenanceRouter)
+
+// Unknown API paths and thrown errors (e.g. a blocked CORS origin) would
+// otherwise come back as Express's HTML error page, which the frontend can't
+// parse into a message.
+app.use((_req, res) => {
+  res.status(404).json({ error: 'Recurso não encontrado.' })
+})
+app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('[server] unhandled error:', error)
+  res.status(error.message === 'Not allowed by CORS' ? 403 : 500).json({ error: 'Erro no servidor.' })
+})
 
 const port = Number(process.env.PORT) || 3001
 app.listen(port, () => {

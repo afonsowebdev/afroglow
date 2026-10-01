@@ -8,29 +8,46 @@ export class ApiError extends Error {
   }
 }
 
-const TOKEN_KEY = 'afroglow-customer-token'
+function tokenStore(key: string) {
+  return {
+    get() {
+      try {
+        return localStorage.getItem(key)
+      } catch {
+        return null
+      }
+    },
+    set(token: string | null) {
+      try {
+        if (token) localStorage.setItem(key, token)
+        else localStorage.removeItem(key)
+      } catch {
+        // storage unavailable (private mode) — cookie auth still applies
+      }
+    },
+  }
+}
 
 // Fallback for browsers that refuse to keep the cross-site session cookie.
-export const customerToken = {
-  get() {
-    try {
-      return localStorage.getItem(TOKEN_KEY)
-    } catch {
-      return null
-    }
-  },
-  set(token: string | null) {
-    try {
-      if (token) localStorage.setItem(TOKEN_KEY, token)
-      else localStorage.removeItem(TOKEN_KEY)
-    } catch {
-      // storage unavailable (private mode) — cookie auth still applies
-    }
-  },
+export const customerToken = tokenStore('afroglow-customer-token')
+export const adminToken = tokenStore('afroglow-admin-token')
+
+const ADMIN_AUTH_PATHS = ['/auth/login', '/auth/me', '/auth/logout']
+
+function tokenFor(path: string) {
+  const isAdmin = path.startsWith('/admin') || ADMIN_AUTH_PATHS.includes(path)
+  return (isAdmin ? adminToken : customerToken).get()
+}
+
+// The API runs on a host that sleeps when idle; the first request after a
+// pause can take ~30s. Pinging it as soon as the site opens wakes it up while
+// the visitor is still reading, so login/booking don't hit the cold start.
+export function warmUpApi() {
+  void fetch(`${API_URL}/health`).catch(() => {})
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = customerToken.get()
+  const token = tokenFor(path)
   const res = await fetch(`${API_URL}${path}`, {
     credentials: 'include',
     ...options,

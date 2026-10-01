@@ -36,7 +36,7 @@ function StepHeading({ number, children }: { number: string; children: ReactNode
 }
 
 export default function BookingPage() {
-  const { customer, loading: authLoading } = useCustomerAuth()
+  const { customer, loading: authLoading, refresh } = useCustomerAuth()
   const [searchParams] = useSearchParams()
   const [scrolled, setScrolled] = useState(false)
   const [services, setServices] = useState<Service[]>([])
@@ -117,7 +117,11 @@ export default function BookingPage() {
       })
       setSuccess(true)
     } catch (error) {
-      if (error instanceof ApiError) {
+      if (error instanceof ApiError && error.status === 401) {
+        // Session expired/lost: refreshing flips the page back to the login form.
+        setSubmitError('A tua sessão expirou. Entra novamente para concluir a marcação.')
+        void refresh()
+      } else if (error instanceof ApiError) {
         setSubmitError(error.message)
         if (error.status === 409) {
           setSlots((prev) => prev.filter((s) => s.id !== selectedSlotId))
