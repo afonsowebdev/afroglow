@@ -546,6 +546,7 @@ export default function AdminDashboardPage() {
                           </div>
                           <div className="flex items-center gap-3">
                             <MotionButton
+                              variant="secondary"
                               label={savingServiceId === service.id ? 'A guardar...' : 'Guardar'}
                               size="sm"
                               disabled={savingServiceId === service.id}
@@ -634,6 +635,7 @@ export default function AdminDashboardPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <MotionButton
+                        variant="secondary"
                         label={addingService ? 'A adicionar...' : 'Adicionar modelo'}
                         size="sm"
                         type="submit"
@@ -713,6 +715,7 @@ export default function AdminDashboardPage() {
 
                 <div>
                   <MotionButton
+                    variant="secondary"
                     label={
                       addingSlot
                         ? 'A criar...'
@@ -865,6 +868,7 @@ export default function AdminDashboardPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <MotionButton
+                          variant="secondary"
                           label="Aceitar"
                           size="sm"
                           disabled={busyId === booking.id}
@@ -922,6 +926,7 @@ export default function AdminDashboardPage() {
                       <Button
                         size="sm"
                         variant="outline"
+                        className="border-onyx text-onyx hover:bg-onyx hover:text-white"
                         disabled={busyId === booking.id}
                         onClick={() => handleBookingDecision(booking.id, 'cancel')}
                       >
@@ -989,6 +994,7 @@ export default function AdminDashboardPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <MotionButton
+                          variant="secondary"
                           label="Aprovar"
                           size="sm"
                           disabled={busyId === testimonial.id}
