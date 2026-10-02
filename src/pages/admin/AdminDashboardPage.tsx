@@ -73,7 +73,7 @@ type AdminTab = 'pedidos' | 'agenda' | 'disponibilidade' | 'servicos' | 'testemu
 const TABS: Array<{ id: AdminTab; label: string; icon: string }> = [
   { id: 'pedidos', label: 'Pedidos', icon: 'bx bx-bell' },
   { id: 'agenda', label: 'Agenda', icon: 'bx bx-calendar-check' },
-  { id: 'disponibilidade', label: 'Disponibilidade', icon: 'bx bx-time-five' },
+  { id: 'disponibilidade', label: 'Horários', icon: 'bx bx-time-five' },
   { id: 'servicos', label: 'Serviços', icon: 'bx bx-cut' },
   { id: 'testemunhos', label: 'Testemunhos', icon: 'bx bx-message-rounded-dots' },
 ]
@@ -469,57 +469,11 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-4xl px-5 pb-24 pt-[calc(7rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(8rem+env(safe-area-inset-top))]">
+      <main className="mx-auto max-w-4xl px-5 pb-36 pt-[calc(7rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(8rem+env(safe-area-inset-top))]">
         <h1 className="font-logo text-4xl text-onyx sm:text-5xl">Painel de Admin</h1>
         <p className="mt-4 font-subtitle text-lg font-light text-muted-dark">{adminEmail}</p>
 
         {error && <p className="mt-6 font-subtitle text-sm text-red-700">{error}</p>}
-
-        <nav
-          aria-label="Secções do painel"
-          className="-mx-5 mt-10 overflow-x-auto px-5 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          <div className="flex w-max gap-1 rounded-full border border-gold/20 bg-cream p-1 sm:w-full">
-            {TABS.map(({ id, label, icon }) => {
-              const badge =
-                id === 'pedidos' ? pendingBookings.length : id === 'testemunhos' ? pendingTestimonials.length : 0
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setTab(id)}
-                  aria-current={tab === id ? 'page' : undefined}
-                  className="relative flex shrink-0 items-center justify-center gap-2 rounded-full px-4 py-2.5 font-subtitle text-sm sm:flex-1"
-                >
-                  {tab === id && (
-                    <motion.span
-                      layoutId="admin-tab-pill"
-                      className="absolute inset-0 rounded-full bg-gold-deep shadow-md shadow-gold-deep/30"
-                      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                    />
-                  )}
-                  <span
-                    className={`relative flex items-center gap-2 transition-colors duration-300 ${
-                      tab === id ? 'text-cream' : 'text-onyx/60 hover:text-onyx'
-                    }`}
-                  >
-                    <i className={icon} aria-hidden="true" />
-                    {label}
-                    {badge > 0 && (
-                      <span
-                        className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] leading-none ${
-                          tab === id ? 'bg-cream text-gold-deep' : 'bg-gold-deep text-cream'
-                        }`}
-                      >
-                        {badge}
-                      </span>
-                    )}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        </nav>
 
         {(tab === 'agenda' || tab === 'disponibilidade') && (
           <div className="mt-6 flex items-center justify-center gap-4 rounded-full border border-gold/20 bg-cream px-4 py-2 sm:justify-start">
@@ -1075,6 +1029,50 @@ export default function AdminDashboardPage() {
           )}
         </div>
       </main>
+
+      <nav
+        aria-label="Secções do painel"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-gold/20 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_rgba(26,16,8,0.06)] backdrop-blur"
+      >
+        <div className="mx-auto grid max-w-4xl grid-cols-5 divide-x divide-gold/15">
+          {TABS.map(({ id, label, icon }) => {
+            const badge =
+              id === 'pedidos' ? pendingBookings.length : id === 'testemunhos' ? pendingTestimonials.length : 0
+            const active = tab === id
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => {
+                  setTab(id)
+                  window.scrollTo({ top: 0 })
+                }}
+                aria-current={active ? 'page' : undefined}
+                className={`relative flex flex-col items-center gap-1 px-1 pb-2.5 pt-3 font-subtitle transition-colors duration-300 ${
+                  active ? 'bg-cream text-gold-deep' : 'text-onyx/50 hover:text-onyx'
+                }`}
+              >
+                {active && (
+                  <motion.span
+                    layoutId="admin-nav-indicator"
+                    className="absolute inset-x-0 top-0 h-0.5 bg-gold-deep"
+                    transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                  />
+                )}
+                <span className="relative text-2xl leading-none">
+                  <i className={icon} aria-hidden="true" />
+                  {badge > 0 && (
+                    <span className="absolute -right-3 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gold-deep px-1 text-[10px] leading-none text-cream">
+                      {badge}
+                    </span>
+                  )}
+                </span>
+                <span className="text-[11px] leading-none">{label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </nav>
     </div>
   )
 }
