@@ -70,12 +70,36 @@ function SectionHeading({ children }: { children: ReactNode }) {
 
 type AdminTab = 'pedidos' | 'agenda' | 'disponibilidade' | 'servicos' | 'testemunhos'
 
-const TABS: Array<{ id: AdminTab; label: string; icon: string }> = [
-  { id: 'pedidos', label: 'Pedidos', icon: 'bx bx-bell' },
-  { id: 'agenda', label: 'Agenda', icon: 'bx bx-calendar-check' },
-  { id: 'disponibilidade', label: 'Horários', icon: 'bx bx-time-five' },
-  { id: 'servicos', label: 'Serviços', icon: 'bx bx-cut' },
-  { id: 'testemunhos', label: 'Testemunhos', icon: 'bx bx-message-rounded-dots' },
+const TABS: Array<{ id: AdminTab; label: string; icon: string; title: string; subtitle: string }> = [
+  {
+    id: 'pedidos',
+    label: 'Pedidos',
+    icon: 'bx bx-bell',
+    title: 'Pedidos',
+    subtitle: 'Marcações por aceitar ou recusar.',
+  },
+  {
+    id: 'agenda',
+    label: 'Agenda',
+    icon: 'bx bx-calendar-check',
+    title: 'Agenda',
+    subtitle: 'Sessões confirmadas e histórico.',
+  },
+  {
+    id: 'disponibilidade',
+    label: 'Horários',
+    icon: 'bx bx-time-five',
+    title: 'Horários',
+    subtitle: 'Define quando estás disponível.',
+  },
+  { id: 'servicos', label: 'Serviços', icon: 'bx bx-cut', title: 'Serviços', subtitle: 'Modelos de tranças e preços.' },
+  {
+    id: 'testemunhos',
+    label: 'Testemunhos',
+    icon: 'bx bx-message-rounded-dots',
+    title: 'Testemunhos',
+    subtitle: 'Avaliações das clientes por rever.',
+  },
 ]
 
 function dateParts(iso: string) {
@@ -119,20 +143,22 @@ function BookingCard({
       layout
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="overflow-hidden rounded-3xl border border-gold/15 bg-white shadow-sm shadow-gold-deep/5"
+      className="overflow-hidden rounded-2xl border border-onyx/10 bg-white shadow-sm shadow-black/5"
     >
       <div className="flex gap-4 p-5">
-        <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-cream">
-          <span className="font-logo text-2xl leading-none text-gold-deep">{day}</span>
-          <span className="mt-1 font-subtitle text-[11px] uppercase tracking-wider text-muted-dark">{month}</span>
+        <div className="flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-xl border border-onyx/10 bg-neutral-50">
+          <span className="font-subtitle text-xl font-semibold leading-none text-onyx">{day}</span>
+          <span className="mt-1 font-subtitle text-[10px] font-medium uppercase tracking-wider text-gold-deep">
+            {month}
+          </span>
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <p className="truncate font-subtitle text-base font-medium text-onyx">{booking.customerName}</p>
             <span
-              className={`rounded-full px-2.5 py-0.5 font-subtitle text-[11px] uppercase tracking-wide ${
-                variant === 'pending' ? 'bg-gold/15 text-gold-deep' : 'bg-green-600/10 text-green-700'
+              className={`rounded-full px-2.5 py-0.5 font-subtitle text-[11px] font-medium ${
+                variant === 'pending' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'
               }`}
             >
               {variant === 'pending' ? 'Pendente' : 'Confirmada'}
@@ -146,14 +172,14 @@ function BookingCard({
             <span className="capitalize">{weekday}</span> · {time}
           </p>
           {booking.notes && (
-            <p className="mt-2 rounded-xl bg-cream px-3 py-2 font-subtitle text-xs italic text-muted-dark">
+            <p className="mt-2 rounded-lg bg-neutral-50 px-3 py-2 font-subtitle text-xs italic text-muted-dark">
               "{booking.notes}"
             </p>
           )}
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gold/10 bg-cream/50 px-5 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-onyx/5 bg-neutral-50/70 px-5 py-3">
         <a
           href={customerWhatsappUrl(booking.customerPhone, whatsappMessage)}
           target="_blank"
@@ -193,13 +219,13 @@ function BookingCard({
 
 function StatCard({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-gold/20 bg-cream px-5 py-4">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-lg text-gold-deep">
+    <div className="flex items-center gap-4 rounded-2xl border border-onyx/10 bg-white px-5 py-4 shadow-sm shadow-black/5">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-neutral-50 text-lg text-gold-deep">
         <i className={icon} aria-hidden="true" />
       </span>
       <div>
-        <p className="font-logo text-2xl text-onyx">{value}</p>
-        <p className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">{label}</p>
+        <p className="font-subtitle text-2xl font-semibold leading-none text-onyx">{value}</p>
+        <p className="mt-1.5 font-subtitle text-xs text-muted-dark">{label}</p>
       </div>
     </div>
   )
@@ -209,7 +235,10 @@ export default function AdminDashboardPage() {
   const navigate = useNavigate()
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [adminEmail, setAdminEmail] = useState<string | null>(null)
-  const [tab, setTab] = useState<AdminTab>('pedidos')
+  const [tab, setTab] = useState<AdminTab>(() => {
+    const fromHash = window.location.hash.slice(1)
+    return TABS.some((t) => t.id === fromHash) ? (fromHash as AdminTab) : 'pedidos'
+  })
 
   const [services, setServices] = useState<Service[]>([])
   const [slots, setSlots] = useState<AvailabilitySlot[]>([])
@@ -552,15 +581,15 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-cream/60">
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-gold/10 bg-white/80 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+    <div className="min-h-screen bg-neutral-50">
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-onyx/10 bg-white/90 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-5 sm:px-8">
           <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
           <button
             type="button"
             onClick={handleLogout}
             aria-label="Sair"
-            className="flex h-9 items-center gap-2 rounded-full border border-gold/20 px-4 text-sm text-onyx transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
+            className="flex h-9 items-center gap-2 rounded-full border border-onyx/10 px-4 text-sm text-onyx transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
           >
             <span>Sair</span>
             <i className="bx bx-log-out text-lg" aria-hidden="true" />
@@ -569,30 +598,61 @@ export default function AdminDashboardPage() {
       </header>
 
       <main className="mx-auto max-w-4xl px-5 pb-40 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:px-8">
-        <div className="rounded-3xl bg-gradient-to-br from-gold-deep to-cocoa p-6 text-[#f5efdf] shadow-lg shadow-gold-deep/20 sm:p-8">
-          <p className="font-subtitle text-sm font-light text-[#f5efdf]/70">{greeting()},</p>
-          <h1 className="mt-1 font-logo text-3xl sm:text-4xl">Painel de Admin</h1>
-          <p className="mt-3 font-subtitle text-xs text-[#f5efdf]/60">{adminEmail}</p>
-          <div className="mt-6 grid grid-cols-3 gap-3">
-            {[
-              { label: 'Pendentes', value: String(pendingBookings.length) },
-              { label: 'Sessões a vir', value: String(allUpcomingCount) },
-              { label: 'Testemunhos', value: String(pendingTestimonials.length) },
-            ].map((item) => (
-              <div key={item.label} className="rounded-2xl bg-white/10 px-3 py-3 backdrop-blur-sm">
-                <p className="font-logo text-2xl leading-none">{item.value}</p>
-                <p className="mt-1.5 font-subtitle text-[10px] uppercase tracking-wider text-[#f5efdf]/70">
-                  {item.label}
-                </p>
-              </div>
-            ))}
+        {tab !== 'pedidos' && (
+          <div>
+            <h1 className="font-logo text-3xl text-onyx sm:text-4xl">{TABS.find((t) => t.id === tab)?.title}</h1>
+            <p className="mt-1 font-subtitle text-sm text-muted-dark">{TABS.find((t) => t.id === tab)?.subtitle}</p>
           </div>
-        </div>
+        )}
+
+        {tab === 'pedidos' && (
+          <>
+            <div>
+              <p className="font-subtitle text-sm text-muted-dark">{greeting()},</p>
+              <h1 className="mt-1 font-logo text-3xl text-onyx sm:text-4xl">Painel de Admin</h1>
+              <p className="mt-1 font-subtitle text-xs text-muted">{adminEmail}</p>
+            </div>
+
+            <div className="mt-6 grid grid-cols-3 gap-3">
+              {[
+                {
+                  icon: 'bx bx-bell',
+                  label: 'Pendentes',
+                  value: pendingBookings.length,
+                  tone: 'text-amber-600 bg-amber-50',
+                },
+                {
+                  icon: 'bx bx-calendar-check',
+                  label: 'Sessões a vir',
+                  value: allUpcomingCount,
+                  tone: 'text-emerald-600 bg-emerald-50',
+                },
+                {
+                  icon: 'bx bx-message-rounded-dots',
+                  label: 'Testemunhos',
+                  value: pendingTestimonials.length,
+                  tone: 'text-sky-600 bg-sky-50',
+                },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-2xl border border-onyx/10 bg-white p-4 shadow-sm shadow-black/5"
+                >
+                  <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg ${item.tone}`}>
+                    <i className={item.icon} aria-hidden="true" />
+                  </span>
+                  <p className="mt-3 font-subtitle text-2xl font-semibold leading-none text-onyx">{item.value}</p>
+                  <p className="mt-1.5 font-subtitle text-[11px] text-muted-dark">{item.label}</p>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
         {error && <p className="mt-6 font-subtitle text-sm text-red-700">{error}</p>}
 
         {(tab === 'agenda' || tab === 'disponibilidade') && (
-          <div className="mt-6 flex items-center justify-center gap-4 rounded-full border border-gold/20 bg-cream px-4 py-2 sm:justify-start">
+          <div className="mt-6 flex items-center justify-center gap-4 rounded-full border border-onyx/10 bg-white px-4 py-2 shadow-sm shadow-black/5 sm:justify-start">
             <button
               type="button"
               aria-label="Mês anterior"
@@ -634,7 +694,7 @@ export default function AdminDashboardPage() {
                 {services.map((service) => {
                   const isEditing = editingServiceId === service.id
                   return (
-                    <div key={service.id} className="rounded-2xl border border-gold/20 p-5">
+                    <div key={service.id} className="rounded-2xl border border-onyx/10 p-5">
                       {isEditing ? (
                         <div className="flex flex-col gap-4">
                           <div className="grid gap-3 sm:grid-cols-2">
@@ -681,12 +741,12 @@ export default function AdminDashboardPage() {
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div>
                             <p className="font-subtitle text-base text-onyx">{service.name}</p>
-                            <p className="mt-0.5 font-logo text-xs tracking-wide text-muted-dark">
-                              {service.durationLabel}
-                            </p>
+                            <p className="mt-0.5 font-subtitle text-xs text-muted-dark">{service.durationLabel}</p>
                           </div>
                           <div className="flex items-center gap-4">
-                            <span className="font-logo text-xl text-gold-deep">{formatPrice(service.priceCents)}</span>
+                            <span className="font-subtitle text-lg font-semibold text-onyx">
+                              {formatPrice(service.priceCents)}
+                            </span>
                             <button
                               type="button"
                               onClick={() => startEditService(service)}
@@ -707,7 +767,7 @@ export default function AdminDashboardPage() {
                 {showAddService ? (
                   <form
                     onSubmit={handleCreateService}
-                    className="flex flex-col gap-4 rounded-2xl border border-gold/20 p-5"
+                    className="flex flex-col gap-4 rounded-2xl border border-onyx/10 p-5"
                   >
                     <div className="grid gap-3 sm:grid-cols-2">
                       <label className="flex flex-col gap-1.5">
@@ -784,7 +844,7 @@ export default function AdminDashboardPage() {
               <SectionHeading>Disponibilidade</SectionHeading>
               <form
                 onSubmit={handleCreateSlots}
-                className="mt-6 flex flex-col gap-4 rounded-2xl border border-gold/20 p-5"
+                className="mt-6 flex flex-col gap-4 rounded-2xl border border-onyx/10 p-5"
               >
                 <div className="flex flex-wrap items-end gap-3">
                   <label className="flex flex-col gap-1.5">
@@ -811,7 +871,7 @@ export default function AdminDashboardPage() {
                     {batchTimes.map((time) => (
                       <span
                         key={time}
-                        className="flex items-center gap-2 rounded-full bg-cream px-3 py-1.5 font-subtitle text-sm text-onyx"
+                        className="flex items-center gap-2 rounded-full bg-neutral-100 px-3 py-1.5 font-subtitle text-sm text-onyx"
                       >
                         {time}
                         <button
@@ -932,7 +992,7 @@ export default function AdminDashboardPage() {
                           setClearPassword('')
                           setClearError(null)
                         }}
-                        className="rounded-full px-4 py-2 font-subtitle text-sm text-muted-dark transition-colors hover:bg-cream hover:text-onyx"
+                        className="rounded-full px-4 py-2 font-subtitle text-sm text-muted-dark transition-colors hover:bg-neutral-100 hover:text-onyx"
                       >
                         Cancelar
                       </button>
@@ -995,7 +1055,7 @@ export default function AdminDashboardPage() {
                   {history.map((booking) => (
                     <div
                       key={booking.id}
-                      className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/20 py-3"
+                      className="flex flex-wrap items-center justify-between gap-3 border-b border-onyx/10 py-3"
                     >
                       <p className="font-subtitle text-sm text-muted-dark">
                         {booking.customerName} · {booking.service.name} · {formatDateTime(booking.slot.startsAt)}
@@ -1028,7 +1088,7 @@ export default function AdminDashboardPage() {
                   {pendingTestimonials.map((testimonial) => (
                     <div
                       key={testimonial.id}
-                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gold/20 p-5"
+                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-onyx/10 p-5"
                     >
                       <div>
                         <p className="font-subtitle text-base text-onyx">
@@ -1065,7 +1125,7 @@ export default function AdminDashboardPage() {
                   {resolvedTestimonials.map((testimonial) => (
                     <div
                       key={testimonial.id}
-                      className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/20 py-3"
+                      className="flex flex-wrap items-center justify-between gap-3 border-b border-onyx/10 py-3"
                     >
                       <p className="font-subtitle text-sm text-muted-dark">
                         {testimonial.customer.name} · "{testimonial.content}"
@@ -1090,7 +1150,7 @@ export default function AdminDashboardPage() {
         aria-label="Secções do painel"
         className="fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
       >
-        <div className="flex w-full max-w-md items-center justify-between rounded-[2rem] border border-gold/20 bg-white/90 p-1.5 shadow-2xl shadow-black/15 backdrop-blur-xl">
+        <div className="flex w-full max-w-md items-center justify-between rounded-[2rem] border border-onyx/10 bg-white/95 p-1.5 shadow-xl shadow-black/10 backdrop-blur-xl">
           {TABS.map(({ id, label, icon }) => {
             const badge =
               id === 'pedidos' ? pendingBookings.length : id === 'testemunhos' ? pendingTestimonials.length : 0
