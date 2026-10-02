@@ -105,14 +105,3 @@
     }
   }
 }
-
-/* Admin app: use the system (SF) font on iOS instead of the website's fonts. */
-.ios-app,
-.ios-app h1,
-.ios-app h2,
-.ios-app h3,
-.ios-app .font-subtitle,
-.ios-app .font-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
