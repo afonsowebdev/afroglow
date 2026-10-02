@@ -17,6 +17,7 @@ export function TimePicker({
   startHour = 8,
   endHour = 20,
   stepMinutes = 30,
+  triggerClassName,
 }: {
   value: string
   onChange: (value: string) => void
@@ -24,6 +25,7 @@ export function TimePicker({
   startHour?: number
   endHour?: number
   stepMinutes?: number
+  triggerClassName?: string
 }) {
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -42,9 +44,12 @@ export function TimePicker({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-2 rounded-xl border border-gold/30 px-4 py-2.5 font-subtitle text-sm outline-none transition-colors duration-300 hover:border-gold-deep ${
-          value ? 'text-onyx' : 'text-muted-dark'
-        }`}
+        className={
+          triggerClassName ??
+          `flex items-center gap-2 rounded-xl border border-gold/30 px-4 py-2.5 font-subtitle text-sm outline-none transition-colors duration-300 hover:border-gold-deep ${
+            value ? 'text-onyx' : 'text-muted-dark'
+          }`
+        }
       >
         <i className="bx bx-time text-base text-gold-deep" aria-hidden="true" />
         {value || placeholder}

@@ -1,7 +1,7 @@
 import { type FormEvent, type ReactNode, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/date-picker'
+import { Avatar, EmptyState, IosButton, IosGroup, IosRow, Segmented } from '@/components/ui/ios'
 import { TimePicker } from '@/components/ui/time-picker'
 import { adminToken, api, ApiError } from '@/lib/api'
 import { registerForPushNotifications } from '@/lib/push-notifications'
@@ -62,43 +62,51 @@ const HISTORY_STATUS_LABEL: Record<Booking['status'], string> = {
   CANCELLED: 'Cancelada',
 }
 
-function SectionHeading({ children }: { children: ReactNode }) {
-  return <h2 className="font-subtitle text-xs font-semibold uppercase tracking-wider text-neutral-500">{children}</h2>
-}
-
 type AdminTab = 'pedidos' | 'agenda' | 'disponibilidade' | 'servicos' | 'testemunhos'
 
-const TABS: Array<{ id: AdminTab; label: string; icon: string; title: string; subtitle: string }> = [
-  {
-    id: 'pedidos',
-    label: 'Pedidos',
-    icon: 'bx bx-bell',
-    title: 'Pedidos',
-    subtitle: 'Marcações por aceitar ou recusar.',
-  },
-  {
-    id: 'agenda',
-    label: 'Agenda',
-    icon: 'bx bx-calendar-check',
-    title: 'Agenda',
-    subtitle: 'Sessões confirmadas e histórico.',
-  },
-  {
-    id: 'disponibilidade',
-    label: 'Horários',
-    icon: 'bx bx-time-five',
-    title: 'Horários',
-    subtitle: 'Define quando estás disponível.',
-  },
-  { id: 'servicos', label: 'Serviços', icon: 'bx bx-cut', title: 'Serviços', subtitle: 'Modelos de tranças e preços.' },
-  {
-    id: 'testemunhos',
-    label: 'Testemunhos',
-    icon: 'bx bx-message-rounded-dots',
-    title: 'Testemunhos',
-    subtitle: 'Avaliações das clientes por rever.',
-  },
-]
+const TABS: Array<{ id: AdminTab; label: string; icon: string; iconActive: string; title: string; subtitle: string }> =
+  [
+    {
+      id: 'pedidos',
+      label: 'Pedidos',
+      icon: 'bx bx-bell',
+      iconActive: 'bx bxs-bell',
+      title: 'Pedidos',
+      subtitle: 'Marcações por aceitar ou recusar.',
+    },
+    {
+      id: 'agenda',
+      label: 'Agenda',
+      icon: 'bx bx-calendar-check',
+      iconActive: 'bx bxs-calendar-check',
+      title: 'Agenda',
+      subtitle: 'Sessões confirmadas e histórico.',
+    },
+    {
+      id: 'disponibilidade',
+      label: 'Horários',
+      icon: 'bx bx-time-five',
+      iconActive: 'bx bxs-time-five',
+      title: 'Horários',
+      subtitle: 'Define quando estás disponível.',
+    },
+    {
+      id: 'servicos',
+      label: 'Serviços',
+      icon: 'bx bx-cut',
+      iconActive: 'bx bx-cut',
+      title: 'Serviços',
+      subtitle: 'Modelos de tranças e preços.',
+    },
+    {
+      id: 'testemunhos',
+      label: 'Testemunhos',
+      icon: 'bx bx-message-rounded-dots',
+      iconActive: 'bx bxs-message-rounded-dots',
+      title: 'Testemunhos',
+      subtitle: 'Avaliações das clientes por rever.',
+    },
+  ]
 
 function dateParts(iso: string) {
   const d = new Date(iso)
@@ -111,7 +119,7 @@ function dateParts(iso: string) {
   }
 }
 
-function BookingRow({
+function BookingCard({
   booking,
   variant,
   busy,
@@ -129,117 +137,96 @@ function BookingRow({
       : `Olá ${booking.customerName}! Sobre a tua sessão de ${booking.service.name}...`
 
   return (
-    <li className="px-4 py-4 sm:px-5">
-      <div className="flex gap-4">
-        <div className="w-14 shrink-0 text-center">
-          <p className="font-subtitle text-lg font-semibold leading-none text-onyx">{time}</p>
-          <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-neutral-500">
-            {day} {month}
+    <IosGroup>
+      <div className="flex items-center gap-3 px-4 py-3.5">
+        <Avatar name={booking.customerName} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[17px] font-semibold leading-[22px] text-onyx">{booking.customerName}</p>
+          <p className="truncate text-[15px] leading-5 text-[#8e8e93]">
+            {booking.service.name} · {formatPrice(booking.service.priceCents)}
           </p>
         </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="truncate font-subtitle text-[15px] font-medium text-onyx">{booking.customerName}</p>
-            <p className="shrink-0 font-subtitle text-sm tabular-nums text-onyx">
-              {formatPrice(booking.service.priceCents)}
-            </p>
-          </div>
-          <p className="mt-0.5 font-subtitle text-sm text-neutral-500">
-            {booking.service.name} · <span className="capitalize">{weekday}</span>
+        <div className="shrink-0 text-right">
+          <p className="text-[17px] font-semibold leading-[22px] tabular-nums text-onyx">{time}</p>
+          <p className="text-[13px] leading-5 text-[#8e8e93]">
+            <span className="capitalize">{weekday.slice(0, 3)}</span>, {day} {month}
           </p>
-          <a
-            href={customerWhatsappUrl(booking.customerPhone, whatsappMessage)}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-1 inline-flex items-center gap-1.5 font-subtitle text-sm text-neutral-500 transition-colors hover:text-gold-deep"
-          >
-            <i className="bx bxl-whatsapp text-base" aria-hidden="true" />
-            {booking.customerPhone}
-          </a>
-          {booking.notes && (
-            <p className="mt-2 border-l-2 border-neutral-200 pl-3 font-subtitle text-xs text-neutral-500">
-              {booking.notes}
-            </p>
-          )}
         </div>
       </div>
 
-      <div className="mt-4 flex gap-2 pl-[4.5rem]">
+      <a
+        href={customerWhatsappUrl(booking.customerPhone, whatsappMessage)}
+        target="_blank"
+        rel="noreferrer"
+        className="flex min-h-11 items-center gap-3 px-4 py-2 active:bg-[#e5e5ea]"
+      >
+        <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[7px] bg-[#34c759] text-lg text-white">
+          <i className="bx bxl-whatsapp" aria-hidden="true" />
+        </span>
+        <span className="flex-1 text-[17px] text-onyx">{booking.customerPhone}</span>
+        <i className="bx bx-chevron-right text-2xl text-[#c7c7cc]" aria-hidden="true" />
+      </a>
+
+      {booking.notes && (
+        <p className="px-4 py-3 text-[15px] leading-5 text-[#8e8e93]">
+          <span className="font-medium text-onyx">Notas: </span>
+          {booking.notes}
+        </p>
+      )}
+
+      <div className="grid gap-3 px-4 py-3" style={{ gridTemplateColumns: variant === 'pending' ? '1fr 1fr' : '1fr' }}>
         {variant === 'pending' ? (
           <>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => onDecision(booking.id, 'accept')}
-              className="flex-1 rounded-md bg-onyx px-4 py-2 font-subtitle text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:flex-none"
-            >
-              Aceitar
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => onDecision(booking.id, 'reject')}
-              className="flex-1 rounded-md border border-neutral-300 px-4 py-2 font-subtitle text-sm font-medium text-neutral-700 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-700 disabled:opacity-50 sm:flex-none"
-            >
+            <IosButton kind="destructive" disabled={busy} onClick={() => onDecision(booking.id, 'reject')}>
               Recusar
-            </button>
+            </IosButton>
+            <IosButton kind="filled" disabled={busy} onClick={() => onDecision(booking.id, 'accept')}>
+              Aceitar
+            </IosButton>
           </>
         ) : (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => onDecision(booking.id, 'cancel')}
-            className="rounded-md border border-neutral-300 px-4 py-2 font-subtitle text-sm font-medium text-neutral-700 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
-          >
+          <IosButton kind="destructive" disabled={busy} onClick={() => onDecision(booking.id, 'cancel')}>
             Cancelar sessão
-          </button>
+          </IosButton>
         )}
       </div>
-    </li>
+    </IosGroup>
   )
 }
 
-function AdminButton({
-  label,
-  variant = 'primary',
-  disabled,
-  onClick,
-  type = 'button',
-}: {
-  label: string
-  variant?: 'primary' | 'danger'
-  disabled?: boolean
-  onClick?: () => void
-  type?: 'button' | 'submit'
-}) {
+function MonthStepper({ label, onPrev, onNext }: { label: string; onPrev: () => void; onNext: () => void }) {
   return (
-    <button
-      type={type}
-      disabled={disabled}
-      onClick={onClick}
-      className={`rounded-md px-4 py-2 font-subtitle text-sm font-medium transition-colors disabled:opacity-50 ${
-        variant === 'primary'
-          ? 'bg-onyx text-white hover:opacity-90'
-          : 'border border-neutral-300 text-neutral-700 hover:border-red-300 hover:bg-red-50 hover:text-red-700'
-      }`}
-    >
-      {label}
-    </button>
+    <IosGroup>
+      <div className="flex h-12 items-center justify-between px-1">
+        <button
+          type="button"
+          aria-label="Mês anterior"
+          onClick={onPrev}
+          className="flex h-11 w-11 items-center justify-center text-gold-deep active:opacity-50"
+        >
+          <i className="bx bx-chevron-left text-3xl" aria-hidden="true" />
+        </button>
+        <span className="text-[17px] font-semibold text-onyx">{label}</span>
+        <button
+          type="button"
+          aria-label="Mês seguinte"
+          onClick={onNext}
+          className="flex h-11 w-11 items-center justify-center text-gold-deep active:opacity-50"
+        >
+          <i className="bx bx-chevron-right text-3xl" aria-hidden="true" />
+        </button>
+      </div>
+    </IosGroup>
   )
 }
 
-function StatStrip({ items }: { items: Array<{ label: string; value: string }> }) {
-  return (
-    <dl className="grid grid-cols-3 divide-x divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
-      {items.map((item) => (
-        <div key={item.label} className="px-4 py-3">
-          <dt className="font-subtitle text-[11px] uppercase tracking-wide text-neutral-500">{item.label}</dt>
-          <dd className="mt-1 font-subtitle text-lg font-semibold tabular-nums text-onyx">{item.value}</dd>
-        </div>
-      ))}
-    </dl>
-  )
+const FIELD_CLASS =
+  'w-full rounded-[10px] bg-[#f2f2f7] px-3 py-2.5 text-[17px] text-onyx outline-none placeholder:text-[#c7c7cc] focus:ring-2 focus:ring-gold-deep/40'
+const PICKER_CLASS =
+  'flex w-full items-center gap-2 rounded-[10px] bg-[#f2f2f7] px-3 py-2.5 text-[17px] text-onyx outline-none active:opacity-70'
+
+function FieldLabel({ children }: { children: ReactNode }) {
+  return <span className="mb-1.5 block text-[13px] uppercase tracking-wide text-[#6d6d72]">{children}</span>
 }
 
 export default function AdminDashboardPage() {
@@ -250,6 +237,9 @@ export default function AdminDashboardPage() {
     const fromHash = window.location.hash.slice(1)
     return TABS.some((t) => t.id === fromHash) ? (fromHash as AdminTab) : 'pedidos'
   })
+
+  const [agendaView, setAgendaView] = useState<'proximas' | 'historico'>('proximas')
+  const [scrolled, setScrolled] = useState(false)
 
   const [services, setServices] = useState<Service[]>([])
   const [slots, setSlots] = useState<AvailabilitySlot[]>([])
@@ -281,6 +271,13 @@ export default function AdminDashboardPage() {
   const [clearPassword, setClearPassword] = useState('')
   const [clearBusy, setClearBusy] = useState(false)
   const [clearError, setClearError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 34)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const loadDashboard = useCallback(
     async (opts: { silent?: boolean } = {}) => {
@@ -585,268 +582,177 @@ export default function AdminDashboardPage() {
 
   if (checkingAuth) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white font-subtitle text-muted-dark">
+      <div className="ios-app flex min-h-screen items-center justify-center bg-[#f2f2f7] text-[17px] text-[#8e8e93]">
         A verificar sessão...
       </div>
     )
   }
 
+  const currentTab = TABS.find((t) => t.id === tab)!
+  const pendingSummary = `${pendingBookings.length} ${pendingBookings.length === 1 ? 'pendente' : 'pendentes'} · ${allUpcomingCount} ${allUpcomingCount === 1 ? 'sessão a vir' : 'sessões a vir'}`
+
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-neutral-200 bg-white pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-12 max-w-4xl items-center justify-between px-5 sm:px-8">
+    <div className="ios-app min-h-screen bg-[#f2f2f7] text-onyx">
+      <header
+        className={`fixed inset-x-0 top-0 z-40 border-b pt-[env(safe-area-inset-top)] backdrop-blur-xl transition-colors duration-200 ${
+          scrolled ? 'border-black/10 bg-[#f2f2f7]/80' : 'border-transparent bg-[#f2f2f7]/0'
+        }`}
+      >
+        <div className="relative mx-auto flex h-11 max-w-2xl items-center justify-between px-4">
           <span className="font-logo text-xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 font-subtitle text-sm text-neutral-500 transition-colors hover:text-onyx"
+          <span
+            className={`pointer-events-none absolute inset-x-0 text-center text-[17px] font-semibold transition-opacity duration-200 ${
+              scrolled ? 'opacity-100' : 'opacity-0'
+            }`}
           >
+            {currentTab.title}
+          </span>
+          <button type="button" onClick={handleLogout} className="text-[17px] text-gold-deep active:opacity-50">
             Sair
-            <i className="bx bx-log-out text-base" aria-hidden="true" />
           </button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-5 pb-32 pt-[calc(4.5rem+env(safe-area-inset-top))] sm:px-8">
-        <div>
-          <h1 className="font-subtitle text-2xl font-semibold text-onyx">{TABS.find((t) => t.id === tab)?.title}</h1>
-          <p className="mt-1 font-subtitle text-sm text-neutral-500">
-            {tab === 'pedidos'
-              ? `${pendingBookings.length} ${pendingBookings.length === 1 ? 'pendente' : 'pendentes'} · ${allUpcomingCount} ${allUpcomingCount === 1 ? 'sessão a vir' : 'sessões a vir'}`
-              : TABS.find((t) => t.id === tab)?.subtitle}
-          </p>
-          {tab === 'pedidos' && adminEmail && (
-            <p className="mt-0.5 font-subtitle text-xs text-neutral-400">{adminEmail}</p>
-          )}
-        </div>
+      <main className="mx-auto max-w-2xl px-4 pb-32 pt-[calc(3.25rem+env(safe-area-inset-top))]">
+        <h1 className="px-1 text-[34px] font-bold leading-[41px] tracking-tight">{currentTab.title}</h1>
+        <p className="mt-0.5 px-1 text-[15px] text-[#8e8e93]">
+          {tab === 'pedidos' ? pendingSummary : currentTab.subtitle}
+        </p>
 
-        {error && <p className="mt-6 font-subtitle text-sm text-red-700">{error}</p>}
+        {error && <p className="mt-4 rounded-[12px] bg-[#ff3b30]/10 px-4 py-3 text-[15px] text-[#ff3b30]">{error}</p>}
 
-        {(tab === 'agenda' || tab === 'disponibilidade') && (
-          <div className="mt-6 flex items-center justify-center gap-4 rounded-lg border border-neutral-200 bg-white px-2 py-1.5 sm:justify-start">
-            <button
-              type="button"
-              aria-label="Mês anterior"
-              onClick={() => shiftMonth(-1)}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-dark transition-colors hover:bg-white hover:text-gold-deep"
-            >
-              <i className="bx bx-chevron-left" aria-hidden="true" />
-            </button>
-            <span className="min-w-36 text-center font-subtitle text-sm font-medium text-onyx">
-              {formatMonthLabel(viewMonth)}
-            </span>
-            <button
-              type="button"
-              aria-label="Mês seguinte"
-              onClick={() => shiftMonth(1)}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-dark transition-colors hover:bg-white hover:text-gold-deep"
-            >
-              <i className="bx bx-chevron-right" aria-hidden="true" />
-            </button>
-          </div>
-        )}
+        {/* ---------------- Pedidos ---------------- */}
+        {tab === 'pedidos' &&
+          (pendingBookings.length === 0 ? (
+            <EmptyState icon="bx bx-bell-off" title="Sem pedidos" text="Os novos pedidos aparecem aqui." />
+          ) : (
+            pendingBookings.map((booking) => (
+              <BookingCard
+                key={booking.id}
+                booking={booking}
+                variant="pending"
+                busy={busyId === booking.id}
+                onDecision={handleBookingDecision}
+              />
+            ))
+          ))}
 
+        {/* ---------------- Agenda ---------------- */}
         {tab === 'agenda' && (
-          <div className="mt-4">
-            <StatStrip
-              items={[
-                { label: 'Pendentes', value: String(pendingBookings.length) },
-                { label: 'Confirmadas', value: String(monthConfirmedCount) },
-                { label: 'Receita', value: formatPrice(monthRevenueCents) },
-              ]}
+          <>
+            <MonthStepper
+              label={formatMonthLabel(viewMonth)}
+              onPrev={() => shiftMonth(-1)}
+              onNext={() => shiftMonth(1)}
             />
-          </div>
+
+            <IosGroup>
+              <IosRow title="Pedidos pendentes" trailing={String(pendingBookings.length)} />
+              <IosRow title="Confirmadas no mês" trailing={String(monthConfirmedCount)} />
+              <IosRow title="Receita confirmada" trailing={formatPrice(monthRevenueCents)} />
+            </IosGroup>
+
+            <div className="mt-6">
+              <Segmented
+                value={agendaView}
+                onChange={setAgendaView}
+                options={[
+                  { value: 'proximas', label: 'Próximas' },
+                  { value: 'historico', label: 'Histórico' },
+                ]}
+              />
+            </div>
+
+            {agendaView === 'proximas' &&
+              (upcomingConfirmed.length === 0 ? (
+                <EmptyState icon="bx bx-calendar" title="Sem sessões" text="Não há sessões confirmadas neste mês." />
+              ) : (
+                upcomingConfirmed.map((booking) => (
+                  <BookingCard
+                    key={booking.id}
+                    booking={booking}
+                    variant="confirmed"
+                    busy={busyId === booking.id}
+                    onDecision={handleBookingDecision}
+                  />
+                ))
+              ))}
+
+            {agendaView === 'historico' &&
+              (history.length === 0 ? (
+                <EmptyState icon="bx bx-history" title="Sem histórico" text="Ainda não há sessões passadas." />
+              ) : (
+                <IosGroup>
+                  {history.map((booking) => (
+                    <IosRow
+                      key={booking.id}
+                      title={booking.customerName}
+                      subtitle={`${booking.service.name} · ${formatDateTime(booking.slot.startsAt)}`}
+                      trailing={
+                        <span
+                          className={`text-[15px] ${
+                            booking.status === 'ACCEPTED'
+                              ? 'text-[#34c759]'
+                              : booking.status === 'CANCELLED'
+                                ? 'text-[#8e8e93]'
+                                : 'text-[#ff3b30]'
+                          }`}
+                        >
+                          {HISTORY_STATUS_LABEL[booking.status]}
+                        </span>
+                      }
+                    />
+                  ))}
+                </IosGroup>
+              ))}
+          </>
         )}
 
-        <div key={tab}>
-          {tab === 'servicos' && (
-            <section className="mt-8">
-              <SectionHeading>Serviços e preços</SectionHeading>
-              <div className="mt-6 flex flex-col gap-3">
-                {services.map((service) => {
-                  const isEditing = editingServiceId === service.id
-                  return (
-                    <div key={service.id} className="rounded-lg border border-neutral-200 p-5">
-                      {isEditing ? (
-                        <div className="flex flex-col gap-4">
-                          <div className="grid gap-3 sm:grid-cols-2">
-                            <label className="flex flex-col gap-1.5">
-                              <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                                Duração
-                              </span>
-                              <input
-                                value={editDuration}
-                                onChange={(e) => setEditDuration(e.target.value)}
-                                className="rounded-md border border-neutral-300 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
-                              />
-                            </label>
-                            <label className="flex flex-col gap-1.5">
-                              <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                                Preço (€)
-                              </span>
-                              <input
-                                value={editPrice}
-                                onChange={(e) => setEditPrice(e.target.value)}
-                                inputMode="decimal"
-                                className="rounded-md border border-neutral-300 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
-                              />
-                            </label>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <AdminButton
-                              label={savingServiceId === service.id ? 'A guardar...' : 'Guardar'}
-                              disabled={savingServiceId === service.id}
-                              onClick={() => saveServiceEdit(service)}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setEditingServiceId(null)}
-                              className="font-subtitle text-sm text-muted-dark transition-colors hover:text-onyx"
-                            >
-                              Cancelar
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <div>
-                            <p className="font-subtitle text-base text-onyx">{service.name}</p>
-                            <p className="mt-0.5 font-subtitle text-xs text-muted-dark">{service.durationLabel}</p>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <span className="font-subtitle text-lg font-semibold text-onyx">
-                              {formatPrice(service.priceCents)}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => startEditService(service)}
-                              aria-label={`Editar ${service.name}`}
-                              className="flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 text-muted-dark transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
-                            >
-                              <i className="bx bx-pencil" aria-hidden="true" />
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+        {/* ---------------- Horários ---------------- */}
+        {tab === 'disponibilidade' && (
+          <>
+            <MonthStepper
+              label={formatMonthLabel(viewMonth)}
+              onPrev={() => shiftMonth(-1)}
+              onNext={() => shiftMonth(1)}
+            />
 
-              <div className="mt-4">
-                {showAddService ? (
-                  <form
-                    onSubmit={handleCreateService}
-                    className="flex flex-col gap-4 rounded-lg border border-neutral-200 p-5"
-                  >
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <label className="flex flex-col gap-1.5">
-                        <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Nome</span>
-                        <input
-                          value={newServiceName}
-                          onChange={(e) => setNewServiceName(e.target.value)}
-                          placeholder="Ex: Twist Braids"
-                          className="rounded-md border border-neutral-300 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1.5">
-                        <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Duração</span>
-                        <input
-                          value={newServiceDuration}
-                          onChange={(e) => setNewServiceDuration(e.target.value)}
-                          placeholder="Ex: 3-5h"
-                          className="rounded-md border border-neutral-300 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1.5 sm:col-span-2">
-                        <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Descrição</span>
-                        <input
-                          value={newServiceDescription}
-                          onChange={(e) => setNewServiceDescription(e.target.value)}
-                          placeholder="Breve descrição para as clientes"
-                          className="rounded-md border border-neutral-300 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1.5">
-                        <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Preço (€)</span>
-                        <input
-                          value={newServicePrice}
-                          onChange={(e) => setNewServicePrice(e.target.value)}
-                          inputMode="decimal"
-                          placeholder="Ex: 65"
-                          className="rounded-md border border-neutral-300 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
-                        />
-                      </label>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <AdminButton
-                        label={addingService ? 'A adicionar...' : 'Adicionar modelo'}
-                        type="submit"
-                        disabled={addingService}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowAddService(false)}
-                        className="font-subtitle text-sm text-muted-dark transition-colors hover:text-onyx"
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setShowAddService(true)}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-neutral-300 py-4 font-subtitle text-sm text-muted-dark transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
-                  >
-                    <i className="bx bx-plus text-lg" aria-hidden="true" />
-                    Adicionar novo modelo de tranças
-                  </button>
-                )}
-              </div>
-            </section>
-          )}
-
-          {tab === 'disponibilidade' && (
-            <section className="mt-8">
-              <SectionHeading>Disponibilidade</SectionHeading>
-              <form
-                onSubmit={handleCreateSlots}
-                className="mt-6 flex flex-col gap-4 rounded-lg border border-neutral-200 p-5"
-              >
-                <div className="flex flex-wrap items-end gap-3">
-                  <label className="flex flex-col gap-1.5">
-                    <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Data</span>
-                    <DatePicker value={newDate} onChange={setNewDate} />
-                  </label>
-                  <label className="flex flex-col gap-1.5">
-                    <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Hora</span>
-                    <TimePicker value={newTimeInput} onChange={setNewTimeInput} />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={addTimeToBatch}
-                    disabled={!newTimeInput}
-                    className="flex h-11 items-center gap-1.5 rounded-md border border-neutral-300 px-4 font-subtitle text-sm text-onyx transition-colors duration-300 hover:border-gold-deep disabled:opacity-40"
-                  >
-                    <i className="bx bx-plus" aria-hidden="true" />
-                    Adicionar horário
-                  </button>
+            <form onSubmit={handleCreateSlots}>
+              <IosGroup title="Novo horário">
+                <div className="grid grid-cols-2 gap-3 px-4 py-3.5">
+                  <div>
+                    <FieldLabel>Data</FieldLabel>
+                    <DatePicker value={newDate} onChange={setNewDate} triggerClassName={PICKER_CLASS} />
+                  </div>
+                  <div>
+                    <FieldLabel>Hora</FieldLabel>
+                    <TimePicker value={newTimeInput} onChange={setNewTimeInput} triggerClassName={PICKER_CLASS} />
+                  </div>
                 </div>
 
+                <button
+                  type="button"
+                  onClick={addTimeToBatch}
+                  disabled={!newTimeInput}
+                  className="flex min-h-11 w-full items-center gap-3 px-4 py-2.5 text-[17px] text-gold-deep active:bg-[#e5e5ea] disabled:text-[#c7c7cc]"
+                >
+                  <i className="bx bxs-plus-circle text-[26px]" aria-hidden="true" />
+                  Adicionar horário
+                </button>
+
                 {batchTimes.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 px-4 py-3">
                     {batchTimes.map((time) => (
                       <span
                         key={time}
-                        className="flex items-center gap-2 rounded-md bg-neutral-100 px-3 py-1.5 font-subtitle text-sm text-onyx"
+                        className="flex items-center gap-1.5 rounded-full bg-gold-deep/10 py-1 pl-3 pr-2 text-[15px] font-medium text-gold-deep"
                       >
                         {time}
                         <button
                           type="button"
                           onClick={() => removeTimeFromBatch(time)}
                           aria-label={`Remover ${time}`}
-                          className="text-muted-dark transition-colors hover:text-red-700"
+                          className="flex h-5 w-5 items-center justify-center rounded-full bg-gold-deep/15"
                         >
                           <i className="bx bx-x" aria-hidden="true" />
                         </button>
@@ -855,39 +761,44 @@ export default function AdminDashboardPage() {
                   </div>
                 )}
 
-                <div>
-                  <AdminButton
-                    label={
-                      addingSlot
-                        ? 'A criar...'
-                        : batchTimes.length > 1
-                          ? `Criar ${batchTimes.length} vagas`
-                          : 'Criar vaga'
-                    }
-                    type="submit"
-                    disabled={addingSlot || !newDate || batchTimes.length === 0}
-                  />
+                <div className="px-4 py-3">
+                  <IosButton type="submit" full disabled={addingSlot || !newDate || batchTimes.length === 0}>
+                    {addingSlot
+                      ? 'A criar...'
+                      : batchTimes.length > 1
+                        ? `Criar ${batchTimes.length} vagas`
+                        : 'Criar vaga'}
+                  </IosButton>
                 </div>
-              </form>
+              </IosGroup>
+            </form>
 
-              <div className="mt-6 flex flex-col gap-4">
-                {slotsByDate.length === 0 && (
-                  <p className="font-subtitle text-sm text-muted-dark">Sem vagas criadas.</p>
-                )}
-                {slotsByDate.map(([key, daySlots]) => (
-                  <div key={key}>
-                    <p className="font-subtitle text-xs font-medium capitalize text-neutral-500">
-                      {dateParts(daySlots[0].startsAt).weekday}, {dateParts(daySlots[0].startsAt).day}{' '}
-                      {dateParts(daySlots[0].startsAt).month}
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {daySlots.map((slot) => (
-                        <div
-                          key={slot.id}
-                          className="flex items-center gap-2 rounded-md border border-neutral-300 px-3 py-1.5 font-subtitle text-sm text-onyx"
-                        >
-                          <span>{formatDateTime(slot.startsAt).split(', ').slice(1).join(', ')}</span>
-                          <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+            {slotsByDate.length === 0 && (
+              <EmptyState icon="bx bx-time-five" title="Sem horários" text="Cria vagas para este mês acima." />
+            )}
+
+            {slotsByDate.map(([key, daySlots]) => {
+              const parts = dateParts(daySlots[0].startsAt)
+              return (
+                <IosGroup
+                  key={key}
+                  title={`${parts.weekday.charAt(0).toUpperCase()}${parts.weekday.slice(1)}, ${parts.day} ${parts.month}`}
+                >
+                  {daySlots.map((slot) => (
+                    <IosRow
+                      key={slot.id}
+                      title={dateParts(slot.startsAt).time}
+                      trailing={
+                        <span className="flex items-center gap-4">
+                          <span
+                            className={`text-[15px] ${
+                              slot.status === 'OPEN'
+                                ? 'text-[#34c759]'
+                                : slot.status === 'PENDING'
+                                  ? 'text-[#ff9500]'
+                                  : 'text-[#8e8e93]'
+                            }`}
+                          >
                             {SLOT_STATUS_LABEL[slot.status]}
                           </span>
                           {slot.status === 'OPEN' && (
@@ -896,223 +807,246 @@ export default function AdminDashboardPage() {
                               onClick={() => handleDeleteSlot(slot.id)}
                               disabled={busyId === slot.id}
                               aria-label="Remover vaga"
-                              className="text-muted-dark transition-colors hover:text-red-700"
+                              className="text-[#ff3b30] active:opacity-50 disabled:opacity-40"
                             >
-                              <i className="bx bx-x text-lg" aria-hidden="true" />
+                              <i className="bx bxs-minus-circle text-[26px]" aria-hidden="true" />
                             </button>
                           )}
-                        </div>
-                      ))}
+                        </span>
+                      }
+                    />
+                  ))}
+                </IosGroup>
+              )
+            })}
+
+            {!clearingOpen ? (
+              <IosGroup footer="Apaga todas as vagas e marcações do mês, permanentemente.">
+                <IosRow
+                  title={<span className="block text-center">Limpar dados de {formatMonthLabel(viewMonth)}</span>}
+                  destructive
+                  onClick={openClearPanel}
+                />
+              </IosGroup>
+            ) : (
+              <IosGroup title="Limpar mês">
+                <div className="px-4 py-3.5">
+                  <p className="text-[15px] leading-5 text-[#ff3b30]">
+                    Isto apaga permanentemente {clearSummary ? clearSummary.slotCount : '...'} vaga(s) e{' '}
+                    {clearSummary ? clearSummary.bookingCount : '...'} marcação(ões) de {formatMonthLabel(viewMonth)},
+                    incluindo marcações já aceites. <strong>Não pode ser desfeito.</strong>
+                  </p>
+                  <div className="mt-3">
+                    <FieldLabel>Confirma com a tua password</FieldLabel>
+                    <input
+                      type="password"
+                      value={clearPassword}
+                      onChange={(e) => setClearPassword(e.target.value)}
+                      className={FIELD_CLASS}
+                    />
+                  </div>
+                  {clearError && <p className="mt-2 text-[15px] text-[#ff3b30]">{clearError}</p>}
+                </div>
+                <div className="grid grid-cols-2 gap-3 px-4 py-3">
+                  <IosButton
+                    kind="tinted"
+                    onClick={() => {
+                      setClearingOpen(false)
+                      setClearPassword('')
+                      setClearError(null)
+                    }}
+                  >
+                    Cancelar
+                  </IosButton>
+                  <IosButton kind="destructive" disabled={!clearPassword || clearBusy} onClick={handleClearMonth}>
+                    {clearBusy ? 'A limpar...' : 'Apagar'}
+                  </IosButton>
+                </div>
+              </IosGroup>
+            )}
+          </>
+        )}
+
+        {/* ---------------- Serviços ---------------- */}
+        {tab === 'servicos' && (
+          <>
+            <IosGroup>
+              {services.map((service) =>
+                editingServiceId === service.id ? (
+                  <div key={service.id} className="px-4 py-3.5">
+                    <p className="text-[17px] font-semibold">{service.name}</p>
+                    <div className="mt-3 grid grid-cols-2 gap-3">
+                      <label>
+                        <FieldLabel>Duração</FieldLabel>
+                        <input
+                          value={editDuration}
+                          onChange={(e) => setEditDuration(e.target.value)}
+                          className={FIELD_CLASS}
+                        />
+                      </label>
+                      <label>
+                        <FieldLabel>Preço (€)</FieldLabel>
+                        <input
+                          value={editPrice}
+                          onChange={(e) => setEditPrice(e.target.value)}
+                          inputMode="decimal"
+                          className={FIELD_CLASS}
+                        />
+                      </label>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <IosButton kind="tinted" onClick={() => setEditingServiceId(null)}>
+                        Cancelar
+                      </IosButton>
+                      <IosButton disabled={savingServiceId === service.id} onClick={() => saveServiceEdit(service)}>
+                        {savingServiceId === service.id ? 'A guardar...' : 'Guardar'}
+                      </IosButton>
                     </div>
                   </div>
-                ))}
-              </div>
-
-              <div className="mt-8 rounded-lg border border-red-700/20 bg-red-700/5 p-5">
-                {!clearingOpen ? (
-                  <button type="button" onClick={openClearPanel} className="flex w-full items-center gap-3 text-left">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-700/10 text-red-700">
-                      <i className="bx bx-trash text-lg" aria-hidden="true" />
-                    </span>
-                    <span>
-                      <span className="block font-subtitle text-sm font-medium text-red-700">
-                        Limpar dados de {formatMonthLabel(viewMonth)}
-                      </span>
-                      <span className="block font-subtitle text-xs text-muted-dark">
-                        Apaga vagas e marcações do mês, permanentemente
-                      </span>
-                    </span>
-                  </button>
                 ) : (
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-start gap-3 rounded-xl bg-red-700/10 p-4">
-                      <i className="bx bx-error mt-0.5 shrink-0 text-xl text-red-700" aria-hidden="true" />
-                      <p className="font-subtitle text-sm text-red-800">
-                        Isto apaga permanentemente {clearSummary ? clearSummary.slotCount : '...'} vaga(s) e{' '}
-                        {clearSummary ? clearSummary.bookingCount : '...'} marcação(ões) de{' '}
-                        {formatMonthLabel(viewMonth)}, incluindo marcações já aceites.{' '}
-                        <strong>Não pode ser desfeito.</strong>
-                      </p>
-                    </div>
-                    <label className="flex max-w-xs flex-col gap-1.5">
-                      <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                        Confirma com a tua password
-                      </span>
+                  <IosRow
+                    key={service.id}
+                    title={service.name}
+                    subtitle={service.durationLabel}
+                    trailing={formatPrice(service.priceCents)}
+                    chevron
+                    onClick={() => startEditService(service)}
+                  />
+                ),
+              )}
+            </IosGroup>
+
+            {showAddService ? (
+              <form onSubmit={handleCreateService}>
+                <IosGroup title="Novo modelo">
+                  <div className="grid gap-3 px-4 py-3.5 sm:grid-cols-2">
+                    <label>
+                      <FieldLabel>Nome</FieldLabel>
                       <input
-                        type="password"
-                        value={clearPassword}
-                        onChange={(e) => setClearPassword(e.target.value)}
-                        className="rounded-md border border-neutral-300 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-red-700"
+                        value={newServiceName}
+                        onChange={(e) => setNewServiceName(e.target.value)}
+                        placeholder="Ex: Twist Braids"
+                        className={FIELD_CLASS}
                       />
                     </label>
-                    {clearError && <p className="font-subtitle text-sm text-red-700">{clearError}</p>}
-                    <div className="flex items-center gap-3">
-                      <Button variant="destructive" disabled={!clearPassword || clearBusy} onClick={handleClearMonth}>
-                        {clearBusy ? 'A limpar...' : 'Confirmar limpeza'}
-                      </Button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setClearingOpen(false)
-                          setClearPassword('')
-                          setClearError(null)
-                        }}
-                        className="rounded-md px-4 py-2 font-subtitle text-sm text-muted-dark transition-colors hover:bg-neutral-100 hover:text-onyx"
-                      >
-                        Cancelar
-                      </button>
-                    </div>
+                    <label>
+                      <FieldLabel>Duração</FieldLabel>
+                      <input
+                        value={newServiceDuration}
+                        onChange={(e) => setNewServiceDuration(e.target.value)}
+                        placeholder="Ex: 3-5h"
+                        className={FIELD_CLASS}
+                      />
+                    </label>
+                    <label className="sm:col-span-2">
+                      <FieldLabel>Descrição</FieldLabel>
+                      <input
+                        value={newServiceDescription}
+                        onChange={(e) => setNewServiceDescription(e.target.value)}
+                        placeholder="Breve descrição para as clientes"
+                        className={FIELD_CLASS}
+                      />
+                    </label>
+                    <label>
+                      <FieldLabel>Preço (€)</FieldLabel>
+                      <input
+                        value={newServicePrice}
+                        onChange={(e) => setNewServicePrice(e.target.value)}
+                        inputMode="decimal"
+                        placeholder="Ex: 65"
+                        className={FIELD_CLASS}
+                      />
+                    </label>
                   </div>
-                )}
-              </div>
-            </section>
-          )}
+                  <div className="grid grid-cols-2 gap-3 px-4 py-3">
+                    <IosButton kind="tinted" onClick={() => setShowAddService(false)}>
+                      Cancelar
+                    </IosButton>
+                    <IosButton type="submit" disabled={addingService}>
+                      {addingService ? 'A adicionar...' : 'Adicionar'}
+                    </IosButton>
+                  </div>
+                </IosGroup>
+              </form>
+            ) : (
+              <IosGroup>
+                <button
+                  type="button"
+                  onClick={() => setShowAddService(true)}
+                  className="flex min-h-11 w-full items-center gap-3 px-4 py-2.5 text-[17px] text-gold-deep active:bg-[#e5e5ea]"
+                >
+                  <i className="bx bxs-plus-circle text-[26px]" aria-hidden="true" />
+                  Adicionar modelo de tranças
+                </button>
+              </IosGroup>
+            )}
+          </>
+        )}
 
-          {tab === 'pedidos' && (
-            <section className="mt-8">
-              <SectionHeading>Marcações pendentes</SectionHeading>
-              {pendingBookings.length === 0 ? (
-                <p className="mt-5 font-subtitle text-sm text-muted-dark">Sem marcações pendentes.</p>
-              ) : (
-                <ul className="mt-3 divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200 bg-white">
-                  {pendingBookings.map((booking) => (
-                    <BookingRow
-                      key={booking.id}
-                      booking={booking}
-                      variant="pending"
-                      busy={busyId === booking.id}
-                      onDecision={handleBookingDecision}
-                    />
-                  ))}
-                </ul>
-              )}
-            </section>
-          )}
-
-          {tab === 'agenda' && (
-            <section className="mt-8">
-              <SectionHeading>Próximas sessões confirmadas</SectionHeading>
-              {upcomingConfirmed.length === 0 ? (
-                <p className="mt-5 font-subtitle text-sm text-muted-dark">Sem sessões confirmadas agendadas.</p>
-              ) : (
-                <ul className="mt-3 divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200 bg-white">
-                  {upcomingConfirmed.map((booking) => (
-                    <BookingRow
-                      key={booking.id}
-                      booking={booking}
-                      variant="confirmed"
-                      busy={busyId === booking.id}
-                      onDecision={handleBookingDecision}
-                    />
-                  ))}
-                </ul>
-              )}
-            </section>
-          )}
-
-          {tab === 'agenda' && (
-            <section className="mt-14">
-              <SectionHeading>Histórico</SectionHeading>
-              {history.length === 0 ? (
-                <p className="mt-5 font-subtitle text-sm text-muted-dark">Ainda sem histórico.</p>
-              ) : (
-                <div className="mt-6 flex flex-col gap-2">
-                  {history.map((booking) => (
-                    <div
-                      key={booking.id}
-                      className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 py-3"
+        {/* ---------------- Testemunhos ---------------- */}
+        {tab === 'testemunhos' && (
+          <>
+            {pendingTestimonials.length === 0 ? (
+              <EmptyState
+                icon="bx bx-message-rounded-check"
+                title="Tudo revisto"
+                text="Não há testemunhos por rever."
+              />
+            ) : (
+              pendingTestimonials.map((testimonial) => (
+                <IosGroup key={testimonial.id}>
+                  <div className="flex items-center gap-3 px-4 py-3.5">
+                    <Avatar name={testimonial.customer.name} />
+                    <p className="text-[17px] font-semibold">{testimonial.customer.name}</p>
+                  </div>
+                  <p className="px-4 py-3 text-[17px] leading-[22px]">“{testimonial.content}”</p>
+                  <div className="grid grid-cols-2 gap-3 px-4 py-3">
+                    <IosButton
+                      kind="destructive"
+                      disabled={busyId === testimonial.id}
+                      onClick={() => handleTestimonialDecision(testimonial.id, 'reject')}
                     >
-                      <p className="font-subtitle text-sm text-muted-dark">
-                        {booking.customerName} · {booking.service.name} · {formatDateTime(booking.slot.startsAt)}
-                      </p>
+                      Recusar
+                    </IosButton>
+                    <IosButton
+                      disabled={busyId === testimonial.id}
+                      onClick={() => handleTestimonialDecision(testimonial.id, 'approve')}
+                    >
+                      Aprovar
+                    </IosButton>
+                  </div>
+                </IosGroup>
+              ))
+            )}
+
+            {resolvedTestimonials.length > 0 && (
+              <IosGroup title="Já revistos">
+                {resolvedTestimonials.map((testimonial) => (
+                  <IosRow
+                    key={testimonial.id}
+                    title={testimonial.customer.name}
+                    subtitle={`“${testimonial.content}”`}
+                    trailing={
                       <span
-                        className={`font-subtitle text-xs uppercase tracking-wide ${
-                          booking.status === 'ACCEPTED'
-                            ? 'text-gold-deep'
-                            : booking.status === 'CANCELLED'
-                              ? 'text-muted-dark'
-                              : 'text-red-700'
-                        }`}
-                      >
-                        {HISTORY_STATUS_LABEL[booking.status]}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
-
-          {tab === 'testemunhos' && (
-            <section className="mt-8">
-              <SectionHeading>Testemunhos pendentes</SectionHeading>
-              {pendingTestimonials.length === 0 ? (
-                <p className="mt-5 font-subtitle text-sm text-muted-dark">Sem testemunhos por rever.</p>
-              ) : (
-                <div className="mt-6 flex flex-col gap-3">
-                  {pendingTestimonials.map((testimonial) => (
-                    <div
-                      key={testimonial.id}
-                      className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-neutral-200 p-5"
-                    >
-                      <div>
-                        <p className="font-subtitle text-base text-onyx">
-                          <span className="font-medium">{testimonial.customer.name}</span>
-                        </p>
-                        <p className="mt-1 max-w-xl font-subtitle text-sm italic text-muted-dark">
-                          "{testimonial.content}"
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <AdminButton
-                          label="Aprovar"
-                          disabled={busyId === testimonial.id}
-                          onClick={() => handleTestimonialDecision(testimonial.id, 'approve')}
-                        />
-                        <AdminButton
-                          label="Recusar"
-                          variant="danger"
-                          disabled={busyId === testimonial.id}
-                          onClick={() => handleTestimonialDecision(testimonial.id, 'reject')}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {resolvedTestimonials.length > 0 && (
-                <div className="mt-6 flex flex-col gap-2">
-                  {resolvedTestimonials.map((testimonial) => (
-                    <div
-                      key={testimonial.id}
-                      className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 py-3"
-                    >
-                      <p className="font-subtitle text-sm text-muted-dark">
-                        {testimonial.customer.name} · "{testimonial.content}"
-                      </p>
-                      <span
-                        className={`font-subtitle text-xs uppercase tracking-wide ${
-                          testimonial.status === 'APPROVED' ? 'text-gold-deep' : 'text-red-700'
-                        }`}
+                        className={`text-[15px] ${testimonial.status === 'APPROVED' ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}
                       >
                         {testimonial.status === 'APPROVED' ? 'Aprovado' : 'Recusado'}
                       </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
-        </div>
+                    }
+                  />
+                ))}
+              </IosGroup>
+            )}
+          </>
+        )}
       </main>
 
       <nav
         aria-label="Secções do painel"
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-black/15 bg-[#f9f9f9]/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl"
       >
-        <div className="mx-auto grid max-w-4xl grid-cols-5">
-          {TABS.map(({ id, label, icon }) => {
+        <div className="mx-auto grid max-w-2xl grid-cols-5">
+          {TABS.map(({ id, label, icon, iconActive }) => {
             const badge =
               id === 'pedidos' ? pendingBookings.length : id === 'testemunhos' ? pendingTestimonials.length : 0
             const active = tab === id
@@ -1120,22 +1054,24 @@ export default function AdminDashboardPage() {
               <button
                 key={id}
                 type="button"
-                onClick={() => setTab(id)}
+                onClick={() => {
+                  setTab(id)
+                  window.scrollTo({ top: 0 })
+                }}
                 aria-current={active ? 'page' : undefined}
-                className={`relative flex flex-col items-center gap-1 pb-2 pt-2.5 transition-colors ${
-                  active ? 'text-gold-deep' : 'text-neutral-400 hover:text-neutral-600'
+                className={`flex flex-col items-center gap-0.5 pb-1.5 pt-1.5 ${
+                  active ? 'text-gold-deep' : 'text-[#8e8e93]'
                 }`}
               >
-                {active && <span className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-gold-deep" />}
-                <span className="relative text-[22px] leading-none">
-                  <i className={icon} aria-hidden="true" />
+                <span className="relative text-[26px] leading-none">
+                  <i className={active ? iconActive : icon} aria-hidden="true" />
                   {badge > 0 && (
-                    <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold leading-none text-white">
+                    <span className="absolute -right-3 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#ff3b30] px-1 text-[11px] font-semibold leading-none text-white">
                       {badge}
                     </span>
                   )}
                 </span>
-                <span className="font-subtitle text-[10px] font-medium leading-none">{label}</span>
+                <span className="text-[10px] font-medium leading-3">{label}</span>
               </button>
             )
           })}

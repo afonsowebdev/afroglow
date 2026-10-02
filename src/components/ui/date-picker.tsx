@@ -38,10 +38,12 @@ export function DatePicker({
   value,
   onChange,
   placeholder = 'Escolher data',
+  triggerClassName,
 }: {
   value: string
   onChange: (value: string) => void
   placeholder?: string
+  triggerClassName?: string
 }) {
   const [open, setOpen] = useState(false)
   const selected = value ? parseDateValue(value) : null
@@ -69,9 +71,12 @@ export function DatePicker({
           setViewMonth(selected ?? new Date())
           setOpen((v) => !v)
         }}
-        className={`flex items-center gap-2 rounded-xl border border-gold/30 px-4 py-2.5 font-subtitle text-sm outline-none transition-colors duration-300 hover:border-gold-deep ${
-          selected ? 'text-onyx' : 'text-muted-dark'
-        }`}
+        className={
+          triggerClassName ??
+          `flex items-center gap-2 rounded-xl border border-gold/30 px-4 py-2.5 font-subtitle text-sm outline-none transition-colors duration-300 hover:border-gold-deep ${
+            selected ? 'text-onyx' : 'text-muted-dark'
+          }`
+        }
       >
         <i className="bx bx-calendar text-base text-gold-deep" aria-hidden="true" />
         {label}
