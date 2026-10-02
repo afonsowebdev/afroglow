@@ -80,8 +80,8 @@ const TABS: Array<{ id: AdminTab; label: string; icon: string }> = [
 
 function StatCard({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-gold/20 bg-cream px-5 py-4">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-lg text-gold-deep">
+    <div className="flex items-center gap-4 rounded-2xl border border-gold/20 bg-white px-5 py-4 shadow-sm shadow-black/5">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 text-lg text-gold-deep">
         <i className={icon} aria-hidden="true" />
       </span>
       <div>
@@ -476,7 +476,7 @@ export default function AdminDashboardPage() {
         {error && <p className="mt-6 font-subtitle text-sm text-red-700">{error}</p>}
 
         {(tab === 'agenda' || tab === 'disponibilidade') && (
-          <div className="mt-6 flex items-center justify-center gap-4 rounded-full border border-gold/20 bg-cream px-4 py-2 sm:justify-start">
+          <div className="mt-6 flex items-center justify-center gap-4 rounded-full border border-gold/20 bg-white px-4 py-2 shadow-sm shadow-black/5 sm:justify-start">
             <button
               type="button"
               aria-label="Mês anterior"
@@ -690,7 +690,7 @@ export default function AdminDashboardPage() {
                     {batchTimes.map((time) => (
                       <span
                         key={time}
-                        className="flex items-center gap-2 rounded-full bg-cream px-3 py-1.5 font-subtitle text-sm text-onyx"
+                        className="flex items-center gap-2 rounded-full border border-gold/20 bg-white px-3 py-1.5 font-subtitle text-sm text-onyx"
                       >
                         {time}
                         <button
@@ -811,7 +811,7 @@ export default function AdminDashboardPage() {
                           setClearPassword('')
                           setClearError(null)
                         }}
-                        className="rounded-full px-4 py-2 font-subtitle text-sm text-muted-dark transition-colors hover:bg-cream hover:text-onyx"
+                        className="rounded-full px-4 py-2 font-subtitle text-sm text-muted-dark transition-colors hover:bg-gold-deep/5 hover:text-onyx"
                       >
                         Cancelar
                       </button>
@@ -892,7 +892,7 @@ export default function AdminDashboardPage() {
                   {upcomingConfirmed.map((booking) => (
                     <div
                       key={booking.id}
-                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gold/20 bg-cream p-5"
+                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5"
                     >
                       <div>
                         <p className="flex flex-wrap items-center gap-2 font-subtitle text-base text-onyx">

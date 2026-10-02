@@ -51,7 +51,7 @@ export function BottomNavBar<T extends string>({
             aria-current={isActive ? 'page' : undefined}
             className={cn(
               'relative flex h-10 min-w-[44px] items-center justify-center rounded-full px-3 font-subtitle transition-colors duration-200 focus:outline-none',
-              isActive ? 'bg-gold-deep/10 text-gold-deep' : 'text-onyx/50 hover:bg-cream hover:text-onyx',
+              isActive ? 'bg-gold-deep/10 text-gold-deep' : 'text-onyx/50 hover:bg-gold-deep/5 hover:text-onyx',
             )}
           >
             <span className="relative text-[22px] leading-none">
