@@ -73,10 +73,123 @@ type AdminTab = 'pedidos' | 'agenda' | 'disponibilidade' | 'servicos' | 'testemu
 const TABS: Array<{ id: AdminTab; label: string; icon: string }> = [
   { id: 'pedidos', label: 'Pedidos', icon: 'bx bx-bell' },
   { id: 'agenda', label: 'Agenda', icon: 'bx bx-calendar-check' },
-  { id: 'disponibilidade', label: 'Disponibilidade', icon: 'bx bx-time-five' },
+  { id: 'disponibilidade', label: 'Horários', icon: 'bx bx-time-five' },
   { id: 'servicos', label: 'Serviços', icon: 'bx bx-cut' },
   { id: 'testemunhos', label: 'Testemunhos', icon: 'bx bx-message-rounded-dots' },
 ]
+
+function dateParts(iso: string) {
+  const d = new Date(iso)
+  const tz = { timeZone: LISBON_TZ }
+  return {
+    day: d.toLocaleDateString('pt-PT', { ...tz, day: 'numeric' }),
+    month: d.toLocaleDateString('pt-PT', { ...tz, month: 'short' }).replace('.', ''),
+    weekday: d.toLocaleDateString('pt-PT', { ...tz, weekday: 'long' }),
+    time: d.toLocaleTimeString('pt-PT', { ...tz, hour: '2-digit', minute: '2-digit' }),
+  }
+}
+
+function greeting() {
+  const hour = Number(new Date().toLocaleString('pt-PT', { timeZone: LISBON_TZ, hour: 'numeric', hour12: false }))
+  if (hour < 6) return 'Boa noite'
+  if (hour < 13) return 'Bom dia'
+  if (hour < 20) return 'Boa tarde'
+  return 'Boa noite'
+}
+
+function BookingCard({
+  booking,
+  variant,
+  busy,
+  onDecision,
+}: {
+  booking: Booking
+  variant: 'pending' | 'confirmed'
+  busy: boolean
+  onDecision: (id: string, decision: 'accept' | 'reject' | 'cancel') => void
+}) {
+  const { day, month, weekday, time } = dateParts(booking.slot.startsAt)
+  const whatsappMessage =
+    variant === 'pending'
+      ? `Olá ${booking.customerName}! Sobre a tua marcação de ${booking.service.name}...`
+      : `Olá ${booking.customerName}! Sobre a tua sessão de ${booking.service.name}...`
+
+  return (
+    <motion.article
+      layout
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="overflow-hidden rounded-3xl border border-gold/15 bg-white shadow-sm shadow-gold-deep/5"
+    >
+      <div className="flex gap-4 p-5">
+        <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-cream">
+          <span className="font-logo text-2xl leading-none text-gold-deep">{day}</span>
+          <span className="mt-1 font-subtitle text-[11px] uppercase tracking-wider text-muted-dark">{month}</span>
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <p className="truncate font-subtitle text-base font-medium text-onyx">{booking.customerName}</p>
+            <span
+              className={`rounded-full px-2.5 py-0.5 font-subtitle text-[11px] uppercase tracking-wide ${
+                variant === 'pending' ? 'bg-gold/15 text-gold-deep' : 'bg-green-600/10 text-green-700'
+              }`}
+            >
+              {variant === 'pending' ? 'Pendente' : 'Confirmada'}
+            </span>
+          </div>
+          <p className="mt-1 font-subtitle text-sm text-muted-dark">
+            {booking.service.name} · {formatPrice(booking.service.priceCents)}
+          </p>
+          <p className="mt-0.5 flex items-center gap-1.5 font-subtitle text-sm text-muted-dark">
+            <i className="bx bx-time-five text-base text-gold-deep" aria-hidden="true" />
+            <span className="capitalize">{weekday}</span> · {time}
+          </p>
+          {booking.notes && (
+            <p className="mt-2 rounded-xl bg-cream px-3 py-2 font-subtitle text-xs italic text-muted-dark">
+              "{booking.notes}"
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gold/10 bg-cream/50 px-5 py-3">
+        <a
+          href={customerWhatsappUrl(booking.customerPhone, whatsappMessage)}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 font-subtitle text-sm text-muted-dark transition-colors hover:text-gold-deep"
+        >
+          <i className="bx bxl-whatsapp text-lg" aria-hidden="true" />
+          {booking.customerPhone}
+        </a>
+        {variant === 'pending' ? (
+          <div className="flex items-center gap-2">
+            <MotionButton
+              label="Aceitar"
+              size="sm"
+              disabled={busy}
+              onClick={() => onDecision(booking.id, 'accept')}
+              icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
+            />
+            <MotionButton
+              label="Recusar"
+              size="sm"
+              variant="danger"
+              disabled={busy}
+              onClick={() => onDecision(booking.id, 'reject')}
+              icon={<i className="bx bx-x text-lg" aria-hidden="true" />}
+            />
+          </div>
+        ) : (
+          <Button size="sm" variant="outline" disabled={busy} onClick={() => onDecision(booking.id, 'cancel')}>
+            Cancelar
+          </Button>
+        )}
+      </div>
+    </motion.article>
+  )
+}
 
 function StatCard({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
@@ -97,7 +210,6 @@ export default function AdminDashboardPage() {
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [adminEmail, setAdminEmail] = useState<string | null>(null)
   const [tab, setTab] = useState<AdminTab>('pedidos')
-  const [scrolled, setScrolled] = useState(false)
 
   const [services, setServices] = useState<Service[]>([])
   const [slots, setSlots] = useState<AvailabilitySlot[]>([])
@@ -129,13 +241,6 @@ export default function AdminDashboardPage() {
   const [clearPassword, setClearPassword] = useState('')
   const [clearBusy, setClearBusy] = useState(false)
   const [clearError, setClearError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
   const loadDashboard = useCallback(
     async (opts: { silent?: boolean } = {}) => {
@@ -416,6 +521,9 @@ export default function AdminDashboardPage() {
   const upcomingConfirmed = monthBookings
     .filter((b) => b.status === 'ACCEPTED' && new Date(b.slot.startsAt).getTime() >= nowMs)
     .sort((a, b) => new Date(a.slot.startsAt).getTime() - new Date(b.slot.startsAt).getTime())
+  const allUpcomingCount = bookings.filter(
+    (b) => b.status === 'ACCEPTED' && new Date(b.slot.startsAt).getTime() >= nowMs,
+  ).length
   const history = monthBookings
     .filter(
       (b) =>
@@ -435,10 +543,6 @@ export default function AdminDashboardPage() {
     .filter((b) => b.status === 'ACCEPTED')
     .reduce((sum, b) => sum + b.service.priceCents, 0)
 
-  const pillClasses = `flex items-center rounded-full bg-white/95 shadow-lg shadow-black/10 backdrop-blur transition-shadow duration-500 ${
-    scrolled ? 'shadow-xl shadow-black/15' : ''
-  }`
-
   if (checkingAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white font-subtitle text-muted-dark">
@@ -448,75 +552,44 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
-          <div className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
-            <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
-          </div>
-
+    <div className="min-h-screen bg-gradient-to-b from-white to-cream/60">
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-gold/10 bg-white/80 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+        <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-5 sm:px-8">
+          <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
           <button
             type="button"
             onClick={handleLogout}
-            className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-deep sm:px-6 ${pillClasses}`}
+            aria-label="Sair"
+            className="flex h-9 items-center gap-2 rounded-full border border-gold/20 px-4 text-sm text-onyx transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
           >
             <span>Sair</span>
             <i className="bx bx-log-out text-lg" aria-hidden="true" />
           </button>
         </div>
-      </div>
+      </header>
 
-      <main className="mx-auto max-w-4xl px-5 pb-24 pt-[calc(7rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(8rem+env(safe-area-inset-top))]">
-        <h1 className="font-logo text-4xl text-onyx sm:text-5xl">Painel de Admin</h1>
-        <p className="mt-4 font-subtitle text-lg font-light text-muted-dark">{adminEmail}</p>
+      <main className="mx-auto max-w-4xl px-5 pb-40 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:px-8">
+        <div className="rounded-3xl bg-gradient-to-br from-gold-deep to-cocoa p-6 text-[#f5efdf] shadow-lg shadow-gold-deep/20 sm:p-8">
+          <p className="font-subtitle text-sm font-light text-[#f5efdf]/70">{greeting()},</p>
+          <h1 className="mt-1 font-logo text-3xl sm:text-4xl">Painel de Admin</h1>
+          <p className="mt-3 font-subtitle text-xs text-[#f5efdf]/60">{adminEmail}</p>
+          <div className="mt-6 grid grid-cols-3 gap-3">
+            {[
+              { label: 'Pendentes', value: String(pendingBookings.length) },
+              { label: 'Sessões a vir', value: String(allUpcomingCount) },
+              { label: 'Testemunhos', value: String(pendingTestimonials.length) },
+            ].map((item) => (
+              <div key={item.label} className="rounded-2xl bg-white/10 px-3 py-3 backdrop-blur-sm">
+                <p className="font-logo text-2xl leading-none">{item.value}</p>
+                <p className="mt-1.5 font-subtitle text-[10px] uppercase tracking-wider text-[#f5efdf]/70">
+                  {item.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {error && <p className="mt-6 font-subtitle text-sm text-red-700">{error}</p>}
-
-        <nav
-          aria-label="Secções do painel"
-          className="-mx-5 mt-10 overflow-x-auto px-5 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          <div className="flex w-max gap-1 rounded-full border border-gold/20 bg-cream p-1 sm:w-full">
-            {TABS.map(({ id, label, icon }) => {
-              const badge =
-                id === 'pedidos' ? pendingBookings.length : id === 'testemunhos' ? pendingTestimonials.length : 0
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setTab(id)}
-                  aria-current={tab === id ? 'page' : undefined}
-                  className="relative flex shrink-0 items-center justify-center gap-2 rounded-full px-4 py-2.5 font-subtitle text-sm sm:flex-1"
-                >
-                  {tab === id && (
-                    <motion.span
-                      layoutId="admin-tab-pill"
-                      className="absolute inset-0 rounded-full bg-gold-deep shadow-md shadow-gold-deep/30"
-                      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                    />
-                  )}
-                  <span
-                    className={`relative flex items-center gap-2 transition-colors duration-300 ${
-                      tab === id ? 'text-cream' : 'text-onyx/60 hover:text-onyx'
-                    }`}
-                  >
-                    <i className={icon} aria-hidden="true" />
-                    {label}
-                    {badge > 0 && (
-                      <span
-                        className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] leading-none ${
-                          tab === id ? 'bg-cream text-gold-deep' : 'bg-gold-deep text-cream'
-                        }`}
-                      >
-                        {badge}
-                      </span>
-                    )}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        </nav>
 
         {(tab === 'agenda' || tab === 'disponibilidade') && (
           <div className="mt-6 flex items-center justify-center gap-4 rounded-full border border-gold/20 bg-cream px-4 py-2 sm:justify-start">
@@ -878,52 +951,13 @@ export default function AdminDashboardPage() {
               ) : (
                 <div className="mt-6 flex flex-col gap-3">
                   {pendingBookings.map((booking) => (
-                    <div
+                    <BookingCard
                       key={booking.id}
-                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gold/20 p-5"
-                    >
-                      <div>
-                        <p className="flex flex-wrap items-center gap-2 font-subtitle text-base text-onyx">
-                          <span className="font-medium">{booking.customerName}</span>
-                          <a
-                            href={customerWhatsappUrl(
-                              booking.customerPhone,
-                              `Olá ${booking.customerName}! Sobre a tua marcação de ${booking.service.name}...`,
-                            )}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-sm text-muted-dark transition-colors hover:text-gold-deep"
-                          >
-                            <i className="bx bxl-whatsapp" aria-hidden="true" />
-                            {booking.customerPhone}
-                          </a>
-                        </p>
-                        <p className="mt-1 font-subtitle text-sm text-muted-dark">
-                          {booking.service.name} ({formatPrice(booking.service.priceCents)}) ·{' '}
-                          {formatDateTime(booking.slot.startsAt)}
-                        </p>
-                        {booking.notes && (
-                          <p className="mt-1 font-subtitle text-xs italic text-muted-dark">"{booking.notes}"</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MotionButton
-                          label="Aceitar"
-                          size="sm"
-                          disabled={busyId === booking.id}
-                          onClick={() => handleBookingDecision(booking.id, 'accept')}
-                          icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
-                        />
-                        <MotionButton
-                          label="Recusar"
-                          size="sm"
-                          variant="danger"
-                          disabled={busyId === booking.id}
-                          onClick={() => handleBookingDecision(booking.id, 'reject')}
-                          icon={<i className="bx bx-x text-lg" aria-hidden="true" />}
-                        />
-                      </div>
-                    </div>
+                      booking={booking}
+                      variant="pending"
+                      busy={busyId === booking.id}
+                      onDecision={handleBookingDecision}
+                    />
                   ))}
                 </div>
               )}
@@ -938,39 +972,13 @@ export default function AdminDashboardPage() {
               ) : (
                 <div className="mt-6 flex flex-col gap-3">
                   {upcomingConfirmed.map((booking) => (
-                    <div
+                    <BookingCard
                       key={booking.id}
-                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gold/20 bg-cream p-5"
-                    >
-                      <div>
-                        <p className="flex flex-wrap items-center gap-2 font-subtitle text-base text-onyx">
-                          <span className="font-medium">{booking.customerName}</span>
-                          <a
-                            href={customerWhatsappUrl(
-                              booking.customerPhone,
-                              `Olá ${booking.customerName}! Sobre a tua sessão de ${booking.service.name}...`,
-                            )}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-sm text-muted-dark transition-colors hover:text-gold-deep"
-                          >
-                            <i className="bx bxl-whatsapp" aria-hidden="true" />
-                            {booking.customerPhone}
-                          </a>
-                        </p>
-                        <p className="mt-1 font-subtitle text-sm text-muted-dark">
-                          {booking.service.name} · {formatDateTime(booking.slot.startsAt)}
-                        </p>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={busyId === booking.id}
-                        onClick={() => handleBookingDecision(booking.id, 'cancel')}
-                      >
-                        Cancelar
-                      </Button>
-                    </div>
+                      booking={booking}
+                      variant="confirmed"
+                      busy={busyId === booking.id}
+                      onDecision={handleBookingDecision}
+                    />
                   ))}
                 </div>
               )}
@@ -1077,6 +1085,49 @@ export default function AdminDashboardPage() {
           )}
         </motion.div>
       </main>
+
+      <nav
+        aria-label="Secções do painel"
+        className="fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
+      >
+        <div className="flex w-full max-w-md items-center justify-between rounded-[2rem] border border-gold/20 bg-white/90 p-1.5 shadow-2xl shadow-black/15 backdrop-blur-xl">
+          {TABS.map(({ id, label, icon }) => {
+            const badge =
+              id === 'pedidos' ? pendingBookings.length : id === 'testemunhos' ? pendingTestimonials.length : 0
+            const active = tab === id
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setTab(id)}
+                aria-current={active ? 'page' : undefined}
+                className="relative flex flex-1 flex-col items-center gap-0.5 rounded-[1.5rem] px-1 py-2"
+              >
+                {active && (
+                  <motion.span
+                    layoutId="admin-dock-pill"
+                    className="absolute inset-0 rounded-[1.5rem] bg-gold-deep shadow-md shadow-gold-deep/30"
+                    transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                  />
+                )}
+                <span className={`relative text-xl ${active ? 'text-[#f5efdf]' : 'text-onyx/50'}`}>
+                  <i className={icon} aria-hidden="true" />
+                  {badge > 0 && (
+                    <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-medium leading-none text-white ring-2 ring-white">
+                      {badge}
+                    </span>
+                  )}
+                </span>
+                <span
+                  className={`relative font-subtitle text-[10px] leading-none ${active ? 'text-[#f5efdf]' : 'text-onyx/50'}`}
+                >
+                  {label}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </nav>
     </div>
   )
 }
