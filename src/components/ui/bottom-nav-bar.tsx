@@ -52,14 +52,14 @@ export function BottomNavBar<T extends string>({
             className={cn(
               'relative flex h-10 min-w-[44px] items-center justify-center rounded-full px-3 font-subtitle transition-colors duration-200 focus:outline-none',
               isActive
-                ? 'bg-white/50 text-gold-deep shadow-sm shadow-black/5'
+                ? 'bg-white/50 text-onyx shadow-sm shadow-black/5'
                 : 'text-onyx/60 hover:bg-white/30 hover:text-onyx',
             )}
           >
             <span className="relative text-[22px] leading-none">
               <i className={item.icon} aria-hidden="true" />
               {item.badge ? (
-                <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold-deep px-1 text-[10px] leading-none text-cream">
+                <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none text-white">
                   {item.badge}
                 </span>
               ) : null}
