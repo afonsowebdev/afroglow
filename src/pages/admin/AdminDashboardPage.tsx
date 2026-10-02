@@ -1297,14 +1297,26 @@ export default function AdminDashboardPage() {
                 ))}
               </div>
 
-              <button
+              <motion.button
                 type="button"
                 onClick={openNewService}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-gold/40 py-4 font-subtitle text-sm text-muted-dark transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
+                whileTap={{ scale: 0.98 }}
+                className="group mt-4 flex w-full items-center gap-4 rounded-2xl border border-gold/30 bg-gold-deep/5 p-4 text-left transition-colors duration-300 hover:border-gold-deep hover:bg-gold-deep/10"
               >
-                <i className="bx bx-plus text-lg" aria-hidden="true" />
-                Adicionar novo modelo de tranças
-              </button>
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-deep text-2xl text-[#ffffff] shadow-md shadow-gold-deep/30 transition-transform duration-300 group-hover:rotate-90">
+                  <i className="bx bx-plus" aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-subtitle text-base font-semibold text-onyx">Adicionar modelo</span>
+                  <span className="block font-subtitle text-xs text-muted-dark">
+                    Cria uma nova trança no catálogo do site
+                  </span>
+                </span>
+                <i
+                  className="bx bx-chevron-right text-2xl text-gold-deep transition-transform duration-300 group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                />
+              </motion.button>
 
               <DeleteServiceDialog
                 service={deleteTarget}
