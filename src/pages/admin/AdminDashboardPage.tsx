@@ -1,7 +1,7 @@
 import { type FormEvent, type ReactNode, useCallback, useEffect, useState } from 'react'
-import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
 import { DatePicker } from '@/components/ui/date-picker'
 import { MotionButton } from '@/components/ui/motion-button'
 import { TimePicker } from '@/components/ui/time-picker'
@@ -1030,57 +1030,20 @@ export default function AdminDashboardPage() {
         </div>
       </main>
 
-      <nav
-        aria-label="Secções do painel"
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
-      >
-        <div className="pointer-events-auto flex w-full max-w-sm items-center gap-0.5 rounded-full border border-gold/20 bg-white/95 p-1.5 shadow-xl shadow-black/10 backdrop-blur">
-          {TABS.map(({ id, label, icon }) => {
-            const badge =
-              id === 'pedidos' ? pendingBookings.length : id === 'testemunhos' ? pendingTestimonials.length : 0
-            const active = tab === id
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => {
-                  setTab(id)
-                  window.scrollTo({ top: 0 })
-                }}
-                aria-current={active ? 'page' : undefined}
-                className="relative flex flex-1 flex-col items-center gap-0.5 rounded-full px-1 py-2 font-subtitle"
-              >
-                {active && (
-                  <motion.span
-                    layoutId="admin-nav-pill"
-                    className="absolute inset-0 rounded-full bg-cream ring-1 ring-gold/25"
-                    transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                  />
-                )}
-                <span
-                  className={`relative text-[22px] leading-none transition-colors duration-300 ${
-                    active ? 'text-gold-deep' : 'text-onyx/45'
-                  }`}
-                >
-                  <i className={icon} aria-hidden="true" />
-                  {badge > 0 && (
-                    <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold-deep px-1 text-[10px] leading-none text-cream">
-                      {badge}
-                    </span>
-                  )}
-                </span>
-                <span
-                  className={`relative text-[10px] leading-none transition-colors duration-300 ${
-                    active ? 'text-gold-deep' : 'text-onyx/45'
-                  }`}
-                >
-                  {label}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      </nav>
+      <BottomNavBar
+        stickyBottom
+        value={tab}
+        onChange={(id) => {
+          setTab(id)
+          window.scrollTo({ top: 0 })
+        }}
+        items={TABS.map(({ id, label, icon }) => ({
+          id,
+          label,
+          icon,
+          badge: id === 'pedidos' ? pendingBookings.length : id === 'testemunhos' ? pendingTestimonials.length : 0,
+        }))}
+      />
     </div>
   )
 }
