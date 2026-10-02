@@ -617,6 +617,122 @@ function ServiceDialog({
   )
 }
 
+interface ServiceUsage {
+  total: number
+  active: number
+  history: number
+}
+
+function DeleteServiceDialog({
+  service,
+  usage,
+  busy,
+  error,
+  onConfirm,
+  onClose,
+}: {
+  service: Service | null
+  usage: ServiceUsage | null
+  busy: boolean
+  error: string | null
+  onConfirm: () => void
+  onClose: () => void
+}) {
+  useEffect(() => {
+    if (!service) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !busy) onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [service, busy, onClose])
+
+  const blocked = (usage?.active ?? 0) > 0
+  const canConfirm = usage !== null && !blocked && !busy
+
+  return (
+    <AnimatePresence>
+      {service && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center">
+          <motion.button
+            type="button"
+            aria-label="Fechar"
+            onClick={() => !busy && onClose()}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Eliminar ${service.name}`}
+            className="relative w-full max-w-md rounded-t-3xl bg-white p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 34 }}
+          >
+            <div className="flex items-start gap-4">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-700/10 text-xl text-red-700">
+                <i className="bx bx-trash" aria-hidden="true" />
+              </span>
+              <div>
+                <h2 className="font-logo text-xl text-onyx">Eliminar {service.name}?</h2>
+                <p className="mt-1 font-subtitle text-sm text-muted-dark">
+                  O modelo deixa de aparecer no site e as clientes já não o podem escolher.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5">
+              {usage === null ? (
+                <p className="font-subtitle text-sm text-muted-dark">A verificar marcações...</p>
+              ) : blocked ? (
+                <p className="rounded-xl border border-red-700/20 bg-red-700/5 px-4 py-3 font-subtitle text-sm text-red-700">
+                  Tem <strong>{usage.active}</strong> {usage.active === 1 ? 'marcação ativa' : 'marcações ativas'}{' '}
+                  (pendentes ou futuras). Aceita, recusa ou cancela essas marcações primeiro.
+                </p>
+              ) : usage.history > 0 ? (
+                <p className="rounded-xl bg-gold-deep/5 px-4 py-3 font-subtitle text-sm text-muted-dark">
+                  Também serão apagadas <strong>{usage.history}</strong>{' '}
+                  {usage.history === 1 ? 'marcação antiga' : 'marcações antigas'} (histórico) deste modelo. Não pode ser
+                  desfeito.
+                </p>
+              ) : (
+                <p className="rounded-xl bg-gold-deep/5 px-4 py-3 font-subtitle text-sm text-muted-dark">
+                  Este modelo não tem marcações. Não pode ser desfeito.
+                </p>
+              )}
+            </div>
+
+            {error && <p className="mt-3 font-subtitle text-sm text-red-700">{error}</p>}
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={busy}
+                className="rounded-full border border-gold/30 py-3 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={onConfirm}
+                disabled={!canConfirm}
+                className="rounded-full bg-red-700 py-3 font-subtitle text-sm text-[#ffffff] transition-opacity hover:opacity-90 disabled:opacity-40"
+              >
+                {busy ? 'A eliminar...' : 'Eliminar'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  )
+}
+
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
   const [checkingAuth, setCheckingAuth] = useState(true)
@@ -641,6 +757,11 @@ export default function AdminDashboardPage() {
   const [serviceForm, setServiceForm] = useState<ServiceFormState | null>(null)
   const [savingService, setSavingService] = useState(false)
   const [serviceError, setServiceError] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Service | null>(null)
+  const [deleteUsage, setDeleteUsage] = useState<ServiceUsage | null>(null)
+  const [deletingService, setDeletingService] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [serviceNotice, setServiceNotice] = useState<string | null>(null)
 
   const [viewMonth, setViewMonth] = useState(() => getLisbonYearMonth(new Date()))
   const [clearingOpen, setClearingOpen] = useState(false)
@@ -766,6 +887,40 @@ export default function AdminDashboardPage() {
       duration: service.durationLabel,
       price: (service.priceCents / 100).toFixed(2),
     })
+  }
+
+  async function openDeleteService(service: Service) {
+    setDeleteTarget(service)
+    setDeleteUsage(null)
+    setDeleteError(null)
+    setServiceNotice(null)
+    try {
+      setDeleteUsage(await api.get<ServiceUsage>(`/admin/services/${service.id}/usage`))
+    } catch {
+      setDeleteError('Não foi possível verificar as marcações deste modelo.')
+    }
+  }
+
+  function closeDeleteService() {
+    setDeleteTarget(null)
+    setDeleteUsage(null)
+    setDeleteError(null)
+  }
+
+  async function confirmDeleteService() {
+    if (!deleteTarget) return
+    setDeletingService(true)
+    setDeleteError(null)
+    try {
+      await api.delete(`/admin/services/${deleteTarget.id}`)
+      setServiceNotice(`"${deleteTarget.name}" foi eliminado.`)
+      closeDeleteService()
+      await loadDashboard()
+    } catch (err) {
+      setDeleteError(err instanceof ApiError ? err.message : 'Erro ao eliminar o modelo.')
+    } finally {
+      setDeletingService(false)
+    }
   }
 
   function closeServiceDialog() {
@@ -1033,6 +1188,20 @@ export default function AdminDashboardPage() {
         <div key={tab}>
           {tab === 'servicos' && (
             <section className="mt-6">
+              {serviceNotice && (
+                <div className="mb-4 flex items-start gap-3 rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
+                  <i className="bx bx-check-circle mt-0.5 text-xl text-gold-deep" aria-hidden="true" />
+                  <p className="flex-1 font-subtitle text-sm text-onyx">{serviceNotice}</p>
+                  <button
+                    type="button"
+                    onClick={() => setServiceNotice(null)}
+                    aria-label="Fechar aviso"
+                    className="text-lg text-muted-dark"
+                  >
+                    <i className="bx bx-x" aria-hidden="true" />
+                  </button>
+                </div>
+              )}
               <div className="grid grid-cols-3 gap-3">
                 {[
                   { label: 'Modelos', value: String(services.length) },
@@ -1076,7 +1245,15 @@ export default function AdminDashboardPage() {
                       </p>
                     </div>
                     <p className="mt-3 line-clamp-2 font-subtitle text-sm text-muted-dark">{service.description}</p>
-                    <div className="mt-4 flex justify-end border-t border-gold/15 pt-3">
+                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-gold/15 pt-3">
+                      <button
+                        type="button"
+                        onClick={() => openDeleteService(service)}
+                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 font-subtitle text-sm text-muted-dark transition-colors hover:bg-red-700/10 hover:text-red-700"
+                      >
+                        <i className="bx bx-trash text-base" aria-hidden="true" />
+                        Eliminar
+                      </button>
                       <button
                         type="button"
                         onClick={() => openEditService(service)}
@@ -1098,6 +1275,15 @@ export default function AdminDashboardPage() {
                 <i className="bx bx-plus text-lg" aria-hidden="true" />
                 Adicionar novo modelo de tranças
               </button>
+
+              <DeleteServiceDialog
+                service={deleteTarget}
+                usage={deleteUsage}
+                busy={deletingService}
+                error={deleteError}
+                onConfirm={confirmDeleteService}
+                onClose={closeDeleteService}
+              />
 
               <ServiceDialog
                 form={serviceForm}

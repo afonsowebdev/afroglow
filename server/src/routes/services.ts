@@ -48,3 +48,49 @@ adminServicesRouter.patch('/:id', async (req, res) => {
     res.status(404).json({ error: 'Serviço não encontrado.' })
   }
 })
+
+// A service that still has live bookings (pending, or accepted and not yet
+// happened) must not disappear from under the clients who booked it.
+async function countServiceBookings(serviceId: string) {
+  const bookings = await prisma.booking.findMany({
+    where: { serviceId },
+    select: { status: true, slot: { select: { startsAt: true } } },
+  })
+  const now = Date.now()
+  const active = bookings.filter(
+    (b) => b.status === 'PENDING' || (b.status === 'ACCEPTED' && b.slot.startsAt.getTime() >= now),
+  ).length
+  return { total: bookings.length, active, history: bookings.length - active }
+}
+
+adminServicesRouter.get('/:id/usage', async (req, res) => {
+  const service = await prisma.service.findUnique({ where: { id: req.params.id }, select: { id: true } })
+  if (!service) {
+    res.status(404).json({ error: 'Serviço não encontrado.' })
+    return
+  }
+  res.json(await countServiceBookings(service.id))
+})
+
+adminServicesRouter.delete('/:id', async (req, res) => {
+  const service = await prisma.service.findUnique({ where: { id: req.params.id }, select: { id: true } })
+  if (!service) {
+    res.status(404).json({ error: 'Serviço não encontrado.' })
+    return
+  }
+
+  const usage = await countServiceBookings(service.id)
+  if (usage.active > 0) {
+    res.status(409).json({
+      error: `Este modelo tem ${usage.active} ${usage.active === 1 ? 'marcação ativa' : 'marcações ativas'}. Resolve-as primeiro (aceitar, recusar ou cancelar).`,
+    })
+    return
+  }
+
+  // Bookings reference the service (restrict), so the old history goes with it.
+  await prisma.$transaction([
+    prisma.booking.deleteMany({ where: { serviceId: service.id } }),
+    prisma.service.delete({ where: { id: service.id } }),
+  ])
+  res.status(204).end()
+})
