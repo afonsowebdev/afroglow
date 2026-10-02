@@ -456,6 +456,167 @@ function ClearMonthDialog({
   )
 }
 
+interface ServiceFormState {
+  id: string | null
+  name: string
+  description: string
+  duration: string
+  price: string
+}
+
+function ServiceDialog({
+  form,
+  busy,
+  error,
+  onChange,
+  onSave,
+  onClose,
+}: {
+  form: ServiceFormState | null
+  busy: boolean
+  error: string | null
+  onChange: (form: ServiceFormState) => void
+  onSave: () => void
+  onClose: () => void
+}) {
+  useEffect(() => {
+    if (!form) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !busy) onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [form, busy, onClose])
+
+  const isNew = form?.id === null
+  const fieldClass =
+    'w-full rounded-xl border border-gold/30 bg-white px-3 py-2.5 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/30 focus-visible:border-gold-deep'
+
+  return (
+    <AnimatePresence>
+      {form && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center">
+          <motion.button
+            type="button"
+            aria-label="Fechar"
+            onClick={() => !busy && onClose()}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          <motion.form
+            role="dialog"
+            aria-modal="true"
+            aria-label={isNew ? 'Novo modelo' : 'Editar modelo'}
+            onSubmit={(e) => {
+              e.preventDefault()
+              onSave()
+            }}
+            className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 34 }}
+          >
+            <div className="flex items-center gap-4">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 text-xl text-gold-deep">
+                <i className={`bx ${isNew ? 'bx-plus' : 'bx-pencil'}`} aria-hidden="true" />
+              </span>
+              <div>
+                <h2 className="font-logo text-xl text-onyx">{isNew ? 'Novo modelo' : 'Editar modelo'}</h2>
+                <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
+                  {isNew ? 'Aparece no site assim que guardares.' : 'As alterações aparecem logo no site.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-4">
+              <label>
+                <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">Nome</span>
+                <input
+                  value={form.name}
+                  onChange={(e) => onChange({ ...form, name: e.target.value })}
+                  placeholder="Ex: Twist Braids"
+                  maxLength={80}
+                  className={fieldClass}
+                />
+              </label>
+              <label>
+                <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+                  Descrição
+                </span>
+                <textarea
+                  value={form.description}
+                  onChange={(e) => onChange({ ...form, description: e.target.value })}
+                  placeholder="Breve descrição para as clientes"
+                  maxLength={300}
+                  rows={3}
+                  className={`${fieldClass} resize-none`}
+                />
+                <span className="mt-1 block text-right font-subtitle text-[11px] text-muted-dark">
+                  {form.description.length}/300
+                </span>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label>
+                  <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+                    Duração
+                  </span>
+                  <input
+                    value={form.duration}
+                    onChange={(e) => onChange({ ...form, duration: e.target.value })}
+                    placeholder="Ex: 3-5h"
+                    maxLength={40}
+                    className={fieldClass}
+                  />
+                </label>
+                <label>
+                  <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+                    Preço
+                  </span>
+                  <span className="relative block">
+                    <input
+                      value={form.price}
+                      onChange={(e) => onChange({ ...form, price: e.target.value })}
+                      inputMode="decimal"
+                      placeholder="65"
+                      className={`${fieldClass} pr-8`}
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-subtitle text-sm text-muted-dark">
+                      €
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            {error && <p className="mt-4 font-subtitle text-sm text-red-700">{error}</p>}
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={busy}
+                className="rounded-full border border-gold/30 py-3 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={busy}
+                className="rounded-full bg-gold-deep py-3 font-subtitle text-sm text-[#ffffff] transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {busy ? 'A guardar...' : 'Guardar'}
+              </button>
+            </div>
+          </motion.form>
+        </div>
+      )}
+    </AnimatePresence>
+  )
+}
+
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
   const [checkingAuth, setCheckingAuth] = useState(true)
@@ -477,17 +638,9 @@ export default function AdminDashboardPage() {
   const [addingSlot, setAddingSlot] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
 
-  const [editingServiceId, setEditingServiceId] = useState<string | null>(null)
-  const [editDuration, setEditDuration] = useState('')
-  const [editPrice, setEditPrice] = useState('')
-  const [savingServiceId, setSavingServiceId] = useState<string | null>(null)
-
-  const [showAddService, setShowAddService] = useState(false)
-  const [newServiceName, setNewServiceName] = useState('')
-  const [newServiceDescription, setNewServiceDescription] = useState('')
-  const [newServiceDuration, setNewServiceDuration] = useState('')
-  const [newServicePrice, setNewServicePrice] = useState('')
-  const [addingService, setAddingService] = useState(false)
+  const [serviceForm, setServiceForm] = useState<ServiceFormState | null>(null)
+  const [savingService, setSavingService] = useState(false)
+  const [serviceError, setServiceError] = useState<string | null>(null)
 
   const [viewMonth, setViewMonth] = useState(() => getLisbonYearMonth(new Date()))
   const [clearingOpen, setClearingOpen] = useState(false)
@@ -599,6 +752,58 @@ export default function AdminDashboardPage() {
     }
   }
 
+  function openNewService() {
+    setServiceError(null)
+    setServiceForm({ id: null, name: '', description: '', duration: '', price: '' })
+  }
+
+  function openEditService(service: Service) {
+    setServiceError(null)
+    setServiceForm({
+      id: service.id,
+      name: service.name,
+      description: service.description,
+      duration: service.durationLabel,
+      price: (service.priceCents / 100).toFixed(2),
+    })
+  }
+
+  function closeServiceDialog() {
+    setServiceForm(null)
+    setServiceError(null)
+  }
+
+  async function saveService() {
+    if (!serviceForm) return
+    const price = Number(serviceForm.price.replace(',', '.'))
+    if (!serviceForm.name.trim() || !serviceForm.description.trim() || !serviceForm.duration.trim()) {
+      setServiceError('Preenche o nome, a descrição e a duração.')
+      return
+    }
+    if (serviceForm.price.trim() === '' || Number.isNaN(price) || price < 0) {
+      setServiceError('Preço inválido.')
+      return
+    }
+    setSavingService(true)
+    setServiceError(null)
+    const payload = {
+      name: serviceForm.name.trim(),
+      description: serviceForm.description.trim(),
+      durationLabel: serviceForm.duration.trim(),
+      priceCents: Math.round(price * 100),
+    }
+    try {
+      if (serviceForm.id === null) await api.post('/admin/services', payload)
+      else await api.patch(`/admin/services/${serviceForm.id}`, payload)
+      setServiceForm(null)
+      await loadDashboard()
+    } catch (err) {
+      setServiceError(err instanceof ApiError ? err.message : 'Erro ao guardar o modelo.')
+    } finally {
+      setSavingService(false)
+    }
+  }
+
   async function handleDeleteSlot(id: string) {
     setBusyId(id)
     setError(null)
@@ -694,67 +899,6 @@ export default function AdminDashboardPage() {
       setClearError(err instanceof ApiError ? err.message : 'Erro ao limpar dados do mês.')
     } finally {
       setClearBusy(false)
-    }
-  }
-
-  function startEditService(service: Service) {
-    setEditingServiceId(service.id)
-    setEditDuration(service.durationLabel)
-    setEditPrice((service.priceCents / 100).toFixed(2))
-  }
-
-  async function saveServiceEdit(service: Service) {
-    const price = Number(editPrice.replace(',', '.'))
-    if (Number.isNaN(price) || price < 0 || !editDuration.trim()) {
-      setError('Preço ou duração inválidos.')
-      return
-    }
-    setSavingServiceId(service.id)
-    setError(null)
-    try {
-      await api.patch(`/admin/services/${service.id}`, {
-        priceCents: Math.round(price * 100),
-        durationLabel: editDuration.trim(),
-      })
-      setEditingServiceId(null)
-      await loadDashboard()
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Erro ao atualizar serviço.')
-    } finally {
-      setSavingServiceId(null)
-    }
-  }
-
-  async function handleCreateService(e: FormEvent) {
-    e.preventDefault()
-    const price = Number(newServicePrice.replace(',', '.'))
-    if (!newServiceName.trim() || !newServiceDescription.trim() || !newServiceDuration.trim()) {
-      setError('Preenche o nome, a descrição e a duração do novo modelo.')
-      return
-    }
-    if (Number.isNaN(price) || price < 0) {
-      setError('Preço inválido.')
-      return
-    }
-    setAddingService(true)
-    setError(null)
-    try {
-      await api.post('/admin/services', {
-        name: newServiceName.trim(),
-        description: newServiceDescription.trim(),
-        durationLabel: newServiceDuration.trim(),
-        priceCents: Math.round(price * 100),
-      })
-      setNewServiceName('')
-      setNewServiceDescription('')
-      setNewServiceDuration('')
-      setNewServicePrice('')
-      setShowAddService(false)
-      await loadDashboard()
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Erro ao adicionar modelo de tranças.')
-    } finally {
-      setAddingService(false)
     }
   }
 
@@ -888,154 +1032,81 @@ export default function AdminDashboardPage() {
 
         <div key={tab}>
           {tab === 'servicos' && (
-            <section className="mt-8">
-              <SectionHeading>Serviços e preços</SectionHeading>
-              <div className="mt-6 flex flex-col gap-3">
-                {services.map((service) => {
-                  const isEditing = editingServiceId === service.id
-                  return (
-                    <div key={service.id} className="rounded-2xl border border-gold/20 p-5">
-                      {isEditing ? (
-                        <div className="flex flex-col gap-4">
-                          <div className="grid gap-3 sm:grid-cols-2">
-                            <label className="flex flex-col gap-1.5">
-                              <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                                Duração
-                              </span>
-                              <input
-                                value={editDuration}
-                                onChange={(e) => setEditDuration(e.target.value)}
-                                className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
-                              />
-                            </label>
-                            <label className="flex flex-col gap-1.5">
-                              <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                                Preço (€)
-                              </span>
-                              <input
-                                value={editPrice}
-                                onChange={(e) => setEditPrice(e.target.value)}
-                                inputMode="decimal"
-                                className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
-                              />
-                            </label>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <MotionButton
-                              label={savingServiceId === service.id ? 'A guardar...' : 'Guardar'}
-                              size="sm"
-                              disabled={savingServiceId === service.id}
-                              onClick={() => saveServiceEdit(service)}
-                              icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setEditingServiceId(null)}
-                              className="font-subtitle text-sm text-muted-dark transition-colors hover:text-onyx"
-                            >
-                              Cancelar
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <div>
-                            <p className="font-subtitle text-base text-onyx">{service.name}</p>
-                            <p className="mt-0.5 font-logo text-xs tracking-wide text-muted-dark">
-                              {service.durationLabel}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <span className="font-logo text-xl text-gold-deep">{formatPrice(service.priceCents)}</span>
-                            <button
-                              type="button"
-                              onClick={() => startEditService(service)}
-                              aria-label={`Editar ${service.name}`}
-                              className="flex h-9 w-9 items-center justify-center rounded-full border border-gold/30 text-muted-dark transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
-                            >
-                              <i className="bx bx-pencil" aria-hidden="true" />
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
+            <section className="mt-6">
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Modelos', value: String(services.length) },
+                  {
+                    label: 'Desde',
+                    value: services.length ? formatPrice(Math.min(...services.map((x) => x.priceCents))) : '—',
+                  },
+                  {
+                    label: 'Até',
+                    value: services.length ? formatPrice(Math.max(...services.map((x) => x.priceCents))) : '—',
+                  },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5"
+                  >
+                    <p className="font-logo text-xl leading-none text-onyx">{stat.value}</p>
+                    <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
+                      {stat.label}
+                    </p>
+                  </div>
+                ))}
               </div>
 
-              <div className="mt-4">
-                {showAddService ? (
-                  <form
-                    onSubmit={handleCreateService}
-                    className="flex flex-col gap-4 rounded-2xl border border-gold/20 p-5"
+              <div className="mt-6 flex flex-col gap-3">
+                {services.map((service) => (
+                  <article
+                    key={service.id}
+                    className="rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5"
                   >
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <label className="flex flex-col gap-1.5">
-                        <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Nome</span>
-                        <input
-                          value={newServiceName}
-                          onChange={(e) => setNewServiceName(e.target.value)}
-                          placeholder="Ex: Twist Braids"
-                          className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1.5">
-                        <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Duração</span>
-                        <input
-                          value={newServiceDuration}
-                          onChange={(e) => setNewServiceDuration(e.target.value)}
-                          placeholder="Ex: 3-5h"
-                          className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1.5 sm:col-span-2">
-                        <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Descrição</span>
-                        <input
-                          value={newServiceDescription}
-                          onChange={(e) => setNewServiceDescription(e.target.value)}
-                          placeholder="Breve descrição para as clientes"
-                          className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1.5">
-                        <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Preço (€)</span>
-                        <input
-                          value={newServicePrice}
-                          onChange={(e) => setNewServicePrice(e.target.value)}
-                          inputMode="decimal"
-                          placeholder="Ex: 65"
-                          className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
-                        />
-                      </label>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <h3 className="font-logo text-lg text-onyx">{service.name}</h3>
+                        <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-gold-deep/10 px-2.5 py-1 font-subtitle text-[11px] text-gold-deep">
+                          <i className="bx bx-time-five text-sm" aria-hidden="true" />
+                          {service.durationLabel}
+                        </span>
+                      </div>
+                      <p className="shrink-0 font-logo text-2xl leading-none text-onyx">
+                        {formatPrice(service.priceCents)}
+                      </p>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <MotionButton
-                        label={addingService ? 'A adicionar...' : 'Adicionar modelo'}
-                        size="sm"
-                        type="submit"
-                        disabled={addingService}
-                        icon={<i className="bx bx-plus text-lg" aria-hidden="true" />}
-                      />
+                    <p className="mt-3 line-clamp-2 font-subtitle text-sm text-muted-dark">{service.description}</p>
+                    <div className="mt-4 flex justify-end border-t border-gold/15 pt-3">
                       <button
                         type="button"
-                        onClick={() => setShowAddService(false)}
-                        className="font-subtitle text-sm text-muted-dark transition-colors hover:text-onyx"
+                        onClick={() => openEditService(service)}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep hover:text-gold-deep"
                       >
-                        Cancelar
+                        <i className="bx bx-pencil text-base" aria-hidden="true" />
+                        Editar
                       </button>
                     </div>
-                  </form>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setShowAddService(true)}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-gold/30 py-4 font-subtitle text-sm text-muted-dark transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
-                  >
-                    <i className="bx bx-plus text-lg" aria-hidden="true" />
-                    Adicionar novo modelo de tranças
-                  </button>
-                )}
+                  </article>
+                ))}
               </div>
+
+              <button
+                type="button"
+                onClick={openNewService}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-gold/40 py-4 font-subtitle text-sm text-muted-dark transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
+              >
+                <i className="bx bx-plus text-lg" aria-hidden="true" />
+                Adicionar novo modelo de tranças
+              </button>
+
+              <ServiceDialog
+                form={serviceForm}
+                busy={savingService}
+                error={serviceError}
+                onChange={setServiceForm}
+                onSave={saveService}
+                onClose={closeServiceDialog}
+              />
             </section>
           )}
 
