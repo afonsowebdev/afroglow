@@ -1,7 +1,6 @@
 import { type FormEvent, type ReactNode, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
 import { DatePicker } from '@/components/ui/date-picker'
 import { MotionButton } from '@/components/ui/motion-button'
@@ -304,6 +303,159 @@ function AgendaView({
   )
 }
 
+function ClearMonthDialog({
+  open,
+  monthLabel,
+  summary,
+  password,
+  onPasswordChange,
+  acknowledged,
+  onAcknowledgedChange,
+  busy,
+  error,
+  onConfirm,
+  onClose,
+}: {
+  open: boolean
+  monthLabel: string
+  summary: { slotCount: number; bookingCount: number } | null
+  password: string
+  onPasswordChange: (value: string) => void
+  acknowledged: boolean
+  onAcknowledgedChange: (value: boolean) => void
+  busy: boolean
+  error: string | null
+  onConfirm: () => void
+  onClose: () => void
+}) {
+  const [showPassword, setShowPassword] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !busy) onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, busy, onClose])
+
+  const canConfirm = acknowledged && password.length > 0 && !busy
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center">
+          <motion.button
+            type="button"
+            aria-label="Fechar"
+            onClick={() => !busy && onClose()}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Limpar dados de ${monthLabel}`}
+            className="relative w-full max-w-md rounded-t-3xl bg-white p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 34 }}
+          >
+            <div className="flex items-start gap-4">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-700/10 text-xl text-red-700">
+                <i className="bx bx-trash" aria-hidden="true" />
+              </span>
+              <div>
+                <h2 className="font-logo text-xl text-onyx">Limpar {monthLabel}</h2>
+                <p className="mt-1 font-subtitle text-sm text-muted-dark">
+                  Apaga os horários e as marcações deste mês. Esta ação é permanente.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              {[
+                { label: 'Vagas a apagar', value: summary?.slotCount },
+                { label: 'Marcações a apagar', value: summary?.bookingCount },
+              ].map((item) => (
+                <div key={item.label} className="rounded-2xl border border-red-700/20 bg-red-700/5 p-4">
+                  <p className="font-logo text-2xl leading-none text-red-700">{item.value ?? '…'}</p>
+                  <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
+                    {item.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-4 rounded-xl bg-gold-deep/5 px-4 py-3 font-subtitle text-xs leading-relaxed text-muted-dark">
+              Inclui marcações já aceites. As clientes <strong>não recebem nenhum aviso</strong> e o histórico deste mês
+              desaparece.
+            </p>
+
+            <label className="mt-5 block">
+              <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+                Confirma com a tua password
+              </span>
+              <span className="relative block">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => onPasswordChange(e.target.value)}
+                  autoComplete="current-password"
+                  className="w-full rounded-xl border border-gold/30 bg-white px-3 py-2.5 pr-11 font-subtitle text-sm text-onyx outline-none focus-visible:border-red-700"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Esconder password' : 'Mostrar password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-lg text-muted-dark"
+                >
+                  <i className={`bx ${showPassword ? 'bx-hide' : 'bx-show'}`} aria-hidden="true" />
+                </button>
+              </span>
+            </label>
+
+            <label className="mt-4 flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={acknowledged}
+                onChange={(e) => onAcknowledgedChange(e.target.checked)}
+                className="mt-0.5 h-5 w-5 shrink-0 accent-red-700"
+              />
+              <span className="font-subtitle text-sm text-onyx">Compreendo que não pode ser desfeito.</span>
+            </label>
+
+            {error && <p className="mt-3 font-subtitle text-sm text-red-700">{error}</p>}
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={busy}
+                className="rounded-full border border-gold/30 py-3 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={onConfirm}
+                disabled={!canConfirm}
+                className="rounded-full bg-red-700 py-3 font-subtitle text-sm text-[#ffffff] transition-opacity hover:opacity-90 disabled:opacity-40"
+              >
+                {busy ? 'A apagar...' : 'Apagar tudo'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  )
+}
+
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
   const [checkingAuth, setCheckingAuth] = useState(true)
@@ -343,6 +495,8 @@ export default function AdminDashboardPage() {
   const [clearPassword, setClearPassword] = useState('')
   const [clearBusy, setClearBusy] = useState(false)
   const [clearError, setClearError] = useState<string | null>(null)
+  const [clearAck, setClearAck] = useState(false)
+  const [clearResult, setClearResult] = useState<string | null>(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -497,9 +651,18 @@ export default function AdminDashboardPage() {
     setClearError(null)
   }
 
+  function closeClearPanel() {
+    setClearingOpen(false)
+    setClearPassword('')
+    setClearAck(false)
+    setClearError(null)
+  }
+
   async function openClearPanel() {
     setClearingOpen(true)
     setClearError(null)
+    setClearResult(null)
+    setClearSummary(null)
     try {
       const summary = await api.get<{ slotCount: number; bookingCount: number }>(
         `/admin/maintenance/months/${viewMonth.year}/${viewMonth.month}/summary`,
@@ -515,12 +678,17 @@ export default function AdminDashboardPage() {
     setClearBusy(true)
     setClearError(null)
     try {
-      await api.post(`/admin/maintenance/months/${viewMonth.year}/${viewMonth.month}/clear`, {
-        password: clearPassword,
-      })
+      const result = await api.post<{ deletedBookings: number; deletedSlots: number }>(
+        `/admin/maintenance/months/${viewMonth.year}/${viewMonth.month}/clear`,
+        { password: clearPassword },
+      )
       setClearingOpen(false)
       setClearSummary(null)
       setClearPassword('')
+      setClearAck(false)
+      setClearResult(
+        `${formatMonthLabel(viewMonth)} limpo: ${result.deletedSlots} ${result.deletedSlots === 1 ? 'vaga' : 'vagas'} e ${result.deletedBookings} ${result.deletedBookings === 1 ? 'marcação' : 'marcações'} apagadas.`,
+      )
       await loadDashboard()
     } catch (err) {
       setClearError(err instanceof ApiError ? err.message : 'Erro ao limpar dados do mês.')
@@ -873,6 +1041,20 @@ export default function AdminDashboardPage() {
 
           {tab === 'disponibilidade' && (
             <section className="mt-4">
+              {clearResult && (
+                <div className="mb-4 flex items-start gap-3 rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
+                  <i className="bx bx-check-circle mt-0.5 text-xl text-gold-deep" aria-hidden="true" />
+                  <p className="flex-1 font-subtitle text-sm text-onyx">{clearResult}</p>
+                  <button
+                    type="button"
+                    onClick={() => setClearResult(null)}
+                    aria-label="Fechar aviso"
+                    className="text-lg text-muted-dark"
+                  >
+                    <i className="bx bx-x" aria-hidden="true" />
+                  </button>
+                </div>
+              )}
               <div className="grid grid-cols-3 gap-3">
                 {[
                   { label: 'Disponíveis', value: monthSlots.filter((slot) => slot.status === 'OPEN').length },
@@ -1053,68 +1235,41 @@ export default function AdminDashboardPage() {
                 })
               )}
 
-              <div className="mt-8 rounded-2xl border border-red-700/20 bg-red-700/5 p-5">
-                {!clearingOpen ? (
-                  <button type="button" onClick={openClearPanel} className="flex w-full items-center gap-3 text-left">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-700/10 text-red-700">
-                      <i className="bx bx-trash text-lg" aria-hidden="true" />
+              <div className="mt-10">
+                <p className="mb-2 font-subtitle text-xs uppercase tracking-wide text-muted-dark">Zona de perigo</p>
+                <button
+                  type="button"
+                  onClick={openClearPanel}
+                  className="flex w-full items-center gap-4 rounded-2xl border border-red-700/20 bg-red-700/5 p-4 text-left transition-colors hover:bg-red-700/10"
+                >
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-700/10 text-lg text-red-700">
+                    <i className="bx bx-trash" aria-hidden="true" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-subtitle text-sm font-semibold text-red-700">
+                      Limpar dados de {formatMonthLabel(viewMonth)}
                     </span>
-                    <span>
-                      <span className="block font-subtitle text-sm font-semibold text-red-700">
-                        Limpar dados de {formatMonthLabel(viewMonth)}
-                      </span>
-                      <span className="block font-subtitle text-xs text-muted-dark">
-                        Apaga vagas e marcações do mês, permanentemente
-                      </span>
+                    <span className="block font-subtitle text-xs text-muted-dark">
+                      Apaga vagas e marcações do mês, permanentemente
                     </span>
-                  </button>
-                ) : (
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-start gap-3 rounded-xl bg-red-700/10 p-4">
-                      <i className="bx bx-error mt-0.5 shrink-0 text-xl text-red-700" aria-hidden="true" />
-                      <p className="font-subtitle text-sm text-red-800">
-                        Isto apaga permanentemente {clearSummary ? clearSummary.slotCount : '...'} vaga(s) e{' '}
-                        {clearSummary ? clearSummary.bookingCount : '...'} marcação(ões) de{' '}
-                        {formatMonthLabel(viewMonth)}, incluindo marcações já aceites.{' '}
-                        <strong>Não pode ser desfeito.</strong>
-                      </p>
-                    </div>
-                    <label className="flex max-w-xs flex-col gap-1.5">
-                      <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                        Confirma com a tua password
-                      </span>
-                      <input
-                        type="password"
-                        value={clearPassword}
-                        onChange={(e) => setClearPassword(e.target.value)}
-                        className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-red-700"
-                      />
-                    </label>
-                    {clearError && <p className="font-subtitle text-sm text-red-700">{clearError}</p>}
-                    <div className="flex items-center gap-3">
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        disabled={!clearPassword || clearBusy}
-                        onClick={handleClearMonth}
-                      >
-                        {clearBusy ? 'A limpar...' : 'Confirmar limpeza'}
-                      </Button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setClearingOpen(false)
-                          setClearPassword('')
-                          setClearError(null)
-                        }}
-                        className="rounded-full px-4 py-2 font-subtitle text-sm text-muted-dark transition-colors hover:bg-gold-deep/5 hover:text-onyx"
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-                  </div>
-                )}
+                  </span>
+                  <i className="bx bx-chevron-right text-xl text-red-700/70" aria-hidden="true" />
+                </button>
               </div>
+
+              <ClearMonthDialog
+                open={clearingOpen}
+                monthLabel={formatMonthLabel(viewMonth)}
+                summary={clearSummary}
+                password={clearPassword}
+                onPasswordChange={setClearPassword}
+                acknowledged={clearAck}
+                onAcknowledgedChange={setClearAck}
+                busy={clearBusy}
+                error={clearError}
+                onConfirm={handleClearMonth}
+                onClose={closeClearPanel}
+              />
             </section>
           )}
 
