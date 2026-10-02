@@ -1,6 +1,7 @@
 import { type FormEvent, type ReactNode, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { motion } from 'motion/react'
 import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
 import { DatePicker } from '@/components/ui/date-picker'
 import { MotionButton } from '@/components/ui/motion-button'
@@ -52,6 +53,17 @@ function formatDateTime(iso: string) {
   return label.charAt(0).toUpperCase() + label.slice(1)
 }
 
+function dateParts(iso: string) {
+  const d = new Date(iso)
+  const tz = { timeZone: LISBON_TZ }
+  return {
+    day: d.toLocaleDateString('pt-PT', { ...tz, day: 'numeric' }),
+    month: d.toLocaleDateString('pt-PT', { ...tz, month: 'short' }).replace('.', ''),
+    weekday: d.toLocaleDateString('pt-PT', { ...tz, weekday: 'long' }),
+    time: d.toLocaleTimeString('pt-PT', { ...tz, hour: '2-digit', minute: '2-digit' }),
+  }
+}
+
 const SLOT_STATUS_LABEL: Record<AvailabilitySlot['status'], string> = {
   OPEN: 'Disponível',
   PENDING: 'Pendente',
@@ -79,16 +91,211 @@ const TABS: Array<{ id: AdminTab; label: string; icon: string }> = [
   { id: 'testemunhos', label: 'Testemunhos', icon: 'bx bx-message-rounded-dots' },
 ]
 
-function StatCard({ icon, label, value }: { icon: string; label: string; value: string }) {
+function dayHeading(iso: string) {
+  const key = dateKey(iso)
+  const today = dateKey(new Date().toISOString())
+  const tomorrow = dateKey(new Date(Date.now() + 86_400_000).toISOString())
+  const { weekday, day, month } = dateParts(iso)
+  const base = `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)}, ${day} ${month}`
+  if (key === today) return { title: 'Hoje', sub: base }
+  if (key === tomorrow) return { title: 'Amanhã', sub: base }
+  return { title: base, sub: '' }
+}
+
+const HISTORY_CHIP: Record<Booking['status'], string> = {
+  PENDING: 'bg-gold-deep/10 text-gold-deep',
+  ACCEPTED: 'bg-gold-deep/10 text-gold-deep',
+  REJECTED: 'bg-red-700/10 text-red-700',
+  CANCELLED: 'bg-onyx/5 text-muted-dark',
+}
+
+function groupByDay(bookings: Booking[]) {
+  const groups = new Map<string, Booking[]>()
+  for (const booking of bookings) {
+    const key = dateKey(booking.slot.startsAt)
+    groups.set(key, [...(groups.get(key) ?? []), booking])
+  }
+  return [...groups.values()]
+}
+
+function AgendaView({
+  pendingCount,
+  confirmedCount,
+  revenueCents,
+  upcoming,
+  history,
+  busyId,
+  onCancel,
+}: {
+  pendingCount: number
+  confirmedCount: number
+  revenueCents: number
+  upcoming: Booking[]
+  history: Booking[]
+  busyId: string | null
+  onCancel: (id: string) => void
+}) {
+  const [view, setView] = useState<'proximas' | 'historico'>('proximas')
+  const stats = [
+    { icon: 'bx bx-time-five', label: 'Pendentes', value: String(pendingCount) },
+    { icon: 'bx bx-calendar-check', label: 'Confirmadas', value: String(confirmedCount) },
+    { icon: 'bx bx-euro', label: 'Receita', value: formatPrice(revenueCents) },
+  ]
+
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-gold/20 bg-white px-5 py-4 shadow-sm shadow-black/5">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 text-lg text-gold-deep">
-        <i className={icon} aria-hidden="true" />
-      </span>
-      <div>
-        <p className="font-logo text-2xl text-onyx">{value}</p>
-        <p className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">{label}</p>
+    <div>
+      <div className="mt-4 grid grid-cols-3 gap-3">
+        {stats.map((stat) => (
+          <div key={stat.label} className="rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
+            <i className={`${stat.icon} text-lg text-gold-deep`} aria-hidden="true" />
+            <p className="mt-2 font-logo text-xl leading-none text-onyx">{stat.value}</p>
+            <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{stat.label}</p>
+          </div>
+        ))}
       </div>
+
+      <div className="mt-6 flex rounded-full border border-gold/20 bg-white p-1 shadow-sm shadow-black/5">
+        {(
+          [
+            ['proximas', 'Próximas', upcoming.length],
+            ['historico', 'Histórico', history.length],
+          ] as const
+        ).map(([id, label, count]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setView(id)}
+            className="relative flex flex-1 items-center justify-center gap-2 rounded-full py-2.5 font-subtitle text-sm"
+          >
+            {view === id && (
+              <motion.span
+                layoutId="agenda-segment"
+                className="absolute inset-0 rounded-full bg-gold-deep"
+                transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+              />
+            )}
+            <span className={`relative transition-colors ${view === id ? 'text-cream' : 'text-onyx/70'}`}>{label}</span>
+            <span
+              className={`relative rounded-full px-2 py-0.5 text-[11px] leading-none transition-colors ${
+                view === id ? 'bg-cream/20 text-cream' : 'bg-gold-deep/10 text-gold-deep'
+              }`}
+            >
+              {count}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {view === 'proximas' &&
+        (upcoming.length === 0 ? (
+          <div className="mt-12 flex flex-col items-center text-center">
+            <i className="bx bx-calendar text-5xl text-gold-deep/40" aria-hidden="true" />
+            <p className="mt-3 font-subtitle text-base text-onyx">Sem sessões marcadas</p>
+            <p className="mt-1 font-subtitle text-sm text-muted-dark">
+              As sessões confirmadas deste mês aparecem aqui.
+            </p>
+          </div>
+        ) : (
+          groupByDay(upcoming).map((dayBookings) => {
+            const heading = dayHeading(dayBookings[0].slot.startsAt)
+            return (
+              <section key={dateKey(dayBookings[0].slot.startsAt)} className="mt-7">
+                <div className="flex items-baseline gap-3">
+                  <h3 className="font-logo text-lg text-onyx">{heading.title}</h3>
+                  {heading.sub && <span className="font-subtitle text-xs text-muted-dark">{heading.sub}</span>}
+                </div>
+                <div className="mt-3 flex flex-col gap-3">
+                  {dayBookings.map((booking) => (
+                    <article
+                      key={booking.id}
+                      className="flex overflow-hidden rounded-2xl border border-gold/20 bg-white shadow-sm shadow-black/5"
+                    >
+                      <div className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-gold/20 bg-gold-deep/5 py-4">
+                        <span className="font-logo text-xl leading-none text-onyx">
+                          {dateParts(booking.slot.startsAt).time}
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate font-subtitle text-base font-medium text-onyx">
+                              {booking.customerName}
+                            </p>
+                            <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
+                              {booking.service.name} · {formatPrice(booking.service.priceCents)}
+                            </p>
+                          </div>
+                          <a
+                            href={customerWhatsappUrl(
+                              booking.customerPhone,
+                              `Olá ${booking.customerName}! Sobre a tua sessão de ${booking.service.name}...`,
+                            )}
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label={`WhatsApp de ${booking.customerName}`}
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/20 text-lg text-onyx transition-colors hover:border-gold-deep hover:text-gold-deep"
+                          >
+                            <i className="bx bxl-whatsapp" aria-hidden="true" />
+                          </a>
+                        </div>
+                        {booking.notes && (
+                          <p className="mt-2 rounded-lg bg-gold-deep/5 px-3 py-2 font-subtitle text-xs italic text-muted-dark">
+                            "{booking.notes}"
+                          </p>
+                        )}
+                        <div className="mt-3 flex items-center justify-between gap-3">
+                          <span className="font-subtitle text-xs text-muted-dark">{booking.customerPhone}</span>
+                          <button
+                            type="button"
+                            disabled={busyId === booking.id}
+                            onClick={() => onCancel(booking.id)}
+                            className="font-subtitle text-sm text-muted-dark underline-offset-4 transition-colors hover:text-red-700 hover:underline disabled:opacity-50"
+                          >
+                            Cancelar sessão
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )
+          })
+        ))}
+
+      {view === 'historico' &&
+        (history.length === 0 ? (
+          <div className="mt-12 flex flex-col items-center text-center">
+            <i className="bx bx-history text-5xl text-gold-deep/40" aria-hidden="true" />
+            <p className="mt-3 font-subtitle text-base text-onyx">Sem histórico</p>
+            <p className="mt-1 font-subtitle text-sm text-muted-dark">As sessões passadas aparecem aqui.</p>
+          </div>
+        ) : (
+          <div className="mt-6 divide-y divide-gold/15 overflow-hidden rounded-2xl border border-gold/20 bg-white shadow-sm shadow-black/5">
+            {history.map((booking) => {
+              const { day, month, time } = dateParts(booking.slot.startsAt)
+              return (
+                <div key={booking.id} className="flex items-center gap-4 px-4 py-3.5">
+                  <div className="w-12 shrink-0 text-center">
+                    <p className="font-logo text-lg leading-none text-onyx">{day}</p>
+                    <p className="mt-1 font-subtitle text-[10px] uppercase text-muted-dark">{month}</p>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-subtitle text-sm font-medium text-onyx">{booking.customerName}</p>
+                    <p className="truncate font-subtitle text-xs text-muted-dark">
+                      {booking.service.name} · {time}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-1 font-subtitle text-[11px] ${HISTORY_CHIP[booking.status]}`}
+                  >
+                    {HISTORY_STATUS_LABEL[booking.status]}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        ))}
     </div>
   )
 }
@@ -503,11 +710,15 @@ export default function AdminDashboardPage() {
         )}
 
         {tab === 'agenda' && (
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <StatCard icon="bx bx-time-five" label="Marcações pendentes" value={String(pendingBookings.length)} />
-            <StatCard icon="bx bx-calendar-check" label="Confirmadas no mês" value={String(monthConfirmedCount)} />
-            <StatCard icon="bx bx-euro" label="Receita confirmada no mês" value={formatPrice(monthRevenueCents)} />
-          </div>
+          <AgendaView
+            pendingCount={pendingBookings.length}
+            confirmedCount={monthConfirmedCount}
+            revenueCents={monthRevenueCents}
+            upcoming={upcomingConfirmed}
+            history={history}
+            busyId={busyId}
+            onCancel={(id) => handleBookingDecision(id, 'cancel')}
+          />
         )}
 
         <div key={tab}>
@@ -880,86 +1091,6 @@ export default function AdminDashboardPage() {
                           icon={<i className="bx bx-x text-lg" aria-hidden="true" />}
                         />
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
-
-          {tab === 'agenda' && (
-            <section className="mt-8">
-              <SectionHeading>Próximas sessões confirmadas</SectionHeading>
-              {upcomingConfirmed.length === 0 ? (
-                <p className="mt-5 font-subtitle text-sm text-muted-dark">Sem sessões confirmadas agendadas.</p>
-              ) : (
-                <div className="mt-6 flex flex-col gap-3">
-                  {upcomingConfirmed.map((booking) => (
-                    <div
-                      key={booking.id}
-                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5"
-                    >
-                      <div>
-                        <p className="flex flex-wrap items-center gap-2 font-subtitle text-base text-onyx">
-                          <span className="font-medium">{booking.customerName}</span>
-                          <a
-                            href={customerWhatsappUrl(
-                              booking.customerPhone,
-                              `Olá ${booking.customerName}! Sobre a tua sessão de ${booking.service.name}...`,
-                            )}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-sm text-muted-dark transition-colors hover:text-gold-deep"
-                          >
-                            <i className="bx bxl-whatsapp" aria-hidden="true" />
-                            {booking.customerPhone}
-                          </a>
-                        </p>
-                        <p className="mt-1 font-subtitle text-sm text-muted-dark">
-                          {booking.service.name} · {formatDateTime(booking.slot.startsAt)}
-                        </p>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={busyId === booking.id}
-                        onClick={() => handleBookingDecision(booking.id, 'cancel')}
-                      >
-                        Cancelar
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
-
-          {tab === 'agenda' && (
-            <section className="mt-14">
-              <SectionHeading>Histórico</SectionHeading>
-              {history.length === 0 ? (
-                <p className="mt-5 font-subtitle text-sm text-muted-dark">Ainda sem histórico.</p>
-              ) : (
-                <div className="mt-6 flex flex-col gap-2">
-                  {history.map((booking) => (
-                    <div
-                      key={booking.id}
-                      className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/20 py-3"
-                    >
-                      <p className="font-subtitle text-sm text-muted-dark">
-                        {booking.customerName} · {booking.service.name} · {formatDateTime(booking.slot.startsAt)}
-                      </p>
-                      <span
-                        className={`font-subtitle text-xs uppercase tracking-wide ${
-                          booking.status === 'ACCEPTED'
-                            ? 'text-gold-deep'
-                            : booking.status === 'CANCELLED'
-                              ? 'text-muted-dark'
-                              : 'text-red-700'
-                        }`}
-                      >
-                        {HISTORY_STATUS_LABEL[booking.status]}
-                      </span>
                     </div>
                   ))}
                 </div>
