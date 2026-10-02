@@ -687,7 +687,7 @@ function DeleteServiceDialog({
 
             <div className="mt-5">
               {usage === null ? (
-                <p className="font-subtitle text-sm text-muted-dark">A verificar marcações...</p>
+                !error && <p className="font-subtitle text-sm text-muted-dark">A verificar marcações...</p>
               ) : blocked ? (
                 <p className="rounded-xl border border-red-700/20 bg-red-700/5 px-4 py-3 font-subtitle text-sm text-red-700">
                   Tem <strong>{usage.active}</strong> {usage.active === 1 ? 'marcação ativa' : 'marcações ativas'}{' '}
@@ -896,8 +896,12 @@ export default function AdminDashboardPage() {
     setServiceNotice(null)
     try {
       setDeleteUsage(await api.get<ServiceUsage>(`/admin/services/${service.id}/usage`))
-    } catch {
-      setDeleteError('Não foi possível verificar as marcações deste modelo.')
+    } catch (err) {
+      setDeleteError(
+        err instanceof ApiError && err.status === 404
+          ? 'O servidor ainda não tem esta funcionalidade. Faz deploy do servidor (Render) e tenta de novo.'
+          : 'Não foi possível verificar as marcações deste modelo. Tenta de novo.',
+      )
     }
   }
 
