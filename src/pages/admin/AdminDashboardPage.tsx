@@ -1041,12 +1041,15 @@ function PendingView({
   onDecision: (id: string, decision: 'accept' | 'reject') => void
 }) {
   const [order, setOrder] = useState<'sessao' | 'recebido'>('sessao')
+  const [showPast, setShowPast] = useState(false)
   const sorted = [...bookings].sort((a, b) =>
     order === 'sessao'
       ? new Date(a.slot.startsAt).getTime() - new Date(b.slot.startsAt).getTime()
       : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   )
   const now = Date.now()
+  const upcomingList = sorted.filter((b) => new Date(b.slot.startsAt).getTime() >= now)
+  const pastList = sorted.filter((b) => new Date(b.slot.startsAt).getTime() < now)
   const thisWeek = bookings.filter((b) => {
     const t = new Date(b.slot.startsAt).getTime()
     return t >= now && t < now + 7 * 86_400_000
@@ -1107,11 +1110,54 @@ function PendingView({
 
       <div className="mt-6 flex flex-col gap-4">
         <AnimatePresence initial={false}>
-          {sorted.map((booking) => (
+          {(order === 'sessao' ? upcomingList : sorted).map((booking) => (
             <PendingCard key={booking.id} booking={booking} busy={busyId === booking.id} onDecision={onDecision} />
           ))}
         </AnimatePresence>
       </div>
+
+      {order === 'sessao' && pastList.length > 0 && (
+        <div className="mt-8">
+          <button
+            type="button"
+            onClick={() => setShowPast((v) => !v)}
+            aria-expanded={showPast}
+            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-red-700/20 bg-red-700/5 px-4 py-3 text-left"
+          >
+            <span className="flex items-center gap-3">
+              <i className="bx bx-time text-xl text-red-700" aria-hidden="true" />
+              <span>
+                <span className="block font-subtitle text-sm font-semibold text-red-700">
+                  Datas passadas ({pastList.length})
+                </span>
+                <span className="block font-subtitle text-xs text-muted-dark">
+                  Pedidos sem resposta cuja sessão já devia ter acontecido
+                </span>
+              </span>
+            </span>
+            <i
+              className={`bx bx-chevron-down text-2xl text-red-700 transition-transform duration-300 ${
+                showPast ? 'rotate-180' : ''
+              }`}
+              aria-hidden="true"
+            />
+          </button>
+          {showPast && (
+            <div className="mt-4 flex flex-col gap-4">
+              <AnimatePresence initial={false}>
+                {pastList.map((booking) => (
+                  <PendingCard
+                    key={booking.id}
+                    booking={booking}
+                    busy={busyId === booking.id}
+                    onDecision={onDecision}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
