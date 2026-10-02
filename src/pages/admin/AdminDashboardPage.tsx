@@ -1,9 +1,7 @@
 import { type FormEvent, type ReactNode, useCallback, useEffect, useState } from 'react'
-import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/date-picker'
-import { MotionButton } from '@/components/ui/motion-button'
 import { TimePicker } from '@/components/ui/time-picker'
 import { adminToken, api, ApiError } from '@/lib/api'
 import { registerForPushNotifications } from '@/lib/push-notifications'
@@ -65,7 +63,7 @@ const HISTORY_STATUS_LABEL: Record<Booking['status'], string> = {
 }
 
 function SectionHeading({ children }: { children: ReactNode }) {
-  return <h2 className="font-subtitle text-xl text-onyx sm:text-2xl">{children}</h2>
+  return <h2 className="font-subtitle text-xs font-semibold uppercase tracking-wider text-neutral-500">{children}</h2>
 }
 
 type AdminTab = 'pedidos' | 'agenda' | 'disponibilidade' | 'servicos' | 'testemunhos'
@@ -113,15 +111,7 @@ function dateParts(iso: string) {
   }
 }
 
-function greeting() {
-  const hour = Number(new Date().toLocaleString('pt-PT', { timeZone: LISBON_TZ, hour: 'numeric', hour12: false }))
-  if (hour < 6) return 'Boa noite'
-  if (hour < 13) return 'Bom dia'
-  if (hour < 20) return 'Boa tarde'
-  return 'Boa noite'
-}
-
-function BookingCard({
+function BookingRow({
   booking,
   variant,
   busy,
@@ -139,95 +129,116 @@ function BookingCard({
       : `Olá ${booking.customerName}! Sobre a tua sessão de ${booking.service.name}...`
 
   return (
-    <motion.article
-      layout
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="overflow-hidden rounded-2xl border border-onyx/10 bg-white shadow-sm shadow-black/5"
-    >
-      <div className="flex gap-4 p-5">
-        <div className="flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-xl border border-onyx/10 bg-neutral-50">
-          <span className="font-subtitle text-xl font-semibold leading-none text-onyx">{day}</span>
-          <span className="mt-1 font-subtitle text-[10px] font-medium uppercase tracking-wider text-gold-deep">
-            {month}
-          </span>
+    <li className="px-4 py-4 sm:px-5">
+      <div className="flex gap-4">
+        <div className="w-14 shrink-0 text-center">
+          <p className="font-subtitle text-lg font-semibold leading-none text-onyx">{time}</p>
+          <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-neutral-500">
+            {day} {month}
+          </p>
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <p className="truncate font-subtitle text-base font-medium text-onyx">{booking.customerName}</p>
-            <span
-              className={`rounded-full px-2.5 py-0.5 font-subtitle text-[11px] font-medium ${
-                variant === 'pending' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'
-              }`}
-            >
-              {variant === 'pending' ? 'Pendente' : 'Confirmada'}
-            </span>
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="truncate font-subtitle text-[15px] font-medium text-onyx">{booking.customerName}</p>
+            <p className="shrink-0 font-subtitle text-sm tabular-nums text-onyx">
+              {formatPrice(booking.service.priceCents)}
+            </p>
           </div>
-          <p className="mt-1 font-subtitle text-sm text-muted-dark">
-            {booking.service.name} · {formatPrice(booking.service.priceCents)}
+          <p className="mt-0.5 font-subtitle text-sm text-neutral-500">
+            {booking.service.name} · <span className="capitalize">{weekday}</span>
           </p>
-          <p className="mt-0.5 flex items-center gap-1.5 font-subtitle text-sm text-muted-dark">
-            <i className="bx bx-time-five text-base text-gold-deep" aria-hidden="true" />
-            <span className="capitalize">{weekday}</span> · {time}
-          </p>
+          <a
+            href={customerWhatsappUrl(booking.customerPhone, whatsappMessage)}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1 inline-flex items-center gap-1.5 font-subtitle text-sm text-neutral-500 transition-colors hover:text-gold-deep"
+          >
+            <i className="bx bxl-whatsapp text-base" aria-hidden="true" />
+            {booking.customerPhone}
+          </a>
           {booking.notes && (
-            <p className="mt-2 rounded-lg bg-neutral-50 px-3 py-2 font-subtitle text-xs italic text-muted-dark">
-              "{booking.notes}"
+            <p className="mt-2 border-l-2 border-neutral-200 pl-3 font-subtitle text-xs text-neutral-500">
+              {booking.notes}
             </p>
           )}
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-onyx/5 bg-neutral-50/70 px-5 py-3">
-        <a
-          href={customerWhatsappUrl(booking.customerPhone, whatsappMessage)}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-1.5 font-subtitle text-sm text-muted-dark transition-colors hover:text-gold-deep"
-        >
-          <i className="bx bxl-whatsapp text-lg" aria-hidden="true" />
-          {booking.customerPhone}
-        </a>
+      <div className="mt-4 flex gap-2 pl-[4.5rem]">
         {variant === 'pending' ? (
-          <div className="flex items-center gap-2">
-            <MotionButton
-              label="Aceitar"
-              size="sm"
+          <>
+            <button
+              type="button"
               disabled={busy}
               onClick={() => onDecision(booking.id, 'accept')}
-              icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
-            />
-            <MotionButton
-              label="Recusar"
-              size="sm"
-              variant="danger"
+              className="flex-1 rounded-md bg-onyx px-4 py-2 font-subtitle text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:flex-none"
+            >
+              Aceitar
+            </button>
+            <button
+              type="button"
               disabled={busy}
               onClick={() => onDecision(booking.id, 'reject')}
-              icon={<i className="bx bx-x text-lg" aria-hidden="true" />}
-            />
-          </div>
+              className="flex-1 rounded-md border border-neutral-300 px-4 py-2 font-subtitle text-sm font-medium text-neutral-700 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-700 disabled:opacity-50 sm:flex-none"
+            >
+              Recusar
+            </button>
+          </>
         ) : (
-          <Button size="sm" variant="outline" disabled={busy} onClick={() => onDecision(booking.id, 'cancel')}>
-            Cancelar
-          </Button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onDecision(booking.id, 'cancel')}
+            className="rounded-md border border-neutral-300 px-4 py-2 font-subtitle text-sm font-medium text-neutral-700 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+          >
+            Cancelar sessão
+          </button>
         )}
       </div>
-    </motion.article>
+    </li>
   )
 }
 
-function StatCard({ icon, label, value }: { icon: string; label: string; value: string }) {
+function AdminButton({
+  label,
+  variant = 'primary',
+  disabled,
+  onClick,
+  type = 'button',
+}: {
+  label: string
+  variant?: 'primary' | 'danger'
+  disabled?: boolean
+  onClick?: () => void
+  type?: 'button' | 'submit'
+}) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-onyx/10 bg-white px-5 py-4 shadow-sm shadow-black/5">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-neutral-50 text-lg text-gold-deep">
-        <i className={icon} aria-hidden="true" />
-      </span>
-      <div>
-        <p className="font-subtitle text-2xl font-semibold leading-none text-onyx">{value}</p>
-        <p className="mt-1.5 font-subtitle text-xs text-muted-dark">{label}</p>
-      </div>
-    </div>
+    <button
+      type={type}
+      disabled={disabled}
+      onClick={onClick}
+      className={`rounded-md px-4 py-2 font-subtitle text-sm font-medium transition-colors disabled:opacity-50 ${
+        variant === 'primary'
+          ? 'bg-onyx text-white hover:opacity-90'
+          : 'border border-neutral-300 text-neutral-700 hover:border-red-300 hover:bg-red-50 hover:text-red-700'
+      }`}
+    >
+      {label}
+    </button>
+  )
+}
+
+function StatStrip({ items }: { items: Array<{ label: string; value: string }> }) {
+  return (
+    <dl className="grid grid-cols-3 divide-x divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
+      {items.map((item) => (
+        <div key={item.label} className="px-4 py-3">
+          <dt className="font-subtitle text-[11px] uppercase tracking-wide text-neutral-500">{item.label}</dt>
+          <dd className="mt-1 font-subtitle text-lg font-semibold tabular-nums text-onyx">{item.value}</dd>
+        </div>
+      ))}
+    </dl>
   )
 }
 
@@ -582,77 +593,37 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-onyx/10 bg-white/90 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-5 sm:px-8">
-          <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-neutral-200 bg-white pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-12 max-w-4xl items-center justify-between px-5 sm:px-8">
+          <span className="font-logo text-xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
           <button
             type="button"
             onClick={handleLogout}
-            aria-label="Sair"
-            className="flex h-9 items-center gap-2 rounded-full border border-onyx/10 px-4 text-sm text-onyx transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
+            className="flex items-center gap-1.5 font-subtitle text-sm text-neutral-500 transition-colors hover:text-onyx"
           >
-            <span>Sair</span>
-            <i className="bx bx-log-out text-lg" aria-hidden="true" />
+            Sair
+            <i className="bx bx-log-out text-base" aria-hidden="true" />
           </button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-5 pb-40 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:px-8">
-        {tab !== 'pedidos' && (
-          <div>
-            <h1 className="font-logo text-3xl text-onyx sm:text-4xl">{TABS.find((t) => t.id === tab)?.title}</h1>
-            <p className="mt-1 font-subtitle text-sm text-muted-dark">{TABS.find((t) => t.id === tab)?.subtitle}</p>
-          </div>
-        )}
-
-        {tab === 'pedidos' && (
-          <>
-            <div>
-              <p className="font-subtitle text-sm text-muted-dark">{greeting()},</p>
-              <h1 className="mt-1 font-logo text-3xl text-onyx sm:text-4xl">Painel de Admin</h1>
-              <p className="mt-1 font-subtitle text-xs text-muted">{adminEmail}</p>
-            </div>
-
-            <div className="mt-6 grid grid-cols-3 gap-3">
-              {[
-                {
-                  icon: 'bx bx-bell',
-                  label: 'Pendentes',
-                  value: pendingBookings.length,
-                  tone: 'text-amber-600 bg-amber-50',
-                },
-                {
-                  icon: 'bx bx-calendar-check',
-                  label: 'Sessões a vir',
-                  value: allUpcomingCount,
-                  tone: 'text-emerald-600 bg-emerald-50',
-                },
-                {
-                  icon: 'bx bx-message-rounded-dots',
-                  label: 'Testemunhos',
-                  value: pendingTestimonials.length,
-                  tone: 'text-sky-600 bg-sky-50',
-                },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-2xl border border-onyx/10 bg-white p-4 shadow-sm shadow-black/5"
-                >
-                  <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg ${item.tone}`}>
-                    <i className={item.icon} aria-hidden="true" />
-                  </span>
-                  <p className="mt-3 font-subtitle text-2xl font-semibold leading-none text-onyx">{item.value}</p>
-                  <p className="mt-1.5 font-subtitle text-[11px] text-muted-dark">{item.label}</p>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+      <main className="mx-auto max-w-4xl px-5 pb-32 pt-[calc(4.5rem+env(safe-area-inset-top))] sm:px-8">
+        <div>
+          <h1 className="font-subtitle text-2xl font-semibold text-onyx">{TABS.find((t) => t.id === tab)?.title}</h1>
+          <p className="mt-1 font-subtitle text-sm text-neutral-500">
+            {tab === 'pedidos'
+              ? `${pendingBookings.length} ${pendingBookings.length === 1 ? 'pendente' : 'pendentes'} · ${allUpcomingCount} ${allUpcomingCount === 1 ? 'sessão a vir' : 'sessões a vir'}`
+              : TABS.find((t) => t.id === tab)?.subtitle}
+          </p>
+          {tab === 'pedidos' && adminEmail && (
+            <p className="mt-0.5 font-subtitle text-xs text-neutral-400">{adminEmail}</p>
+          )}
+        </div>
 
         {error && <p className="mt-6 font-subtitle text-sm text-red-700">{error}</p>}
 
         {(tab === 'agenda' || tab === 'disponibilidade') && (
-          <div className="mt-6 flex items-center justify-center gap-4 rounded-full border border-onyx/10 bg-white px-4 py-2 shadow-sm shadow-black/5 sm:justify-start">
+          <div className="mt-6 flex items-center justify-center gap-4 rounded-lg border border-neutral-200 bg-white px-2 py-1.5 sm:justify-start">
             <button
               type="button"
               aria-label="Mês anterior"
@@ -661,7 +632,9 @@ export default function AdminDashboardPage() {
             >
               <i className="bx bx-chevron-left" aria-hidden="true" />
             </button>
-            <span className="font-logo text-sm text-onyx">{formatMonthLabel(viewMonth)}</span>
+            <span className="min-w-36 text-center font-subtitle text-sm font-medium text-onyx">
+              {formatMonthLabel(viewMonth)}
+            </span>
             <button
               type="button"
               aria-label="Mês seguinte"
@@ -674,19 +647,18 @@ export default function AdminDashboardPage() {
         )}
 
         {tab === 'agenda' && (
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <StatCard icon="bx bx-time-five" label="Marcações pendentes" value={String(pendingBookings.length)} />
-            <StatCard icon="bx bx-calendar-check" label="Confirmadas no mês" value={String(monthConfirmedCount)} />
-            <StatCard icon="bx bx-euro" label="Receita confirmada no mês" value={formatPrice(monthRevenueCents)} />
+          <div className="mt-4">
+            <StatStrip
+              items={[
+                { label: 'Pendentes', value: String(pendingBookings.length) },
+                { label: 'Confirmadas', value: String(monthConfirmedCount) },
+                { label: 'Receita', value: formatPrice(monthRevenueCents) },
+              ]}
+            />
           </div>
         )}
 
-        <motion.div
-          key={tab}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-        >
+        <div key={tab}>
           {tab === 'servicos' && (
             <section className="mt-8">
               <SectionHeading>Serviços e preços</SectionHeading>
@@ -694,7 +666,7 @@ export default function AdminDashboardPage() {
                 {services.map((service) => {
                   const isEditing = editingServiceId === service.id
                   return (
-                    <div key={service.id} className="rounded-2xl border border-onyx/10 p-5">
+                    <div key={service.id} className="rounded-lg border border-neutral-200 p-5">
                       {isEditing ? (
                         <div className="flex flex-col gap-4">
                           <div className="grid gap-3 sm:grid-cols-2">
@@ -705,7 +677,7 @@ export default function AdminDashboardPage() {
                               <input
                                 value={editDuration}
                                 onChange={(e) => setEditDuration(e.target.value)}
-                                className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                                className="rounded-md border border-neutral-300 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
                               />
                             </label>
                             <label className="flex flex-col gap-1.5">
@@ -716,17 +688,15 @@ export default function AdminDashboardPage() {
                                 value={editPrice}
                                 onChange={(e) => setEditPrice(e.target.value)}
                                 inputMode="decimal"
-                                className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                                className="rounded-md border border-neutral-300 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
                               />
                             </label>
                           </div>
                           <div className="flex items-center gap-3">
-                            <MotionButton
+                            <AdminButton
                               label={savingServiceId === service.id ? 'A guardar...' : 'Guardar'}
-                              size="sm"
                               disabled={savingServiceId === service.id}
                               onClick={() => saveServiceEdit(service)}
-                              icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
                             />
                             <button
                               type="button"
@@ -751,7 +721,7 @@ export default function AdminDashboardPage() {
                               type="button"
                               onClick={() => startEditService(service)}
                               aria-label={`Editar ${service.name}`}
-                              className="flex h-9 w-9 items-center justify-center rounded-full border border-gold/30 text-muted-dark transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
+                              className="flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 text-muted-dark transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
                             >
                               <i className="bx bx-pencil" aria-hidden="true" />
                             </button>
@@ -767,7 +737,7 @@ export default function AdminDashboardPage() {
                 {showAddService ? (
                   <form
                     onSubmit={handleCreateService}
-                    className="flex flex-col gap-4 rounded-2xl border border-onyx/10 p-5"
+                    className="flex flex-col gap-4 rounded-lg border border-neutral-200 p-5"
                   >
                     <div className="grid gap-3 sm:grid-cols-2">
                       <label className="flex flex-col gap-1.5">
@@ -776,7 +746,7 @@ export default function AdminDashboardPage() {
                           value={newServiceName}
                           onChange={(e) => setNewServiceName(e.target.value)}
                           placeholder="Ex: Twist Braids"
-                          className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                          className="rounded-md border border-neutral-300 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
                         />
                       </label>
                       <label className="flex flex-col gap-1.5">
@@ -785,7 +755,7 @@ export default function AdminDashboardPage() {
                           value={newServiceDuration}
                           onChange={(e) => setNewServiceDuration(e.target.value)}
                           placeholder="Ex: 3-5h"
-                          className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                          className="rounded-md border border-neutral-300 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
                         />
                       </label>
                       <label className="flex flex-col gap-1.5 sm:col-span-2">
@@ -794,7 +764,7 @@ export default function AdminDashboardPage() {
                           value={newServiceDescription}
                           onChange={(e) => setNewServiceDescription(e.target.value)}
                           placeholder="Breve descrição para as clientes"
-                          className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                          className="rounded-md border border-neutral-300 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
                         />
                       </label>
                       <label className="flex flex-col gap-1.5">
@@ -804,17 +774,15 @@ export default function AdminDashboardPage() {
                           onChange={(e) => setNewServicePrice(e.target.value)}
                           inputMode="decimal"
                           placeholder="Ex: 65"
-                          className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                          className="rounded-md border border-neutral-300 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
                         />
                       </label>
                     </div>
                     <div className="flex items-center gap-3">
-                      <MotionButton
+                      <AdminButton
                         label={addingService ? 'A adicionar...' : 'Adicionar modelo'}
-                        size="sm"
                         type="submit"
                         disabled={addingService}
-                        icon={<i className="bx bx-plus text-lg" aria-hidden="true" />}
                       />
                       <button
                         type="button"
@@ -829,7 +797,7 @@ export default function AdminDashboardPage() {
                   <button
                     type="button"
                     onClick={() => setShowAddService(true)}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-gold/30 py-4 font-subtitle text-sm text-muted-dark transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-neutral-300 py-4 font-subtitle text-sm text-muted-dark transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
                   >
                     <i className="bx bx-plus text-lg" aria-hidden="true" />
                     Adicionar novo modelo de tranças
@@ -844,7 +812,7 @@ export default function AdminDashboardPage() {
               <SectionHeading>Disponibilidade</SectionHeading>
               <form
                 onSubmit={handleCreateSlots}
-                className="mt-6 flex flex-col gap-4 rounded-2xl border border-onyx/10 p-5"
+                className="mt-6 flex flex-col gap-4 rounded-lg border border-neutral-200 p-5"
               >
                 <div className="flex flex-wrap items-end gap-3">
                   <label className="flex flex-col gap-1.5">
@@ -859,7 +827,7 @@ export default function AdminDashboardPage() {
                     type="button"
                     onClick={addTimeToBatch}
                     disabled={!newTimeInput}
-                    className="flex h-11 items-center gap-1.5 rounded-full border border-gold/30 px-4 font-subtitle text-sm text-onyx transition-colors duration-300 hover:border-gold-deep disabled:opacity-40"
+                    className="flex h-11 items-center gap-1.5 rounded-md border border-neutral-300 px-4 font-subtitle text-sm text-onyx transition-colors duration-300 hover:border-gold-deep disabled:opacity-40"
                   >
                     <i className="bx bx-plus" aria-hidden="true" />
                     Adicionar horário
@@ -871,7 +839,7 @@ export default function AdminDashboardPage() {
                     {batchTimes.map((time) => (
                       <span
                         key={time}
-                        className="flex items-center gap-2 rounded-full bg-neutral-100 px-3 py-1.5 font-subtitle text-sm text-onyx"
+                        className="flex items-center gap-2 rounded-md bg-neutral-100 px-3 py-1.5 font-subtitle text-sm text-onyx"
                       >
                         {time}
                         <button
@@ -888,7 +856,7 @@ export default function AdminDashboardPage() {
                 )}
 
                 <div>
-                  <MotionButton
+                  <AdminButton
                     label={
                       addingSlot
                         ? 'A criar...'
@@ -896,7 +864,6 @@ export default function AdminDashboardPage() {
                           ? `Criar ${batchTimes.length} vagas`
                           : 'Criar vaga'
                     }
-                    size="sm"
                     type="submit"
                     disabled={addingSlot || !newDate || batchTimes.length === 0}
                   />
@@ -909,12 +876,15 @@ export default function AdminDashboardPage() {
                 )}
                 {slotsByDate.map(([key, daySlots]) => (
                   <div key={key}>
-                    <p className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">{key}</p>
+                    <p className="font-subtitle text-xs font-medium capitalize text-neutral-500">
+                      {dateParts(daySlots[0].startsAt).weekday}, {dateParts(daySlots[0].startsAt).day}{' '}
+                      {dateParts(daySlots[0].startsAt).month}
+                    </p>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {daySlots.map((slot) => (
                         <div
                           key={slot.id}
-                          className="flex items-center gap-2 rounded-full border border-gold/30 px-4 py-1.5 font-subtitle text-sm text-onyx"
+                          className="flex items-center gap-2 rounded-md border border-neutral-300 px-3 py-1.5 font-subtitle text-sm text-onyx"
                         >
                           <span>{formatDateTime(slot.startsAt).split(', ').slice(1).join(', ')}</span>
                           <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
@@ -938,7 +908,7 @@ export default function AdminDashboardPage() {
                 ))}
               </div>
 
-              <div className="mt-8 rounded-2xl border border-red-700/20 bg-red-700/5 p-5">
+              <div className="mt-8 rounded-lg border border-red-700/20 bg-red-700/5 p-5">
                 {!clearingOpen ? (
                   <button type="button" onClick={openClearPanel} className="flex w-full items-center gap-3 text-left">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-700/10 text-red-700">
@@ -972,17 +942,12 @@ export default function AdminDashboardPage() {
                         type="password"
                         value={clearPassword}
                         onChange={(e) => setClearPassword(e.target.value)}
-                        className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-red-700"
+                        className="rounded-md border border-neutral-300 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-red-700"
                       />
                     </label>
                     {clearError && <p className="font-subtitle text-sm text-red-700">{clearError}</p>}
                     <div className="flex items-center gap-3">
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        disabled={!clearPassword || clearBusy}
-                        onClick={handleClearMonth}
-                      >
+                      <Button variant="destructive" disabled={!clearPassword || clearBusy} onClick={handleClearMonth}>
                         {clearBusy ? 'A limpar...' : 'Confirmar limpeza'}
                       </Button>
                       <button
@@ -992,7 +957,7 @@ export default function AdminDashboardPage() {
                           setClearPassword('')
                           setClearError(null)
                         }}
-                        className="rounded-full px-4 py-2 font-subtitle text-sm text-muted-dark transition-colors hover:bg-neutral-100 hover:text-onyx"
+                        className="rounded-md px-4 py-2 font-subtitle text-sm text-muted-dark transition-colors hover:bg-neutral-100 hover:text-onyx"
                       >
                         Cancelar
                       </button>
@@ -1009,9 +974,9 @@ export default function AdminDashboardPage() {
               {pendingBookings.length === 0 ? (
                 <p className="mt-5 font-subtitle text-sm text-muted-dark">Sem marcações pendentes.</p>
               ) : (
-                <div className="mt-6 flex flex-col gap-3">
+                <ul className="mt-3 divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200 bg-white">
                   {pendingBookings.map((booking) => (
-                    <BookingCard
+                    <BookingRow
                       key={booking.id}
                       booking={booking}
                       variant="pending"
@@ -1019,7 +984,7 @@ export default function AdminDashboardPage() {
                       onDecision={handleBookingDecision}
                     />
                   ))}
-                </div>
+                </ul>
               )}
             </section>
           )}
@@ -1030,9 +995,9 @@ export default function AdminDashboardPage() {
               {upcomingConfirmed.length === 0 ? (
                 <p className="mt-5 font-subtitle text-sm text-muted-dark">Sem sessões confirmadas agendadas.</p>
               ) : (
-                <div className="mt-6 flex flex-col gap-3">
+                <ul className="mt-3 divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200 bg-white">
                   {upcomingConfirmed.map((booking) => (
-                    <BookingCard
+                    <BookingRow
                       key={booking.id}
                       booking={booking}
                       variant="confirmed"
@@ -1040,7 +1005,7 @@ export default function AdminDashboardPage() {
                       onDecision={handleBookingDecision}
                     />
                   ))}
-                </div>
+                </ul>
               )}
             </section>
           )}
@@ -1055,7 +1020,7 @@ export default function AdminDashboardPage() {
                   {history.map((booking) => (
                     <div
                       key={booking.id}
-                      className="flex flex-wrap items-center justify-between gap-3 border-b border-onyx/10 py-3"
+                      className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 py-3"
                     >
                       <p className="font-subtitle text-sm text-muted-dark">
                         {booking.customerName} · {booking.service.name} · {formatDateTime(booking.slot.startsAt)}
@@ -1088,7 +1053,7 @@ export default function AdminDashboardPage() {
                   {pendingTestimonials.map((testimonial) => (
                     <div
                       key={testimonial.id}
-                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-onyx/10 p-5"
+                      className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-neutral-200 p-5"
                     >
                       <div>
                         <p className="font-subtitle text-base text-onyx">
@@ -1099,20 +1064,16 @@ export default function AdminDashboardPage() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <MotionButton
+                        <AdminButton
                           label="Aprovar"
-                          size="sm"
                           disabled={busyId === testimonial.id}
                           onClick={() => handleTestimonialDecision(testimonial.id, 'approve')}
-                          icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
                         />
-                        <MotionButton
+                        <AdminButton
                           label="Recusar"
-                          size="sm"
                           variant="danger"
                           disabled={busyId === testimonial.id}
                           onClick={() => handleTestimonialDecision(testimonial.id, 'reject')}
-                          icon={<i className="bx bx-x text-lg" aria-hidden="true" />}
                         />
                       </div>
                     </div>
@@ -1125,7 +1086,7 @@ export default function AdminDashboardPage() {
                   {resolvedTestimonials.map((testimonial) => (
                     <div
                       key={testimonial.id}
-                      className="flex flex-wrap items-center justify-between gap-3 border-b border-onyx/10 py-3"
+                      className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 py-3"
                     >
                       <p className="font-subtitle text-sm text-muted-dark">
                         {testimonial.customer.name} · "{testimonial.content}"
@@ -1143,14 +1104,14 @@ export default function AdminDashboardPage() {
               )}
             </section>
           )}
-        </motion.div>
+        </div>
       </main>
 
       <nav
         aria-label="Secções do painel"
-        className="fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
       >
-        <div className="flex w-full max-w-md items-center justify-between rounded-[2rem] border border-onyx/10 bg-white/95 p-1.5 shadow-xl shadow-black/10 backdrop-blur-xl">
+        <div className="mx-auto grid max-w-4xl grid-cols-5">
           {TABS.map(({ id, label, icon }) => {
             const badge =
               id === 'pedidos' ? pendingBookings.length : id === 'testemunhos' ? pendingTestimonials.length : 0
@@ -1161,28 +1122,20 @@ export default function AdminDashboardPage() {
                 type="button"
                 onClick={() => setTab(id)}
                 aria-current={active ? 'page' : undefined}
-                className="relative flex flex-1 flex-col items-center gap-0.5 rounded-[1.5rem] px-1 py-2"
+                className={`relative flex flex-col items-center gap-1 pb-2 pt-2.5 transition-colors ${
+                  active ? 'text-gold-deep' : 'text-neutral-400 hover:text-neutral-600'
+                }`}
               >
-                {active && (
-                  <motion.span
-                    layoutId="admin-dock-pill"
-                    className="absolute inset-0 rounded-[1.5rem] bg-gold-deep shadow-md shadow-gold-deep/30"
-                    transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                  />
-                )}
-                <span className={`relative text-xl ${active ? 'text-[#f5efdf]' : 'text-onyx/50'}`}>
+                {active && <span className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-gold-deep" />}
+                <span className="relative text-[22px] leading-none">
                   <i className={icon} aria-hidden="true" />
                   {badge > 0 && (
-                    <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-medium leading-none text-white ring-2 ring-white">
+                    <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold leading-none text-white">
                       {badge}
                     </span>
                   )}
                 </span>
-                <span
-                  className={`relative font-subtitle text-[10px] leading-none ${active ? 'text-[#f5efdf]' : 'text-onyx/50'}`}
-                >
-                  {label}
-                </span>
+                <span className="font-subtitle text-[10px] font-medium leading-none">{label}</span>
               </button>
             )
           })}
