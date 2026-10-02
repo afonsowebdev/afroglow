@@ -759,6 +759,162 @@ function DeleteServiceDialog({
   )
 }
 
+function timeAgo(iso: string) {
+  const days = Math.round((new Date(iso).getTime() - Date.now()) / 86_400_000)
+  if (days === 0) return 'Hoje'
+  const label = new Intl.RelativeTimeFormat('pt-PT', { numeric: 'auto' }).format(days, 'day')
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
+
+function TestimonialsView({
+  testimonials,
+  busyId,
+  onDecision,
+}: {
+  testimonials: Testimonial[]
+  busyId: string | null
+  onDecision: (id: string, decision: 'approve' | 'reject') => void
+}) {
+  const [view, setView] = useState<'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING')
+  const byStatus = (status: Testimonial['status']) =>
+    testimonials
+      .filter((t) => t.status === status)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  const lists = { PENDING: byStatus('PENDING'), APPROVED: byStatus('APPROVED'), REJECTED: byStatus('REJECTED') }
+  const current = lists[view]
+
+  const tabs = [
+    { id: 'PENDING', label: 'Por rever' },
+    { id: 'APPROVED', label: 'Publicados' },
+    { id: 'REJECTED', label: 'Recusados' },
+  ] as const
+
+  const emptyText = {
+    PENDING: ['bx bx-message-rounded-check', 'Tudo revisto', 'Não há testemunhos à espera de decisão.'],
+    APPROVED: ['bx bx-message-rounded-dots', 'Nada publicado', 'Os testemunhos aprovados aparecem no site.'],
+    REJECTED: ['bx bx-message-rounded-x', 'Nenhum recusado', 'Os testemunhos recusados ficam aqui.'],
+  }[view]
+
+  return (
+    <div>
+      <div className="mt-4 grid grid-cols-3 gap-3">
+        {tabs.map((tab) => (
+          <div key={tab.id} className="rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
+            <p className="font-logo text-2xl leading-none text-onyx">{lists[tab.id].length}</p>
+            <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{tab.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-6 flex rounded-full border border-gold/20 bg-white p-1 shadow-sm shadow-black/5">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setView(tab.id)}
+            className="relative flex-1 rounded-full py-2.5 font-subtitle text-xs sm:text-sm"
+          >
+            {view === tab.id && (
+              <motion.span
+                layoutId="testimonials-segment"
+                className="absolute inset-0 rounded-full bg-gold-deep"
+                transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+              />
+            )}
+            <span className={`relative transition-colors ${view === tab.id ? 'text-cream' : 'text-onyx/70'}`}>
+              {tab.label}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {current.length === 0 ? (
+        <div className="mt-12 flex flex-col items-center text-center">
+          <i className={`${emptyText[0]} text-5xl text-gold-deep/40`} aria-hidden="true" />
+          <p className="mt-3 font-subtitle text-base text-onyx">{emptyText[1]}</p>
+          <p className="mt-1 font-subtitle text-sm text-muted-dark">{emptyText[2]}</p>
+        </div>
+      ) : (
+        <div className="mt-6 flex flex-col gap-4">
+          {current.map((testimonial) => (
+            <article
+              key={testimonial.id}
+              className="rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5"
+            >
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 font-logo text-lg text-gold-deep">
+                  {testimonial.customer.name.trim().charAt(0).toUpperCase() || '?'}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-subtitle text-base font-semibold text-onyx">
+                    {testimonial.customer.name}
+                  </p>
+                  <p className="font-subtitle text-xs text-muted-dark">{timeAgo(testimonial.createdAt)}</p>
+                </div>
+                {view !== 'PENDING' && (
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-1 font-subtitle text-[11px] ${
+                      view === 'APPROVED' ? 'bg-gold-deep/10 text-gold-deep' : 'bg-red-700/10 text-red-700'
+                    }`}
+                  >
+                    {view === 'APPROVED' ? 'Publicado' : 'Recusado'}
+                  </span>
+                )}
+              </div>
+
+              <p className="mt-4 border-l-2 border-gold/40 pl-4 font-subtitle text-[15px] leading-relaxed text-onyx">
+                {testimonial.content}
+              </p>
+
+              <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-gold/15 pt-4">
+                {view === 'PENDING' && (
+                  <>
+                    <MotionButton
+                      label="Recusar"
+                      size="sm"
+                      variant="secondary"
+                      disabled={busyId === testimonial.id}
+                      onClick={() => onDecision(testimonial.id, 'reject')}
+                      icon={<i className="bx bx-x text-lg" aria-hidden="true" />}
+                    />
+                    <MotionButton
+                      label="Aprovar"
+                      size="sm"
+                      disabled={busyId === testimonial.id}
+                      onClick={() => onDecision(testimonial.id, 'approve')}
+                      icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
+                    />
+                  </>
+                )}
+                {view === 'APPROVED' && (
+                  <button
+                    type="button"
+                    disabled={busyId === testimonial.id}
+                    onClick={() => onDecision(testimonial.id, 'reject')}
+                    className="rounded-full border border-gold/30 px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:border-red-700 hover:text-red-700 disabled:opacity-50"
+                  >
+                    Retirar do site
+                  </button>
+                )}
+                {view === 'REJECTED' && (
+                  <button
+                    type="button"
+                    disabled={busyId === testimonial.id}
+                    onClick={() => onDecision(testimonial.id, 'approve')}
+                    className="rounded-full border border-gold/30 px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep hover:text-gold-deep disabled:opacity-50"
+                  >
+                    Publicar
+                  </button>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
   const [checkingAuth, setCheckingAuth] = useState(true)
@@ -1131,9 +1287,6 @@ export default function AdminDashboardPage() {
     .sort((a, b) => new Date(b.slot.startsAt).getTime() - new Date(a.slot.startsAt).getTime())
 
   const pendingTestimonials = testimonials.filter((t) => t.status === 'PENDING')
-  const resolvedTestimonials = testimonials
-    .filter((t) => t.status !== 'PENDING')
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
   const monthConfirmedCount = monthBookings.filter((b) => b.status === 'ACCEPTED').length
   const monthRevenueCents = monthBookings
@@ -1640,69 +1793,7 @@ export default function AdminDashboardPage() {
           )}
 
           {tab === 'testemunhos' && (
-            <section className="mt-8">
-              <SectionHeading>Testemunhos pendentes</SectionHeading>
-              {pendingTestimonials.length === 0 ? (
-                <p className="mt-5 font-subtitle text-sm text-muted-dark">Sem testemunhos por rever.</p>
-              ) : (
-                <div className="mt-6 flex flex-col gap-3">
-                  {pendingTestimonials.map((testimonial) => (
-                    <div
-                      key={testimonial.id}
-                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gold/20 p-5"
-                    >
-                      <div>
-                        <p className="font-subtitle text-base text-onyx">
-                          <span className="font-semibold">{testimonial.customer.name}</span>
-                        </p>
-                        <p className="mt-1 max-w-xl font-subtitle text-sm italic text-muted-dark">
-                          "{testimonial.content}"
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MotionButton
-                          label="Aprovar"
-                          size="sm"
-                          disabled={busyId === testimonial.id}
-                          onClick={() => handleTestimonialDecision(testimonial.id, 'approve')}
-                          icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
-                        />
-                        <MotionButton
-                          label="Recusar"
-                          size="sm"
-                          variant="secondary"
-                          disabled={busyId === testimonial.id}
-                          onClick={() => handleTestimonialDecision(testimonial.id, 'reject')}
-                          icon={<i className="bx bx-x text-lg" aria-hidden="true" />}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {resolvedTestimonials.length > 0 && (
-                <div className="mt-6 flex flex-col gap-2">
-                  {resolvedTestimonials.map((testimonial) => (
-                    <div
-                      key={testimonial.id}
-                      className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/20 py-3"
-                    >
-                      <p className="font-subtitle text-sm text-muted-dark">
-                        {testimonial.customer.name} · "{testimonial.content}"
-                      </p>
-                      <span
-                        className={`font-subtitle text-xs uppercase tracking-wide ${
-                          testimonial.status === 'APPROVED' ? 'text-gold-deep' : 'text-red-700'
-                        }`}
-                      >
-                        {testimonial.status === 'APPROVED' ? 'Aprovado' : 'Recusado'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
+            <TestimonialsView testimonials={testimonials} busyId={busyId} onDecision={handleTestimonialDecision} />
           )}
         </div>
       </main>

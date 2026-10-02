@@ -39,8 +39,12 @@ async function resolveTestimonial(id: string, status: 'APPROVED' | 'REJECTED', r
       res.status(404).json({ error: 'Testemunho não encontrado.' })
       return
     }
-    if (testimonial.status !== 'PENDING') {
-      res.status(400).json({ error: 'Este testemunho já foi respondido.' })
+    // A decision can be revisited (unpublish an approved one, publish a rejected one);
+    // only repeating the current state is refused.
+    if (testimonial.status === status) {
+      res.status(400).json({
+        error: status === 'APPROVED' ? 'Este testemunho já está publicado.' : 'Este testemunho já foi recusado.',
+      })
       return
     }
 
