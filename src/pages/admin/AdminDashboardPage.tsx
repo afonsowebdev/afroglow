@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
 import { DatePicker } from '@/components/ui/date-picker'
 import { MotionButton } from '@/components/ui/motion-button'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { TimePicker } from '@/components/ui/time-picker'
 import { adminToken, api, ApiError } from '@/lib/api'
 import { registerForPushNotifications } from '@/lib/push-notifications'
@@ -451,21 +452,25 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
+    <div className="relative min-h-screen bg-white">
+      {/* Not fixed: the header scrolls away with the page. */}
+      <div className="absolute inset-x-0 top-0 z-40 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
           <div className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
             <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
           </div>
 
-          <button
-            type="button"
-            onClick={handleLogout}
-            className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-deep sm:px-6 ${pillClasses}`}
-          >
-            <span>Sair</span>
-            <i className="bx bx-log-out text-lg" aria-hidden="true" />
-          </button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle className="h-12 w-12 border-transparent bg-white/95 shadow-lg shadow-black/10 backdrop-blur" />
+            <button
+              type="button"
+              onClick={handleLogout}
+              className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-deep sm:px-6 ${pillClasses}`}
+            >
+              <span>Sair</span>
+              <i className="bx bx-log-out text-lg" aria-hidden="true" />
+            </button>
+          </div>
         </div>
       </div>
 

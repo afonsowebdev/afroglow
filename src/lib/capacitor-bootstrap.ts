@@ -4,12 +4,14 @@ import { Capacitor } from '@capacitor/core'
 export async function initNativeApp() {
   if (!Capacitor.isNativePlatform()) return
 
-  // The admin app is always light, regardless of the phone's dark-mode setting.
-  document.documentElement.classList.remove('dark')
+  // Light by default on first launch; after that the in-app toggle decides.
   try {
-    window.localStorage.setItem('afroglow-theme', 'light')
+    if (!window.localStorage.getItem('afroglow-theme')) {
+      document.documentElement.classList.remove('dark')
+      window.localStorage.setItem('afroglow-theme', 'light')
+    }
   } catch {
-    // storage unavailable — the class removal above still applies for this session
+    // storage unavailable — fall through to the page's default theme
   }
 
   const [{ StatusBar, Style }, { SplashScreen }] = await Promise.all([
@@ -17,6 +19,6 @@ export async function initNativeApp() {
     import('@capacitor/splash-screen'),
   ])
 
-  await StatusBar.setStyle({ style: Style.Light })
+  await StatusBar.setStyle({ style: document.documentElement.classList.contains('dark') ? Style.Dark : Style.Light })
   await SplashScreen.hide()
 }

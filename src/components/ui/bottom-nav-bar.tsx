@@ -34,7 +34,7 @@ export function BottomNavBar<T extends string>({
       transition={{ type: 'spring', stiffness: 300, damping: 26 }}
       aria-label="Secções do painel"
       className={cn(
-        'flex h-[56px] max-w-[95vw] items-center gap-1 rounded-full border border-gold/20 bg-white/95 p-2 shadow-xl shadow-black/10 backdrop-blur',
+        'flex h-[56px] max-w-[95vw] items-center gap-1 rounded-full border border-white/60 bg-white/40 p-2 shadow-[0_8px_32px_rgba(26,16,8,0.14)] ring-1 ring-inset ring-white/40 backdrop-blur-2xl backdrop-saturate-150',
         stickyBottom && 'fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 mx-auto w-fit',
         className,
       )}
@@ -51,7 +51,9 @@ export function BottomNavBar<T extends string>({
             aria-current={isActive ? 'page' : undefined}
             className={cn(
               'relative flex h-10 min-w-[44px] items-center justify-center rounded-full px-3 font-subtitle transition-colors duration-200 focus:outline-none',
-              isActive ? 'bg-gold-deep/10 text-gold-deep' : 'text-onyx/50 hover:bg-gold-deep/5 hover:text-onyx',
+              isActive
+                ? 'bg-white/50 text-gold-deep shadow-sm shadow-black/5'
+                : 'text-onyx/60 hover:bg-white/30 hover:text-onyx',
             )}
           >
             <span className="relative text-[22px] leading-none">
