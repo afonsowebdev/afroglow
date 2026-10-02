@@ -874,7 +874,7 @@ export default function AdminDashboardPage() {
                         <MotionButton
                           label="Recusar"
                           size="sm"
-                          variant="danger"
+                          variant="secondary"
                           disabled={busyId === booking.id}
                           onClick={() => handleBookingDecision(booking.id, 'reject')}
                           icon={<i className="bx bx-x text-lg" aria-hidden="true" />}
@@ -998,7 +998,7 @@ export default function AdminDashboardPage() {
                         <MotionButton
                           label="Recusar"
                           size="sm"
-                          variant="danger"
+                          variant="secondary"
                           disabled={busyId === testimonial.id}
                           onClick={() => handleTestimonialDecision(testimonial.id, 'reject')}
                           icon={<i className="bx bx-x text-lg" aria-hidden="true" />}
