@@ -6,7 +6,6 @@ import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
 import { DatePicker } from '@/components/ui/date-picker'
 import { MotionButton } from '@/components/ui/motion-button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { TimePicker } from '@/components/ui/time-picker'
 import { adminToken, api, ApiError } from '@/lib/api'
 import { registerForPushNotifications } from '@/lib/push-notifications'
 import { customerWhatsappUrl } from '@/lib/site-config'
@@ -63,6 +62,11 @@ function dateParts(iso: string) {
     time: d.toLocaleTimeString('pt-PT', { ...tz, hour: '2-digit', minute: '2-digit' }),
   }
 }
+
+const SLOT_TIMES = Array.from({ length: 25 }, (_, i) => {
+  const minutes = 8 * 60 + i * 30
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
+})
 
 const SLOT_STATUS_LABEL: Record<AvailabilitySlot['status'], string> = {
   OPEN: 'Disponível',
@@ -317,7 +321,6 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState<string | null>(null)
 
   const [newDate, setNewDate] = useState('')
-  const [newTimeInput, setNewTimeInput] = useState('')
   const [batchTimes, setBatchTimes] = useState<string[]>([])
   const [addingSlot, setAddingSlot] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -422,17 +425,6 @@ export default function AdminDashboardPage() {
       adminToken.set(null)
       navigate('/admin/login')
     }
-  }
-
-  function addTimeToBatch() {
-    if (newTimeInput && !batchTimes.includes(newTimeInput)) {
-      setBatchTimes([...batchTimes, newTimeInput].sort())
-      setNewTimeInput('')
-    }
-  }
-
-  function removeTimeFromBatch(time: string) {
-    setBatchTimes(batchTimes.filter((t) => t !== time))
   }
 
   async function handleCreateSlots(e: FormEvent) {
@@ -617,6 +609,11 @@ export default function AdminDashboardPage() {
     }
     return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b))
   })()
+
+  // Times already opened on the chosen day (so they can't be created twice).
+  const takenTimes = new Set(
+    slots.filter((slot) => newDate && dateKey(slot.startsAt) === newDate).map((slot) => dateParts(slot.startsAt).time),
+  )
 
   const nowMs = Date.now()
   // Pending requests need action no matter which month they are for, so they
@@ -875,54 +872,113 @@ export default function AdminDashboardPage() {
           )}
 
           {tab === 'disponibilidade' && (
-            <section className="mt-8">
-              <SectionHeading>Disponibilidade</SectionHeading>
+            <section className="mt-4">
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Disponíveis', value: monthSlots.filter((slot) => slot.status === 'OPEN').length },
+                  { label: 'Pendentes', value: monthSlots.filter((slot) => slot.status === 'PENDING').length },
+                  { label: 'Reservadas', value: monthSlots.filter((slot) => slot.status === 'BOOKED').length },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5"
+                  >
+                    <p className="font-logo text-2xl leading-none text-onyx">{stat.value}</p>
+                    <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
+                      {stat.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
               <form
                 onSubmit={handleCreateSlots}
-                className="mt-6 flex flex-col gap-4 rounded-2xl border border-gold/20 p-5"
+                className="mt-6 rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5"
               >
-                <div className="flex flex-wrap items-end gap-3">
-                  <label className="flex flex-col gap-1.5">
-                    <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Data</span>
-                    <DatePicker value={newDate} onChange={setNewDate} />
-                  </label>
-                  <label className="flex flex-col gap-1.5">
-                    <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Hora</span>
-                    <TimePicker value={newTimeInput} onChange={setNewTimeInput} />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={addTimeToBatch}
-                    disabled={!newTimeInput}
-                    className="flex h-11 items-center gap-1.5 rounded-full border border-gold/30 px-4 font-subtitle text-sm text-onyx transition-colors duration-300 hover:border-gold-deep disabled:opacity-40"
-                  >
-                    <i className="bx bx-plus" aria-hidden="true" />
-                    Adicionar horário
-                  </button>
+                <h3 className="font-logo text-lg text-onyx">Criar horários</h3>
+                <p className="mt-1 font-subtitle text-sm text-muted-dark">
+                  Escolhe o dia e toca nas horas que queres abrir.
+                </p>
+
+                <div className="mt-4">
+                  <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+                    Dia
+                  </span>
+                  <DatePicker value={newDate} onChange={setNewDate} />
                 </div>
 
-                {batchTimes.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {batchTimes.map((time) => (
-                      <span
-                        key={time}
-                        className="flex items-center gap-2 rounded-full border border-gold/20 bg-white px-3 py-1.5 font-subtitle text-sm text-onyx"
-                      >
-                        {time}
+                <div className="mt-5">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Horas</span>
+                    <div className="flex items-center gap-1">
+                      {[
+                        { label: 'Manhã', times: SLOT_TIMES.filter((t) => t >= '09:00' && t <= '12:30') },
+                        { label: 'Tarde', times: SLOT_TIMES.filter((t) => t >= '14:00' && t <= '18:00') },
+                      ].map((preset) => (
                         <button
+                          key={preset.label}
                           type="button"
-                          onClick={() => removeTimeFromBatch(time)}
-                          aria-label={`Remover ${time}`}
-                          className="text-muted-dark transition-colors hover:text-red-700"
+                          onClick={() =>
+                            setBatchTimes(
+                              [...new Set([...batchTimes, ...preset.times.filter((t) => !takenTimes.has(t))])].sort(),
+                            )
+                          }
+                          className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-gold-deep/10 hover:text-onyx"
                         >
-                          <i className="bx bx-x" aria-hidden="true" />
+                          {preset.label}
                         </button>
-                      </span>
-                    ))}
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setBatchTimes([])}
+                        disabled={batchTimes.length === 0}
+                        className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-gold-deep/10 hover:text-onyx disabled:opacity-30"
+                      >
+                        Limpar
+                      </button>
+                    </div>
                   </div>
-                )}
+                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                    {SLOT_TIMES.map((time) => {
+                      const taken = takenTimes.has(time)
+                      const selected = batchTimes.includes(time)
+                      return (
+                        <button
+                          key={time}
+                          type="button"
+                          disabled={taken || !newDate}
+                          onClick={() =>
+                            setBatchTimes(
+                              selected ? batchTimes.filter((t) => t !== time) : [...batchTimes, time].sort(),
+                            )
+                          }
+                          title={taken ? 'Já existe uma vaga a esta hora' : undefined}
+                          className={`rounded-full border py-2 font-subtitle text-sm transition-colors ${
+                            selected
+                              ? 'border-gold-deep bg-gold-deep text-cream'
+                              : taken
+                                ? 'border-gold/20 text-onyx/30 line-through'
+                                : 'border-gold/30 text-onyx hover:border-gold-deep'
+                          } disabled:cursor-not-allowed`}
+                        >
+                          {time}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {!newDate && (
+                    <p className="mt-2 font-subtitle text-xs text-muted-dark">
+                      Escolhe primeiro o dia para ativar as horas.
+                    </p>
+                  )}
+                </div>
 
-                <div>
+                <div className="mt-5 flex items-center justify-between gap-3 border-t border-gold/15 pt-4">
+                  <span className="font-subtitle text-sm text-muted-dark">
+                    {batchTimes.length === 0
+                      ? 'Nenhuma hora selecionada'
+                      : `${batchTimes.length} ${batchTimes.length === 1 ? 'hora selecionada' : 'horas selecionadas'}`}
+                  </span>
                   <MotionButton
                     label={
                       addingSlot
@@ -938,40 +994,64 @@ export default function AdminDashboardPage() {
                 </div>
               </form>
 
-              <div className="mt-6 flex flex-col gap-4">
-                {slotsByDate.length === 0 && (
-                  <p className="font-subtitle text-sm text-muted-dark">Sem vagas criadas.</p>
-                )}
-                {slotsByDate.map(([key, daySlots]) => (
-                  <div key={key}>
-                    <p className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">{key}</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {daySlots.map((slot) => (
-                        <div
-                          key={slot.id}
-                          className="flex items-center gap-2 rounded-full border border-gold/30 px-4 py-1.5 font-subtitle text-sm text-onyx"
-                        >
-                          <span>{formatDateTime(slot.startsAt).split(', ').slice(1).join(', ')}</span>
-                          <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                            {SLOT_STATUS_LABEL[slot.status]}
-                          </span>
-                          {slot.status === 'OPEN' && (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteSlot(slot.id)}
-                              disabled={busyId === slot.id}
-                              aria-label="Remover vaga"
-                              className="text-muted-dark transition-colors hover:text-red-700"
+              {slotsByDate.length === 0 ? (
+                <div className="mt-12 flex flex-col items-center text-center">
+                  <i className="bx bx-time-five text-5xl text-gold-deep/40" aria-hidden="true" />
+                  <p className="mt-3 font-subtitle text-base text-onyx">Sem horários neste mês</p>
+                  <p className="mt-1 font-subtitle text-sm text-muted-dark">
+                    Cria vagas acima para as clientes poderem marcar.
+                  </p>
+                </div>
+              ) : (
+                slotsByDate.map(([key, daySlots]) => {
+                  const heading = dayHeading(daySlots[0].startsAt)
+                  const past = key < dateKey(new Date().toISOString())
+                  return (
+                    <div key={key} className={`mt-7 ${past ? 'opacity-55' : ''}`}>
+                      <div className="flex items-baseline gap-3">
+                        <h3 className="font-logo text-lg text-onyx">{heading.title}</h3>
+                        {heading.sub && <span className="font-subtitle text-xs text-muted-dark">{heading.sub}</span>}
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {daySlots.map((slot) => (
+                          <div
+                            key={slot.id}
+                            className={`flex items-center gap-2 rounded-full border py-1.5 pl-4 ${
+                              slot.status === 'OPEN' ? 'pr-2' : 'pr-4'
+                            } font-subtitle text-sm ${
+                              slot.status === 'BOOKED'
+                                ? 'border-onyx bg-onyx text-white'
+                                : slot.status === 'PENDING'
+                                  ? 'border-gold-deep bg-gold-deep/10 text-onyx'
+                                  : 'border-gold/30 bg-white text-onyx'
+                            }`}
+                          >
+                            <span className="font-medium">{dateParts(slot.startsAt).time}</span>
+                            <span
+                              className={`text-[11px] uppercase tracking-wide ${
+                                slot.status === 'BOOKED' ? 'text-white/70' : 'text-muted-dark'
+                              }`}
                             >
-                              <i className="bx bx-x text-lg" aria-hidden="true" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
+                              {SLOT_STATUS_LABEL[slot.status]}
+                            </span>
+                            {slot.status === 'OPEN' && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSlot(slot.id)}
+                                disabled={busyId === slot.id}
+                                aria-label="Remover vaga"
+                                className="flex h-6 w-6 items-center justify-center rounded-full text-muted-dark transition-colors hover:bg-red-700/10 hover:text-red-700"
+                              >
+                                <i className="bx bx-x text-lg" aria-hidden="true" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  )
+                })
+              )}
 
               <div className="mt-8 rounded-2xl border border-red-700/20 bg-red-700/5 p-5">
                 {!clearingOpen ? (
