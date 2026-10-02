@@ -869,7 +869,7 @@ export default function AdminDashboardPage() {
                       <div className="flex items-center gap-2">
                         <MotionButton
                           className="border-onyx"
-                          variant="info"
+                          variant="success"
                           label="Aceitar"
                           size="sm"
                           disabled={busyId === booking.id}
@@ -997,7 +997,7 @@ export default function AdminDashboardPage() {
                       <div className="flex items-center gap-2">
                         <MotionButton
                           className="border-onyx"
-                          variant="info"
+                          variant="success"
                           label="Aprovar"
                           size="sm"
                           disabled={busyId === testimonial.id}

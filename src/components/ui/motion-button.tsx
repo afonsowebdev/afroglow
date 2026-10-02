@@ -5,7 +5,7 @@ const CIRCLE_BY_VARIANT = {
   primary: 'bg-gold-deep',
   secondary: 'bg-onyx',
   danger: 'bg-red-700',
-  info: 'bg-blue-600',
+  success: 'bg-emerald-600',
 } as const
 
 // Icon circle sits inset by `p-1` on the track; on hover it slides from the
