@@ -1,3 +1,4 @@
+import 'express-async-errors'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express, { type NextFunction, type Request, type Response } from 'express'
@@ -74,6 +75,15 @@ app.use((_req, res) => {
 app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error('[server] unhandled error:', error)
   res.status(error.message === 'Not allowed by CORS' ? 403 : 500).json({ error: 'Erro no servidor.' })
+})
+
+// Last-resort guards: log instead of letting a stray rejection kill the whole
+// process (which the host reports to clients as a 502 until it restarts).
+process.on('unhandledRejection', (reason) => {
+  console.error('[server] unhandled rejection:', reason)
+})
+process.on('uncaughtException', (error) => {
+  console.error('[server] uncaught exception:', error)
 })
 
 const port = Number(process.env.PORT) || 3001
