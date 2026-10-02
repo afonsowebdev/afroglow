@@ -621,6 +621,7 @@ interface ServiceUsage {
   total: number
   active: number
   history: number
+  activeBookings: Array<{ id: string; customerName: string; status: 'PENDING' | 'ACCEPTED'; startsAt: string }>
 }
 
 function DeleteServiceDialog({
@@ -689,10 +690,35 @@ function DeleteServiceDialog({
               {usage === null ? (
                 !error && <p className="font-subtitle text-sm text-muted-dark">A verificar marcações...</p>
               ) : blocked ? (
-                <p className="rounded-xl border border-red-700/20 bg-red-700/5 px-4 py-3 font-subtitle text-sm text-red-700">
-                  Tem <strong>{usage.active}</strong> {usage.active === 1 ? 'marcação ativa' : 'marcações ativas'}{' '}
-                  (pendentes ou futuras). Aceita, recusa ou cancela essas marcações primeiro.
-                </p>
+                <div className="rounded-xl border border-red-700/20 bg-red-700/5 p-4">
+                  <p className="font-subtitle text-sm text-red-700">
+                    Tem <strong>{usage.active}</strong> {usage.active === 1 ? 'marcação ativa' : 'marcações ativas'} que
+                    ainda não aconteceram. Resolve-as primeiro:
+                  </p>
+                  <ul className="mt-3 flex flex-col gap-2">
+                    {usage.activeBookings.map((booking) => (
+                      <li
+                        key={booking.id}
+                        className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 font-subtitle text-sm"
+                      >
+                        <span className="min-w-0 truncate text-onyx">{booking.customerName}</span>
+                        <span className="shrink-0 text-xs text-muted-dark">
+                          {booking.status === 'PENDING' ? 'Pendente' : 'Confirmada'} ·{' '}
+                          {formatDateTime(booking.startsAt)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {usage.active > usage.activeBookings.length && (
+                    <p className="mt-2 font-subtitle text-xs text-muted-dark">
+                      e mais {usage.active - usage.activeBookings.length}...
+                    </p>
+                  )}
+                  <p className="mt-3 font-subtitle text-xs text-muted-dark">
+                    As pendentes estão na aba <strong>Pedidos</strong> (recusar) e as confirmadas na{' '}
+                    <strong>Agenda</strong> (cancelar sessão).
+                  </p>
+                </div>
               ) : usage.history > 0 ? (
                 <p className="rounded-xl bg-gold-deep/5 px-4 py-3 font-subtitle text-sm text-muted-dark">
                   Também serão apagadas <strong>{usage.history}</strong>{' '}

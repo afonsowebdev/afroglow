@@ -49,18 +49,26 @@ adminServicesRouter.patch('/:id', async (req, res) => {
   }
 })
 
-// A service that still has live bookings (pending, or accepted and not yet
-// happened) must not disappear from under the clients who booked it.
+// A service that still has live bookings (pending or accepted, for a time that
+// has not passed yet) must not disappear from under the clients who booked it.
+// A pending request whose slot is already in the past can never be fulfilled, so
+// it counts as history instead of blocking the delete forever.
 async function countServiceBookings(serviceId: string) {
   const bookings = await prisma.booking.findMany({
     where: { serviceId },
-    select: { status: true, slot: { select: { startsAt: true } } },
+    select: { id: true, customerName: true, status: true, slot: { select: { startsAt: true } } },
+    orderBy: { slot: { startsAt: 'asc' } },
   })
   const now = Date.now()
-  const active = bookings.filter(
-    (b) => b.status === 'PENDING' || (b.status === 'ACCEPTED' && b.slot.startsAt.getTime() >= now),
-  ).length
-  return { total: bookings.length, active, history: bookings.length - active }
+  const activeBookings = bookings
+    .filter((b) => (b.status === 'PENDING' || b.status === 'ACCEPTED') && b.slot.startsAt.getTime() >= now)
+    .map((b) => ({ id: b.id, customerName: b.customerName, status: b.status, startsAt: b.slot.startsAt }))
+  return {
+    total: bookings.length,
+    active: activeBookings.length,
+    history: bookings.length - activeBookings.length,
+    activeBookings: activeBookings.slice(0, 10),
+  }
 }
 
 adminServicesRouter.get('/:id/usage', async (req, res) => {
