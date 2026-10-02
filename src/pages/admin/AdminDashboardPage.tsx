@@ -81,13 +81,13 @@ const TABS: Array<{ id: AdminTab; label: string; icon: string }> = [
 
 function StatCard({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-gold/20 bg-white px-5 py-4 shadow-sm shadow-black/5">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 text-lg text-gold-deep">
+    <div className="flex items-center gap-4 rounded-2xl border border-onyx bg-white px-5 py-4 shadow-sm shadow-black/5">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-lg text-onyx">
         <i className={icon} aria-hidden="true" />
       </span>
       <div>
         <p className="font-logo text-2xl text-onyx">{value}</p>
-        <p className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">{label}</p>
+        <p className="font-subtitle text-xs uppercase tracking-wide text-onyx/70">{label}</p>
       </div>
     </div>
   )
@@ -445,7 +445,7 @@ export default function AdminDashboardPage() {
 
   if (checkingAuth) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white font-subtitle text-muted-dark">
+      <div className="flex min-h-screen items-center justify-center bg-white font-subtitle text-onyx/70">
         A verificar sessão...
       </div>
     )
@@ -465,7 +465,7 @@ export default function AdminDashboardPage() {
             <button
               type="button"
               onClick={handleLogout}
-              className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-deep sm:px-6 ${pillClasses}`}
+              className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-onyx sm:px-6 ${pillClasses}`}
             >
               <span>Sair</span>
               <i className="bx bx-log-out text-lg" aria-hidden="true" />
@@ -476,17 +476,17 @@ export default function AdminDashboardPage() {
 
       <main className="mx-auto max-w-4xl px-5 pb-36 pt-[calc(7rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(8rem+env(safe-area-inset-top))]">
         <h1 className="font-logo text-4xl text-onyx sm:text-5xl">Painel de Admin</h1>
-        <p className="mt-4 font-subtitle text-lg font-light text-muted-dark">{adminEmail}</p>
+        <p className="mt-4 font-subtitle text-lg font-light text-onyx/70">{adminEmail}</p>
 
         {error && <p className="mt-6 font-subtitle text-sm text-red-700">{error}</p>}
 
         {(tab === 'agenda' || tab === 'disponibilidade') && (
-          <div className="mt-6 flex items-center justify-center gap-4 rounded-full border border-gold/20 bg-white px-4 py-2 shadow-sm shadow-black/5 sm:justify-start">
+          <div className="mt-6 flex items-center justify-center gap-4 rounded-full border border-onyx bg-white px-4 py-2 shadow-sm shadow-black/5 sm:justify-start">
             <button
               type="button"
               aria-label="Mês anterior"
               onClick={() => shiftMonth(-1)}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-dark transition-colors hover:bg-white hover:text-gold-deep"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-onyx/70 transition-colors hover:bg-white hover:text-onyx"
             >
               <i className="bx bx-chevron-left" aria-hidden="true" />
             </button>
@@ -495,7 +495,7 @@ export default function AdminDashboardPage() {
               type="button"
               aria-label="Mês seguinte"
               onClick={() => shiftMonth(1)}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-dark transition-colors hover:bg-white hover:text-gold-deep"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-onyx/70 transition-colors hover:bg-white hover:text-onyx"
             >
               <i className="bx bx-chevron-right" aria-hidden="true" />
             </button>
@@ -518,34 +518,35 @@ export default function AdminDashboardPage() {
                 {services.map((service) => {
                   const isEditing = editingServiceId === service.id
                   return (
-                    <div key={service.id} className="rounded-2xl border border-gold/20 p-5">
+                    <div key={service.id} className="rounded-2xl border border-onyx p-5">
                       {isEditing ? (
                         <div className="flex flex-col gap-4">
                           <div className="grid gap-3 sm:grid-cols-2">
                             <label className="flex flex-col gap-1.5">
-                              <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+                              <span className="font-subtitle text-xs uppercase tracking-wide text-onyx/70">
                                 Duração
                               </span>
                               <input
                                 value={editDuration}
                                 onChange={(e) => setEditDuration(e.target.value)}
-                                className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                                className="rounded-xl border border-onyx px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-onyx"
                               />
                             </label>
                             <label className="flex flex-col gap-1.5">
-                              <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+                              <span className="font-subtitle text-xs uppercase tracking-wide text-onyx/70">
                                 Preço (€)
                               </span>
                               <input
                                 value={editPrice}
                                 onChange={(e) => setEditPrice(e.target.value)}
                                 inputMode="decimal"
-                                className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                                className="rounded-xl border border-onyx px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-onyx"
                               />
                             </label>
                           </div>
                           <div className="flex items-center gap-3">
                             <MotionButton
+                              className="border-onyx"
                               variant="secondary"
                               label={savingServiceId === service.id ? 'A guardar...' : 'Guardar'}
                               size="sm"
@@ -556,7 +557,7 @@ export default function AdminDashboardPage() {
                             <button
                               type="button"
                               onClick={() => setEditingServiceId(null)}
-                              className="font-subtitle text-sm text-muted-dark transition-colors hover:text-onyx"
+                              className="font-subtitle text-sm text-onyx/70 transition-colors hover:text-onyx"
                             >
                               Cancelar
                             </button>
@@ -566,17 +567,17 @@ export default function AdminDashboardPage() {
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div>
                             <p className="font-subtitle text-base text-onyx">{service.name}</p>
-                            <p className="mt-0.5 font-logo text-xs tracking-wide text-muted-dark">
+                            <p className="mt-0.5 font-logo text-xs tracking-wide text-onyx/70">
                               {service.durationLabel}
                             </p>
                           </div>
                           <div className="flex items-center gap-4">
-                            <span className="font-logo text-xl text-gold-deep">{formatPrice(service.priceCents)}</span>
+                            <span className="font-logo text-xl text-onyx">{formatPrice(service.priceCents)}</span>
                             <button
                               type="button"
                               onClick={() => startEditService(service)}
                               aria-label={`Editar ${service.name}`}
-                              className="flex h-9 w-9 items-center justify-center rounded-full border border-gold/30 text-muted-dark transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
+                              className="flex h-9 w-9 items-center justify-center rounded-full border border-onyx text-onyx/70 transition-colors duration-300 hover:border-onyx hover:text-onyx"
                             >
                               <i className="bx bx-pencil" aria-hidden="true" />
                             </button>
@@ -592,44 +593,44 @@ export default function AdminDashboardPage() {
                 {showAddService ? (
                   <form
                     onSubmit={handleCreateService}
-                    className="flex flex-col gap-4 rounded-2xl border border-gold/20 p-5"
+                    className="flex flex-col gap-4 rounded-2xl border border-onyx p-5"
                   >
                     <div className="grid gap-3 sm:grid-cols-2">
                       <label className="flex flex-col gap-1.5">
-                        <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Nome</span>
+                        <span className="font-subtitle text-xs uppercase tracking-wide text-onyx/70">Nome</span>
                         <input
                           value={newServiceName}
                           onChange={(e) => setNewServiceName(e.target.value)}
                           placeholder="Ex: Twist Braids"
-                          className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                          className="rounded-xl border border-onyx px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-onyx"
                         />
                       </label>
                       <label className="flex flex-col gap-1.5">
-                        <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Duração</span>
+                        <span className="font-subtitle text-xs uppercase tracking-wide text-onyx/70">Duração</span>
                         <input
                           value={newServiceDuration}
                           onChange={(e) => setNewServiceDuration(e.target.value)}
                           placeholder="Ex: 3-5h"
-                          className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                          className="rounded-xl border border-onyx px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-onyx"
                         />
                       </label>
                       <label className="flex flex-col gap-1.5 sm:col-span-2">
-                        <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Descrição</span>
+                        <span className="font-subtitle text-xs uppercase tracking-wide text-onyx/70">Descrição</span>
                         <input
                           value={newServiceDescription}
                           onChange={(e) => setNewServiceDescription(e.target.value)}
                           placeholder="Breve descrição para as clientes"
-                          className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                          className="rounded-xl border border-onyx px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-onyx"
                         />
                       </label>
                       <label className="flex flex-col gap-1.5">
-                        <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Preço (€)</span>
+                        <span className="font-subtitle text-xs uppercase tracking-wide text-onyx/70">Preço (€)</span>
                         <input
                           value={newServicePrice}
                           onChange={(e) => setNewServicePrice(e.target.value)}
                           inputMode="decimal"
                           placeholder="Ex: 65"
-                          className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-gold-deep"
+                          className="rounded-xl border border-onyx px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-onyx"
                         />
                       </label>
                     </div>
@@ -645,7 +646,7 @@ export default function AdminDashboardPage() {
                       <button
                         type="button"
                         onClick={() => setShowAddService(false)}
-                        className="font-subtitle text-sm text-muted-dark transition-colors hover:text-onyx"
+                        className="font-subtitle text-sm text-onyx/70 transition-colors hover:text-onyx"
                       >
                         Cancelar
                       </button>
@@ -655,7 +656,7 @@ export default function AdminDashboardPage() {
                   <button
                     type="button"
                     onClick={() => setShowAddService(true)}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-gold/30 py-4 font-subtitle text-sm text-muted-dark transition-colors duration-300 hover:border-gold-deep hover:text-gold-deep"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-onyx/60 py-4 font-subtitle text-sm text-onyx/70 transition-colors duration-300 hover:border-onyx hover:text-onyx"
                   >
                     <i className="bx bx-plus text-lg" aria-hidden="true" />
                     Adicionar novo modelo de tranças
@@ -670,22 +671,22 @@ export default function AdminDashboardPage() {
               <SectionHeading>Disponibilidade</SectionHeading>
               <form
                 onSubmit={handleCreateSlots}
-                className="mt-6 flex flex-col gap-4 rounded-2xl border border-gold/20 p-5"
+                className="mt-6 flex flex-col gap-4 rounded-2xl border border-onyx p-5"
               >
                 <div className="flex flex-wrap items-end gap-3">
                   <label className="flex flex-col gap-1.5">
-                    <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Data</span>
+                    <span className="font-subtitle text-xs uppercase tracking-wide text-onyx/70">Data</span>
                     <DatePicker value={newDate} onChange={setNewDate} />
                   </label>
                   <label className="flex flex-col gap-1.5">
-                    <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Hora</span>
+                    <span className="font-subtitle text-xs uppercase tracking-wide text-onyx/70">Hora</span>
                     <TimePicker value={newTimeInput} onChange={setNewTimeInput} />
                   </label>
                   <button
                     type="button"
                     onClick={addTimeToBatch}
                     disabled={!newTimeInput}
-                    className="flex h-11 items-center gap-1.5 rounded-full border border-gold/30 px-4 font-subtitle text-sm text-onyx transition-colors duration-300 hover:border-gold-deep disabled:opacity-40"
+                    className="flex h-11 items-center gap-1.5 rounded-full border border-onyx px-4 font-subtitle text-sm text-onyx transition-colors duration-300 hover:border-onyx disabled:opacity-40"
                   >
                     <i className="bx bx-plus" aria-hidden="true" />
                     Adicionar horário
@@ -697,14 +698,14 @@ export default function AdminDashboardPage() {
                     {batchTimes.map((time) => (
                       <span
                         key={time}
-                        className="flex items-center gap-2 rounded-full border border-gold/20 bg-white px-3 py-1.5 font-subtitle text-sm text-onyx"
+                        className="flex items-center gap-2 rounded-full border border-onyx bg-white px-3 py-1.5 font-subtitle text-sm text-onyx"
                       >
                         {time}
                         <button
                           type="button"
                           onClick={() => removeTimeFromBatch(time)}
                           aria-label={`Remover ${time}`}
-                          className="text-muted-dark transition-colors hover:text-red-700"
+                          className="text-onyx/70 transition-colors hover:text-red-700"
                         >
                           <i className="bx bx-x" aria-hidden="true" />
                         </button>
@@ -715,6 +716,7 @@ export default function AdminDashboardPage() {
 
                 <div>
                   <MotionButton
+                    className="border-onyx"
                     variant="secondary"
                     label={
                       addingSlot
@@ -731,20 +733,18 @@ export default function AdminDashboardPage() {
               </form>
 
               <div className="mt-6 flex flex-col gap-4">
-                {slotsByDate.length === 0 && (
-                  <p className="font-subtitle text-sm text-muted-dark">Sem vagas criadas.</p>
-                )}
+                {slotsByDate.length === 0 && <p className="font-subtitle text-sm text-onyx/70">Sem vagas criadas.</p>}
                 {slotsByDate.map(([key, daySlots]) => (
                   <div key={key}>
-                    <p className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">{key}</p>
+                    <p className="font-subtitle text-xs uppercase tracking-wide text-onyx/70">{key}</p>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {daySlots.map((slot) => (
                         <div
                           key={slot.id}
-                          className="flex items-center gap-2 rounded-full border border-gold/30 px-4 py-1.5 font-subtitle text-sm text-onyx"
+                          className="flex items-center gap-2 rounded-full border border-onyx px-4 py-1.5 font-subtitle text-sm text-onyx"
                         >
                           <span>{formatDateTime(slot.startsAt).split(', ').slice(1).join(', ')}</span>
-                          <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+                          <span className="font-subtitle text-xs uppercase tracking-wide text-onyx/70">
                             {SLOT_STATUS_LABEL[slot.status]}
                           </span>
                           {slot.status === 'OPEN' && (
@@ -753,7 +753,7 @@ export default function AdminDashboardPage() {
                               onClick={() => handleDeleteSlot(slot.id)}
                               disabled={busyId === slot.id}
                               aria-label="Remover vaga"
-                              className="text-muted-dark transition-colors hover:text-red-700"
+                              className="text-onyx/70 transition-colors hover:text-red-700"
                             >
                               <i className="bx bx-x text-lg" aria-hidden="true" />
                             </button>
@@ -775,7 +775,7 @@ export default function AdminDashboardPage() {
                       <span className="block font-subtitle text-sm font-medium text-red-700">
                         Limpar dados de {formatMonthLabel(viewMonth)}
                       </span>
-                      <span className="block font-subtitle text-xs text-muted-dark">
+                      <span className="block font-subtitle text-xs text-onyx/70">
                         Apaga vagas e marcações do mês, permanentemente
                       </span>
                     </span>
@@ -792,14 +792,14 @@ export default function AdminDashboardPage() {
                       </p>
                     </div>
                     <label className="flex max-w-xs flex-col gap-1.5">
-                      <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+                      <span className="font-subtitle text-xs uppercase tracking-wide text-onyx/70">
                         Confirma com a tua password
                       </span>
                       <input
                         type="password"
                         value={clearPassword}
                         onChange={(e) => setClearPassword(e.target.value)}
-                        className="rounded-xl border border-gold/30 px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-red-700"
+                        className="rounded-xl border border-onyx px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-red-700"
                       />
                     </label>
                     {clearError && <p className="font-subtitle text-sm text-red-700">{clearError}</p>}
@@ -819,7 +819,7 @@ export default function AdminDashboardPage() {
                           setClearPassword('')
                           setClearError(null)
                         }}
-                        className="rounded-full px-4 py-2 font-subtitle text-sm text-muted-dark transition-colors hover:bg-gold-deep/5 hover:text-onyx"
+                        className="rounded-full px-4 py-2 font-subtitle text-sm text-onyx/70 transition-colors hover:bg-onyx/5 hover:text-onyx"
                       >
                         Cancelar
                       </button>
@@ -834,13 +834,13 @@ export default function AdminDashboardPage() {
             <section className="mt-8">
               <SectionHeading>Marcações pendentes</SectionHeading>
               {pendingBookings.length === 0 ? (
-                <p className="mt-5 font-subtitle text-sm text-muted-dark">Sem marcações pendentes.</p>
+                <p className="mt-5 font-subtitle text-sm text-onyx/70">Sem marcações pendentes.</p>
               ) : (
                 <div className="mt-6 flex flex-col gap-3">
                   {pendingBookings.map((booking) => (
                     <div
                       key={booking.id}
-                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gold/20 p-5"
+                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-onyx p-5"
                     >
                       <div>
                         <p className="flex flex-wrap items-center gap-2 font-subtitle text-base text-onyx">
@@ -852,23 +852,24 @@ export default function AdminDashboardPage() {
                             )}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-sm text-muted-dark transition-colors hover:text-gold-deep"
+                            className="inline-flex items-center gap-1 text-sm text-onyx/70 transition-colors hover:text-onyx"
                           >
                             <i className="bx bxl-whatsapp" aria-hidden="true" />
                             {booking.customerPhone}
                           </a>
                         </p>
-                        <p className="mt-1 font-subtitle text-sm text-muted-dark">
+                        <p className="mt-1 font-subtitle text-sm text-onyx/70">
                           {booking.service.name} ({formatPrice(booking.service.priceCents)}) ·{' '}
                           {formatDateTime(booking.slot.startsAt)}
                         </p>
                         {booking.notes && (
-                          <p className="mt-1 font-subtitle text-xs italic text-muted-dark">"{booking.notes}"</p>
+                          <p className="mt-1 font-subtitle text-xs italic text-onyx/70">"{booking.notes}"</p>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
                         <MotionButton
-                          variant="secondary"
+                          className="border-onyx"
+                          variant="info"
                           label="Aceitar"
                           size="sm"
                           disabled={busyId === booking.id}
@@ -876,6 +877,7 @@ export default function AdminDashboardPage() {
                           icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
                         />
                         <MotionButton
+                          className="border-onyx"
                           label="Recusar"
                           size="sm"
                           variant="danger"
@@ -895,13 +897,13 @@ export default function AdminDashboardPage() {
             <section className="mt-8">
               <SectionHeading>Próximas sessões confirmadas</SectionHeading>
               {upcomingConfirmed.length === 0 ? (
-                <p className="mt-5 font-subtitle text-sm text-muted-dark">Sem sessões confirmadas agendadas.</p>
+                <p className="mt-5 font-subtitle text-sm text-onyx/70">Sem sessões confirmadas agendadas.</p>
               ) : (
                 <div className="mt-6 flex flex-col gap-3">
                   {upcomingConfirmed.map((booking) => (
                     <div
                       key={booking.id}
-                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5"
+                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-onyx bg-white p-5 shadow-sm shadow-black/5"
                     >
                       <div>
                         <p className="flex flex-wrap items-center gap-2 font-subtitle text-base text-onyx">
@@ -913,13 +915,13 @@ export default function AdminDashboardPage() {
                             )}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-sm text-muted-dark transition-colors hover:text-gold-deep"
+                            className="inline-flex items-center gap-1 text-sm text-onyx/70 transition-colors hover:text-onyx"
                           >
                             <i className="bx bxl-whatsapp" aria-hidden="true" />
                             {booking.customerPhone}
                           </a>
                         </p>
-                        <p className="mt-1 font-subtitle text-sm text-muted-dark">
+                        <p className="mt-1 font-subtitle text-sm text-onyx/70">
                           {booking.service.name} · {formatDateTime(booking.slot.startsAt)}
                         </p>
                       </div>
@@ -943,23 +945,23 @@ export default function AdminDashboardPage() {
             <section className="mt-14">
               <SectionHeading>Histórico</SectionHeading>
               {history.length === 0 ? (
-                <p className="mt-5 font-subtitle text-sm text-muted-dark">Ainda sem histórico.</p>
+                <p className="mt-5 font-subtitle text-sm text-onyx/70">Ainda sem histórico.</p>
               ) : (
                 <div className="mt-6 flex flex-col gap-2">
                   {history.map((booking) => (
                     <div
                       key={booking.id}
-                      className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/20 py-3"
+                      className="flex flex-wrap items-center justify-between gap-3 border-b border-onyx py-3"
                     >
-                      <p className="font-subtitle text-sm text-muted-dark">
+                      <p className="font-subtitle text-sm text-onyx/70">
                         {booking.customerName} · {booking.service.name} · {formatDateTime(booking.slot.startsAt)}
                       </p>
                       <span
                         className={`font-subtitle text-xs uppercase tracking-wide ${
                           booking.status === 'ACCEPTED'
-                            ? 'text-gold-deep'
+                            ? 'text-onyx'
                             : booking.status === 'CANCELLED'
-                              ? 'text-muted-dark'
+                              ? 'text-onyx/70'
                               : 'text-red-700'
                         }`}
                       >
@@ -976,25 +978,26 @@ export default function AdminDashboardPage() {
             <section className="mt-8">
               <SectionHeading>Testemunhos pendentes</SectionHeading>
               {pendingTestimonials.length === 0 ? (
-                <p className="mt-5 font-subtitle text-sm text-muted-dark">Sem testemunhos por rever.</p>
+                <p className="mt-5 font-subtitle text-sm text-onyx/70">Sem testemunhos por rever.</p>
               ) : (
                 <div className="mt-6 flex flex-col gap-3">
                   {pendingTestimonials.map((testimonial) => (
                     <div
                       key={testimonial.id}
-                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gold/20 p-5"
+                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-onyx p-5"
                     >
                       <div>
                         <p className="font-subtitle text-base text-onyx">
                           <span className="font-medium">{testimonial.customer.name}</span>
                         </p>
-                        <p className="mt-1 max-w-xl font-subtitle text-sm italic text-muted-dark">
+                        <p className="mt-1 max-w-xl font-subtitle text-sm italic text-onyx/70">
                           "{testimonial.content}"
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <MotionButton
-                          variant="secondary"
+                          className="border-onyx"
+                          variant="info"
                           label="Aprovar"
                           size="sm"
                           disabled={busyId === testimonial.id}
@@ -1002,6 +1005,7 @@ export default function AdminDashboardPage() {
                           icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
                         />
                         <MotionButton
+                          className="border-onyx"
                           label="Recusar"
                           size="sm"
                           variant="danger"
@@ -1020,14 +1024,14 @@ export default function AdminDashboardPage() {
                   {resolvedTestimonials.map((testimonial) => (
                     <div
                       key={testimonial.id}
-                      className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/20 py-3"
+                      className="flex flex-wrap items-center justify-between gap-3 border-b border-onyx py-3"
                     >
-                      <p className="font-subtitle text-sm text-muted-dark">
+                      <p className="font-subtitle text-sm text-onyx/70">
                         {testimonial.customer.name} · "{testimonial.content}"
                       </p>
                       <span
                         className={`font-subtitle text-xs uppercase tracking-wide ${
-                          testimonial.status === 'APPROVED' ? 'text-gold-deep' : 'text-red-700'
+                          testimonial.status === 'APPROVED' ? 'text-onyx' : 'text-red-700'
                         }`}
                       >
                         {testimonial.status === 'APPROVED' ? 'Aprovado' : 'Recusado'}
