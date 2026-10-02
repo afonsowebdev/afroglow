@@ -1032,9 +1032,9 @@ export default function AdminDashboardPage() {
 
       <nav
         aria-label="Secções do painel"
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-gold/20 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_rgba(26,16,8,0.06)] backdrop-blur"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
       >
-        <div className="mx-auto grid max-w-4xl grid-cols-5 divide-x divide-gold/15">
+        <div className="pointer-events-auto flex w-full max-w-sm items-center gap-0.5 rounded-full border border-gold/20 bg-white/95 p-1.5 shadow-xl shadow-black/10 backdrop-blur">
           {TABS.map(({ id, label, icon }) => {
             const badge =
               id === 'pedidos' ? pendingBookings.length : id === 'testemunhos' ? pendingTestimonials.length : 0
@@ -1048,26 +1048,34 @@ export default function AdminDashboardPage() {
                   window.scrollTo({ top: 0 })
                 }}
                 aria-current={active ? 'page' : undefined}
-                className={`relative flex flex-col items-center gap-1 px-1 pb-2.5 pt-3 font-subtitle transition-colors duration-300 ${
-                  active ? 'bg-cream text-gold-deep' : 'text-onyx/50 hover:text-onyx'
-                }`}
+                className="relative flex flex-1 flex-col items-center gap-0.5 rounded-full px-1 py-2 font-subtitle"
               >
                 {active && (
                   <motion.span
-                    layoutId="admin-nav-indicator"
-                    className="absolute inset-x-0 top-0 h-0.5 bg-gold-deep"
+                    layoutId="admin-nav-pill"
+                    className="absolute inset-0 rounded-full bg-cream ring-1 ring-gold/25"
                     transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                   />
                 )}
-                <span className="relative text-2xl leading-none">
+                <span
+                  className={`relative text-[22px] leading-none transition-colors duration-300 ${
+                    active ? 'text-gold-deep' : 'text-onyx/45'
+                  }`}
+                >
                   <i className={icon} aria-hidden="true" />
                   {badge > 0 && (
-                    <span className="absolute -right-3 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gold-deep px-1 text-[10px] leading-none text-cream">
+                    <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold-deep px-1 text-[10px] leading-none text-cream">
                       {badge}
                     </span>
                   )}
                 </span>
-                <span className="text-[11px] leading-none">{label}</span>
+                <span
+                  className={`relative text-[10px] leading-none transition-colors duration-300 ${
+                    active ? 'text-gold-deep' : 'text-onyx/45'
+                  }`}
+                >
+                  {label}
+                </span>
               </button>
             )
           })}
