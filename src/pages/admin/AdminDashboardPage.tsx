@@ -1235,26 +1235,33 @@ export default function AdminDashboardPage() {
                 })
               )}
 
-              <div className="mt-10">
-                <p className="mb-2 font-subtitle text-xs uppercase tracking-wide text-muted-dark">Zona de perigo</p>
-                <button
-                  type="button"
-                  onClick={openClearPanel}
-                  className="flex w-full items-center gap-4 rounded-2xl border border-red-700/20 bg-red-700/5 p-4 text-left transition-colors hover:bg-red-700/10"
-                >
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-700/10 text-lg text-red-700">
-                    <i className="bx bx-trash" aria-hidden="true" />
+              <div className="mt-12">
+                <div className="flex items-center gap-3">
+                  <span className="h-px flex-1 bg-gold/25" />
+                  <span className="flex items-center gap-1.5 font-subtitle text-[11px] uppercase tracking-[0.18em] text-muted-dark">
+                    <i className="bx bx-error text-sm text-red-700" aria-hidden="true" />
+                    Zona de perigo
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-subtitle text-sm font-semibold text-red-700">
-                      Limpar dados de {formatMonthLabel(viewMonth)}
-                    </span>
-                    <span className="block font-subtitle text-xs text-muted-dark">
-                      Apaga vagas e marcações do mês, permanentemente
-                    </span>
-                  </span>
-                  <i className="bx bx-chevron-right text-xl text-red-700/70" aria-hidden="true" />
-                </button>
+                  <span className="h-px flex-1 bg-gold/25" />
+                </div>
+
+                <div className="relative mt-4 overflow-hidden rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5">
+                  <span className="absolute inset-y-0 left-0 w-1 bg-red-700" aria-hidden="true" />
+                  <div className="pl-2">
+                    <p className="font-logo text-lg text-onyx">Limpar {formatMonthLabel(viewMonth)}</p>
+                    <p className="mt-1 font-subtitle text-sm text-muted-dark">
+                      Apaga todas as vagas e marcações deste mês, incluindo as já aceites. Não pode ser desfeito.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={openClearPanel}
+                      className="mt-4 inline-flex items-center gap-2 rounded-full border border-red-700/40 px-5 py-2.5 font-subtitle text-sm font-semibold text-red-700 transition-colors hover:bg-red-700 hover:text-[#ffffff]"
+                    >
+                      <i className="bx bx-trash text-base" aria-hidden="true" />
+                      Limpar mês
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <ClearMonthDialog
