@@ -222,7 +222,7 @@ function AgendaView({
                       <div className="min-w-0 flex-1 p-4">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="truncate font-subtitle text-base font-medium text-onyx">
+                            <p className="truncate font-subtitle text-base font-semibold text-onyx">
                               {booking.customerName}
                             </p>
                             <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
@@ -285,7 +285,7 @@ function AgendaView({
                     <p className="mt-1 font-subtitle text-[10px] uppercase text-muted-dark">{month}</p>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-subtitle text-sm font-medium text-onyx">{booking.customerName}</p>
+                    <p className="truncate font-subtitle text-sm font-semibold text-onyx">{booking.customerName}</p>
                     <p className="truncate font-subtitle text-xs text-muted-dark">
                       {booking.service.name} · {time}
                     </p>
@@ -656,7 +656,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-white">
+    <div className="relative min-h-screen bg-white font-medium">
       {/* Not fixed: the header scrolls away with the page. */}
       <div className="absolute inset-x-0 top-0 z-40 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
@@ -1026,7 +1026,7 @@ export default function AdminDashboardPage() {
                                   : 'border-gold/30 bg-white text-onyx'
                             }`}
                           >
-                            <span className="font-medium">{dateParts(slot.startsAt).time}</span>
+                            <span className="font-semibold">{dateParts(slot.startsAt).time}</span>
                             <span
                               className={`text-[11px] uppercase tracking-wide ${
                                 slot.status === 'BOOKED' ? 'text-white/70' : 'text-muted-dark'
@@ -1060,7 +1060,7 @@ export default function AdminDashboardPage() {
                       <i className="bx bx-trash text-lg" aria-hidden="true" />
                     </span>
                     <span>
-                      <span className="block font-subtitle text-sm font-medium text-red-700">
+                      <span className="block font-subtitle text-sm font-semibold text-red-700">
                         Limpar dados de {formatMonthLabel(viewMonth)}
                       </span>
                       <span className="block font-subtitle text-xs text-muted-dark">
@@ -1132,7 +1132,7 @@ export default function AdminDashboardPage() {
                     >
                       <div>
                         <p className="flex flex-wrap items-center gap-2 font-subtitle text-base text-onyx">
-                          <span className="font-medium">{booking.customerName}</span>
+                          <span className="font-semibold">{booking.customerName}</span>
                           <a
                             href={customerWhatsappUrl(
                               booking.customerPhone,
@@ -1192,7 +1192,7 @@ export default function AdminDashboardPage() {
                     >
                       <div>
                         <p className="font-subtitle text-base text-onyx">
-                          <span className="font-medium">{testimonial.customer.name}</span>
+                          <span className="font-semibold">{testimonial.customer.name}</span>
                         </p>
                         <p className="mt-1 max-w-xl font-subtitle text-sm italic text-muted-dark">
                           "{testimonial.content}"

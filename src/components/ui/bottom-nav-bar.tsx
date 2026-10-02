@@ -78,7 +78,7 @@ export function BottomNavBar<T extends string>({
               }}
               className="flex items-center overflow-hidden"
             >
-              <span className="select-none whitespace-nowrap text-xs font-medium">{item.label}</span>
+              <span className="select-none whitespace-nowrap text-xs font-semibold">{item.label}</span>
             </motion.span>
           </motion.button>
         )
