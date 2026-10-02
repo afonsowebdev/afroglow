@@ -1,4 +1,4 @@
-import { type FormEvent, type ReactNode, useCallback, useEffect, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
@@ -78,10 +78,6 @@ const HISTORY_STATUS_LABEL: Record<Booking['status'], string> = {
   ACCEPTED: 'Concluída',
   REJECTED: 'Recusada',
   CANCELLED: 'Cancelada',
-}
-
-function SectionHeading({ children }: { children: ReactNode }) {
-  return <h2 className="font-subtitle text-xl text-onyx sm:text-2xl">{children}</h2>
 }
 
 type AdminTab = 'pedidos' | 'agenda' | 'disponibilidade' | 'servicos' | 'testemunhos'
@@ -915,6 +911,211 @@ function TestimonialsView({
   )
 }
 
+function PendingCard({
+  booking,
+  busy,
+  onDecision,
+}: {
+  booking: Booking
+  busy: boolean
+  onDecision: (id: string, decision: 'accept' | 'reject') => void
+}) {
+  const [confirmingReject, setConfirmingReject] = useState(false)
+  const { day, month, weekday, time } = dateParts(booking.slot.startsAt)
+  const hoursUntil = (new Date(booking.slot.startsAt).getTime() - Date.now()) / 3_600_000
+  const badge =
+    hoursUntil < 0
+      ? { label: 'Data passada', className: 'bg-red-700/10 text-red-700' }
+      : hoursUntil < 24
+        ? { label: 'Urgente · menos de 24h', className: 'bg-gold-deep/15 text-gold-deep' }
+        : null
+
+  return (
+    <motion.article
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -24 }}
+      className="overflow-hidden rounded-2xl border border-gold/20 bg-white shadow-sm shadow-black/5"
+    >
+      <div className="flex">
+        <div className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-gold/20 bg-gold-deep/5 py-4">
+          <span className="font-logo text-2xl leading-none text-onyx">{day}</span>
+          <span className="mt-1 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{month}</span>
+          <span className="mt-2 font-subtitle text-xs font-semibold text-onyx">{time}</span>
+        </div>
+
+        <div className="min-w-0 flex-1 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate font-subtitle text-base font-semibold text-onyx">{booking.customerName}</p>
+              <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
+                {booking.service.name} · {formatPrice(booking.service.priceCents)}
+              </p>
+              <p className="mt-0.5 font-subtitle text-xs capitalize text-muted-dark">{weekday}</p>
+            </div>
+            <a
+              href={customerWhatsappUrl(
+                booking.customerPhone,
+                `Olá ${booking.customerName}! Sobre a tua marcação de ${booking.service.name}...`,
+              )}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`WhatsApp de ${booking.customerName}`}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold/20 text-xl text-onyx transition-colors hover:border-gold-deep hover:text-gold-deep"
+            >
+              <i className="bx bxl-whatsapp" aria-hidden="true" />
+            </a>
+          </div>
+
+          {badge && (
+            <span className={`mt-2 inline-block rounded-full px-2.5 py-1 font-subtitle text-[11px] ${badge.className}`}>
+              {badge.label}
+            </span>
+          )}
+
+          {booking.notes && (
+            <p className="mt-3 rounded-lg bg-gold-deep/5 px-3 py-2 font-subtitle text-xs italic text-muted-dark">
+              "{booking.notes}"
+            </p>
+          )}
+
+          <p className="mt-3 font-subtitle text-xs text-muted-dark">
+            {booking.customerPhone} · Recebido {timeAgo(booking.createdAt).toLowerCase()}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-end gap-2 border-t border-gold/15 bg-gold-deep/[0.03] px-4 py-3">
+        {confirmingReject ? (
+          <>
+            <span className="mr-auto font-subtitle text-sm text-onyx">Recusar este pedido?</span>
+            <button
+              type="button"
+              onClick={() => setConfirmingReject(false)}
+              disabled={busy}
+              className="rounded-full border border-gold/30 px-4 py-2 font-subtitle text-sm text-onyx disabled:opacity-50"
+            >
+              Voltar
+            </button>
+            <button
+              type="button"
+              onClick={() => onDecision(booking.id, 'reject')}
+              disabled={busy}
+              className="rounded-full bg-red-700 px-4 py-2 font-subtitle text-sm text-[#ffffff] disabled:opacity-50"
+            >
+              {busy ? 'A recusar...' : 'Sim, recusar'}
+            </button>
+          </>
+        ) : (
+          <>
+            <MotionButton
+              label="Recusar"
+              size="sm"
+              variant="secondary"
+              disabled={busy}
+              onClick={() => setConfirmingReject(true)}
+              icon={<i className="bx bx-x text-lg" aria-hidden="true" />}
+            />
+            <MotionButton
+              label={busy ? 'A aceitar...' : 'Aceitar'}
+              size="sm"
+              disabled={busy || hoursUntil < 0}
+              onClick={() => onDecision(booking.id, 'accept')}
+              icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
+            />
+          </>
+        )}
+      </div>
+    </motion.article>
+  )
+}
+
+function PendingView({
+  bookings,
+  busyId,
+  onDecision,
+}: {
+  bookings: Booking[]
+  busyId: string | null
+  onDecision: (id: string, decision: 'accept' | 'reject') => void
+}) {
+  const [order, setOrder] = useState<'sessao' | 'recebido'>('sessao')
+  const sorted = [...bookings].sort((a, b) =>
+    order === 'sessao'
+      ? new Date(a.slot.startsAt).getTime() - new Date(b.slot.startsAt).getTime()
+      : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  )
+  const now = Date.now()
+  const thisWeek = bookings.filter((b) => {
+    const t = new Date(b.slot.startsAt).getTime()
+    return t >= now && t < now + 7 * 86_400_000
+  }).length
+  const totalCents = bookings.reduce((sum, b) => sum + b.service.priceCents, 0)
+
+  if (bookings.length === 0) {
+    return (
+      <div className="mt-16 flex flex-col items-center text-center">
+        <i className="bx bx-bell-off text-5xl text-gold-deep/40" aria-hidden="true" />
+        <p className="mt-3 font-subtitle text-base font-semibold text-onyx">Sem pedidos pendentes</p>
+        <p className="mt-1 font-subtitle text-sm text-muted-dark">Os novos pedidos aparecem aqui logo que chegam.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="mt-4 grid grid-cols-3 gap-3">
+        {[
+          { label: 'Pendentes', value: String(bookings.length) },
+          { label: 'Nos próx. 7 dias', value: String(thisWeek) },
+          { label: 'Valor em espera', value: formatPrice(totalCents) },
+        ].map((stat) => (
+          <div key={stat.label} className="rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
+            <p className="font-logo text-xl leading-none text-onyx">{stat.value}</p>
+            <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-6 flex rounded-full border border-gold/20 bg-white p-1 shadow-sm shadow-black/5">
+        {(
+          [
+            ['sessao', 'Por data da sessão'],
+            ['recebido', 'Mais recentes'],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setOrder(id)}
+            className="relative flex-1 rounded-full py-2.5 font-subtitle text-xs sm:text-sm"
+          >
+            {order === id && (
+              <motion.span
+                layoutId="pending-order"
+                className="absolute inset-0 rounded-full bg-gold-deep"
+                transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+              />
+            )}
+            <span className={`relative transition-colors ${order === id ? 'text-cream' : 'text-onyx/70'}`}>
+              {label}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-6 flex flex-col gap-4">
+        <AnimatePresence initial={false}>
+          {sorted.map((booking) => (
+            <PendingCard key={booking.id} booking={booking} busy={busyId === booking.id} onDecision={onDecision} />
+          ))}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
   const [checkingAuth, setCheckingAuth] = useState(true)
@@ -1733,63 +1934,11 @@ export default function AdminDashboardPage() {
           )}
 
           {tab === 'pedidos' && (
-            <section className="mt-8">
-              <SectionHeading>Marcações pendentes</SectionHeading>
-              {pendingBookings.length === 0 ? (
-                <p className="mt-5 font-subtitle text-sm text-muted-dark">Sem marcações pendentes.</p>
-              ) : (
-                <div className="mt-6 flex flex-col gap-3">
-                  {pendingBookings.map((booking) => (
-                    <div
-                      key={booking.id}
-                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gold/20 p-5"
-                    >
-                      <div>
-                        <p className="flex flex-wrap items-center gap-2 font-subtitle text-base text-onyx">
-                          <span className="font-semibold">{booking.customerName}</span>
-                          <a
-                            href={customerWhatsappUrl(
-                              booking.customerPhone,
-                              `Olá ${booking.customerName}! Sobre a tua marcação de ${booking.service.name}...`,
-                            )}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-sm text-muted-dark transition-colors hover:text-gold-deep"
-                          >
-                            <i className="bx bxl-whatsapp" aria-hidden="true" />
-                            {booking.customerPhone}
-                          </a>
-                        </p>
-                        <p className="mt-1 font-subtitle text-sm text-muted-dark">
-                          {booking.service.name} ({formatPrice(booking.service.priceCents)}) ·{' '}
-                          {formatDateTime(booking.slot.startsAt)}
-                        </p>
-                        {booking.notes && (
-                          <p className="mt-1 font-subtitle text-xs italic text-muted-dark">"{booking.notes}"</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MotionButton
-                          label="Aceitar"
-                          size="sm"
-                          disabled={busyId === booking.id}
-                          onClick={() => handleBookingDecision(booking.id, 'accept')}
-                          icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
-                        />
-                        <MotionButton
-                          label="Recusar"
-                          size="sm"
-                          variant="secondary"
-                          disabled={busyId === booking.id}
-                          onClick={() => handleBookingDecision(booking.id, 'reject')}
-                          icon={<i className="bx bx-x text-lg" aria-hidden="true" />}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
+            <PendingView
+              bookings={pendingBookings}
+              busyId={busyId}
+              onDecision={(id, decision) => handleBookingDecision(id, decision)}
+            />
           )}
 
           {tab === 'testemunhos' && (
