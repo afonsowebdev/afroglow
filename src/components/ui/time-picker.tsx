@@ -46,17 +46,17 @@ export function TimePicker({
         onClick={() => setOpen((v) => !v)}
         className={
           triggerClassName ??
-          `flex items-center gap-2 rounded-xl border border-onyx px-4 py-2.5 font-subtitle text-sm outline-none transition-colors duration-300 hover:border-onyx ${
-            value ? 'text-onyx' : 'text-onyx/70'
+          `flex items-center gap-2 rounded-xl border border-gold/30 px-4 py-2.5 font-subtitle text-sm outline-none transition-colors duration-300 hover:border-gold-deep ${
+            value ? 'text-onyx' : 'text-muted-dark'
           }`
         }
       >
-        <i className="bx bx-time text-base text-onyx" aria-hidden="true" />
+        <i className="bx bx-time text-base text-gold-deep" aria-hidden="true" />
         {value || placeholder}
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-20 mt-2 max-h-56 w-36 overflow-y-auto rounded-2xl border border-onyx bg-white p-2 shadow-lg">
+        <div className="absolute left-0 top-full z-20 mt-2 max-h-56 w-36 overflow-y-auto rounded-2xl border border-gold/20 bg-white p-2 shadow-lg">
           {times.map((time) => (
             <button
               key={time}
@@ -66,7 +66,7 @@ export function TimePicker({
                 setOpen(false)
               }}
               className={`block w-full rounded-xl px-3 py-2 text-left font-subtitle text-sm transition-colors duration-200 ${
-                value === time ? 'bg-onyx text-white' : 'text-onyx hover:bg-cream'
+                value === time ? 'bg-gold-deep text-cream' : 'text-onyx hover:bg-cream'
               }`}
             >
               {time}

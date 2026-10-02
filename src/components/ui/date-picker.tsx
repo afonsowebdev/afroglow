@@ -73,23 +73,23 @@ export function DatePicker({
         }}
         className={
           triggerClassName ??
-          `flex items-center gap-2 rounded-xl border border-onyx px-4 py-2.5 font-subtitle text-sm outline-none transition-colors duration-300 hover:border-onyx ${
-            selected ? 'text-onyx' : 'text-onyx/70'
+          `flex items-center gap-2 rounded-xl border border-gold/30 px-4 py-2.5 font-subtitle text-sm outline-none transition-colors duration-300 hover:border-gold-deep ${
+            selected ? 'text-onyx' : 'text-muted-dark'
           }`
         }
       >
-        <i className="bx bx-calendar text-base text-onyx" aria-hidden="true" />
+        <i className="bx bx-calendar text-base text-gold-deep" aria-hidden="true" />
         {label}
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-20 mt-2 w-72 rounded-2xl border border-onyx bg-white p-4 shadow-lg">
+        <div className="absolute left-0 top-full z-20 mt-2 w-72 rounded-2xl border border-gold/20 bg-white p-4 shadow-lg">
           <div className="flex items-center justify-between">
             <button
               type="button"
               aria-label="Mês anterior"
               onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1))}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-onyx/70 transition-colors hover:bg-cream hover:text-onyx"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-dark transition-colors hover:bg-cream hover:text-gold-deep"
             >
               <i className="bx bx-chevron-left" aria-hidden="true" />
             </button>
@@ -100,7 +100,7 @@ export function DatePicker({
               type="button"
               aria-label="Mês seguinte"
               onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1))}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-onyx/70 transition-colors hover:bg-cream hover:text-onyx"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-dark transition-colors hover:bg-cream hover:text-gold-deep"
             >
               <i className="bx bx-chevron-right" aria-hidden="true" />
             </button>
@@ -108,7 +108,7 @@ export function DatePicker({
 
           <div className="mt-3 grid grid-cols-7 gap-1 text-center">
             {WEEKDAY_LETTERS.map((letter, i) => (
-              <span key={i} className="font-subtitle text-[11px] uppercase text-onyx/70">
+              <span key={i} className="font-subtitle text-[11px] uppercase text-muted-dark">
                 {letter}
               </span>
             ))}
@@ -128,11 +128,11 @@ export function DatePicker({
                   }}
                   className={`flex h-8 w-8 items-center justify-center rounded-full font-subtitle text-sm transition-colors duration-200 ${
                     isSelected
-                      ? 'bg-onyx text-white'
+                      ? 'bg-gold-deep text-cream'
                       : isPast
                         ? 'cursor-not-allowed text-onyx/20'
                         : isToday
-                          ? 'border border-onyx text-onyx'
+                          ? 'border border-gold-deep text-onyx'
                           : 'text-onyx hover:bg-cream'
                   }`}
                 >
