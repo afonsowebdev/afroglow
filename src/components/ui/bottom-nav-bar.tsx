@@ -34,7 +34,7 @@ export function BottomNavBar<T extends string>({
       transition={{ type: 'spring', stiffness: 300, damping: 26 }}
       aria-label="Secções do painel"
       className={cn(
-        'flex h-[56px] max-w-[95vw] items-center gap-1 rounded-full border border-[rgba(255,255,255,0.6)] bg-[rgba(255,255,255,0.4)] p-2 shadow-[0_8px_32px_rgba(26,16,8,0.14)] ring-1 ring-inset ring-[rgba(255,255,255,0.4)]  backdrop-blur-2xl backdrop-saturate-150',
+        'flex h-[56px] max-w-[95vw] items-center gap-1 rounded-full border border-[rgba(255,255,255,0.6)] bg-[rgba(255,255,255,0.4)] p-2 shadow-[0_8px_32px_rgba(26,16,8,0.14)] ring-1 ring-inset ring-[rgba(255,255,255,0.4)]  dark:border-[rgba(255,255,255,0.18)] dark:bg-[rgba(58,40,24,0.5)] dark:shadow-[0_10px_36px_rgba(0,0,0,0.55)] dark:ring-[rgba(255,255,255,0.08)] backdrop-blur-2xl backdrop-saturate-150',
         stickyBottom && 'fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 mx-auto w-fit',
         className,
       )}
@@ -52,8 +52,8 @@ export function BottomNavBar<T extends string>({
             className={cn(
               'relative flex h-10 min-w-[44px] items-center justify-center rounded-full px-3 font-subtitle transition-colors duration-200 focus:outline-none',
               isActive
-                ? 'bg-[rgba(255,255,255,0.5)] text-onyx shadow-sm shadow-black/5 dark:text-[#1a1008]'
-                : 'text-onyx/60 hover:bg-[rgba(255,255,255,0.3)] hover:text-onyx dark:text-[rgba(26,16,8,0.65)] dark:hover:text-[#1a1008]',
+                ? 'bg-[rgba(255,255,255,0.5)] text-onyx shadow-sm shadow-black/5 dark:bg-[rgba(255,255,255,0.14)]'
+                : 'text-onyx/60 hover:bg-[rgba(255,255,255,0.3)] hover:text-onyx dark:hover:bg-[rgba(255,255,255,0.08)]',
             )}
           >
             <span className="relative text-[22px] leading-none">
