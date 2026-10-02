@@ -59,7 +59,7 @@ export function BottomNavBar<T extends string>({
             <span className="relative text-[22px] leading-none">
               <i className={item.icon} aria-hidden="true" />
               {item.badge ? (
-                <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none text-white dark:bg-red-500">
+                <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none text-white">
                   {item.badge}
                 </span>
               ) : null}

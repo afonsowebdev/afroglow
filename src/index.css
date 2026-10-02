@@ -48,17 +48,6 @@
   --color-muted-dark: #d9c7a8;
 }
 
-/* Admin dark theme: neutral charcoal instead of the site's brown, to match the
-   black/white admin palette. Enabled by AdminDashboardPage on <html>. */
-.dark.admin-route {
-  --color-white: #141414;
-  --color-cream: #1f1f1f;
-  --color-onyx: #f4f4f5;
-  --color-muted: #a1a1aa;
-  --color-muted-dark: #d4d4d8;
-  color-scheme: dark;
-}
-
 @layer base {
   * {
     border-color: var(--color-gold);

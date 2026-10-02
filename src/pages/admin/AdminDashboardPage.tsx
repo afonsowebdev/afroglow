@@ -97,11 +97,6 @@ export default function AdminDashboardPage() {
   const navigate = useNavigate()
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [adminEmail, setAdminEmail] = useState<string | null>(null)
-  useEffect(() => {
-    document.documentElement.classList.add('admin-route')
-    return () => document.documentElement.classList.remove('admin-route')
-  }, [])
-
   const [tab, setTab] = useState<AdminTab>(() => {
     const fromHash = window.location.hash.slice(1)
     return TABS.some((t) => t.id === fromHash) ? (fromHash as AdminTab) : 'pedidos'
@@ -462,9 +457,7 @@ export default function AdminDashboardPage() {
       <div className="absolute inset-x-0 top-0 z-40 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
           <div className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
-            <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep dark:text-gold">
-              AFROGLOW
-            </span>
+            <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -485,7 +478,7 @@ export default function AdminDashboardPage() {
         <h1 className="font-logo text-4xl text-onyx sm:text-5xl">Painel de Admin</h1>
         <p className="mt-4 font-subtitle text-lg font-light text-onyx/70">{adminEmail}</p>
 
-        {error && <p className="mt-6 font-subtitle text-sm text-red-600 dark:text-red-400">{error}</p>}
+        {error && <p className="mt-6 font-subtitle text-sm text-red-700">{error}</p>}
 
         {(tab === 'agenda' || tab === 'disponibilidade') && (
           <div className="mt-6 flex items-center justify-center gap-4 rounded-full border border-onyx bg-white px-4 py-2 shadow-sm shadow-black/5 sm:justify-start">
@@ -712,7 +705,7 @@ export default function AdminDashboardPage() {
                           type="button"
                           onClick={() => removeTimeFromBatch(time)}
                           aria-label={`Remover ${time}`}
-                          className="text-onyx/70 transition-colors hover:text-red-600 dark:hover:text-red-400"
+                          className="text-onyx/70 transition-colors hover:text-red-700"
                         >
                           <i className="bx bx-x" aria-hidden="true" />
                         </button>
@@ -760,7 +753,7 @@ export default function AdminDashboardPage() {
                               onClick={() => handleDeleteSlot(slot.id)}
                               disabled={busyId === slot.id}
                               aria-label="Remover vaga"
-                              className="text-onyx/70 transition-colors hover:text-red-600 dark:hover:text-red-400"
+                              className="text-onyx/70 transition-colors hover:text-red-700"
                             >
                               <i className="bx bx-x text-lg" aria-hidden="true" />
                             </button>
@@ -772,14 +765,14 @@ export default function AdminDashboardPage() {
                 ))}
               </div>
 
-              <div className="mt-8 rounded-2xl border border-red-600/25 dark:border-red-400/30 bg-red-600/5 dark:bg-red-500/10 p-5">
+              <div className="mt-8 rounded-2xl border border-red-700/20 bg-red-700/5 p-5">
                 {!clearingOpen ? (
                   <button type="button" onClick={openClearPanel} className="flex w-full items-center gap-3 text-left">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-600/10 dark:bg-red-500/15 text-red-600 dark:text-red-400">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-700/10 text-red-700">
                       <i className="bx bx-trash text-lg" aria-hidden="true" />
                     </span>
                     <span>
-                      <span className="block font-subtitle text-sm font-medium text-red-600 dark:text-red-400">
+                      <span className="block font-subtitle text-sm font-medium text-red-700">
                         Limpar dados de {formatMonthLabel(viewMonth)}
                       </span>
                       <span className="block font-subtitle text-xs text-onyx/70">
@@ -789,12 +782,9 @@ export default function AdminDashboardPage() {
                   </button>
                 ) : (
                   <div className="flex flex-col gap-4">
-                    <div className="flex items-start gap-3 rounded-xl bg-red-600/10 dark:bg-red-500/15 p-4">
-                      <i
-                        className="bx bx-error mt-0.5 shrink-0 text-xl text-red-600 dark:text-red-400"
-                        aria-hidden="true"
-                      />
-                      <p className="font-subtitle text-sm text-red-700 dark:text-red-300">
+                    <div className="flex items-start gap-3 rounded-xl bg-red-700/10 p-4">
+                      <i className="bx bx-error mt-0.5 shrink-0 text-xl text-red-700" aria-hidden="true" />
+                      <p className="font-subtitle text-sm text-red-800">
                         Isto apaga permanentemente {clearSummary ? clearSummary.slotCount : '...'} vaga(s) e{' '}
                         {clearSummary ? clearSummary.bookingCount : '...'} marcação(ões) de{' '}
                         {formatMonthLabel(viewMonth)}, incluindo marcações já aceites.{' '}
@@ -809,10 +799,10 @@ export default function AdminDashboardPage() {
                         type="password"
                         value={clearPassword}
                         onChange={(e) => setClearPassword(e.target.value)}
-                        className="rounded-xl border border-onyx px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-red-600 dark:focus-visible:border-red-400"
+                        className="rounded-xl border border-onyx px-3 py-2.5 font-subtitle text-sm text-onyx outline-none focus-visible:border-red-700"
                       />
                     </label>
-                    {clearError && <p className="font-subtitle text-sm text-red-600 dark:text-red-400">{clearError}</p>}
+                    {clearError && <p className="font-subtitle text-sm text-red-700">{clearError}</p>}
                     <div className="flex items-center gap-3">
                       <Button
                         size="sm"
@@ -972,7 +962,7 @@ export default function AdminDashboardPage() {
                             ? 'text-onyx'
                             : booking.status === 'CANCELLED'
                               ? 'text-onyx/70'
-                              : 'text-red-600 dark:text-red-400'
+                              : 'text-red-700'
                         }`}
                       >
                         {HISTORY_STATUS_LABEL[booking.status]}
@@ -1041,7 +1031,7 @@ export default function AdminDashboardPage() {
                       </p>
                       <span
                         className={`font-subtitle text-xs uppercase tracking-wide ${
-                          testimonial.status === 'APPROVED' ? 'text-onyx' : 'text-red-600 dark:text-red-400'
+                          testimonial.status === 'APPROVED' ? 'text-onyx' : 'text-red-700'
                         }`}
                       >
                         {testimonial.status === 'APPROVED' ? 'Aprovado' : 'Recusado'}
