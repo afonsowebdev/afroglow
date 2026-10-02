@@ -88,7 +88,7 @@ export function IosButton({
       type="button"
       {...props}
       className={cn(
-        'flex h-11 items-center justify-center gap-1.5 rounded-[12px] px-5 text-[17px] font-semibold transition-all disabled:opacity-40',
+        'flex h-11 items-center justify-center gap-1.5 rounded-[12px] px-5 text-[17px] font-medium transition-all disabled:opacity-40',
         BUTTON_KIND[kind],
         full && 'w-full',
         className,
@@ -118,7 +118,7 @@ export function Segmented<T extends string>({
             role="tab"
             aria-selected={active}
             onClick={() => onChange(option.value)}
-            className="relative h-8 flex-1 rounded-[7px] text-[13px] font-semibold text-onyx"
+            className="relative h-8 flex-1 rounded-[7px] text-[13px] font-medium text-onyx"
           >
             {active && (
               <motion.span
@@ -143,7 +143,7 @@ export function Avatar({ name }: { name: string }) {
     .map((part) => part[0]?.toUpperCase())
     .join('')
   return (
-    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 text-[16px] font-semibold text-gold-deep">
+    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 text-[16px] font-medium text-gold-deep">
       {initials || '?'}
     </span>
   )
@@ -153,7 +153,7 @@ export function EmptyState({ icon, title, text }: { icon: string; title: string;
   return (
     <div className="mt-16 flex flex-col items-center px-8 text-center">
       <i className={cn(icon, 'text-6xl text-[#c7c7cc]')} aria-hidden="true" />
-      <p className="mt-3 text-[20px] font-semibold text-onyx">{title}</p>
+      <p className="mt-3 text-[20px] font-medium text-onyx">{title}</p>
       {text && <p className="mt-1 text-[15px] text-[#8e8e93]">{text}</p>}
     </div>
   )

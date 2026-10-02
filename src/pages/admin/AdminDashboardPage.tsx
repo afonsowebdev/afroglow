@@ -70,7 +70,7 @@ const TABS: Array<{ id: AdminTab; label: string; icon: string; iconActive: strin
       id: 'pedidos',
       label: 'Pedidos',
       icon: 'bx bx-bell',
-      iconActive: 'bx bxs-bell',
+      iconActive: 'bx bx-bell',
       title: 'Pedidos',
       subtitle: 'Marcações por aceitar ou recusar.',
     },
@@ -78,7 +78,7 @@ const TABS: Array<{ id: AdminTab; label: string; icon: string; iconActive: strin
       id: 'agenda',
       label: 'Agenda',
       icon: 'bx bx-calendar-check',
-      iconActive: 'bx bxs-calendar-check',
+      iconActive: 'bx bx-calendar-check',
       title: 'Agenda',
       subtitle: 'Sessões confirmadas e histórico.',
     },
@@ -86,7 +86,7 @@ const TABS: Array<{ id: AdminTab; label: string; icon: string; iconActive: strin
       id: 'disponibilidade',
       label: 'Horários',
       icon: 'bx bx-time-five',
-      iconActive: 'bx bxs-time-five',
+      iconActive: 'bx bx-time-five',
       title: 'Horários',
       subtitle: 'Define quando estás disponível.',
     },
@@ -102,7 +102,7 @@ const TABS: Array<{ id: AdminTab; label: string; icon: string; iconActive: strin
       id: 'testemunhos',
       label: 'Testemunhos',
       icon: 'bx bx-message-rounded-dots',
-      iconActive: 'bx bxs-message-rounded-dots',
+      iconActive: 'bx bx-message-rounded-dots',
       title: 'Testemunhos',
       subtitle: 'Avaliações das clientes por rever.',
     },
@@ -141,13 +141,13 @@ function BookingCard({
       <div className="flex items-center gap-3 px-4 py-3.5">
         <Avatar name={booking.customerName} />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[17px] font-semibold leading-[22px] text-onyx">{booking.customerName}</p>
+          <p className="truncate text-[17px] font-medium leading-[22px] text-onyx">{booking.customerName}</p>
           <p className="truncate text-[15px] leading-5 text-[#8e8e93]">
             {booking.service.name} · {formatPrice(booking.service.priceCents)}
           </p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-[17px] font-semibold leading-[22px] tabular-nums text-onyx">{time}</p>
+          <p className="text-[17px] font-medium leading-[22px] tabular-nums text-onyx">{time}</p>
           <p className="text-[13px] leading-5 text-[#8e8e93]">
             <span className="capitalize">{weekday.slice(0, 3)}</span>, {day} {month}
           </p>
@@ -206,7 +206,7 @@ function MonthStepper({ label, onPrev, onNext }: { label: string; onPrev: () => 
         >
           <i className="bx bx-chevron-left text-3xl" aria-hidden="true" />
         </button>
-        <span className="text-[17px] font-semibold text-onyx">{label}</span>
+        <span className="text-[17px] font-medium text-onyx">{label}</span>
         <button
           type="button"
           aria-label="Mês seguinte"
@@ -601,7 +601,7 @@ export default function AdminDashboardPage() {
         <div className="relative mx-auto flex h-11 max-w-2xl items-center justify-between px-4">
           <span className="font-logo text-xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
           <span
-            className={`pointer-events-none absolute inset-x-0 text-center text-[17px] font-semibold transition-opacity duration-200 ${
+            className={`pointer-events-none absolute inset-x-0 text-center text-[17px] font-medium transition-opacity duration-200 ${
               scrolled ? 'opacity-100' : 'opacity-0'
             }`}
           >
@@ -614,7 +614,7 @@ export default function AdminDashboardPage() {
       </header>
 
       <main className="mx-auto max-w-2xl px-4 pb-32 pt-[calc(3.25rem+env(safe-area-inset-top))]">
-        <h1 className="px-1 text-[34px] font-bold leading-[41px] tracking-tight">{currentTab.title}</h1>
+        <h1 className="px-1 text-[34px] font-semibold leading-[41px] tracking-tight">{currentTab.title}</h1>
         <p className="mt-0.5 px-1 text-[15px] text-[#8e8e93]">
           {tab === 'pedidos' ? pendingSummary : currentTab.subtitle}
         </p>
@@ -736,7 +736,7 @@ export default function AdminDashboardPage() {
                   disabled={!newTimeInput}
                   className="flex min-h-11 w-full items-center gap-3 px-4 py-2.5 text-[17px] text-gold-deep active:bg-[#e5e5ea] disabled:text-[#c7c7cc]"
                 >
-                  <i className="bx bxs-plus-circle text-[26px]" aria-hidden="true" />
+                  <i className="bx bx-plus-circle text-[26px]" aria-hidden="true" />
                   Adicionar horário
                 </button>
 
@@ -809,7 +809,7 @@ export default function AdminDashboardPage() {
                               aria-label="Remover vaga"
                               className="text-[#ff3b30] active:opacity-50 disabled:opacity-40"
                             >
-                              <i className="bx bxs-minus-circle text-[26px]" aria-hidden="true" />
+                              <i className="bx bx-minus-circle text-[26px]" aria-hidden="true" />
                             </button>
                           )}
                         </span>
@@ -874,7 +874,7 @@ export default function AdminDashboardPage() {
               {services.map((service) =>
                 editingServiceId === service.id ? (
                   <div key={service.id} className="px-4 py-3.5">
-                    <p className="text-[17px] font-semibold">{service.name}</p>
+                    <p className="text-[17px] font-medium">{service.name}</p>
                     <div className="mt-3 grid grid-cols-2 gap-3">
                       <label>
                         <FieldLabel>Duração</FieldLabel>
@@ -975,7 +975,7 @@ export default function AdminDashboardPage() {
                   onClick={() => setShowAddService(true)}
                   className="flex min-h-11 w-full items-center gap-3 px-4 py-2.5 text-[17px] text-gold-deep active:bg-[#e5e5ea]"
                 >
-                  <i className="bx bxs-plus-circle text-[26px]" aria-hidden="true" />
+                  <i className="bx bx-plus-circle text-[26px]" aria-hidden="true" />
                   Adicionar modelo de tranças
                 </button>
               </IosGroup>
@@ -997,7 +997,7 @@ export default function AdminDashboardPage() {
                 <IosGroup key={testimonial.id}>
                   <div className="flex items-center gap-3 px-4 py-3.5">
                     <Avatar name={testimonial.customer.name} />
-                    <p className="text-[17px] font-semibold">{testimonial.customer.name}</p>
+                    <p className="text-[17px] font-medium">{testimonial.customer.name}</p>
                   </div>
                   <p className="px-4 py-3 text-[17px] leading-[22px]">“{testimonial.content}”</p>
                   <div className="grid grid-cols-2 gap-3 px-4 py-3">
@@ -1063,10 +1063,10 @@ export default function AdminDashboardPage() {
                   active ? 'text-gold-deep' : 'text-[#8e8e93]'
                 }`}
               >
-                <span className="relative text-[26px] leading-none">
+                <span className="relative text-[24px] leading-none">
                   <i className={active ? iconActive : icon} aria-hidden="true" />
                   {badge > 0 && (
-                    <span className="absolute -right-3 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#ff3b30] px-1 text-[11px] font-semibold leading-none text-white">
+                    <span className="absolute -right-3 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#ff3b30] px-1 text-[11px] font-medium leading-none text-white">
                       {badge}
                     </span>
                   )}
