@@ -11,13 +11,6 @@ export default function Hero() {
     <section id="top" className="relative flex min-h-screen items-center justify-center overflow-hidden">
       <HeroVideoBackground tone={dark ? 'dark' : 'light'} />
 
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0 flex select-none items-center justify-center whitespace-nowrap font-logo text-[20vw] leading-none tracking-tight text-onyx/5"
-      >
-        {dark ? null : 'AFROGLOW'}
-      </span>
-
       <div className="relative z-10 flex max-w-3xl flex-col items-center px-6 text-center">
         <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-gold-deep">AFROGLOW · Portugal</span>
         <h1
