@@ -190,7 +190,7 @@ function BookingCard({ booking, onChanged }: { booking: Booking; onChanged: () =
   )
 }
 
-function TestimonialForm() {
+export function TestimonialForm() {
   const [content, setContent] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)

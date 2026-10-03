@@ -320,3 +320,31 @@ export async function sendVerificationCodeEmail(to: string, code: string) {
     `),
   })
 }
+
+export async function sendPasswordResetCodeEmail(to: string, code: string) {
+  if (!resend) {
+    throw new Error('RESEND_API_KEY não configurada.')
+  }
+
+  await resend.emails.send({
+    from: FROM_NOREPLY,
+    to,
+    replyTo: REPLY_TO_GERAL,
+    subject: 'Recuperar a tua password Afroglow',
+    html: emailLayout(`
+      ${heading('Recuperar password')}
+      <p style="margin:0 0 20px; font-size:15px; line-height:1.6; color:#6B5B47;">
+        Usa este código na app para escolher uma nova password:
+      </p>
+      <p style="margin:0 0 20px; text-align:center; font-size:36px; letter-spacing:8px; font-weight:700; color:#8C6A24;">
+        ${escapeHtml(code)}
+      </p>
+      <p style="margin:0 0 8px; font-size:14px; color:#6B5B47;">
+        O código é válido durante cerca de 15 minutos.
+      </p>
+      <p style="margin:0; font-size:14px; color:#6B5B47;">
+        Se não pediste isto, ignora este email — a tua password não foi alterada.
+      </p>
+    `),
+  })
+}

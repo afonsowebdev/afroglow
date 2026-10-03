@@ -100,10 +100,13 @@ export default function Footer() {
 
         <hr className="border-t border-gold/20" />
 
-        <div className="flex justify-center pt-8 text-center sm:justify-start sm:text-left">
+        <div className="flex flex-col items-center justify-between gap-3 pt-8 text-center sm:flex-row sm:text-left">
           <p className="font-body text-sm text-muted-dark">
             &copy; {year} {siteConfig.name}. Todos os direitos reservados.
           </p>
+          <a href="/privacidade" className="font-body text-sm text-muted-dark transition-colors hover:text-gold-deep">
+            Política de privacidade
+          </a>
         </div>
       </div>
 

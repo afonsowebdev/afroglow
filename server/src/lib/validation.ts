@@ -78,3 +78,27 @@ export const createTestimonialSchema = z.object({
 export const clearMonthSchema = z.object({
   password: z.string().min(1),
 })
+
+export const updateProfileSchema = z.object({
+  name: z.string().trim().min(2).max(100),
+  phone: z.string().trim().min(6).max(30),
+})
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: strongPasswordSchema,
+})
+
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1),
+})
+
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+})
+
+export const resetPasswordSchema = z.object({
+  email: emailSchema,
+  code: z.string().regex(/^\d{6}$/, 'O código deve ter exatamente 6 dígitos.'),
+  newPassword: strongPasswordSchema,
+})

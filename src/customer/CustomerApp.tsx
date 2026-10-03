@@ -5,6 +5,7 @@ import AccountPage from '@/pages/AccountPage'
 import BookingPage from '@/pages/BookingPage'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import HomeScreen from './HomeScreen'
+import ProfileScreen from './ProfileScreen'
 
 type TabId = 'inicio' | 'marcar' | 'marcacoes' | 'conta'
 
@@ -42,10 +43,7 @@ export default function CustomerApp() {
           path="/marcacoes"
           element={<RequireAccount>{() => <AccountPage embedded section="marcacoes" />}</RequireAccount>}
         />
-        <Route
-          path="/conta"
-          element={<RequireAccount>{() => <AccountPage embedded section="conta" />}</RequireAccount>}
-        />
+        <Route path="/conta" element={<RequireAccount>{() => <ProfileScreen />}</RequireAccount>} />
         <Route path="/entrar" element={<AccountAuthPage embedded />} />
         <Route path="*" element={<HomeScreen />} />
       </Routes>

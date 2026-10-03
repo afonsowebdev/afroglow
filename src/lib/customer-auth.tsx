@@ -10,6 +10,11 @@ interface CustomerAuthContextValue {
   verifyEmail: (email: string, code: string) => Promise<void>
   resendCode: (email: string) => Promise<void>
   logout: () => Promise<void>
+  updateProfile: (data: { name: string; phone: string }) => Promise<void>
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>
+  deleteAccount: (password: string) => Promise<void>
+  forgotPassword: (email: string) => Promise<void>
+  resetPassword: (email: string, code: string, newPassword: string) => Promise<void>
   // Re-checks the session with the server (e.g. after a request came back 401).
   refresh: () => Promise<void>
 }
@@ -74,9 +79,45 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const updateProfile = useCallback(async (data: { name: string; phone: string }) => {
+    setCustomer(await api.patch<Customer>('/account/me', data))
+  }, [])
+
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    await api.post('/account/change-password', { currentPassword, newPassword })
+  }, [])
+
+  const deleteAccount = useCallback(async (password: string) => {
+    await api.post('/account/delete', { password })
+    customerToken.set(null)
+    setCustomer(null)
+  }, [])
+
+  const forgotPassword = useCallback(async (email: string) => {
+    await api.post('/account/forgot-password', { email })
+  }, [])
+
+  const resetPassword = useCallback(async (email: string, code: string, newPassword: string) => {
+    await api.post('/account/reset-password', { email, code, newPassword })
+  }, [])
+
   return (
     <CustomerAuthContext.Provider
-      value={{ customer, loading, login, startRegistration, verifyEmail, resendCode, logout, refresh }}
+      value={{
+        customer,
+        loading,
+        login,
+        startRegistration,
+        verifyEmail,
+        resendCode,
+        logout,
+        refresh,
+        updateProfile,
+        changePassword,
+        deleteAccount,
+        forgotPassword,
+        resetPassword,
+      }}
     >
       {children}
     </CustomerAuthContext.Provider>

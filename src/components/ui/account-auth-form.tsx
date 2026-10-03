@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import { ForgotPasswordSheet } from '@/components/ui/forgot-password-sheet'
 import { MotionButton } from '@/components/ui/motion-button'
 import { ApiError } from '@/lib/api'
 import { useCustomerAuth } from '@/lib/customer-auth'
@@ -126,6 +127,7 @@ export function AccountAuthForm({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [resendCooldown, setResendCooldown] = useState(0)
+  const [forgotOpen, setForgotOpen] = useState(false)
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -332,6 +334,17 @@ export function AccountAuthForm({
               placeholder={mode === 'register' ? 'Mínimo 8 caracteres' : 'A tua password'}
             />
           </div>
+          {mode === 'login' && (
+            <div className="-mt-1.5 pb-3.5">
+              <button
+                type="button"
+                onClick={() => setForgotOpen(true)}
+                className="font-subtitle text-sm text-gold-deep underline-offset-4 hover:underline"
+              >
+                Esqueci-me da password
+              </button>
+            </div>
+          )}
 
           <AnimatePresence initial={false}>
             {mode === 'register' && password.length > 0 && !passwordValid && (
@@ -369,6 +382,7 @@ export function AccountAuthForm({
             />
           </div>
         </form>
+        <ForgotPasswordSheet open={forgotOpen} initialEmail={email} onClose={() => setForgotOpen(false)} />
       </motion.div>
     )
 
