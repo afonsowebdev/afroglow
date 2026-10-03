@@ -13,9 +13,9 @@ const DARK_CLIPS: Clip[] = [1, 2, 3, 4, 5, 6].map((n) => ({ hd: `/videos/hero-hd
 
 // Light theme playlist. The order is deliberate: each clip ends on colours and
 // light close to where the next one begins, so the crossfade barely shows.
-const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4].map((n) => ({
-  hd: `/videos/hero-light-${n}.mp4`,
-  uhd: `/videos/hero-light-${n}-4k.mp4`,
+const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
+  hd: `/videos/hero-light-${n}.mp4?v=2`,
+  uhd: `/videos/hero-light-${n}-4k.mp4?v=2`,
 }))
 
 // Pick the 4K files only where they pay off: big or high-density screens, and
