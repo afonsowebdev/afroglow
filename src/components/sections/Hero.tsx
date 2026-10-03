@@ -12,21 +12,13 @@ export default function Hero() {
       <HeroVideoBackground tone={dark ? 'dark' : 'light'} />
 
       <div className="relative z-10 flex max-w-3xl flex-col items-center px-6 text-center">
-        <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-gold-deep">AFROGLOW · Portugal</span>
-        <h1
-          className={`font-logo text-[10vw] leading-[1.05] sm:text-[7vw] md:text-[6vw] ${
-            dark ? 'text-[#f5efdf]' : 'text-gold-deep'
-          }`}
-        >
+        <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-gold">AFROGLOW · Portugal</span>
+        <h1 className="font-logo text-[10vw] leading-[1.05] text-[#f5efdf] [text-shadow:0_2px_24px_rgba(0,0,0,0.45)] sm:text-[7vw] md:text-[6vw]">
           Arte que parte
           <br />
           do teu cabelo.
         </h1>
-        <p
-          className={`mt-6 max-w-md font-subtitle text-base font-light sm:text-lg md:text-[1.15vw] ${
-            dark ? 'text-[#f5efdf]/80' : 'text-onyx'
-          }`}
-        >
+        <p className="mt-6 max-w-md font-subtitle text-base font-light text-[#f5efdf] [text-shadow:0_1px_14px_rgba(0,0,0,0.5)] sm:text-lg md:text-[1.15vw]">
           Tranças afro feitas com cuidado, técnica e identidade.
         </p>
         <div className="mt-8">
@@ -39,8 +31,8 @@ export default function Hero() {
         animate={{ y: [0, 8, 0] }}
         transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <span className="font-body text-[0.65rem] uppercase tracking-[0.3em] text-gold-deep">Scroll</span>
-        <i className="bx bx-chevron-down text-3xl text-gold-deep" aria-hidden="true" />
+        <span className="font-body text-[0.65rem] uppercase tracking-[0.3em] text-gold">Scroll</span>
+        <i className="bx bx-chevron-down text-3xl text-gold" aria-hidden="true" />
       </motion.div>
     </section>
   )

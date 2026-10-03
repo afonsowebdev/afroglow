@@ -12,7 +12,7 @@ const PLAYBACK_RATE = 0.5
 // dark mode (brightness is part of the same filter, so no overlay is needed).
 const BLUR_PX = 5
 const FILTER_BY_TONE = {
-  light: `blur(${BLUR_PX}px) contrast(0.75) brightness(1.8) saturate(0.95)`,
+  light: `blur(${BLUR_PX}px)`,
   dark: `blur(${BLUR_PX}px) brightness(0.9) saturate(0.95)`,
 } as const
 
