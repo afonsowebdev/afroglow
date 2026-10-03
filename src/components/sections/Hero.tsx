@@ -15,9 +15,7 @@ export default function Hero() {
         <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-gold-deep">AFROGLOW · Portugal</span>
         <h1
           className={`font-logo text-[10vw] leading-[1.05] sm:text-[7vw] md:text-[6vw] ${
-            dark
-              ? 'text-[#f5efdf]'
-              : 'text-gold-deep [text-shadow:0_0_24px_rgba(245,239,223,0.95),0_0_8px_rgba(245,239,223,0.8)]'
+            dark ? 'text-[#f5efdf]' : 'text-gold-deep'
           }`}
         >
           Arte que parte
@@ -26,9 +24,7 @@ export default function Hero() {
         </h1>
         <p
           className={`mt-6 max-w-md font-subtitle text-base font-light sm:text-lg md:text-[1.15vw] ${
-            dark
-              ? 'text-[#f5efdf]/80'
-              : 'text-onyx [text-shadow:0_0_14px_rgba(245,239,223,0.95),0_0_6px_rgba(245,239,223,0.9)]'
+            dark ? 'text-[#f5efdf]/80' : 'text-onyx'
           }`}
         >
           Tranças afro feitas com cuidado, técnica e identidade.
