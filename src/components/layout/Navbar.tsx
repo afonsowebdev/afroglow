@@ -40,7 +40,7 @@ function SocialIcons({ className }: { className?: string }) {
 }
 
 function BookButton({ size, onClick }: { size?: 'default' | 'sm'; onClick?: () => void }) {
-  return <MotionButton label="Agendar" size={size} href="/agendar" onClick={onClick} />
+  return <MotionButton label="Agendar" size={size} href="/agendar" onClick={onClick} className="bg-white/60 backdrop-blur-sm" />
 }
 
 function AccountButton({ loggedIn, onClick }: { loggedIn: boolean; onClick?: () => void }) {
@@ -97,7 +97,7 @@ export default function Navbar() {
     return () => observer.disconnect()
   }, [])
 
-  const pillBg = `rounded-full bg-white/95 shadow-lg shadow-black/10 backdrop-blur transition-shadow duration-500 ${
+  const pillBg = `rounded-full bg-white/60 shadow-lg shadow-black/10 backdrop-blur-md transition-shadow duration-500 ${
     scrolled ? 'shadow-xl shadow-black/15' : ''
   }`
 
