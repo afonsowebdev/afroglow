@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
-const VIDEOS = ['/videos/hero-5.mp4', '/videos/hero-6.mp4', '/videos/hero-7.mp4', '/videos/hero-8.mp4']
+const VIDEOS = [
+  '/videos/hero-9.mp4',
+  '/videos/hero-10.mp4',
+  '/videos/hero-11.mp4',
+  '/videos/hero-12.mp4',
+  '/videos/hero-13.mp4',
+  '/videos/hero-14.mp4',
+]
 
 // Slowed well below real playback speed for a calm, ambient loop rather than
 // quick hand-held footage.
@@ -10,7 +17,7 @@ const PLAYBACK_RATE = 0.5
 // Soft focus on the footage so the text and header read clearly on top of it.
 // The blur is tinted per theme: airy and light in light mode, deep and dark in
 // dark mode (brightness is part of the same filter, so no overlay is needed).
-const BLUR_PX = 5
+const BLUR_PX = 2
 const FILTER_BY_TONE = {
   light: `blur(${BLUR_PX}px)`,
   dark: `blur(${BLUR_PX}px) brightness(0.9) saturate(0.95)`,
