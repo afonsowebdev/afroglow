@@ -8,6 +8,10 @@ interface Clip {
   uhd?: string
 }
 
+// The customer iPhone app streams the clips from the website instead of bundling
+// ~45 MB of video into the app; the site build serves them from its own origin.
+const VIDEO_BASE = import.meta.env.MODE === 'customer' ? 'https://www.afroglow.pt' : ''
+
 // Dark theme playlist (1080p only).
 const DARK_CLIPS: Clip[] = [1, 2, 3, 4, 5, 6].map((n) => ({ hd: `/videos/hero-hd-${n}.mp4` }))
 
@@ -58,7 +62,7 @@ export function HeroVideoBackground({ tone = 'dark' }: { tone?: 'dark' | 'light'
   const [videos] = useState(() => {
     const clips = tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
     const uhd = prefersUhd()
-    return clips.map((clip) => (uhd && clip.uhd ? clip.uhd : clip.hd))
+    return clips.map((clip) => VIDEO_BASE + (uhd && clip.uhd ? clip.uhd : clip.hd))
   })
   const [sources, setSources] = useState([videos[0], videos[1 % videos.length]])
 

@@ -35,7 +35,8 @@ function StepHeading({ number, children }: { number: string; children: ReactNode
   )
 }
 
-export default function BookingPage() {
+/** `embedded`: rendered inside the customer app's tab shell (no site header, room for the tab bar). */
+export default function BookingPage({ embedded = false }: { embedded?: boolean } = {}) {
   const { customer, loading: authLoading, refresh } = useCustomerAuth()
   const [searchParams] = useSearchParams()
   const [scrolled, setScrolled] = useState(false)
@@ -141,6 +142,7 @@ export default function BookingPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      {!embedded && (
       <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link to="/" className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
@@ -156,8 +158,15 @@ export default function BookingPage() {
           </Link>
         </div>
       </div>
+      )}
 
-      <main className="mx-auto max-w-3xl px-5 pb-24 pt-[calc(7rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(8rem+env(safe-area-inset-top))]">
+      <main
+        className={`mx-auto max-w-3xl px-5 sm:px-8 ${
+          embedded
+            ? 'pb-36 pt-[calc(2.5rem+env(safe-area-inset-top))]'
+            : 'pb-24 pt-[calc(7rem+env(safe-area-inset-top))] sm:pt-[calc(8rem+env(safe-area-inset-top))]'
+        }`}
+      >
         <h1 className="font-logo text-4xl text-onyx sm:text-5xl">Marcar sessão</h1>
         <p className="mt-4 font-subtitle text-lg font-light text-muted-dark">
           Escolhe uma data, o tipo de trança, e confirma os teus dados.

@@ -1,0 +1,108 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { HeroVideoBackground } from '@/components/ui/hero-video-background'
+import { MotionButton } from '@/components/ui/motion-button'
+import { TestimonialsEditorial, type Testimonial } from '@/components/ui/editorial-testimonial'
+import { api } from '@/lib/api'
+import { instagramDmUrl, whatsappUrl } from '@/lib/site-config'
+import { useTheme } from '@/lib/theme'
+import { formatPrice, type Service, type Testimonial as ApiTestimonial } from '@/lib/types'
+
+export default function HomeScreen() {
+  const { theme } = useTheme()
+  const dark = theme === 'dark'
+  const [services, setServices] = useState<Service[] | null>(null)
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
+
+  useEffect(() => {
+    api
+      .get<Service[]>('/services')
+      .then(setServices)
+      .catch(() => setServices([]))
+    api
+      .get<ApiTestimonial[]>('/testimonials')
+      .then((data) => setTestimonials(data.map((t) => ({ id: t.id, quote: t.content, name: t.customer.name }))))
+      .catch(() => setTestimonials([]))
+  }, [])
+
+  return (
+    <main className="pb-40">
+      <section className="relative flex min-h-[78vh] items-center justify-center overflow-hidden px-6 pt-[env(safe-area-inset-top)] text-center">
+        <HeroVideoBackground key={dark ? 'dark' : 'light'} tone={dark ? 'dark' : 'light'} />
+        <div className="relative z-10 flex max-w-md flex-col items-center">
+          <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-gold">AFROGLOW · Portugal</span>
+          <h1 className="font-logo text-[13vw] leading-[1.05] text-[#f5efdf] [text-shadow:0_2px_24px_rgba(0,0,0,0.45)] sm:text-6xl">
+            Arte que parte
+            <br />
+            do teu cabelo.
+          </h1>
+          <p className="mt-5 font-subtitle text-base font-light text-[#f5efdf] [text-shadow:0_1px_14px_rgba(0,0,0,0.5)]">
+            Tranças afro feitas com cuidado, técnica e identidade.
+          </p>
+          <div className="mt-8">
+            <MotionButton label="Marcar sessão" href="/marcar" className="bg-white/60 backdrop-blur-sm" />
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-2xl px-5 pt-14">
+        <h2 className="font-logo text-3xl text-onyx">Os nossos serviços</h2>
+        <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">Escolhe o modelo e marca a tua sessão.</p>
+
+        <div className="mt-6 flex flex-col gap-3">
+          {services === null && <p className="font-subtitle text-sm text-muted-dark">A carregar...</p>}
+          {services?.map((service) => (
+            <Link
+              key={service.id}
+              to={`/marcar?service=${service.id}`}
+              className="block rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5 transition-colors hover:border-gold-deep"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h3 className="font-logo text-lg text-onyx">{service.name}</h3>
+                  <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-gold-deep/10 px-2.5 py-1 font-subtitle text-[11px] text-gold-deep">
+                    <i className="bx bx-time-five text-sm" aria-hidden="true" />
+                    {service.durationLabel}
+                  </span>
+                </div>
+                <p className="shrink-0 font-logo text-xl text-onyx">{formatPrice(service.priceCents)}</p>
+              </div>
+              <p className="mt-3 line-clamp-2 font-subtitle text-sm text-muted-dark">{service.description}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {testimonials.length > 0 && (
+        <section className="mx-auto max-w-2xl px-5 pt-16">
+          <h2 className="text-center font-logo text-3xl text-onyx">O que dizem as nossas clientes</h2>
+          <div className="mt-10">
+            <TestimonialsEditorial testimonials={testimonials} />
+          </div>
+        </section>
+      )}
+
+      <section className="mx-auto max-w-2xl px-5 pt-16 text-center">
+        <h2 className="font-logo text-3xl text-onyx">Fala connosco</h2>
+        <div className="mt-6 flex flex-col items-center gap-4">
+          <MotionButton
+            label="Instagram"
+            variant="primary"
+            icon={<i className="bx bxl-instagram text-lg" aria-hidden="true" />}
+            href={instagramDmUrl()}
+            target="_blank"
+            rel="noreferrer"
+          />
+          <MotionButton
+            label="WhatsApp"
+            variant="secondary"
+            icon={<i className="bx bxl-whatsapp text-lg" aria-hidden="true" />}
+            href={whatsappUrl('Olá! Gostaria de saber mais sobre os vossos serviços.')}
+            target="_blank"
+            rel="noreferrer"
+          />
+        </div>
+      </section>
+    </main>
+  )
+}

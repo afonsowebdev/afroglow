@@ -11,7 +11,10 @@
     "preview": "vite preview",
     "build:ios": "npm run build && npx cap sync ios",
     "sync:ios": "npx cap sync ios",
-    "open:ios": "npx cap open ios"
+    "open:ios": "npx cap open ios",
+    "build:customer": "tsc -b && vite build --mode customer --outDir dist-customer --emptyOutDir && rm -rf dist-customer/videos",
+    "sync:customer": "npm run build:customer && cd apps/customer && npx cap sync ios",
+    "open:customer": "cd apps/customer && npx cap open ios"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.1",

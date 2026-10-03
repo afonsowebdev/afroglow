@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import AuthSwitch from '@/components/ui/auth-switch'
 import { useCustomerAuth } from '@/lib/customer-auth'
 
-export default function AccountAuthPage() {
+export default function AccountAuthPage({ embedded = false }: { embedded?: boolean } = {}) {
   const { customer, loading } = useCustomerAuth()
   const navigate = useNavigate()
 
@@ -28,6 +28,7 @@ export default function AccountAuthPage() {
         AFROGLOW
       </motion.span>
 
+      {!embedded && (
       <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link to="/" className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
@@ -43,8 +44,9 @@ export default function AccountAuthPage() {
           </Link>
         </div>
       </div>
+      )}
 
-      <main className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-5 pb-8 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(6.5rem+env(safe-area-inset-top))]">
+      <main className={`relative mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-5 pb-8 ${embedded ? 'pt-[calc(1.5rem+env(safe-area-inset-top))]' : 'pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pt-[calc(6.5rem+env(safe-area-inset-top))]'} sm:px-8`}>
         <AuthSwitch onSuccess={() => navigate('/conta')} />
       </main>
     </div>

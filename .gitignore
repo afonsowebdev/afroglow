@@ -10,3 +10,4 @@ server/node_modules
 server/dist
 .claude/
 teste.txt
+dist-customer

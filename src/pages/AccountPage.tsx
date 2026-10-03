@@ -243,7 +243,14 @@ function TestimonialForm() {
   )
 }
 
-export default function AccountPage() {
+/**
+ * `embedded`: rendered inside the customer app's tab shell. `section` then picks
+ * which half of the page the tab shows — the bookings list or the account area.
+ */
+export default function AccountPage({
+  embedded = false,
+  section = 'all',
+}: { embedded?: boolean; section?: 'all' | 'marcacoes' | 'conta' } = {}) {
   const { customer, loading, logout } = useCustomerAuth()
   const navigate = useNavigate()
   const [bookings, setBookings] = useState<Booking[] | null>(null)
@@ -272,6 +279,9 @@ export default function AccountPage() {
     return <div className="min-h-screen bg-white" />
   }
 
+  const showBookings = !embedded || section !== 'conta'
+  const showAccount = !embedded || section !== 'marcacoes'
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-white">
       <motion.span
@@ -283,6 +293,7 @@ export default function AccountPage() {
         AFROGLOW
       </motion.span>
 
+      {!embedded && (
       <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link to="/" className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
@@ -299,45 +310,80 @@ export default function AccountPage() {
           </button>
         </div>
       </div>
+      )}
 
-      <main className="relative z-10 mx-auto max-w-3xl px-5 pb-24 pt-[calc(7rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(8rem+env(safe-area-inset-top))]">
-        <h1 className="font-logo text-4xl text-onyx sm:text-5xl">Olá, {customer.name.split(' ')[0]}</h1>
-        <p className="mt-4 font-subtitle text-lg font-light text-muted-dark">A tua conta AFROGLOW.</p>
+      <main
+        className={`relative z-10 mx-auto max-w-3xl px-5 sm:px-8 ${
+          embedded
+            ? 'pb-36 pt-[calc(2.5rem+env(safe-area-inset-top))]'
+            : 'pb-24 pt-[calc(7rem+env(safe-area-inset-top))] sm:pt-[calc(8rem+env(safe-area-inset-top))]'
+        }`}
+      >
+        <h1 className="font-logo text-4xl text-onyx sm:text-5xl">
+          {showBookings && embedded ? 'As minhas marcações' : `Olá, ${customer.name.split(' ')[0]}`}
+        </h1>
+        <p className="mt-4 font-subtitle text-lg font-light text-muted-dark">
+          {showBookings && embedded ? 'Reagenda ou cancela as tuas sessões.' : 'A tua conta AFROGLOW.'}
+        </p>
 
-        <div className="mt-6">
-          <MotionButton label="Voltar ao início" size="sm" href="/" icon={<i className="bx bx-home-alt text-lg" aria-hidden="true" />} />
-        </div>
-
-        <section className="mt-14">
-          <h2 className="font-subtitle text-xl text-onyx sm:text-2xl">As minhas marcações</h2>
-          {bookings === null ? (
-            <p className="mt-5 font-subtitle text-sm text-muted-dark">A carregar...</p>
-          ) : bookings.length === 0 ? (
-            <p className="mt-5 font-subtitle text-sm text-muted-dark">
-              Ainda não tens marcações.{' '}
-              <Link to="/agendar" className="text-gold-deep underline">
-                Marca a tua primeira sessão
-              </Link>
-              .
-            </p>
-          ) : (
-            <div className="mt-6 flex flex-col gap-4">
-              {bookings.map((booking) => (
-                <BookingCard key={booking.id} booking={booking} onChanged={loadBookings} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="mt-16">
-          <h2 className="font-subtitle text-xl text-onyx sm:text-2xl">Deixar um testemunho</h2>
-          <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">
-            Conta como foi o teu atendimento. Depois de aprovado, aparece na página principal com o teu nome.
-          </p>
+        {!embedded && (
           <div className="mt-6">
-            <TestimonialForm />
+            <MotionButton
+              label="Voltar ao início"
+              size="sm"
+              href="/"
+              icon={<i className="bx bx-home-alt text-lg" aria-hidden="true" />}
+            />
           </div>
-        </section>
+        )}
+
+        {showBookings && (
+          <section className="mt-14">
+            {!embedded && <h2 className="font-subtitle text-xl text-onyx sm:text-2xl">As minhas marcações</h2>}
+            {bookings === null ? (
+              <p className="mt-5 font-subtitle text-sm text-muted-dark">A carregar...</p>
+            ) : bookings.length === 0 ? (
+              <p className="mt-5 font-subtitle text-sm text-muted-dark">
+                Ainda não tens marcações.{' '}
+                <Link to={embedded ? '/marcar' : '/agendar'} className="text-gold-deep underline">
+                  Marca a tua primeira sessão
+                </Link>
+                .
+              </p>
+            ) : (
+              <div className="mt-6 flex flex-col gap-4">
+                {bookings.map((booking) => (
+                  <BookingCard key={booking.id} booking={booking} onChanged={loadBookings} />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {showAccount && (
+          <section className={embedded ? 'mt-10' : 'mt-16'}>
+            <h2 className="font-subtitle text-xl text-onyx sm:text-2xl">Deixar um testemunho</h2>
+            <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">
+              Conta como foi o teu atendimento. Depois de aprovado, aparece na página principal com o teu nome.
+            </p>
+            <div className="mt-6">
+              <TestimonialForm />
+            </div>
+          </section>
+        )}
+
+        {embedded && showAccount && (
+          <section className="mt-12 border-t border-gold/20 pt-8">
+            <button
+              type="button"
+              onClick={() => void logout().then(() => navigate('/'))}
+              className="flex items-center gap-2 font-subtitle text-sm text-muted-dark transition-colors hover:text-onyx"
+            >
+              <i className="bx bx-log-out text-lg" aria-hidden="true" />
+              Terminar sessão
+            </button>
+          </section>
+        )}
       </main>
     </div>
   )
