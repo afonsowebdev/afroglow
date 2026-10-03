@@ -40,7 +40,7 @@ function SocialIcons({ className }: { className?: string }) {
 }
 
 function BookButton({ size, onClick }: { size?: 'default' | 'sm'; onClick?: () => void }) {
-  return <MotionButton label="Agendar" size={size} href="/agendar" onClick={onClick} className="bg-white/60 backdrop-blur-sm" />
+  return <MotionButton label="Agendar" size={size} href="/agendar" onClick={onClick} />
 }
 
 function AccountButton({ loggedIn, onClick }: { loggedIn: boolean; onClick?: () => void }) {
@@ -97,7 +97,7 @@ export default function Navbar() {
     return () => observer.disconnect()
   }, [])
 
-  const pillBg = `rounded-full bg-white/60 shadow-lg shadow-black/10 backdrop-blur-md transition-shadow duration-500 ${
+  const pillBg = `rounded-full bg-white shadow-lg shadow-black/10 transition-shadow duration-500 ${
     scrolled ? 'shadow-xl shadow-black/15' : ''
   }`
 
@@ -136,9 +136,7 @@ export default function Navbar() {
               <SocialIcons className="flex items-center gap-2" />
               <span className="h-5 w-px bg-onyx/15" aria-hidden="true" />
               <ThemeToggle />
-            </div>
-
-            <div className={`p-2 sm:p-2.5 ${pillBg}`}>
+              <span className="h-5 w-px bg-onyx/15" aria-hidden="true" />
               <AccountButton loggedIn={!!customer} />
             </div>
           </div>
@@ -238,8 +236,9 @@ export default function Navbar() {
                 <SocialIcons className="flex items-center gap-3" />
                 <span className="h-5 w-px bg-onyx/15" aria-hidden="true" />
                 <ThemeToggle />
+                <span className="h-5 w-px bg-onyx/15" aria-hidden="true" />
+                <AccountButton loggedIn={!!customer} onClick={() => setOpen(false)} />
               </div>
-              <AccountButton loggedIn={!!customer} onClick={() => setOpen(false)} />
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 16 }}
