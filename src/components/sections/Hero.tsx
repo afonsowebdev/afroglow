@@ -9,7 +9,7 @@ export default function Hero() {
 
   return (
     <section id="top" className="relative flex min-h-screen items-center justify-center overflow-hidden">
-      <HeroVideoBackground tone={dark ? 'dark' : 'light'} />
+      <HeroVideoBackground key={dark ? 'dark' : 'light'} tone={dark ? 'dark' : 'light'} />
 
       <div className="relative z-10 flex max-w-3xl flex-col items-center px-6 text-center">
         <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-gold">AFROGLOW · Portugal</span>

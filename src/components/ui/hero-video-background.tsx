@@ -1,14 +1,31 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'motion/react'
 
-const VIDEOS = [
-  '/videos/hero-hd-1.mp4',
-  '/videos/hero-hd-2.mp4',
-  '/videos/hero-hd-3.mp4',
-  '/videos/hero-hd-4.mp4',
-  '/videos/hero-hd-5.mp4',
-  '/videos/hero-hd-6.mp4',
-]
+interface Clip {
+  /** 1080p rendition, used on regular screens and when data saving is on. */
+  hd: string
+  /** 4K rendition, used on large / high-density screens. */
+  uhd?: string
+}
+
+// Dark theme playlist (1080p only).
+const DARK_CLIPS: Clip[] = [1, 2, 3, 4, 5, 6].map((n) => ({ hd: `/videos/hero-hd-${n}.mp4` }))
+
+// Light theme playlist. The order is deliberate: each clip ends on colours and
+// light close to where the next one begins, so the crossfade barely shows.
+const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4].map((n) => ({
+  hd: `/videos/hero-light-${n}.mp4`,
+  uhd: `/videos/hero-light-${n}-4k.mp4`,
+}))
+
+// Pick the 4K files only where they pay off: big or high-density screens, and
+// never when the visitor has asked to save data.
+function prefersUhd() {
+  if (typeof window === 'undefined') return false
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
+  if (connection?.saveData) return false
+  return window.innerWidth * (window.devicePixelRatio || 1) >= 2400
+}
 
 // Normal playback speed (1 = real time). Lower it for a calmer, slow-motion feel.
 const PLAYBACK_RATE = 1
@@ -16,7 +33,7 @@ const PLAYBACK_RATE = 1
 // The next clip starts this long before the current one ends, and the two
 // crossfade over the same window, so playback is continuous: no frozen last
 // frame, no black gap while the next file loads.
-const CROSSFADE_SECONDS = 1.2
+const CROSSFADE_SECONDS = 1.5
 
 // A wash in the site's own brown, so the video feels part of the page's palette
 // (same idea as a brand-coloured tint over a hero video). Deeper in dark mode.
@@ -37,10 +54,16 @@ export function HeroVideoBackground({ tone = 'dark' }: { tone?: 'dark' | 'light'
   const videoRefs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)]
 
   const [active, setActive] = useState(0)
-  const [sources, setSources] = useState([VIDEOS[0], VIDEOS[1 % VIDEOS.length]])
+  // Resolved once per mount; the Hero remounts this component when the theme changes.
+  const [videos] = useState(() => {
+    const clips = tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
+    const uhd = prefersUhd()
+    return clips.map((clip) => (uhd && clip.uhd ? clip.uhd : clip.hd))
+  })
+  const [sources, setSources] = useState([videos[0], videos[1 % videos.length]])
 
   const activeRef = useRef(0)
-  const upcomingIndex = useRef(1 % VIDEOS.length) // VIDEOS index loaded in the waiting slot
+  const upcomingIndex = useRef(1 % videos.length) // index in `videos` loaded in the waiting slot
   const switching = useRef(false)
 
   const play = (video: HTMLVideoElement | null) => {
@@ -52,7 +75,7 @@ export function HeroVideoBackground({ tone = 'dark' }: { tone?: 'dark' | 'light'
   }
 
   const crossfade = useCallback(() => {
-    if (switching.current || VIDEOS.length < 2) return
+    if (switching.current || videos.length < 2) return
     switching.current = true
 
     const outgoing = activeRef.current
@@ -68,10 +91,10 @@ export function HeroVideoBackground({ tone = 'dark' }: { tone?: 'dark' | 'light'
     // After the fade, the old slot preloads the clip that follows the one now playing.
     window.setTimeout(
       () => {
-        upcomingIndex.current = (upcomingIndex.current + 1) % VIDEOS.length
+        upcomingIndex.current = (upcomingIndex.current + 1) % videos.length
         setSources((current) => {
           const next = [...current]
-          next[outgoing] = VIDEOS[upcomingIndex.current]
+          next[outgoing] = videos[upcomingIndex.current]
           return next
         })
         switching.current = false
