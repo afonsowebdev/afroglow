@@ -1,14 +1,20 @@
 import { useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
-const VIDEOS = ['/videos/hero-1.mp4', '/videos/hero-2.mp4', '/videos/hero-3.mp4']
+const VIDEOS = ['/videos/hero-5.mp4', '/videos/hero-6.mp4', '/videos/hero-7.mp4', '/videos/hero-8.mp4']
 
 // Slowed well below real playback speed for a calm, ambient loop rather than
 // quick hand-held footage.
 const PLAYBACK_RATE = 0.5
 
 // Soft focus on the footage so the text and header read clearly on top of it.
+// The blur is tinted per theme: airy and light in light mode, deep and dark in
+// dark mode (brightness is part of the same filter, so no overlay is needed).
 const BLUR_PX = 20
+const FILTER_BY_TONE = {
+  light: `blur(${BLUR_PX}px) contrast(0.4) brightness(2.3) saturate(0.9)`,
+  dark: `blur(${BLUR_PX}px) brightness(0.45) saturate(0.9)`,
+} as const
 
 /**
  * Full-bleed looping background for the Hero (dark and light): cycles through the
@@ -44,7 +50,7 @@ export function HeroVideoBackground({ tone = 'dark' }: { tone?: 'dark' | 'light'
           exit={{ opacity: 0 }}
           transition={{ duration: 3, ease: 'easeInOut' }}
           className="absolute inset-0 h-full w-full scale-110 object-cover"
-          style={{ filter: `blur(${BLUR_PX}px)` }}
+          style={{ filter: FILTER_BY_TONE[tone], transition: 'filter 0.5s ease' }}
         />
       </AnimatePresence>
     </div>
