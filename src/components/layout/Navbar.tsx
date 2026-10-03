@@ -134,9 +134,7 @@ export default function Navbar() {
           <div className="hidden items-center gap-3 md:flex">
             <div className={`flex items-center gap-2 p-2 sm:p-2.5 ${pillBg}`}>
               <SocialIcons className="flex items-center gap-2" />
-            </div>
-
-            <div className={`p-2 sm:p-2.5 ${pillBg}`}>
+              <span className="h-5 w-px bg-onyx/15" aria-hidden="true" />
               <ThemeToggle />
             </div>
 
@@ -236,8 +234,11 @@ export default function Navbar() {
               transition={{ duration: 0.4, delay: 0.13 + NAV_LINKS.length * 0.05, ease: 'easeOut' }}
               className="flex items-center gap-4"
             >
-              <SocialIcons className="flex items-center gap-4" />
-              <ThemeToggle />
+              <div className="flex items-center gap-3 rounded-full border border-onyx/15 p-2">
+                <SocialIcons className="flex items-center gap-3" />
+                <span className="h-5 w-px bg-onyx/15" aria-hidden="true" />
+                <ThemeToggle />
+              </div>
               <AccountButton loggedIn={!!customer} onClick={() => setOpen(false)} />
             </motion.div>
             <motion.div
