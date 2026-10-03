@@ -8,7 +8,7 @@ const VIDEOS = ['/videos/hero-1.mp4', '/videos/hero-2.mp4', '/videos/hero-3.mp4'
 const PLAYBACK_RATE = 0.5
 
 // Soft focus on the footage so the headline and cards read clearly on top of it.
-const BLUR_PX = 6
+const BLUR_PX = 2
 
 /**
  * Full-bleed looping background for the Hero (dark and light): cycles through the
