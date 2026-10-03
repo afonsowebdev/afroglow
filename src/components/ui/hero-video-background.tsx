@@ -2,19 +2,16 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'motion/react'
 
 const VIDEOS = [
-  '/videos/hero-9.mp4',
-  '/videos/hero-10.mp4',
-  '/videos/hero-11.mp4',
-  '/videos/hero-12.mp4',
-  '/videos/hero-13.mp4',
-  '/videos/hero-14.mp4',
+  '/videos/hero-hd-1.mp4',
+  '/videos/hero-hd-2.mp4',
+  '/videos/hero-hd-3.mp4',
+  '/videos/hero-hd-4.mp4',
+  '/videos/hero-hd-5.mp4',
+  '/videos/hero-hd-6.mp4',
 ]
 
 // Normal playback speed (1 = real time). Lower it for a calmer, slow-motion feel.
 const PLAYBACK_RATE = 1
-
-// Just a touch of softness: the footage stays clearly recognisable.
-const BLUR_PX = 1
 
 // The next clip starts this long before the current one ends, and the two
 // crossfade over the same window, so playback is continuous: no frozen last
@@ -111,9 +108,8 @@ export function HeroVideoBackground({ tone = 'dark' }: { tone?: 'dark' | 'light'
           onEnded={() => {
             if (slot === activeRef.current) crossfade()
           }}
-          className="absolute inset-0 h-full w-full scale-110 object-cover"
+          className="absolute inset-0 h-full w-full object-cover"
           style={{
-            filter: `blur(${BLUR_PX}px)`,
             opacity: active === slot ? 1 : 0,
             transition: `opacity ${CROSSFADE_SECONDS}s ease-in-out`,
           }}
