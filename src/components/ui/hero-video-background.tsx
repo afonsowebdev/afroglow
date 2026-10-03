@@ -13,13 +13,14 @@ const VIDEOS = [
 // Normal playback speed (1 = real time). Lower it for a calmer, slow-motion feel.
 const PLAYBACK_RATE = 1
 
-// Soft focus on the footage so the text and header read clearly on top of it.
-// The blur is tinted per theme: airy and light in light mode, deep and dark in
-// dark mode (brightness is part of the same filter, so no overlay is needed).
-const BLUR_PX = 2
-const FILTER_BY_TONE = {
-  light: `blur(${BLUR_PX}px)`,
-  dark: `blur(${BLUR_PX}px) brightness(0.9) saturate(0.95)`,
+// Just a touch of softness: the footage stays clearly recognisable.
+const BLUR_PX = 1
+
+// A wash in the site's own brown, so the video feels part of the page's palette
+// (same idea as a brand-coloured tint over a hero video). Deeper in dark mode.
+const TINT_BY_TONE = {
+  light: 'from-[#3b1f0e]/55 via-[#3b1f0e]/40 to-[#1a1008]/70',
+  dark: 'from-[#1a1008]/70 via-[#1a1008]/55 to-[#1a1008]/85',
 } as const
 
 /**
@@ -56,9 +57,14 @@ export function HeroVideoBackground({ tone = 'dark' }: { tone?: 'dark' | 'light'
           exit={{ opacity: 0 }}
           transition={{ duration: 3, ease: 'easeInOut' }}
           className="absolute inset-0 h-full w-full scale-110 object-cover"
-          style={{ filter: FILTER_BY_TONE[tone], transition: 'filter 0.5s ease' }}
+          style={{ filter: `blur(${BLUR_PX}px)` }}
         />
       </AnimatePresence>
+
+      <div
+        className={`absolute inset-0 bg-gradient-to-b transition-colors duration-500 ${TINT_BY_TONE[tone]}`}
+        aria-hidden="true"
+      />
     </div>
   )
 }
