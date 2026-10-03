@@ -51,8 +51,8 @@ export function HeroVideoBackground({ tone = 'dark' }: { tone?: 'dark' | 'light'
       <div
         className={`absolute inset-0 bg-gradient-to-b ${
           tone === 'dark'
-            ? 'from-[#1a1008]/75 via-[#1a1008]/45 to-[#1a1008]/80'
-            : 'from-[#f5efdf]/70 via-white/40 to-[#f5efdf]/75'
+            ? 'from-[#1a1008]/60 via-[#1a1008]/25 to-[#1a1008]/65'
+            : 'from-[#f5efdf]/50 via-white/20 to-[#f5efdf]/55'
         }`}
         aria-hidden="true"
       />
