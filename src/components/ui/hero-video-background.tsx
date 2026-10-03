@@ -10,9 +10,8 @@ const VIDEOS = [
   '/videos/hero-14.mp4',
 ]
 
-// Slowed well below real playback speed for a calm, ambient loop rather than
-// quick hand-held footage.
-const PLAYBACK_RATE = 0.5
+// Normal playback speed (1 = real time). Lower it for a calmer, slow-motion feel.
+const PLAYBACK_RATE = 1
 
 // Soft focus on the footage so the text and header read clearly on top of it.
 // The blur is tinted per theme: airy and light in light mode, deep and dark in
