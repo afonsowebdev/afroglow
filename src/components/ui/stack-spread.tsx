@@ -42,6 +42,8 @@ export interface StackSpreadStageProps {
   clusterRotation?: boolean
   showScrollHint?: boolean
   watermark?: string
+  /** Rendered full-bleed behind the watermark and cards (e.g. a video). */
+  background?: ReactNode
   eyebrow?: string
   headline: ReactNode
   subtitle?: string
@@ -105,6 +107,7 @@ export function StackSpreadStage({
   clusterRotation = true,
   showScrollHint = true,
   watermark,
+  background,
   eyebrow,
   headline,
   subtitle,
@@ -140,6 +143,8 @@ export function StackSpreadStage({
           transition: 'background-color 0.35s ease, color 0.35s ease',
         }}
       >
+        {background}
+
         {watermark && (
           <span
             aria-hidden="true"

@@ -58,6 +58,7 @@ export default function Hero() {
         cardRadius={10}
         clusterRotation
         showScrollHint
+        background={<HeroVideoBackground tone="light" />}
         watermark="AFROGLOW"
         textColor="var(--color-gold-deep)"
         eyebrow="AFROGLOW · Portugal"
