@@ -7,9 +7,6 @@ const VIDEOS = ['/videos/hero-1.mp4', '/videos/hero-2.mp4', '/videos/hero-3.mp4'
 // quick hand-held footage.
 const PLAYBACK_RATE = 0.5
 
-// Soft focus on the footage so the headline and cards read clearly on top of it.
-const BLUR_PX = 2
-
 /**
  * Full-bleed looping background for the Hero (dark and light): cycles through the
  * clips, crossfading slowly into the next one once each finishes playing
@@ -43,19 +40,9 @@ export function HeroVideoBackground({ tone = 'dark' }: { tone?: 'dark' | 'light'
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 3, ease: 'easeInOut' }}
-          className="absolute inset-0 h-full w-full scale-110 object-cover"
-          style={{ filter: `blur(${BLUR_PX}px)` }}
+          className="absolute inset-0 h-full w-full object-cover"
         />
       </AnimatePresence>
-
-      <div
-        className={`absolute inset-0 bg-gradient-to-b ${
-          tone === 'dark'
-            ? 'from-[#1a1008]/60 via-[#1a1008]/25 to-[#1a1008]/65'
-            : 'from-[#f5efdf]/50 via-white/20 to-[#f5efdf]/55'
-        }`}
-        aria-hidden="true"
-      />
     </div>
   )
 }
