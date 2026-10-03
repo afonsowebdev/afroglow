@@ -10,10 +10,10 @@ const PLAYBACK_RATE = 0.5
 // Soft focus on the footage so the text and header read clearly on top of it.
 // The blur is tinted per theme: airy and light in light mode, deep and dark in
 // dark mode (brightness is part of the same filter, so no overlay is needed).
-const BLUR_PX = 20
+const BLUR_PX = 5
 const FILTER_BY_TONE = {
-  light: `blur(${BLUR_PX}px) contrast(0.4) brightness(2.3) saturate(0.9)`,
-  dark: `blur(${BLUR_PX}px) brightness(0.45) saturate(0.9)`,
+  light: `blur(${BLUR_PX}px) contrast(0.75) brightness(1.8) saturate(0.95)`,
+  dark: `blur(${BLUR_PX}px) brightness(0.9) saturate(0.95)`,
 } as const
 
 /**
