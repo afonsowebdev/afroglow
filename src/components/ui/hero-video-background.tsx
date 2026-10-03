@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useReducedMotion } from 'motion/react'
 
 const VIDEOS = [
   '/videos/hero-9.mp4',
@@ -16,6 +16,11 @@ const PLAYBACK_RATE = 1
 // Just a touch of softness: the footage stays clearly recognisable.
 const BLUR_PX = 1
 
+// The next clip starts this long before the current one ends, and the two
+// crossfade over the same window, so playback is continuous: no frozen last
+// frame, no black gap while the next file loads.
+const CROSSFADE_SECONDS = 1.2
+
 // A wash in the site's own brown, so the video feels part of the page's palette
 // (same idea as a brand-coloured tint over a hero video). Deeper in dark mode.
 const TINT_BY_TONE = {
@@ -24,42 +29,96 @@ const TINT_BY_TONE = {
 } as const
 
 /**
- * Full-bleed looping background for the Hero (dark and light): cycles through the
- * clips, crossfading slowly into the next one once each finishes playing
- * (at the slowed rate), plus a fixed dark scrim so the overlaid text stays
- * legible. Colors here are literal rather than the theme-adaptive onyx/cream
- * tokens, since this treatment only ever renders in dark mode. Respects
+ * Full-bleed looping background for the Hero. Two stacked <video> slots: one is
+ * visible and playing, the other has the next clip preloaded and waiting. Just
+ * before the visible clip ends, the waiting one starts and fades in over it; once
+ * the fade is done the old slot is reloaded with the clip after that. Respects
  * prefers-reduced-motion by not autoplaying.
  */
 export function HeroVideoBackground({ tone = 'dark' }: { tone?: 'dark' | 'light' }) {
   const shouldReduceMotion = useReducedMotion()
-  const [index, setIndex] = useState(0)
+  const videoRefs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)]
 
-  const advance = () => {
-    setIndex((current) => (current + 1) % VIDEOS.length)
+  const [active, setActive] = useState(0)
+  const [sources, setSources] = useState([VIDEOS[0], VIDEOS[1 % VIDEOS.length]])
+
+  const activeRef = useRef(0)
+  const upcomingIndex = useRef(1 % VIDEOS.length) // VIDEOS index loaded in the waiting slot
+  const switching = useRef(false)
+
+  const play = (video: HTMLVideoElement | null) => {
+    if (!video) return
+    video.playbackRate = PLAYBACK_RATE
+    video.play().catch(() => {
+      // Autoplay refused (e.g. data-saver): the poster colour simply stays.
+    })
   }
 
+  const crossfade = useCallback(() => {
+    if (switching.current || VIDEOS.length < 2) return
+    switching.current = true
+
+    const outgoing = activeRef.current
+    const incoming = 1 - outgoing
+
+    const incomingVideo = videoRefs[incoming].current
+    if (incomingVideo) incomingVideo.currentTime = 0
+    play(incomingVideo)
+
+    activeRef.current = incoming
+    setActive(incoming)
+
+    // After the fade, the old slot preloads the clip that follows the one now playing.
+    window.setTimeout(
+      () => {
+        upcomingIndex.current = (upcomingIndex.current + 1) % VIDEOS.length
+        setSources((current) => {
+          const next = [...current]
+          next[outgoing] = VIDEOS[upcomingIndex.current]
+          return next
+        })
+        switching.current = false
+      },
+      CROSSFADE_SECONDS * 1000 + 150,
+    )
+    // videoRefs are stable ref objects
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (!shouldReduceMotion) play(videoRefs[0].current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldReduceMotion])
+
   return (
-    <div className={`absolute inset-0 overflow-hidden ${tone === 'dark' ? 'bg-[#1a1008]' : 'bg-[#f5efdf]'}`}>
-      <AnimatePresence>
-        <motion.video
-          key={index}
-          src={VIDEOS[index]}
-          autoPlay={!shouldReduceMotion}
+    <div className="absolute inset-0 overflow-hidden bg-[#1a1008]">
+      {[0, 1].map((slot) => (
+        <video
+          key={slot}
+          ref={videoRefs[slot]}
+          src={sources[slot]}
           muted
           playsInline
-          onEnded={advance}
-          onLoadedMetadata={(e) => {
-            e.currentTarget.playbackRate = PLAYBACK_RATE
+          preload="auto"
+          data-slot={slot}
+          data-active={active === slot}
+          onTimeUpdate={(e) => {
+            const video = e.currentTarget
+            if (slot !== activeRef.current || !video.duration) return
+            if (video.duration - video.currentTime <= CROSSFADE_SECONDS) crossfade()
           }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 3, ease: 'easeInOut' }}
+          // Safety net: if the clip is too short or timeupdate was throttled.
+          onEnded={() => {
+            if (slot === activeRef.current) crossfade()
+          }}
           className="absolute inset-0 h-full w-full scale-110 object-cover"
-          style={{ filter: `blur(${BLUR_PX}px)` }}
+          style={{
+            filter: `blur(${BLUR_PX}px)`,
+            opacity: active === slot ? 1 : 0,
+            transition: `opacity ${CROSSFADE_SECONDS}s ease-in-out`,
+          }}
         />
-      </AnimatePresence>
+      ))}
 
       <div
         className={`absolute inset-0 bg-gradient-to-b transition-colors duration-500 ${TINT_BY_TONE[tone]}`}
