@@ -1,18 +1,23 @@
 import Faq from '@/components/sections/Faq'
 import Location from '@/components/sections/Location'
-import { HowItWorksApp, WelcomeCard, WorkGallery } from './HomeSections'
+import {
+  ContactTiles,
+  QuickActions,
+  ReviewsRow,
+  ServiceCarousel,
+  StepsRow,
+  WelcomeCard,
+  WorkGrid,
+} from './HomeSections'
 import { useLightStatusBar } from './useLightStatusBar'
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
-import { Link } from 'react-router-dom'
 import { HeroVideoBackground } from '@/components/ui/hero-video-background'
 import { GlassButton } from '@/components/ui/glass-button'
-import { MotionButton } from '@/components/ui/motion-button'
-import { TestimonialsEditorial, type Testimonial } from '@/components/ui/editorial-testimonial'
 import { api } from '@/lib/api'
-import { instagramDmUrl, useWhatsapp } from '@/lib/site-config'
+import { useWhatsapp } from '@/lib/site-config'
 import { useTheme } from '@/lib/theme'
-import { formatPrice, type Service, type Testimonial as ApiTestimonial } from '@/lib/types'
+import type { Service, Testimonial as ApiTestimonial } from '@/lib/types'
 
 export default function HomeScreen() {
   useLightStatusBar()
@@ -20,7 +25,7 @@ export default function HomeScreen() {
   const { theme } = useTheme()
   const dark = theme === 'dark'
   const [services, setServices] = useState<Service[] | null>(null)
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
+  const [testimonials, setTestimonials] = useState<Array<{ id: string; quote: string; name: string }>>([])
 
   useEffect(() => {
     api
@@ -79,80 +84,29 @@ export default function HomeScreen() {
       <section className="relative z-10 bg-white px-5 pt-10">
         <div className="mx-auto max-w-2xl">
           <WelcomeCard />
-          <h2 className="mt-12 font-subtitle font-semibold tracking-tight text-2xl text-onyx">Os nossos serviços</h2>
-          <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">
-            Escolhe o modelo e marca a tua sessão.
-          </p>
-
-          <div className="mt-6 flex flex-col gap-3">
-            {services === null && <p className="font-subtitle text-sm text-muted-dark">A carregar...</p>}
-            {services?.map((service) => (
-              <Link
-                key={service.id}
-                to={`/marcar?service=${service.id}`}
-                className="block rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5 transition-colors hover:border-gold-deep"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <h3 className="font-subtitle font-semibold tracking-tight text-lg text-onyx">{service.name}</h3>
-                    <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-gold-deep/10 px-2.5 py-1 font-subtitle text-[11px] text-gold-ink">
-                      <i className="bx bx-time-five text-sm" aria-hidden="true" />
-                      {service.durationLabel}
-                    </span>
-                  </div>
-                  <p className="shrink-0 font-subtitle font-semibold tracking-tight text-xl text-onyx">
-                    {formatPrice(service.priceCents)}
-                  </p>
-                </div>
-                <p className="mt-3 line-clamp-2 font-subtitle text-sm text-muted-dark">{service.description}</p>
-              </Link>
-            ))}
-          </div>
+          <QuickActions
+            whatsappUrl={
+              whatsapp.enabled ? whatsapp.url('Olá! Gostaria de saber mais sobre os vossos serviços.') : undefined
+            }
+          />
         </div>
       </section>
 
-      <HowItWorksApp />
-      <WorkGallery />
-
-      {testimonials.length > 0 && (
-        <section className="mx-auto max-w-2xl px-5 pt-16">
-          <h2 className="text-center font-subtitle font-semibold tracking-tight text-2xl text-onyx">
-            O que dizem as nossas clientes
-          </h2>
-          <div className="mt-10">
-            <TestimonialsEditorial testimonials={testimonials} />
-          </div>
-        </section>
-      )}
+      <ServiceCarousel services={services} />
+      <StepsRow />
+      <WorkGrid />
+      <ReviewsRow reviews={testimonials} />
 
       <div>
         <Faq app />
         <Location app />
       </div>
 
-      <section className="mx-auto max-w-2xl px-5 pt-14 text-center">
-        <h2 className="font-subtitle font-semibold tracking-tight text-2xl text-onyx">Fala connosco</h2>
-        <div className="mt-6 flex flex-col items-center gap-4">
-          <MotionButton
-            label="Instagram"
-            variant="primary"
-            icon={<i className="bx bxl-instagram text-lg" aria-hidden="true" />}
-            href={instagramDmUrl()}
-            target="_blank"
-            rel="noreferrer"
-          />
-          {whatsapp.enabled && (
-            <MotionButton
-              label="WhatsApp"
-              variant="secondary"
-              icon={<i className="bx bxl-whatsapp text-lg" aria-hidden="true" />}
-              href={whatsapp.url('Olá! Gostaria de saber mais sobre os vossos serviços.')}
-              target="_blank"
-              rel="noreferrer"
-            />
-          )}
-        </div>
-      </section>
+      <ContactTiles
+        whatsappUrl={
+          whatsapp.enabled ? whatsapp.url('Olá! Gostaria de saber mais sobre os vossos serviços.') : undefined
+        }
+      />
     </main>
   )
 }
