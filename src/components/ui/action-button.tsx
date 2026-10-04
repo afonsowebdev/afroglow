@@ -5,9 +5,9 @@ import { tap } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
 
 /**
- * The customer app's action button: the same pill the admin app uses (round icon disc that slides across on
- * hover/press), here full width, with a chocolate border and disc. `icon` is an icon-font class for the disc;
- * omit it for the sliding arrow.
+ * The system's own button (`MotionButton`: white pill, round icon disc that slides across) for the customer
+ * app. Adds in-app navigation (`to`) and a light haptic tap. `icon` is an icon-font class for the disc; omit it
+ * for the arrow.
  */
 export function ActionButton({
   label,
@@ -40,7 +40,7 @@ export function ActionButton({
   return (
     <MotionButton
       label={label}
-      variant={variant === 'primary' ? 'cocoa' : 'secondary'}
+      variant={variant}
       icon={icon ? <i className={cn(icon, 'text-lg')} aria-hidden="true" /> : undefined}
       href={href}
       target={href ? '_blank' : undefined}
@@ -48,7 +48,7 @@ export function ActionButton({
       type={type}
       disabled={disabled}
       onClick={type === 'submit' ? undefined : handle}
-      className={cn('w-full border-2', variant === 'primary' ? 'border-cocoa' : 'border-onyx/25', className)}
+      className={className}
     />
   )
 }

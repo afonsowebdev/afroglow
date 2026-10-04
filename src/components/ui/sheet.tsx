@@ -30,7 +30,6 @@ export function Sheet({
   submitLabel,
   submitDisabled = false,
   hideSubmit = false,
-  sober = false,
   children,
   onSubmit,
   onClose,
@@ -45,8 +44,6 @@ export function Sheet({
   submitLabel: string
   submitDisabled?: boolean
   hideSubmit?: boolean
-  /** Customer-app look: rounded-rectangle buttons, dark primary action. */
-  sober?: boolean
   children: ReactNode
   onSubmit: () => void
   onClose: () => void
@@ -110,11 +107,7 @@ export function Sheet({
                 type="button"
                 onClick={onClose}
                 disabled={busy}
-                className={`border py-3 font-subtitle text-sm text-onyx transition-colors disabled:opacity-50 ${
-                  sober
-                    ? 'rounded-xl border-onyx/20 py-3.5 font-medium'
-                    : 'rounded-full border-gold/30 hover:border-gold-deep'
-                }`}
+                className="rounded-full border border-gold/30 py-3 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep disabled:opacity-50"
               >
                 {hideSubmit ? 'Fechar' : 'Cancelar'}
               </button>
@@ -122,9 +115,9 @@ export function Sheet({
                 <button
                   type="submit"
                   disabled={busy || submitDisabled}
-                  className={`py-3 font-subtitle text-sm transition-opacity hover:opacity-90 disabled:opacity-40 ${
-                    sober ? 'rounded-full border-2 border-cocoa py-3 font-medium' : 'rounded-full'
-                  } ${destructive ? 'bg-red-700 text-[#ffffff]' : sober ? 'bg-cocoa text-cream' : 'bg-gold-deep text-[#ffffff]'}`}
+                  className={`rounded-full py-3 font-subtitle text-sm text-[#ffffff] transition-opacity hover:opacity-90 disabled:opacity-40 ${
+                    destructive ? 'bg-red-700' : 'bg-gold-deep'
+                  }`}
                 >
                   {busy ? 'A processar...' : submitLabel}
                 </button>

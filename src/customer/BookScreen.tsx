@@ -30,8 +30,10 @@ function Cta({ label, busy, onClick }: { label: string; busy?: boolean; onClick:
       transition={{ type: 'spring', stiffness: 320, damping: 30 }}
       className="pointer-events-none fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 px-5"
     >
-      <div className="pointer-events-auto mx-auto w-full max-w-md rounded-full shadow-lg shadow-black/20">
-        <ActionButton label={busy ? 'A enviar...' : label} disabled={busy} onClick={onClick} />
+      <div className="pointer-events-auto mx-auto flex max-w-md justify-center">
+        <div className="rounded-full shadow-lg shadow-black/20">
+          <ActionButton label={busy ? 'A enviar...' : label} disabled={busy} onClick={onClick} />
+        </div>
       </div>
     </motion.div>
   )
@@ -151,7 +153,7 @@ export default function BookScreen() {
           <p className="mx-auto mt-3 max-w-xs font-subtitle text-sm font-light text-muted-dark">
             Vais receber uma notificação assim que for confirmada.
           </p>
-          <div className="mt-10 flex flex-col gap-3">
+          <div className="mt-10 flex flex-col items-center gap-3">
             <ActionButton label="Ver as minhas marcações" onClick={() => navigate('/marcacoes')} />
             <ActionButton label="Voltar ao início" variant="secondary" onClick={() => navigate('/')} />
           </div>

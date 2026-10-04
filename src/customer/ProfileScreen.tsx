@@ -368,7 +368,6 @@ export default function ProfileScreen() {
       </div>
 
       <Sheet
-        sober
         open={sheet === 'testimonial'}
         icon="bx bx-message-rounded-dots"
         title="O teu testemunho"
@@ -383,7 +382,6 @@ export default function ProfileScreen() {
 
       {/* Edit name */}
       <Sheet
-        sober
         open={sheet === 'name'}
         title="Alterar nome"
         description="É o nome que aparece nas tuas marcações."
@@ -407,7 +405,6 @@ export default function ProfileScreen() {
 
       {/* Edit phone */}
       <Sheet
-        sober
         open={sheet === 'phone'}
         icon="bx bx-phone"
         title="Alterar telemóvel"
@@ -435,7 +432,6 @@ export default function ProfileScreen() {
 
       {/* Change password */}
       <Sheet
-        sober
         open={sheet === 'password'}
         icon="bx bx-key"
         title="Alterar password"
@@ -474,7 +470,6 @@ export default function ProfileScreen() {
 
       {/* Delete account */}
       <Sheet
-        sober
         open={sheet === 'delete'}
         icon="bx bx-trash"
         destructive

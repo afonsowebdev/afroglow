@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils'
 const CIRCLE_BY_VARIANT = {
   primary: 'bg-gold-deep',
   secondary: 'bg-onyx',
-  cocoa: 'bg-cocoa',
   danger: 'bg-red-700',
 } as const
 

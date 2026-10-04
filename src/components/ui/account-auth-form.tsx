@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ForgotPasswordSheet } from '@/components/ui/forgot-password-sheet'
-import { ActionButton } from '@/components/ui/action-button'
 import { MotionButton } from '@/components/ui/motion-button'
-import { isCustomerApp } from '@/lib/app-mode'
 import { ApiError } from '@/lib/api'
 import { useCustomerAuth } from '@/lib/customer-auth'
 
@@ -99,15 +97,6 @@ function PasswordChecklist({ password }: { password: string }) {
 }
 
 const RESEND_COOLDOWN_SECONDS = 60
-
-/** Submit button: the website keeps its round button; the customer app uses the shared action button. */
-function SubmitButton({ label, disabled }: { label: string; disabled: boolean }) {
-  return isCustomerApp ? (
-    <ActionButton label={label} type="submit" disabled={disabled} />
-  ) : (
-    <MotionButton label={label} disabled={disabled} type="submit" />
-  )
-}
 
 export type AuthMode = 'login' | 'register' | 'verify'
 
@@ -242,7 +231,11 @@ export function AccountAuthForm({
             <AnimatePresence>{error && <ErrorMessage>{error}</ErrorMessage>}</AnimatePresence>
 
             <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-              <SubmitButton label={submitting ? 'A verificar...' : 'Confirmar'} disabled={!canSubmit || submitting} />
+              <MotionButton
+                label={submitting ? 'A verificar...' : 'Confirmar'}
+                disabled={!canSubmit || submitting}
+                type="submit"
+              />
               <button
                 type="button"
                 onClick={handleResend}
@@ -284,13 +277,13 @@ export function AccountAuthForm({
                 {mode === value && (
                   <motion.span
                     layoutId="auth-tab-pill"
-                    className={`absolute inset-0 rounded-full shadow-md ${isCustomerApp ? 'bg-brand shadow-brand/30' : 'bg-gold-deep shadow-gold-deep/30'}`}
+                    className="absolute inset-0 rounded-full bg-gold-deep shadow-md shadow-gold-deep/30"
                     transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                   />
                 )}
                 <span
                   className={`relative transition-colors duration-300 ${
-                    mode === value ? (isCustomerApp ? 'text-brand-ink' : 'text-cream') : 'text-onyx/60 hover:text-onyx'
+                    mode === value ? 'text-cream' : 'text-onyx/60 hover:text-onyx'
                   }`}
                 >
                   {text}
@@ -381,10 +374,11 @@ export function AccountAuthForm({
             )}
           </AnimatePresence>
 
-          <div className={isCustomerApp ? '' : 'flex justify-center sm:justify-start'}>
-            <SubmitButton
+          <div className="flex justify-center sm:justify-start">
+            <MotionButton
               label={submitting ? 'A processar...' : mode === 'login' ? 'Entrar' : 'Criar conta'}
               disabled={!canSubmit || submitting}
+              type="submit"
             />
           </div>
         </form>

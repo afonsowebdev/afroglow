@@ -127,12 +127,14 @@ export function ServicePreview({
             </div>
 
             <div className="border-t border-onyx/10 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-              <ActionButton
-                label={chosen ? 'Retirar escolha' : 'Escolher este modelo'}
-                variant={chosen ? 'secondary' : 'primary'}
-                icon={chosen ? 'bx bx-x' : undefined}
-                onClick={onChoose}
-              />
+              <div className="flex justify-center">
+                <ActionButton
+                  label={chosen ? 'Retirar escolha' : 'Escolher este modelo'}
+                  variant={chosen ? 'secondary' : 'primary'}
+                  icon={chosen ? 'bx bx-x' : undefined}
+                  onClick={onChoose}
+                />
+              </div>
             </div>
           </motion.div>
         </div>

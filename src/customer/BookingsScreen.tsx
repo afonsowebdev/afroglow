@@ -254,7 +254,6 @@ export default function BookingsScreen() {
       </div>
 
       <Sheet
-        sober
         open={Boolean(selected)}
         title={
           mode === 'reschedule'
