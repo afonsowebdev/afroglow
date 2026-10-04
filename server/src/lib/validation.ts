@@ -102,3 +102,14 @@ export const resetPasswordSchema = z.object({
   code: z.string().regex(/^\d{6}$/, 'O código deve ter exatamente 6 dígitos.'),
   newPassword: strongPasswordSchema,
 })
+
+export const businessSettingsSchema = z.object({
+  whatsappNumber: z.string().trim().max(20).regex(/^\d*$/, 'Só dígitos, com indicativo (ex.: 351912345678).'),
+  phone: z.string().trim().max(30),
+  address: z.string().trim().max(200),
+  mapUrl: z.string().trim().max(500).refine((v) => v === '' || /^https?:\/\//i.test(v), 'O link do mapa deve começar por https://'),
+  openingHours: z
+    .array(z.object({ days: z.string().trim().min(1).max(60), hours: z.string().trim().min(1).max(60) }))
+    .max(10),
+  cancellationPolicy: z.string().trim().max(600),
+})

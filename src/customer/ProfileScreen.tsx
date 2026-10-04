@@ -3,7 +3,7 @@ import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
 import { TestimonialForm } from '@/pages/AccountPage'
 import { ApiError } from '@/lib/api'
 import { useCustomerAuth } from '@/lib/customer-auth'
-import { hasWhatsapp, instagramDmUrl, siteConfig, whatsappUrl } from '@/lib/site-config'
+import { instagramDmUrl, siteConfig, useWhatsapp } from '@/lib/site-config'
 
 const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$/
 const APP_VERSION = '1.0'
@@ -72,6 +72,7 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 }
 
 export default function ProfileScreen() {
+  const whatsapp = useWhatsapp()
   const { customer, updateProfile, changePassword, deleteAccount, logout } = useCustomerAuth()
   const [sheet, setSheet] = useState<SheetId>(null)
   const [busy, setBusy] = useState(false)
@@ -169,11 +170,11 @@ export default function ProfileScreen() {
       </section>
 
       <Group title="Ajuda e informação">
-        {hasWhatsapp && (
+        {whatsapp.enabled && (
           <Row
             icon="bx bxl-whatsapp"
             label="Falar connosco no WhatsApp"
-            href={whatsappUrl('Olá! Preciso de ajuda com a minha conta AFROGLOW.')}
+            href={whatsapp.url('Olá! Preciso de ajuda com a minha conta AFROGLOW.')}
           />
         )}
         <Row icon="bx bx-envelope" label={siteConfig.email} href={`mailto:${siteConfig.email}`} />

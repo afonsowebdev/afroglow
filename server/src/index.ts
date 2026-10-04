@@ -11,6 +11,7 @@ import { authRouter } from './routes/auth.js'
 import { adminBookingsRouter, bookingsRouter } from './routes/bookings.js'
 import { pushRouter } from './routes/push.js'
 import { registerRouter } from './routes/register.js'
+import { adminSettingsRouter, settingsRouter } from './routes/settings.js'
 import { adminServicesRouter, servicesRouter } from './routes/services.js'
 import { adminTestimonialsRouter, testimonialsRouter } from './routes/testimonials.js'
 
@@ -55,6 +56,8 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }))
 app.use('/api/auth', authRouter)
 app.use('/api/auth', registerRouter)
 app.use('/api/services', servicesRouter)
+app.use('/api/settings', settingsRouter)
+app.use('/api/admin/settings', adminSettingsRouter)
 app.use('/api/admin/services', adminServicesRouter)
 app.use('/api/availability', availabilityRouter)
 app.use('/api/admin/availability', adminAvailabilityRouter)

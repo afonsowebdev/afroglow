@@ -1,4 +1,4 @@
-import { siteConfig } from '@/lib/site-config'
+import { getBusinessInfo, siteConfig } from '@/lib/site-config'
 
 function icsDate(date: Date) {
   return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
@@ -30,7 +30,7 @@ export function downloadBookingIcs(booking: { serviceName: string; startsAtIso: 
     `DTSTART:${icsDate(start)}`,
     `DTEND:${icsDate(end)}`,
     `SUMMARY:${icsText(`${siteConfig.name} · ${booking.serviceName}`)}`,
-    ...(siteConfig.address ? [`LOCATION:${icsText(siteConfig.address)}`] : []),
+    ...(getBusinessInfo().address ? [`LOCATION:${icsText(getBusinessInfo().address)}`] : []),
     'END:VEVENT',
     'END:VCALENDAR',
   ]

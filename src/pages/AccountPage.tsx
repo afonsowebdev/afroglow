@@ -7,7 +7,7 @@ import { MotionButton } from '@/components/ui/motion-button'
 import { api, ApiError } from '@/lib/api'
 import { downloadBookingIcs } from '@/lib/calendar'
 import { useCustomerAuth } from '@/lib/customer-auth'
-import { siteConfig } from '@/lib/site-config'
+import { useBusinessInfo } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking } from '@/lib/types'
 
 const LISBON_TZ = 'Europe/Lisbon'
@@ -137,6 +137,7 @@ function ReschedulePicker({
 }
 
 function BookingCard({ booking, onChanged }: { booking: Booking; onChanged: () => void }) {
+  const business = useBusinessInfo()
   const [rescheduling, setRescheduling] = useState(false)
   const [confirmingCancel, setConfirmingCancel] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -205,8 +206,8 @@ function BookingCard({ booking, onChanged }: { booking: Booking; onChanged: () =
             Cancelar {booking.service.name} em {formatDateHeading(booking.slot.startsAt)} às{' '}
             {formatTime(booking.slot.startsAt)}? O horário fica livre para outra pessoa.
           </p>
-          {siteConfig.cancellationPolicy && (
-            <p className="mt-2 font-subtitle text-xs font-light text-muted-dark">{siteConfig.cancellationPolicy}</p>
+          {business.cancellationPolicy && (
+            <p className="mt-2 font-subtitle text-xs font-light text-muted-dark">{business.cancellationPolicy}</p>
           )}
           <div className="mt-3 flex gap-2">
             <Button size="sm" variant="destructive" disabled={busy} onClick={handleCancel}>

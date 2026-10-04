@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
-import { hasWhatsapp, siteConfig } from '@/lib/site-config'
+import { siteConfig, useBusinessInfo, hasWhatsappNumber, type BusinessInfo } from '@/lib/site-config'
 
 interface Question {
   q: string
@@ -9,10 +9,10 @@ interface Question {
 
 // Only things the system really does. Business-specific rules (prices, cancellation window…)
 // come from siteConfig so the client can fill them in without touching this file.
-function buildQuestions(): Question[] {
+function buildQuestions(business: BusinessInfo): Question[] {
   const contact = [
     `Instagram @${siteConfig.instagramHandle}`,
-    hasWhatsapp ? 'WhatsApp' : null,
+    hasWhatsappNumber(business.whatsappNumber) ? 'WhatsApp' : null,
     `email ${siteConfig.email}`,
   ]
     .filter(Boolean)
@@ -37,7 +37,7 @@ function buildQuestions(): Question[] {
     },
     {
       q: 'Posso reagendar ou cancelar?',
-      a: `Sim, na tua conta, em “As minhas marcações”.${siteConfig.cancellationPolicy ? ` ${siteConfig.cancellationPolicy}` : ''}`,
+      a: `Sim, na tua conta, em “As minhas marcações”.${business.cancellationPolicy ? ` ${business.cancellationPolicy}` : ''}`,
     },
     {
       q: 'Vou receber algum lembrete?',
@@ -55,7 +55,7 @@ function buildQuestions(): Question[] {
 }
 
 export default function Faq() {
-  const questions = buildQuestions()
+  const questions = buildQuestions(useBusinessInfo())
   const [open, setOpen] = useState<number | null>(0)
 
   return (

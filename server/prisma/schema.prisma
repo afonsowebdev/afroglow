@@ -110,3 +110,15 @@ model Testimonial {
   createdAt  DateTime          @default(now())
 }
 
+
+// Single row (id "main"): contact details and policies the business edits from the admin app.
+model BusinessSettings {
+  id                 String   @id @default("main")
+  whatsappNumber     String   @default("")
+  phone              String   @default("")
+  address            String   @default("")
+  mapUrl             String   @default("")
+  openingHours       Json     @default("[]")
+  cancellationPolicy String   @default("")
+  updatedAt          DateTime @updatedAt
+}

@@ -4,11 +4,12 @@ import { HeroVideoBackground } from '@/components/ui/hero-video-background'
 import { MotionButton } from '@/components/ui/motion-button'
 import { TestimonialsEditorial, type Testimonial } from '@/components/ui/editorial-testimonial'
 import { api } from '@/lib/api'
-import { hasWhatsapp, instagramDmUrl, whatsappUrl } from '@/lib/site-config'
+import { instagramDmUrl, useWhatsapp } from '@/lib/site-config'
 import { useTheme } from '@/lib/theme'
 import { formatPrice, type Service, type Testimonial as ApiTestimonial } from '@/lib/types'
 
 export default function HomeScreen() {
+  const whatsapp = useWhatsapp()
   const { theme } = useTheme()
   const dark = theme === 'dark'
   const [services, setServices] = useState<Service[] | null>(null)
@@ -93,12 +94,12 @@ export default function HomeScreen() {
             target="_blank"
             rel="noreferrer"
           />
-          {hasWhatsapp && (
+          {whatsapp.enabled && (
             <MotionButton
               label="WhatsApp"
               variant="secondary"
               icon={<i className="bx bxl-whatsapp text-lg" aria-hidden="true" />}
-              href={whatsappUrl('Olá! Gostaria de saber mais sobre os vossos serviços.')}
+              href={whatsapp.url('Olá! Gostaria de saber mais sobre os vossos serviços.')}
               target="_blank"
               rel="noreferrer"
             />

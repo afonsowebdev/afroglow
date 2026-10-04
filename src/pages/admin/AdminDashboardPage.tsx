@@ -6,6 +6,7 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { MotionButton } from '@/components/ui/motion-button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { adminToken, api, ApiError } from '@/lib/api'
+import { SettingsView } from '@/pages/admin/SettingsView'
 import { registerForPushNotifications } from '@/lib/push-notifications'
 import { customerWhatsappUrl } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service, type Testimonial } from '@/lib/types'
@@ -80,9 +81,11 @@ const HISTORY_STATUS_LABEL: Record<Booking['status'], string> = {
   CANCELLED: 'Cancelada',
 }
 
-type AdminTab = 'pedidos' | 'agenda' | 'disponibilidade' | 'servicos' | 'testemunhos'
+type AdminTab = 'pedidos' | 'agenda' | 'disponibilidade' | 'servicos' | 'testemunhos' | 'definicoes'
 
-const TABS: Array<{ id: AdminTab; label: string; icon: string }> = [
+type NavTab = Exclude<AdminTab, 'definicoes'>
+
+const TABS: Array<{ id: NavTab; label: string; icon: string }> = [
   { id: 'pedidos', label: 'Pedidos', icon: 'bx bx-bell' },
   { id: 'agenda', label: 'Agenda', icon: 'bx bx-calendar-check' },
   { id: 'disponibilidade', label: 'Horários', icon: 'bx bx-time-five' },
@@ -1168,7 +1171,7 @@ export default function AdminDashboardPage() {
   const [adminEmail, setAdminEmail] = useState<string | null>(null)
   const [tab, setTab] = useState<AdminTab>(() => {
     const fromHash = window.location.hash.slice(1)
-    return TABS.some((t) => t.id === fromHash) ? (fromHash as AdminTab) : 'pedidos'
+    return TABS.some((t) => t.id === fromHash) || fromHash === 'definicoes' ? (fromHash as AdminTab) : 'pedidos'
   })
   const [scrolled, setScrolled] = useState(false)
 
@@ -1563,6 +1566,19 @@ export default function AdminDashboardPage() {
 
           <div className="flex items-center gap-2">
             <ThemeToggle className="h-12 w-12 border-transparent bg-white/95 shadow-lg shadow-black/10 backdrop-blur" />
+            <button
+              type="button"
+              aria-label="Definições do negócio"
+              onClick={() => {
+                setTab('definicoes')
+                window.scrollTo({ top: 0 })
+              }}
+              className={`h-12 w-12 justify-center text-xl transition-colors duration-300 hover:text-gold-deep ${pillClasses} ${
+                tab === 'definicoes' ? 'text-gold-deep' : 'text-onyx'
+              }`}
+            >
+              <i className="bx bx-cog" aria-hidden="true" />
+            </button>
             <button
               type="button"
               onClick={handleLogout}
@@ -1986,6 +2002,8 @@ export default function AdminDashboardPage() {
               onDecision={(id, decision) => handleBookingDecision(id, decision)}
             />
           )}
+
+          {tab === 'definicoes' && <SettingsView />}
 
           {tab === 'testemunhos' && (
             <TestimonialsView testimonials={testimonials} busyId={busyId} onDecision={handleTestimonialDecision} />

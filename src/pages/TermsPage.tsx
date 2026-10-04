@@ -1,11 +1,12 @@
 import { LegalLayout, LegalSection as Section } from '@/components/layout/LegalLayout'
-import { siteConfig } from '@/lib/site-config'
+import { siteConfig, useBusinessInfo } from '@/lib/site-config'
 
 // NOTE: plain-language draft that matches how the booking system works. It should be reviewed by the
 // business owner (and ideally a lawyer) before launch.
 const LAST_UPDATED = '4 de outubro de 2026'
 
 export default function TermsPage() {
+  const business = useBusinessInfo()
   return (
     <LegalLayout title="Termos e condições" updated={LAST_UPDATED}>
       <p className="mt-8 font-subtitle text-[15px] leading-relaxed text-muted-dark">
@@ -38,7 +39,7 @@ export default function TermsPage() {
             Podes reagendar ou cancelar a tua marcação na tua conta. Pedimos que o faças com a maior antecedência
             possível, para podermos oferecer o horário a outra pessoa.
           </li>
-          {siteConfig.cancellationPolicy && <li>{siteConfig.cancellationPolicy}</li>}
+          {business.cancellationPolicy && <li>{business.cancellationPolicy}</li>}
           <li>A duração e o preço de cada modelo são os indicados no momento do pedido.</li>
         </ul>
       </Section>

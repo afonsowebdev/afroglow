@@ -6,7 +6,7 @@ import { api, ApiError } from '@/lib/api'
 import { Capacitor } from '@capacitor/core'
 import { downloadBookingIcs } from '@/lib/calendar'
 import { useCustomerAuth } from '@/lib/customer-auth'
-import { siteConfig } from '@/lib/site-config'
+import { useBusinessInfo } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Service } from '@/lib/types'
 
 const LISBON_TZ = 'Europe/Lisbon'
@@ -41,6 +41,7 @@ function StepHeading({ number, children }: { number: string; children: ReactNode
 /** `embedded`: rendered inside the customer app's tab shell (no site header, room for the tab bar). */
 export default function BookingPage({ embedded = false }: { embedded?: boolean } = {}) {
   const { customer, loading: authLoading, refresh } = useCustomerAuth()
+  const business = useBusinessInfo()
   const [searchParams] = useSearchParams()
   const [scrolled, setScrolled] = useState(false)
   const [services, setServices] = useState<Service[]>([])
@@ -322,9 +323,9 @@ export default function BookingPage({ embedded = false }: { embedded?: boolean }
               </div>
             </section>
 
-            {siteConfig.cancellationPolicy && (
+            {business.cancellationPolicy && (
               <p className="font-subtitle text-sm font-light text-muted-dark">
-                <strong className="font-medium text-onyx">Cancelamentos:</strong> {siteConfig.cancellationPolicy}
+                <strong className="font-medium text-onyx">Cancelamentos:</strong> {business.cancellationPolicy}
               </p>
             )}
 

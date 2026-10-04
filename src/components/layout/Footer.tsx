@@ -1,6 +1,6 @@
 import { FooterBackgroundGradient, TextHoverEffect } from '@/components/ui/hover-footer'
 import { MotionButton } from '@/components/ui/motion-button'
-import { hasWhatsapp, instagramDmUrl, siteConfig, whatsappUrl } from '@/lib/site-config'
+import { instagramDmUrl, siteConfig, useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 
 const NAV_LINKS = [
   { label: 'Início', href: '#top' },
@@ -10,27 +10,29 @@ const NAV_LINKS = [
   { label: 'Contacto', href: '#contacto' },
 ]
 
-const CONTACT_INFO = [
+export default function Footer() {
+  const business = useBusinessInfo()
+  const whatsapp = useWhatsapp()
+  const CONTACT_INFO = [
   { icon: 'bx bxl-instagram', text: `@${siteConfig.instagramHandle}`, href: instagramDmUrl() },
-  ...(hasWhatsapp
+  ...(whatsapp.enabled
     ? [
         {
           icon: 'bx bxl-whatsapp',
           text: 'WhatsApp',
-          href: whatsappUrl('Olá! Gostaria de marcar uma sessão de tranças.'),
+          href: whatsapp.url('Olá! Gostaria de marcar uma sessão de tranças.'),
         },
       ]
     : []),
-  ...(siteConfig.phone
-    ? [{ icon: 'bx bx-phone', text: siteConfig.phone, href: `tel:${siteConfig.phone.replace(/[^+\d]/g, '')}` }]
+  ...(business.phone
+    ? [{ icon: 'bx bx-phone', text: business.phone, href: `tel:${business.phone.replace(/[^+\d]/g, '')}` }]
     : []),
   { icon: 'bx bx-envelope', text: siteConfig.email, href: `mailto:${siteConfig.email}` },
-  siteConfig.address
-    ? { icon: 'bx bx-map', text: siteConfig.address, href: siteConfig.mapUrl || undefined }
+  business.address
+    ? { icon: 'bx bx-map', text: business.address, href: business.mapUrl || undefined }
     : { icon: 'bx bx-map', text: siteConfig.location },
 ]
 
-export default function Footer() {
   const year = new Date().getFullYear()
 
   return (
