@@ -3,7 +3,10 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { AccountAuthForm } from '@/components/ui/account-auth-form'
 import { MotionButton } from '@/components/ui/motion-button'
 import { api, ApiError } from '@/lib/api'
+import { Capacitor } from '@capacitor/core'
+import { downloadBookingIcs } from '@/lib/calendar'
 import { useCustomerAuth } from '@/lib/customer-auth'
+import { siteConfig } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Service } from '@/lib/types'
 
 const LISBON_TZ = 'Europe/Lisbon'
@@ -188,7 +191,21 @@ export default function BookingPage({ embedded = false }: { embedded?: boolean }
             <p className="mt-3 max-w-sm font-subtitle text-base font-light text-muted-dark">
               A tua marcação foi enviada e está pendente de confirmação. Entraremos em contacto em breve.
             </p>
-            <div className="mt-8">
+            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
+              {selectedService && selectedSlot && !Capacitor.isNativePlatform() && (
+                <MotionButton
+                  label="Adicionar ao calendário"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() =>
+                    downloadBookingIcs({
+                      serviceName: selectedService.name,
+                      startsAtIso: selectedSlot.startsAt,
+                      durationLabel: selectedService.durationLabel,
+                    })
+                  }
+                />
+              )}
               <MotionButton label="Voltar ao início" href="/" size="sm" />
             </div>
           </div>
@@ -304,6 +321,12 @@ export default function BookingPage({ embedded = false }: { embedded?: boolean }
                 </label>
               </div>
             </section>
+
+            {siteConfig.cancellationPolicy && (
+              <p className="font-subtitle text-sm font-light text-muted-dark">
+                <strong className="font-medium text-onyx">Cancelamentos:</strong> {siteConfig.cancellationPolicy}
+              </p>
+            )}
 
             {submitError && <p className="font-subtitle text-sm text-red-700">{submitError}</p>}
 
