@@ -3,10 +3,32 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import sitemap from 'vite-plugin-sitemap'
+import type { Plugin } from 'vite'
+
+// Starts the app's script after the browser has painted the static first screen from index.html,
+// instead of before it, so visitors see the page while the JavaScript is still starting up.
+function startAppAfterFirstPaint(): Plugin {
+  return {
+    name: 'start-app-after-first-paint',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        const entry = html.match(/<script type="module"[^>]*src="([^"]+)"[^>]*><\/script>/)
+        if (!entry) return html
+        const loader =
+          `<script>requestAnimationFrame(function(){requestAnimationFrame(function(){` +
+          `var s=document.createElement('script');s.type='module';s.src='${entry[1]}';document.head.appendChild(s)})})</script>`
+        return html.replace(entry[0], loader)
+      },
+    },
+  }
+}
 
 export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
+    ...(mode === 'customer' ? [] : [startAppAfterFirstPaint()]),
     tailwindcss(),
     sitemap({
       hostname: 'https://afroglow.pt',

@@ -81,17 +81,47 @@
                 ? 'dark'
                 : 'light'
           if (theme === 'dark') document.documentElement.classList.add('dark')
+          // The hero photo is the largest thing on screen: start fetching the right one at once.
+          var poster = document.createElement('link')
+          poster.rel = 'preload'
+          poster.as = 'image'
+          poster.href = '/images/hero-poster-' + theme + '.jpg'
+          document.head.appendChild(poster)
         } catch (e) {}
+      })()
+    </script>
+    <style>
+      #boot{position:relative;display:flex;min-height:100vh;align-items:center;justify-content:center;overflow:hidden;background:#1a1008 url(/images/hero-poster-light.jpg) center/cover no-repeat}
+      html.dark #boot{background-image:url(/images/hero-poster-dark.jpg)}
+      #boot::before{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(59,31,14,.55),rgba(59,31,14,.4),rgba(26,16,8,.7))}
+      html.dark #boot::before{background:linear-gradient(to bottom,rgba(26,16,8,.7),rgba(26,16,8,.55),rgba(26,16,8,.85))}
+      .boot-copy{position:relative;display:flex;max-width:48rem;flex-direction:column;align-items:center;padding:0 24px;text-align:center;color:#f5efdf}
+      .boot-kicker{margin-bottom:16px;font:400 12px/1 'DM Sans',system-ui,sans-serif;letter-spacing:.3em;text-transform:uppercase;color:#c9a84c}
+      .boot-title{margin:0;font:400 10vw/1.05 'Lamoric Rowen',cursive;text-shadow:0 2px 24px rgba(0,0,0,.45)}
+      .boot-sub{margin:24px 0 0;max-width:28rem;font:300 16px/1.5 'Poppins',system-ui,sans-serif;text-shadow:0 1px 14px rgba(0,0,0,.5)}
+      .boot-gap{height:88px}
+      @media(min-width:640px){.boot-title{font-size:7vw}.boot-sub{font-size:18px}}
+      @media(min-width:768px){.boot-title{font-size:6vw}}
+      html[data-boot="off"] #boot{display:none}
+    </style>
+    <script>
+      (function () {
+        var c = window.Capacitor
+        var native = c && c.isNativePlatform && c.isNativePlatform()
+        if (location.pathname !== '/' || native) document.documentElement.setAttribute('data-boot', 'off')
       })()
     </script>
   </head>
   <body>
     <div id="root">
-      <!-- Painted before any JavaScript runs, replaced by the app as soon as it loads. -->
-      <div
-        style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#2b1d12;color:#c9a84c;font:400 14px/1 'DM Sans',system-ui,sans-serif;letter-spacing:.4em"
-      >
-        AFROGLOW
+      <!-- The first screen, painted from plain HTML/CSS before any JavaScript runs. React replaces it. -->
+      <div id="boot">
+        <div class="boot-copy">
+          <span class="boot-kicker">AFROGLOW · Portugal</span>
+          <h1 class="boot-title">Arte que parte<br />do teu cabelo.</h1>
+          <p class="boot-sub">Tranças afro feitas com cuidado, técnica e identidade.</p>
+          <div class="boot-gap"></div>
+        </div>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
