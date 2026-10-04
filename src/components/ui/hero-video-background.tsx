@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'motion/react'
 
 interface Clip {
-  /** 1080p rendition, used on regular screens and when data saving is on. */
+  /** 720p rendition, used on phones and when data saving is on. */
+  sd: string
+  /** 1080p rendition, used on regular screens. */
   hd: string
   /** 4K rendition, used on large / high-density screens. */
   uhd?: string
@@ -13,23 +15,35 @@ interface Clip {
 const VIDEO_BASE = import.meta.env.MODE === 'customer' ? 'https://www.afroglow.pt' : ''
 
 // Dark theme playlist (1080p only).
-const DARK_CLIPS: Clip[] = [1, 2, 3, 4, 5, 6].map((n) => ({ hd: `/videos/hero-hd-${n}.mp4` }))
+const DARK_CLIPS: Clip[] = [1, 2, 3, 4, 5, 6].map((n) => ({
+  sd: `/videos/hero-hd-${n}-sd.mp4`,
+  hd: `/videos/hero-hd-${n}.mp4`,
+}))
 
 // Light theme playlist. The order is deliberate: each clip ends on colours and
 // light close to where the next one begins, so the crossfade barely shows.
 const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
+  sd: `/videos/hero-light-${n}-sd.mp4?v=2`,
   hd: `/videos/hero-light-${n}.mp4?v=2`,
   uhd: `/videos/hero-light-${n}-4k.mp4?v=2`,
 }))
 
-// Pick the 4K files only where they pay off: big or high-density screens, and
-// never when the visitor has asked to save data.
-function prefersUhd() {
-  if (typeof window === 'undefined') return false
+// Smallest file that still looks sharp on the visitor's screen: 720p on phones and
+// when data saving is on, 4K only on large/high-density screens, 1080p otherwise.
+function pickRendition(clip: Clip) {
+  if (typeof window === 'undefined') return clip.hd
   const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
-  if (connection?.saveData) return false
-  return window.innerWidth * (window.devicePixelRatio || 1) >= 2400
+  if (connection?.saveData || window.innerWidth < 768) return clip.sd
+  if (clip.uhd && window.innerWidth * (window.devicePixelRatio || 1) >= 2400) return clip.uhd
+  return clip.hd
 }
+
+// A still from the first clip of each theme: painted immediately (a few KB), so the hero is
+// never an empty box while the video downloads.
+const POSTER_BY_TONE = {
+  light: '/images/hero-poster-light.jpg',
+  dark: '/images/hero-poster-dark.jpg',
+} as const
 
 // Normal playback speed (1 = real time). Lower it for a calmer, slow-motion feel.
 const PLAYBACK_RATE = 1
@@ -58,11 +72,13 @@ export function HeroVideoBackground({ tone = 'dark' }: { tone?: 'dark' | 'light'
   const videoRefs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)]
 
   const [active, setActive] = useState(0)
+  // The waiting slot only starts downloading once the first clip is actually playing, so it
+  // never competes with the first paint for bandwidth.
+  const [firstPlaying, setFirstPlaying] = useState(false)
   // Resolved once per mount; the Hero remounts this component when the theme changes.
   const [videos] = useState(() => {
     const clips = tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
-    const uhd = prefersUhd()
-    return clips.map((clip) => VIDEO_BASE + (uhd && clip.uhd ? clip.uhd : clip.hd))
+    return clips.map((clip) => VIDEO_BASE + pickRendition(clip))
   })
   const [sources, setSources] = useState([videos[0], videos[1 % videos.length]])
 
@@ -115,7 +131,10 @@ export function HeroVideoBackground({ tone = 'dark' }: { tone?: 'dark' | 'light'
   }, [shouldReduceMotion])
 
   return (
-    <div className="absolute inset-0 overflow-hidden bg-[#1a1008]">
+    <div
+      className="absolute inset-0 overflow-hidden bg-[#1a1008] bg-cover bg-center"
+      style={{ backgroundImage: `url(${VIDEO_BASE}${POSTER_BY_TONE[tone]})` }}
+    >
       {[0, 1].map((slot) => (
         <video
           key={slot}
@@ -123,7 +142,11 @@ export function HeroVideoBackground({ tone = 'dark' }: { tone?: 'dark' | 'light'
           src={sources[slot]}
           muted
           playsInline
-          preload="auto"
+          poster={slot === 0 ? VIDEO_BASE + POSTER_BY_TONE[tone] : undefined}
+          preload={slot === 0 || firstPlaying ? 'auto' : 'none'}
+          onPlaying={() => {
+            if (slot === 0) setFirstPlaying(true)
+          }}
           data-slot={slot}
           data-active={active === slot}
           onTimeUpdate={(e) => {
