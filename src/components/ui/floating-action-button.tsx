@@ -140,3 +140,119 @@ export function AnimatedSocialIcons({ icons, className, iconSize = 22, onToggle 
     </div>
   )
 }
+
+export interface MenuAction {
+  Icon?: LucideIcon
+  /** Icon-font class for brand logos lucide doesn't ship (e.g. WhatsApp). */
+  iconClass?: string
+  label: string
+  onClick?: () => void
+  /** External link (opens in a new tab). */
+  href?: string
+}
+
+/**
+ * Round "+" button for the corner next to the tab bar. Same idea as `AnimatedSocialIcons` (the "+" turns into
+ * an "×" and the actions appear out of the blur), but the actions rise upward in a column.
+ */
+export function FloatingActionMenu({
+  actions,
+  hidden = false,
+  tone = 'onLight',
+}: {
+  actions: MenuAction[]
+  hidden?: boolean
+  tone?: 'onLight' | 'onDark'
+}) {
+  const [open, setOpen] = useState(false)
+  const close = () => setOpen(false)
+
+  return (
+    <>
+      {open && !hidden && (
+        <button
+          type="button"
+          aria-label="Fechar"
+          onClick={close}
+          className="pointer-events-auto fixed inset-0 z-40 cursor-default bg-black/20"
+        />
+      )}
+
+      <motion.div
+        className="pointer-events-auto relative z-50"
+        animate={hidden ? { y: 120, opacity: 0, scale: 0.96 } : { y: 0, opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+        style={{ pointerEvents: hidden ? 'none' : 'auto' }}
+        aria-hidden={hidden || undefined}
+      >
+        <div className="absolute bottom-full right-0 mb-3 flex flex-col-reverse items-end gap-2.5">
+          {actions.map(({ Icon, iconClass, label, onClick, href }, index) => {
+            const glyph = Icon ? (
+              <Icon size={20} className="text-onyx" />
+            ) : (
+              <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 22 }} aria-hidden="true" />
+            )
+            const circle =
+              'flex size-12 items-center justify-center rounded-full border border-onyx/10 bg-white shadow-lg shadow-black/15'
+            const run = () => {
+              onClick?.()
+              close()
+            }
+            return (
+              <motion.div
+                key={label}
+                className="flex items-center gap-3"
+                style={{ pointerEvents: open ? 'auto' : 'none' }}
+                initial={false}
+                animate={{
+                  opacity: open ? 1 : 0,
+                  y: open ? 0 : 24,
+                  filter: open ? 'blur(0px)' : 'blur(2px)',
+                  scale: open ? 1 : 0.9,
+                  rotate: open ? 0 : 20,
+                }}
+                transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4, delay: open ? index * 0.05 : 0 }}
+              >
+                <span className="whitespace-nowrap rounded-full bg-white px-3.5 py-1.5 font-subtitle text-xs font-medium text-onyx shadow-lg shadow-black/15">
+                  {label}
+                </span>
+                {href ? (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    tabIndex={open ? 0 : -1}
+                    onClick={close}
+                    className={circle}
+                  >
+                    {glyph}
+                  </a>
+                ) : (
+                  <button type="button" aria-label={label} tabIndex={open ? 0 : -1} onClick={run} className={circle}>
+                    {glyph}
+                  </button>
+                )}
+              </motion.div>
+            )
+          })}
+        </div>
+
+        <motion.button
+          type="button"
+          aria-label={open ? 'Fechar menu' : 'Abrir menu'}
+          aria-expanded={open}
+          onClick={() => setOpen((current) => !current)}
+          animate={{ rotate: open ? 45 : 0 }}
+          transition={{ type: 'tween', ease: 'easeInOut', duration: 0.5 }}
+          className={cn(
+            'liquid-glass flex size-14 items-center justify-center rounded-full',
+            tone === 'onDark' ? 'text-[#ffffff]' : 'text-onyx',
+          )}
+        >
+          <Plus size={24} strokeWidth={2.6} />
+        </motion.button>
+      </motion.div>
+    </>
+  )
+}

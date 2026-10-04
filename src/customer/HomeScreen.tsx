@@ -9,7 +9,6 @@ import {
   WelcomeCard,
   WorkGrid,
 } from './HomeSections'
-import { useLightStatusBar } from './useLightStatusBar'
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { HeroVideoBackground } from '@/components/ui/hero-video-background'
@@ -20,7 +19,6 @@ import { useTheme } from '@/lib/theme'
 import type { Service, Testimonial as ApiTestimonial } from '@/lib/types'
 
 export default function HomeScreen() {
-  useLightStatusBar()
   const whatsapp = useWhatsapp()
   const { theme } = useTheme()
   const dark = theme === 'dark'
@@ -54,15 +52,27 @@ export default function HomeScreen() {
         className="relative flex items-center justify-center overflow-hidden px-6 pb-24 pt-[env(safe-area-inset-top)] text-center"
         style={{ minHeight: '100dvh' }}
       >
-        <HeroVideoBackground key={dark ? 'dark' : 'light'} tone={dark ? 'dark' : 'light'} />
+        {/* Just the video: no tint on top of it. */}
+        <HeroVideoBackground key={dark ? 'dark' : 'light'} tone={dark ? 'dark' : 'light'} tint={false} />
+        {/* Bottom edge: frosted blur that melts into the page instead of a straight cut. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[40%] backdrop-blur-xl [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_70%)] [mask-image:linear-gradient(to_bottom,transparent,black_70%)]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] h-[40%] bg-gradient-to-b from-white/0 via-white/60 to-white"
+        />
         <div className="relative z-10 flex max-w-md flex-col items-center">
-          <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-gold">AFROGLOW · Portugal</span>
-          <h1 className="font-logo text-[10vw] leading-[1.05] text-[#f5efdf] [text-shadow:0_2px_24px_rgba(0,0,0,0.45)] sm:text-6xl">
+          <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-[#ffffff] [text-shadow:0_1px_12px_rgba(0,0,0,0.6)]">
+            AFROGLOW · Portugal
+          </span>
+          <h1 className="font-logo text-[10vw] leading-[1.05] text-[#ffffff] [text-shadow:0_2px_28px_rgba(0,0,0,0.6)] sm:text-6xl">
             Arte que parte
             <br />
             do teu cabelo.
           </h1>
-          <p className="mt-5 font-subtitle text-base font-light text-[#f5efdf] [text-shadow:0_1px_14px_rgba(0,0,0,0.5)]">
+          <p className="mt-5 font-subtitle text-base font-light text-[#ffffff] [text-shadow:0_1px_16px_rgba(0,0,0,0.65)]">
             Tranças afro feitas com cuidado, técnica e identidade.
           </p>
           <div className="mt-8">

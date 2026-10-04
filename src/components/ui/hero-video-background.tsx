@@ -67,7 +67,7 @@ const TINT_BY_TONE = {
  * the fade is done the old slot is reloaded with the clip after that. Respects
  * prefers-reduced-motion by not autoplaying.
  */
-export function HeroVideoBackground({ tone = 'dark' }: { tone?: 'dark' | 'light' }) {
+export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'dark' | 'light'; tint?: boolean }) {
   const shouldReduceMotion = useReducedMotion()
   const videoRefs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)]
 
@@ -166,10 +166,12 @@ export function HeroVideoBackground({ tone = 'dark' }: { tone?: 'dark' | 'light'
         />
       ))}
 
-      <div
-        className={`absolute inset-0 bg-gradient-to-b transition-colors duration-500 ${TINT_BY_TONE[tone]}`}
-        aria-hidden="true"
-      />
+      {tint && (
+        <div
+          className={`absolute inset-0 bg-gradient-to-b transition-colors duration-500 ${TINT_BY_TONE[tone]}`}
+          aria-hidden="true"
+        />
+      )}
     </div>
   )
 }

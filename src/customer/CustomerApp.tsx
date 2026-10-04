@@ -1,10 +1,20 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { Bell, BellOff, Moon, Settings, Sun } from 'lucide-react'
 import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
+import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import AccountAuthPage from '@/pages/AccountAuthPage'
 import { useCustomerAuth } from '@/lib/customer-auth'
-import { enableCustomerPush, onNotificationOpened, pushWanted } from '@/lib/customer-push'
+import {
+  disableCustomerPush,
+  enableCustomerPush,
+  onNotificationOpened,
+  pushSupported,
+  pushWanted,
+} from '@/lib/customer-push'
+import { useWhatsapp } from '@/lib/site-config'
+import { useTheme } from '@/lib/theme'
 import { tap } from '@/lib/haptics'
 import BookingsScreen from './BookingsScreen'
 import BookScreen from './BookScreen'
@@ -77,34 +87,43 @@ function CustomerShell() {
 
   const tab = tabFor(location.pathname)
 
-  // The glass bar sits over the hero photo on the home screen and over white pages elsewhere.
-  const [overHero, setOverHero] = useState(true)
-  useEffect(() => {
-    // Over the photo only while the hero's bottom edge is still below the middle of the bar.
-    const update = () => {
-      const hero = document.querySelector('[data-hero]')
-      const barCentre = window.innerHeight - 60
-      setOverHero(location.pathname === '/' && !!hero && hero.getBoundingClientRect().bottom > barCentre)
-    }
-    update()
-    // The new screen mounts a moment after the route changes (page transition), so also re-check
-    // whenever the page content changes, not only on scroll.
-    let frame = 0
-    const recheck = () => {
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(update)
-    }
-    const observer = new MutationObserver(recheck)
-    observer.observe(document.body, { childList: true, subtree: true })
-    window.addEventListener('scroll', update, { passive: true })
-    window.addEventListener('resize', update)
-    return () => {
-      cancelAnimationFrame(frame)
-      observer.disconnect()
-      window.removeEventListener('scroll', update)
-      window.removeEventListener('resize', update)
-    }
-  }, [location.pathname])
+  const theme = useTheme()
+  const { enabled: whatsappOn, url: whatsappUrl } = useWhatsapp()
+  const [notificationsOn, setNotificationsOn] = useState(pushWanted())
+
+  const menuActions: MenuAction[] = [
+    {
+      Icon: theme.theme === 'dark' ? Sun : Moon,
+      label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
+      onClick: theme.toggleTheme,
+    },
+    { Icon: Settings, label: 'Definições', onClick: () => navigate('/conta') },
+    ...(pushSupported()
+      ? [
+          {
+            Icon: notificationsOn ? Bell : BellOff,
+            label: notificationsOn ? 'Desligar avisos' : 'Ligar avisos',
+            onClick: async () => {
+              if (notificationsOn) {
+                setNotificationsOn(false)
+                await disableCustomerPush({ remember: true })
+              } else if ((await enableCustomerPush()) === 'granted') {
+                setNotificationsOn(true)
+              }
+            },
+          },
+        ]
+      : []),
+    ...(whatsappOn
+      ? [
+          {
+            iconClass: 'bx bxl-whatsapp',
+            label: 'WhatsApp',
+            href: whatsappUrl('Olá! Gostaria de saber mais sobre os vossos serviços.'),
+          },
+        ]
+      : []),
+  ]
 
   return (
     <div className="app-neutral min-h-screen bg-white">
@@ -141,20 +160,25 @@ function CustomerShell() {
         </motion.div>
       </AnimatePresence>
 
-      <BottomNavBar
-        stickyBottom
-        glass
-        hidden={navHidden}
-        tone={overHero ? 'onDark' : 'onLight'}
-        value={tab}
-        onChange={(id) => {
-          const target = TABS.find((t) => t.id === id)
-          void tap()
-          if (target) navigate(target.path)
-          window.scrollTo({ top: 0 })
-        }}
-        items={TABS.map(({ id, label, icon }) => ({ id, label, icon, dot: id === 'marcacoes' && unseen.size > 0 }))}
-      />
+      {/* Tab bar with the round menu button beside it. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center gap-2.5 px-3">
+        <div className="pointer-events-auto">
+          <BottomNavBar
+            glass
+            hidden={navHidden}
+            tone="onLight"
+            value={tab}
+            onChange={(id) => {
+              const target = TABS.find((t) => t.id === id)
+              void tap()
+              if (target) navigate(target.path)
+              window.scrollTo({ top: 0 })
+            }}
+            items={TABS.map(({ id, label, icon }) => ({ id, label, icon, dot: id === 'marcacoes' && unseen.size > 0 }))}
+          />
+        </div>
+        <FloatingActionMenu actions={menuActions} hidden={navHidden} tone="onLight" />
+      </div>
     </div>
   )
 }
