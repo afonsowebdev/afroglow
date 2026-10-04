@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
 import { HeroVideoBackground } from '@/components/ui/hero-video-background'
+import { GlassButton } from '@/components/ui/glass-button'
 import { MotionButton } from '@/components/ui/motion-button'
 import { TestimonialsEditorial, type Testimonial } from '@/components/ui/editorial-testimonial'
 import { api } from '@/lib/api'
@@ -60,7 +61,7 @@ export default function HomeScreen() {
             Tranças afro feitas com cuidado, técnica e identidade.
           </p>
           <div className="mt-8">
-            <MotionButton label="Marcar sessão" href="/marcar" className="bg-white/60 backdrop-blur-sm" />
+            <GlassButton label="Marcar sessão" to="/marcar" />
           </div>
         </div>
 
