@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
@@ -63,6 +63,15 @@ export default function CustomerApp() {
 
   const tab = tabFor(location.pathname)
 
+  // The glass bar sits over the hero photo on the home screen and over white pages elsewhere.
+  const [overHero, setOverHero] = useState(true)
+  useEffect(() => {
+    const update = () => setOverHero(location.pathname === '/' && window.scrollY < window.innerHeight - 120)
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    return () => window.removeEventListener('scroll', update)
+  }, [location.pathname])
+
   return (
     <div className="min-h-screen bg-white">
       <AnimatePresence mode="wait" initial={false}>
@@ -100,6 +109,8 @@ export default function CustomerApp() {
 
       <BottomNavBar
         stickyBottom
+        glass
+        tone={overHero ? 'onDark' : 'onLight'}
         value={tab}
         onChange={(id) => {
           const target = TABS.find((t) => t.id === id)

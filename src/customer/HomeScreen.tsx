@@ -45,7 +45,7 @@ export default function HomeScreen() {
       {/* The hero fills the whole first screen, edge to edge, like the website. */}
       <section
         className="relative flex items-center justify-center overflow-hidden px-6 pb-24 pt-[env(safe-area-inset-top)] text-center"
-        style={{ minHeight: '100svh' }}
+        style={{ minHeight: '100dvh' }}
       >
         <HeroVideoBackground key={dark ? 'dark' : 'light'} tone={dark ? 'dark' : 'light'} />
         <div className="relative z-10 flex max-w-md flex-col items-center">
@@ -74,7 +74,7 @@ export default function HomeScreen() {
         </motion.div>
       </section>
 
-      <section className="relative z-10 -mt-8 rounded-t-[2rem] bg-white px-5 pt-12">
+      <section className="relative z-10 bg-white px-5 pt-10">
         <div className="mx-auto max-w-2xl">
           <WelcomeCard />
           <h2 className="mt-12 font-subtitle font-semibold tracking-tight text-2xl text-onyx">Os nossos serviços</h2>

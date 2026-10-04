@@ -119,3 +119,54 @@
     font-size: 16px;
   }
 }
+
+/*
+ * "Liquid glass" surfaces (iOS 26 style): almost no tint, the page shows through, a bright rim and a soft
+ * specular highlight on the top-left edge. WebKit can't refract, so the blur is kept small and saturation
+ * raised, which is what makes the content behind look like it's under real glass.
+ */
+.liquid-glass {
+  isolation: isolate;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.05) 55%, rgba(255, 255, 255, 0.14));
+  -webkit-backdrop-filter: blur(9px) saturate(1.9) brightness(1.06);
+  backdrop-filter: blur(9px) saturate(1.9) brightness(1.06);
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.85),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.28),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.26),
+    0 0 0 0.5px rgba(70, 45, 10, 0.16),
+    0 14px 34px rgba(20, 10, 0, 0.2),
+    0 3px 8px rgba(20, 10, 0, 0.1);
+}
+.liquid-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(130% 150% at 12% -10%, rgba(255, 255, 255, 0.5), transparent 46%);
+  z-index: -1;
+}
+.dark .liquid-glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03) 55%, rgba(255, 255, 255, 0.08));
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.45),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 14px 34px rgba(0, 0, 0, 0.45);
+}
+.liquid-glass-bubble {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.16));
+  -webkit-backdrop-filter: blur(4px) saturate(1.6);
+  backdrop-filter: blur(4px) saturate(1.6);
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.35),
+    0 3px 10px rgba(20, 10, 0, 0.16);
+}
+.dark .liquid-glass-bubble {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.08));
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.5),
+    0 3px 10px rgba(0, 0, 0, 0.35);
+}
