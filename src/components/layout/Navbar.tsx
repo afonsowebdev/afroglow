@@ -113,7 +113,7 @@ export default function Navbar() {
     <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
         <a href="#top" className={`flex items-center px-5 py-3 sm:px-6 ${pillBg}`}>
-          <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
+          <span className="font-logo text-2xl leading-none tracking-wide text-gold-ink">AFROGLOW</span>
         </a>
 
         <div className="flex items-center gap-4">
@@ -209,7 +209,7 @@ export default function Navbar() {
                     >
                       <span
                         className={`font-logo text-sm transition-colors duration-300 ${
-                          isActive ? 'text-gold-deep' : 'text-onyx/30'
+                          isActive ? 'text-gold-ink' : 'text-onyx/30'
                         }`}
                       >
                         {String(index + 1).padStart(2, '0')}
@@ -228,7 +228,7 @@ export default function Navbar() {
               <Link
                 to="/ceo"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-2 px-2 py-1.5 font-subtitle text-sm uppercase tracking-wide text-gold-deep transition-colors duration-300 hover:text-onyx"
+                className="flex items-center gap-2 px-2 py-1.5 font-subtitle text-sm uppercase tracking-wide text-gold-ink transition-colors duration-300 hover:text-onyx"
               >
                 Conhecer a CEO
                 <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />

@@ -61,7 +61,7 @@ export default function HomeScreen() {
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <h3 className="font-logo text-lg text-onyx">{service.name}</h3>
-                  <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-gold-deep/10 px-2.5 py-1 font-subtitle text-[11px] text-gold-deep">
+                  <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-gold-deep/10 px-2.5 py-1 font-subtitle text-[11px] text-gold-ink">
                     <i className="bx bx-time-five text-sm" aria-hidden="true" />
                     {service.durationLabel}
                   </span>

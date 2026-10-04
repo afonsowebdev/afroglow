@@ -31,7 +31,7 @@ function Row({
 }) {
   const content = (
     <>
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 text-lg text-gold-deep">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 text-lg text-gold-ink">
         <i className={icon} aria-hidden="true" />
       </span>
       <span className="min-w-0 flex-1 text-left">
@@ -134,7 +134,7 @@ export default function ProfileScreen() {
 
       {notice && (
         <div className="mt-6 flex items-start gap-3 rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
-          <i className="bx bx-check-circle mt-0.5 text-xl text-gold-deep" aria-hidden="true" />
+          <i className="bx bx-check-circle mt-0.5 text-xl text-gold-ink" aria-hidden="true" />
           <p className="flex-1 font-subtitle text-sm text-onyx">{notice}</p>
           <button
             type="button"

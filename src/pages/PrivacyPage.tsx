@@ -18,7 +18,7 @@ export default function PrivacyPage() {
         <p>
           O responsável pelo tratamento dos dados é a {siteConfig.name} ({siteConfig.location}). Podes falar connosco
           por email em{' '}
-          <a href={`mailto:${CONTACT_EMAIL}`} className="text-gold-deep underline">
+          <a href={`mailto:${CONTACT_EMAIL}`} className="text-gold-ink underline">
             {CONTACT_EMAIL}
           </a>
           , ou pelo Instagram @{siteConfig.instagramHandle}.
@@ -94,7 +94,7 @@ export default function PrivacyPage() {
         </ul>
         <p>
           Para qualquer pedido, escreve para{' '}
-          <a href={`mailto:${CONTACT_EMAIL}`} className="text-gold-deep underline">
+          <a href={`mailto:${CONTACT_EMAIL}`} className="text-gold-ink underline">
             {CONTACT_EMAIL}
           </a>
           .

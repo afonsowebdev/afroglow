@@ -7,6 +7,7 @@ import { MotionButton } from '@/components/ui/motion-button'
 import { api, ApiError } from '@/lib/api'
 import { downloadBookingIcs } from '@/lib/calendar'
 import { useCustomerAuth } from '@/lib/customer-auth'
+import { usePageTitle } from '@/lib/page-title'
 import { useBusinessInfo } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking } from '@/lib/types'
 
@@ -38,7 +39,7 @@ const STATUS_LABEL: Record<Booking['status'], string> = {
 }
 
 const STATUS_CLASS: Record<Booking['status'], string> = {
-  PENDING: 'text-gold-deep',
+  PENDING: 'text-gold-ink',
   ACCEPTED: 'text-green-700',
   REJECTED: 'text-red-700',
   CANCELLED: 'text-onyx/40',
@@ -165,7 +166,7 @@ function BookingCard({ booking, onChanged }: { booking: Booking; onChanged: () =
             <span className="font-medium">{booking.service.name}</span> · {formatDateHeading(booking.slot.startsAt)}{' '}
             às {formatTime(booking.slot.startsAt)}
           </p>
-          <p className="mt-1 font-logo text-lg text-gold-deep">{formatPrice(booking.service.priceCents)}</p>
+          <p className="mt-1 font-logo text-lg text-gold-ink">{formatPrice(booking.service.priceCents)}</p>
         </div>
         <span className={`font-subtitle text-xs uppercase tracking-wide ${STATUS_CLASS[booking.status]}`}>
           {STATUS_LABEL[booking.status]}
@@ -292,6 +293,7 @@ export default function AccountPage({
   embedded = false,
   section = 'all',
 }: { embedded?: boolean; section?: 'all' | 'marcacoes' | 'conta' } = {}) {
+  usePageTitle('A minha conta', { noindex: true })
   const { customer, loading, logout } = useCustomerAuth()
   const navigate = useNavigate()
   const [bookings, setBookings] = useState<Booking[] | null>(null)
@@ -338,13 +340,13 @@ export default function AccountPage({
       <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link to="/" className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
-            <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
+            <span className="font-logo text-2xl leading-none tracking-wide text-gold-ink">AFROGLOW</span>
           </Link>
 
           <button
             type="button"
             onClick={() => void logout().then(() => navigate('/'))}
-            className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-deep sm:px-6 ${pillClasses}`}
+            className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-ink sm:px-6 ${pillClasses}`}
           >
             <span>Terminar sessão</span>
             <i className="bx bx-log-out text-xl" aria-hidden="true" />
@@ -386,7 +388,7 @@ export default function AccountPage({
             ) : bookings.length === 0 ? (
               <p className="mt-5 font-subtitle text-sm text-muted-dark">
                 Ainda não tens marcações.{' '}
-                <Link to={embedded ? '/marcar' : '/agendar'} className="text-gold-deep underline">
+                <Link to={embedded ? '/marcar' : '/agendar'} className="text-gold-ink underline">
                   Marca a tua primeira sessão
                 </Link>
                 .

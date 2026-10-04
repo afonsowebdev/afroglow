@@ -11,7 +11,7 @@ export default function NotFoundPage() {
         AFROGLOW
       </span>
       <div className="relative">
-        <Link to="/" className="font-logo text-3xl leading-none tracking-wide text-gold-deep">
+        <Link to="/" className="font-logo text-3xl leading-none tracking-wide text-gold-ink">
           AFROGLOW
         </Link>
         <h1 className="mt-8 font-logo text-5xl text-onyx sm:text-6xl">404</h1>

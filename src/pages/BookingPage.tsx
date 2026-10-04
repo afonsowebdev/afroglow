@@ -6,6 +6,7 @@ import { api, ApiError } from '@/lib/api'
 import { Capacitor } from '@capacitor/core'
 import { downloadBookingIcs } from '@/lib/calendar'
 import { useCustomerAuth } from '@/lib/customer-auth'
+import { usePageTitle } from '@/lib/page-title'
 import { useBusinessInfo } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Service } from '@/lib/types'
 
@@ -32,7 +33,7 @@ function formatTime(iso: string) {
 function StepHeading({ number, children }: { number: string; children: ReactNode }) {
   return (
     <div className="flex items-baseline gap-3">
-      <span className="font-logo text-sm text-gold-deep">{number}</span>
+      <span className="font-logo text-sm text-gold-ink">{number}</span>
       <h2 className="font-subtitle text-xl text-onyx sm:text-2xl">{children}</h2>
     </div>
   )
@@ -40,6 +41,7 @@ function StepHeading({ number, children }: { number: string; children: ReactNode
 
 /** `embedded`: rendered inside the customer app's tab shell (no site header, room for the tab bar). */
 export default function BookingPage({ embedded = false }: { embedded?: boolean } = {}) {
+  usePageTitle('Marcar sessão')
   const { customer, loading: authLoading, refresh } = useCustomerAuth()
   const business = useBusinessInfo()
   const [searchParams] = useSearchParams()
@@ -150,12 +152,12 @@ export default function BookingPage({ embedded = false }: { embedded?: boolean }
       <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link to="/" className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
-            <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
+            <span className="font-logo text-2xl leading-none tracking-wide text-gold-ink">AFROGLOW</span>
           </Link>
 
           <Link
             to="/"
-            className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-deep sm:px-6 ${pillClasses}`}
+            className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-ink sm:px-6 ${pillClasses}`}
           >
             <span>Sair</span>
             <i className="bx bx-x text-xl" aria-hidden="true" />
@@ -187,7 +189,7 @@ export default function BookingPage({ embedded = false }: { embedded?: boolean }
           </div>
         ) : success ? (
           <div className="mt-14 flex flex-col items-center rounded-3xl border border-gold/20 bg-cream px-6 py-14 text-center">
-            <i className="bx bx-check-circle text-4xl text-gold-deep" aria-hidden="true" />
+            <i className="bx bx-check-circle text-4xl text-gold-ink" aria-hidden="true" />
             <h2 className="mt-4 font-logo text-3xl text-onyx">Pedido enviado!</h2>
             <p className="mt-3 max-w-sm font-subtitle text-base font-light text-muted-dark">
               A tua marcação foi enviada e está pendente de confirmação. Entraremos em contacto em breve.
@@ -269,7 +271,7 @@ export default function BookingPage({ embedded = false }: { embedded?: boolean }
                     <span className="mt-1 font-logo text-sm tracking-wide text-muted-dark">
                       {service.durationLabel}
                     </span>
-                    <span className="mt-3 font-logo text-2xl text-gold-deep">{formatPrice(service.priceCents)}</span>
+                    <span className="mt-3 font-logo text-2xl text-gold-ink">{formatPrice(service.priceCents)}</span>
                   </button>
                 ))}
               </div>
@@ -281,7 +283,7 @@ export default function BookingPage({ embedded = false }: { embedded?: boolean }
                   <strong className="font-medium">{selectedService.name}</strong> · {formatDateHeading(selectedSlot.startsAt)}{' '}
                   às {formatTime(selectedSlot.startsAt)}
                 </p>
-                <p className="mt-1 font-logo text-2xl text-gold-deep">{formatPrice(selectedService.priceCents)}</p>
+                <p className="mt-1 font-logo text-2xl text-gold-ink">{formatPrice(selectedService.priceCents)}</p>
               </section>
             )}
 

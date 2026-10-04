@@ -52,7 +52,7 @@ export default function Footer() {
 
         <div className="grid grid-cols-1 gap-12 py-12 sm:grid-cols-2 md:gap-16 lg:grid-cols-3">
           <div className="flex flex-col gap-4">
-            <span className="font-logo text-4xl leading-none text-gold-deep">{siteConfig.name}</span>
+            <span className="font-logo text-4xl leading-none text-gold-ink">{siteConfig.name}</span>
             <p className="font-subtitle text-sm font-light leading-relaxed text-muted-dark">
               Tranças afro feitas com cuidado, técnica e identidade.
             </p>
@@ -68,7 +68,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <a
                     href={link.href}
-                    className="group inline-flex items-center gap-1.5 font-body text-sm text-onyx transition-colors hover:text-gold-deep"
+                    className="group inline-flex items-center gap-1.5 font-body text-sm text-onyx transition-colors hover:text-gold-ink"
                   >
                     <i
                       className="bx bx-chevron-right -translate-x-1 text-xs opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
@@ -89,7 +89,7 @@ export default function Footer() {
             <ul className="mt-5 flex flex-col gap-4">
               {CONTACT_INFO.map((item) => (
                 <li key={item.text} className="flex items-center gap-3 font-body text-sm text-onyx">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/30 text-gold-deep">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/30 text-gold-ink">
                     <i className={item.icon} aria-hidden="true" />
                   </span>
                   {item.href ? (
@@ -97,7 +97,7 @@ export default function Footer() {
                       href={item.href}
                       target="_blank"
                       rel="noreferrer"
-                      className="transition-colors hover:text-gold-deep"
+                      className="transition-colors hover:text-gold-ink"
                     >
                       {item.text}
                     </a>
@@ -117,17 +117,17 @@ export default function Footer() {
             &copy; {year} {siteConfig.name}. Todos os direitos reservados.
           </p>
           <nav aria-label="Informação legal" className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-            <a href="/privacidade" className="font-body text-sm text-muted-dark transition-colors hover:text-gold-deep">
+            <a href="/privacidade" className="font-body text-sm text-muted-dark transition-colors hover:text-gold-ink">
               Política de privacidade
             </a>
-            <a href="/termos" className="font-body text-sm text-muted-dark transition-colors hover:text-gold-deep">
+            <a href="/termos" className="font-body text-sm text-muted-dark transition-colors hover:text-gold-ink">
               Termos e condições
             </a>
             <a
               href="https://www.livroreclamacoes.pt/"
               target="_blank"
               rel="noreferrer"
-              className="font-body text-sm text-muted-dark transition-colors hover:text-gold-deep"
+              className="font-body text-sm text-muted-dark transition-colors hover:text-gold-ink"
             >
               Livro de Reclamações
             </a>

@@ -84,7 +84,14 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Painted before any JavaScript runs, replaced by the app as soon as it loads. -->
+      <div
+        style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#2b1d12;color:#c9a84c;font:400 14px/1 'DM Sans',system-ui,sans-serif;letter-spacing:.4em"
+      >
+        AFROGLOW
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

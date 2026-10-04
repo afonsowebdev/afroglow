@@ -28,7 +28,7 @@ export default function About() {
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
-          <span className="font-subtitle text-xs uppercase tracking-[0.3em] text-gold-deep">
+          <span className="font-subtitle text-xs uppercase tracking-[0.3em] text-gold-ink">
             AFROGLOW · Desde 2020
           </span>
 
@@ -42,7 +42,7 @@ export default function About() {
 
           <Link
             to="/ceo"
-            className="mt-6 inline-flex items-center gap-2 font-subtitle text-sm text-gold-deep transition-colors duration-300 hover:text-onyx"
+            className="mt-6 inline-flex items-center gap-2 font-subtitle text-sm text-gold-ink transition-colors duration-300 hover:text-onyx"
           >
             Conhecer a nossa CEO
             <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />

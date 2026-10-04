@@ -74,11 +74,11 @@ export default function Faq() {
                     onClick={() => setOpen(isOpen ? null : index)}
                     aria-expanded={isOpen}
                     aria-controls={`faq-${index}`}
-                    className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left font-subtitle text-base text-onyx transition-colors hover:text-gold-deep sm:px-6"
+                    className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left font-subtitle text-base text-onyx transition-colors hover:text-gold-ink sm:px-6"
                   >
                     {item.q}
                     <i
-                      className={`bx bx-chevron-down shrink-0 text-2xl text-gold-deep transition-transform duration-300 ${
+                      className={`bx bx-chevron-down shrink-0 text-2xl text-gold-ink transition-transform duration-300 ${
                         isOpen ? 'rotate-180' : ''
                       }`}
                       aria-hidden="true"

@@ -23,6 +23,8 @@
   --color-cocoa: #3b1f0e;
   --color-gold: #c9a84c;
   --color-gold-deep: #82611f;
+  /* Gold used for text: same as gold-deep on light backgrounds, lighter on dark ones so it stays readable. */
+  --color-gold-ink: #82611f;
   --color-cream: #f5efdf;
   --color-muted: #9c8a72;
   --color-muted-dark: #6b5b47;
@@ -46,6 +48,7 @@
   --color-onyx: #f0e6d6;
   --color-muted: #b39c7d;
   --color-muted-dark: #d9c7a8;
+  --color-gold-ink: #c9a84c;
 }
 
 @layer base {

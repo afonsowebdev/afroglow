@@ -40,7 +40,7 @@ export default function HowItWorks() {
               <span className="absolute -top-4 left-1/2 flex h-8 min-w-8 -translate-x-1/2 items-center justify-center rounded-full bg-gold-deep px-2 font-logo text-sm text-[#ffffff]">
                 {index + 1}
               </span>
-              <span className="mx-auto mt-2 flex h-14 w-14 items-center justify-center rounded-full bg-gold-deep/10 text-2xl text-gold-deep">
+              <span className="mx-auto mt-2 flex h-14 w-14 items-center justify-center rounded-full bg-gold-deep/10 text-2xl text-gold-ink">
                 <i className={step.icon} aria-hidden="true" />
               </span>
               <h3 className="mt-5 font-logo text-xl text-onyx">{step.title}</h3>

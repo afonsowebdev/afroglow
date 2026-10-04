@@ -3,8 +3,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import AuthSwitch from '@/components/ui/auth-switch'
 import { useCustomerAuth } from '@/lib/customer-auth'
+import { usePageTitle } from '@/lib/page-title'
 
 export default function AccountAuthPage({ embedded = false }: { embedded?: boolean } = {}) {
+  usePageTitle('Entrar', { noindex: true })
   const { customer, loading } = useCustomerAuth()
   const navigate = useNavigate()
 
@@ -32,12 +34,12 @@ export default function AccountAuthPage({ embedded = false }: { embedded?: boole
       <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link to="/" className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
-            <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
+            <span className="font-logo text-2xl leading-none tracking-wide text-gold-ink">AFROGLOW</span>
           </Link>
 
           <Link
             to="/"
-            className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-deep sm:px-6 ${pillClasses}`}
+            className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-ink sm:px-6 ${pillClasses}`}
           >
             <span>Sair</span>
             <i className="bx bx-x text-xl" aria-hidden="true" />

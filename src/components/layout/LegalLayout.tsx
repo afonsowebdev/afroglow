@@ -1,13 +1,15 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { usePageTitle } from '@/lib/page-title'
 
 /** Shared page frame for the legal texts (privacy policy, terms). */
 export function LegalLayout({ title, updated, children }: { title: string; updated: string; children: ReactNode }) {
+  usePageTitle(title)
   return (
     <div className="min-h-screen bg-white">
       <header className="border-b border-gold/20">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4 sm:px-8">
-          <Link to="/" className="font-logo text-2xl leading-none tracking-wide text-gold-deep">
+          <Link to="/" className="font-logo text-2xl leading-none tracking-wide text-gold-ink">
             AFROGLOW
           </Link>
           <Link to="/" className="font-subtitle text-sm text-muted-dark hover:text-onyx">
@@ -22,10 +24,10 @@ export function LegalLayout({ title, updated, children }: { title: string; updat
         {children}
 
         <nav className="mt-16 flex flex-wrap gap-x-6 gap-y-2 border-t border-gold/20 pt-6 font-subtitle text-sm text-muted-dark">
-          <Link to="/privacidade" className="hover:text-gold-deep">
+          <Link to="/privacidade" className="hover:text-gold-ink">
             Política de privacidade
           </Link>
-          <Link to="/termos" className="hover:text-gold-deep">
+          <Link to="/termos" className="hover:text-gold-ink">
             Termos e condições
           </Link>
         </nav>

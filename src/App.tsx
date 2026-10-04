@@ -1,45 +1,58 @@
-import { Capacitor } from '@capacitor/core'
-import { lazy, Suspense } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
-import LandingPage from '@/pages/LandingPage'
-import AccountAuthPage from '@/pages/AccountAuthPage'
-import AccountPage from '@/pages/AccountPage'
-import BookingPage from '@/pages/BookingPage'
-import CeoPage from '@/pages/CeoPage'
-import NotFoundPage from '@/pages/NotFoundPage'
-import PrivacyPage from '@/pages/PrivacyPage'
-import TermsPage from '@/pages/TermsPage'
+import { Capacitor } from "@capacitor/core";
+import { lazy, Suspense } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+import LandingPage from "@/pages/LandingPage";
 
-const AdminLoginPage = lazy(() => import('@/pages/admin/AdminLoginPage'))
-const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage'))
+const AccountAuthPage = lazy(() => import("@/pages/AccountAuthPage"));
+const AccountPage = lazy(() => import("@/pages/AccountPage"));
+const BookingPage = lazy(() => import("@/pages/BookingPage"));
+const CeoPage = lazy(() => import("@/pages/CeoPage"));
+const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
+const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
+const TermsPage = lazy(() => import("@/pages/TermsPage"));
+const AdminLoginPage = lazy(() => import("@/pages/admin/AdminLoginPage"));
+const AdminDashboardPage = lazy(
+  () => import("@/pages/admin/AdminDashboardPage"),
+);
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={Capacitor.isNativePlatform() ? <Navigate to="/admin" replace /> : <LandingPage />} />
-      <Route path="/agendar" element={<BookingPage />} />
-      <Route path="/entrar" element={<AccountAuthPage />} />
-      <Route path="/conta" element={<AccountPage />} />
-      <Route path="/ceo" element={<CeoPage />} />
-      <Route path="/privacidade" element={<PrivacyPage />} />
-      <Route path="/termos" element={<TermsPage />} />
-      <Route
-        path="/admin/login"
-        element={
-          <Suspense fallback={null}>
-            <AdminLoginPage />
-          </Suspense>
-        }
-      />
-      <Route
-        path="/admin"
-        element={
-          <Suspense fallback={null}>
-            <AdminDashboardPage />
-          </Suspense>
-        }
-      />
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
-  )
+    <Suspense fallback={null}>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            Capacitor.isNativePlatform() ? (
+              <Navigate to="/admin" replace />
+            ) : (
+              <LandingPage />
+            )
+          }
+        />
+        <Route path="/agendar" element={<BookingPage />} />
+        <Route path="/entrar" element={<AccountAuthPage />} />
+        <Route path="/conta" element={<AccountPage />} />
+        <Route path="/ceo" element={<CeoPage />} />
+        <Route path="/privacidade" element={<PrivacyPage />} />
+        <Route path="/termos" element={<TermsPage />} />
+        <Route
+          path="/admin/login"
+          element={
+            <Suspense fallback={null}>
+              <AdminLoginPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <Suspense fallback={null}>
+              <AdminDashboardPage />
+            </Suspense>
+          }
+        />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Suspense>
+  );
 }

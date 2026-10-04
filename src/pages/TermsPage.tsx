@@ -68,7 +68,7 @@ export default function TermsPage() {
       <Section title="Privacidade">
         <p>
           O tratamento dos teus dados está explicado na{' '}
-          <a href="/privacidade" className="text-gold-deep underline">
+          <a href="/privacidade" className="text-gold-ink underline">
             política de privacidade
           </a>
           .
@@ -82,12 +82,12 @@ export default function TermsPage() {
             href="https://www.livroreclamacoes.pt/"
             target="_blank"
             rel="noreferrer"
-            className="text-gold-deep underline"
+            className="text-gold-ink underline"
           >
             Livro de Reclamações Eletrónico
           </a>{' '}
           ou contactar-nos em{' '}
-          <a href={`mailto:${siteConfig.email}`} className="text-gold-deep underline">
+          <a href={`mailto:${siteConfig.email}`} className="text-gold-ink underline">
             {siteConfig.email}
           </a>
           .

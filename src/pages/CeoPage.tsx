@@ -21,12 +21,12 @@ export default function CeoPage() {
       <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link to="/" className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
-            <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
+            <span className="font-logo text-2xl leading-none tracking-wide text-gold-ink">AFROGLOW</span>
           </Link>
 
           <Link
             to="/"
-            className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-deep sm:px-6 ${pillClasses}`}
+            className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-ink sm:px-6 ${pillClasses}`}
           >
             <span>Sair</span>
             <i className="bx bx-x text-xl" aria-hidden="true" />
@@ -35,7 +35,7 @@ export default function CeoPage() {
       </div>
 
       <main className="mx-auto max-w-4xl px-5 pb-24 pt-[calc(8rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(10rem+env(safe-area-inset-top))]">
-        <span className="font-subtitle text-xs uppercase tracking-[0.3em] text-gold-deep">A nossa fundadora</span>
+        <span className="font-subtitle text-xs uppercase tracking-[0.3em] text-gold-ink">A nossa fundadora</span>
         <h1 className="mt-4 font-logo text-4xl text-onyx sm:text-5xl">Quem lidera a AFROGLOW</h1>
 
         <TeamMemberCard

@@ -13,7 +13,14 @@ const EMPTY = {
 }
 
 async function readSettings() {
-  const row = await prisma.businessSettings.findUnique({ where: { id: 'main' } })
+  let row
+  try {
+    row = await prisma.businessSettings.findUnique({ where: { id: 'main' } })
+  } catch (error) {
+    // Table not migrated yet: behave as "nothing filled in" instead of breaking the site.
+    console.error('[settings] read failed:', error)
+    return EMPTY
+  }
   if (!row) return EMPTY
   const { id: _id, updatedAt: _updatedAt, ...rest } = row
   return rest

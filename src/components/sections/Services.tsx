@@ -30,7 +30,7 @@ export default function Services() {
         {loadFailed ? (
           <p className="mt-16 text-center font-body text-sm text-muted-dark">
             Não foi possível carregar os serviços agora. Contacta-nos diretamente pelo{' '}
-            <a href={instagramDmUrl()} target="_blank" rel="noreferrer" className="text-gold-deep underline">
+            <a href={instagramDmUrl()} target="_blank" rel="noreferrer" className="text-gold-ink underline">
               Instagram
             </a>
             .
@@ -92,14 +92,14 @@ export default function Services() {
                       <span className="flex items-baseline gap-4">
                         <span
                           className={`font-logo text-sm transition-colors duration-300 ${
-                            isActive ? 'text-gold-deep' : 'text-onyx/60 group-hover:text-gold-deep'
+                            isActive ? 'text-gold-ink' : 'text-onyx/60 group-hover:text-gold-ink'
                           }`}
                         >
                           {String(index + 1).padStart(2, '0')}
                         </span>
                         <span className="font-subtitle text-xl sm:text-2xl">{service.name}</span>
                       </span>
-                      <span className="font-logo whitespace-nowrap text-xl text-gold-deep sm:text-2xl">
+                      <span className="font-logo whitespace-nowrap text-xl text-gold-ink sm:text-2xl">
                         {formatPrice(service.priceCents)}
                       </span>
                     </button>

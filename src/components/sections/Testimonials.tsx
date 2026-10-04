@@ -26,7 +26,7 @@ export default function Testimonials() {
           {loadFailed ? (
             <p className="text-center font-body text-sm text-muted-dark">
               Não foi possível carregar os testemunhos agora. Vê mais no nosso{' '}
-              <a href={instagramDmUrl()} target="_blank" rel="noreferrer" className="text-gold-deep underline">
+              <a href={instagramDmUrl()} target="_blank" rel="noreferrer" className="text-gold-ink underline">
                 Instagram
               </a>
               .
