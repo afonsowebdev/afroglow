@@ -11,7 +11,7 @@ export const siteConfig = {
 
   // TODO(cliente): fill these in — each one switches on the matching button/section.
   /** International format, digits only, e.g. '351912345678'. */
-  whatsappNumber: '',
+  whatsappNumber: '351967022608',
   /** Public phone number, e.g. '+351 912 345 678'. */
   phone: '',
   /** Street address, e.g. 'Rua Exemplo 12, 4000-000 Porto'. */
