@@ -73,8 +73,23 @@ export default function CustomerApp() {
       setOverHero(location.pathname === '/' && !!hero && hero.getBoundingClientRect().bottom > barCentre)
     }
     update()
+    // The new screen mounts a moment after the route changes (page transition), so also re-check
+    // whenever the page content changes, not only on scroll.
+    let frame = 0
+    const recheck = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(update)
+    }
+    const observer = new MutationObserver(recheck)
+    observer.observe(document.body, { childList: true, subtree: true })
     window.addEventListener('scroll', update, { passive: true })
-    return () => window.removeEventListener('scroll', update)
+    window.addEventListener('resize', update)
+    return () => {
+      cancelAnimationFrame(frame)
+      observer.disconnect()
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
   }, [location.pathname])
 
   return (
