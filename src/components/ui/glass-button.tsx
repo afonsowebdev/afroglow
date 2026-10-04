@@ -9,14 +9,14 @@ type Variant = 'overlay' | 'primary' | 'secondary'
 /*
  * The customer app's button, in liquid glass like the tab bar:
  *  - overlay: over the hero video, clear glass with a light dark veil, white letters;
- *  - primary: brown-tinted glass with white letters (readable on white pages);
- *  - secondary: light glass with dark letters.
+ *  - primary: clear glass like the tab bar, dark letters, with a faint gold tint to mark the main action;
+ *  - secondary: clear glass, dark letters.
  * Always a compact pill: label on the left, round glass disc with an arrow on the right.
  */
 const PILL: Record<Variant, string> = {
   overlay: 'liquid-glass text-[#ffffff]',
-  primary: 'glass-action text-[#ffffff]',
-  secondary: 'liquid-glass bg-white/60 text-onyx',
+  primary: 'liquid-glass text-onyx',
+  secondary: 'liquid-glass text-onyx',
 }
 
 export function GlassButton({
@@ -47,16 +47,11 @@ export function GlassButton({
     disabled && 'pointer-events-none opacity-50',
     className,
   )
-  const letters = variant === 'secondary' ? '' : '[text-shadow:0_1px_10px_rgba(0,0,0,0.35)]'
+  const letters = variant === 'overlay' ? '[text-shadow:0_1px_10px_rgba(0,0,0,0.35)]' : ''
   const content = (
     <>
       <span className={cn('whitespace-nowrap font-subtitle text-sm font-medium tracking-wide', letters)}>{label}</span>
-      <span
-        className={cn(
-          'flex size-9 items-center justify-center rounded-full',
-          variant === 'primary' ? 'glass-action-bubble' : 'liquid-glass-bubble',
-        )}
-      >
+      <span className={cn('flex size-9 items-center justify-center rounded-full', 'liquid-glass-bubble')}>
         <i className={cn(icon ?? 'bx bx-right-arrow-alt', icon ? 'text-lg' : 'text-xl')} aria-hidden="true" />
       </span>
     </>
@@ -66,7 +61,12 @@ export function GlassButton({
     onClick?.(event)
   }
   // On the video the clear glass needs a faint veil so white letters stay legible on bright frames.
-  const style = variant === 'overlay' ? { background: 'rgba(0, 0, 0, 0.14)' } : undefined
+  const style =
+    variant === 'overlay'
+      ? { background: 'rgba(0, 0, 0, 0.14)' }
+      : variant === 'primary'
+        ? { background: 'rgba(201, 168, 76, 0.16)' }
+        : undefined
 
   const inner = to ? (
     <Link to={to} onClick={handle} className={classes} style={style}>
