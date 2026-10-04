@@ -26,9 +26,6 @@
   --color-cocoa: #3b1f0e;
   --color-gold: #c9a84c;
   --color-gold-deep: #82611f;
-  /* The system brown (same as gold-deep) and the cream used on it, for buttons. */
-  --color-brown: #82611f;
-  --color-brown-cream: #faf6ec;
   /* Gold used for text: same as gold-deep on light backgrounds, lighter on dark ones so it stays readable. */
   --color-gold-ink: #82611f;
   --color-cream: #f5efdf;

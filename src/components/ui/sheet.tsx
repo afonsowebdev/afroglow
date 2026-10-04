@@ -123,8 +123,8 @@ export function Sheet({
                   type="submit"
                   disabled={busy || submitDisabled}
                   className={`py-3 font-subtitle text-sm transition-opacity hover:opacity-90 disabled:opacity-40 ${
-                    sober ? 'rounded-full border-2 border-brand py-3 font-medium' : 'rounded-full'
-                  } ${destructive ? 'bg-red-700 text-[#ffffff]' : sober ? 'bg-brown text-brown-cream' : 'bg-gold-deep text-[#ffffff]'}`}
+                    sober ? 'rounded-full border-2 border-cocoa py-3 font-medium' : 'rounded-full'
+                  } ${destructive ? 'bg-red-700 text-[#ffffff]' : sober ? 'bg-cocoa text-cream' : 'bg-gold-deep text-[#ffffff]'}`}
                 >
                   {busy ? 'A processar...' : submitLabel}
                 </button>
