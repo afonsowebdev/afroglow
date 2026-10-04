@@ -249,7 +249,7 @@ export default function ProfileScreen() {
   return (
     <main className="pb-40">
       {/* Header: brand gradient, big avatar, name */}
-      <header className="relative overflow-hidden rounded-b-[2.5rem] bg-gradient-to-b from-[#1c1c1e] via-[#2c2a26] to-[#7d6a2f] px-6 pb-24 pt-[calc(3rem+env(safe-area-inset-top))] text-center text-[#f5efdf]">
+      <header className="relative overflow-hidden rounded-b-[2.5rem] bg-gradient-to-b from-[#1c1c1e] via-[#2c2a26] to-[#7d6a2f] dark:from-[#2b1d12] dark:via-[#3b2616] dark:to-[#7a5a22] px-6 pb-24 pt-[calc(3rem+env(safe-area-inset-top))] text-center text-[#f5efdf]">
         <span
           aria-hidden="true"
           className="pointer-events-none absolute -bottom-6 left-1/2 -translate-x-1/2 select-none whitespace-nowrap font-logo text-[26vw] leading-none text-[#ffffff]/[0.06]"
@@ -257,7 +257,7 @@ export default function ProfileScreen() {
           AFROGLOW
         </span>
         <div className="relative mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#e0c36e] to-[#a8842f] p-[3px] shadow-xl shadow-black/30">
-          <span className="flex h-full w-full items-center justify-center rounded-full bg-[#1c1c1e] font-logo text-5xl text-[#e0c36e]">
+          <span className="flex h-full w-full items-center justify-center rounded-full bg-[#1c1c1e] font-logo dark:bg-[#2b1d12] text-5xl text-[#e0c36e]">
             {initial}
           </span>
         </div>

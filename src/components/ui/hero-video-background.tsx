@@ -8,6 +8,8 @@ interface Clip {
   hd: string
   /** 4K rendition, used on large / high-density screens. */
   uhd?: string
+  /** High-bitrate 4K made for the iPhone app (about 11 Mbps, ~8 MB per clip). */
+  app?: string
 }
 
 // The customer iPhone app streams the clips from the website instead of bundling
@@ -26,12 +28,15 @@ const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
   sd: `/videos/hero-light-${n}-sd.mp4?v=2`,
   hd: `/videos/hero-light-${n}.mp4?v=2`,
   uhd: `/videos/hero-light-${n}-4k.mp4?v=2`,
+  app: `/videos/hero-light-${n}-app.mp4?v=1`,
 }))
 
 // Smallest file that still looks sharp on the visitor's screen: 720p on phones and
 // when data saving is on, 4K only on large/high-density screens, 1080p otherwise.
 function pickRendition(clip: Clip) {
   if (typeof window === 'undefined') return clip.hd
+  // The iPhone app always plays the best version available: true 4K where we have it, 1080p otherwise.
+  if (import.meta.env.MODE === 'customer') return clip.app ?? clip.uhd ?? clip.hd
   const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
   if (connection?.saveData || window.innerWidth < 768) return clip.sd
   if (clip.uhd && window.innerWidth * (window.devicePixelRatio || 1) >= 2400) return clip.uhd
@@ -146,6 +151,14 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
           preload={slot === 0 || firstPlaying ? 'auto' : 'none'}
           onPlaying={() => {
             if (slot === 0) setFirstPlaying(true)
+          }}
+          // If the 4K file isn't on the server yet (or fails), fall back to the regular 1080p one.
+          onError={(e) => {
+            const video = e.currentTarget
+            if (!video.src.includes('-app.mp4')) return
+            video.src = video.src.replace(/-app\.mp4\?v=\d+/, '.mp4?v=2')
+            video.load()
+            if (slot === activeRef.current) play(video)
           }}
           data-slot={slot}
           data-active={active === slot}

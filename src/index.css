@@ -181,10 +181,11 @@
   --color-gold-ink: #8a6d14;
 }
 .dark .app-neutral {
-  --color-white: #1c1c1e;
-  --color-cream: #2c2c2e;
-  --color-onyx: #f2f2f7;
-  --color-muted: #98989d;
-  --color-muted-dark: #aeaeb2;
+  /* Dark theme keeps the system's brown (same values as the website / admin), not black. */
+  --color-white: #2b1d12;
+  --color-cream: #3a2818;
+  --color-onyx: #f0e6d6;
+  --color-muted: #b39c7d;
+  --color-muted-dark: #d9c7a8;
   --color-gold-ink: #d4b055;
 }

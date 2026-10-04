@@ -57,11 +57,11 @@ export default function HomeScreen() {
         {/* Bottom edge: frosted blur that melts into the page instead of a straight cut. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[40%] backdrop-blur-xl [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_70%)] [mask-image:linear-gradient(to_bottom,transparent,black_70%)]"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[26%] backdrop-blur-xl [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_80%)] [mask-image:linear-gradient(to_bottom,transparent,black_80%)]"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] h-[40%] bg-gradient-to-b from-white/0 via-white/60 to-white"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] h-[26%] bg-gradient-to-b from-white/0 via-white/40 to-white"
         />
         <div className="relative z-10 flex max-w-md flex-col items-center">
           <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-[#ffffff] [text-shadow:0_1px_12px_rgba(0,0,0,0.6)]">
@@ -81,13 +81,15 @@ export default function HomeScreen() {
         </div>
 
         <motion.div
-          className="absolute bottom-[calc(6.5rem+env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1"
+          className="absolute bottom-[28%] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1"
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
           aria-hidden="true"
         >
-          <span className="font-body text-[0.65rem] uppercase tracking-[0.3em] text-gold">Descobre</span>
-          <i className="bx bx-chevron-down text-3xl text-gold" />
+          <span className="font-body text-[0.65rem] uppercase tracking-[0.3em] text-[#ffffff] [text-shadow:0_1px_10px_rgba(0,0,0,0.6)]">
+            Descobre
+          </span>
+          <i className="bx bx-chevron-down text-3xl text-[#ffffff] [text-shadow:0_1px_10px_rgba(0,0,0,0.6)]" />
         </motion.div>
       </section>
 
