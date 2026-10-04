@@ -1,14 +1,58 @@
-import { useEffect, useState } from 'react'
-import { motion } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { Link } from 'react-router-dom'
+import { buildQuestions } from '@/components/sections/Faq'
 import { api } from '@/lib/api'
 import { useCustomerAuth } from '@/lib/customer-auth'
-import { instagramDmUrl } from '@/lib/site-config'
+import { instagramDmUrl, siteConfig, useBusinessInfo } from '@/lib/site-config'
 import { formatPrice, type Booking, type Service } from '@/lib/types'
-import { dayParts, longDay, timeLabel } from './dates'
+import { longDay, timeLabel } from './dates'
 
-/** Greeting card: the next session when there is one, otherwise a nudge to book or sign in. */
-export function WelcomeCard() {
+/*
+ * The part of the home screen under the hero is laid out like a printed menu / lookbook: serif headlines,
+ * hairlines instead of boxes, numbered lists and big photographs. Brand words in the display fonts, details
+ * in Poppins.
+ */
+
+const PHOTOS = [
+  { src: '/images/hero/hero-1.jpg', caption: 'Knotless braids, pontas cacheadas' },
+  { src: '/images/hero/hero-2.jpg', caption: 'Detalhe, pontas cacheadas' },
+  { src: '/images/hero/hero-3.jpg', caption: 'Vista lateral' },
+  { src: '/images/hero/hero-4.jpg', caption: 'Repartição triangular' },
+  { src: '/images/hero/hero-5.jpg', caption: 'Detalhe do couro cabeludo' },
+]
+
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI']
+
+function Kicker({ children }: { children: React.ReactNode }) {
+  return <p className="font-subtitle text-[11px] font-medium uppercase tracking-[0.3em] text-gold-ink">{children}</p>
+}
+
+function Heading({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="mt-3 font-display text-[34px] font-semibold leading-[1.05] tracking-tight text-onyx">{children}</h2>
+  )
+}
+
+function Block({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <section className={`mx-auto max-w-2xl px-6 pt-20 lining-nums ${className}`}>{children}</section>
+}
+
+function Reveal({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.25 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
+/** First thing under the hero: the next session as one line of text, or an invitation. No box. */
+export function Welcome() {
   const { customer, loading } = useCustomerAuth()
   const [bookings, setBookings] = useState<Booking[] | null>(null)
 
@@ -20,320 +64,371 @@ export function WelcomeCard() {
       .catch(() => setBookings([]))
   }, [customer])
 
-  if (loading) return <div className="h-28 animate-pulse rounded-3xl bg-gold/10" />
+  if (loading) return <div className="h-24" />
+
+  const rule = 'border-y border-onyx/15 py-6'
 
   if (!customer) {
     return (
-      <div className="rounded-3xl border border-gold/25 bg-cream p-6">
-        <p className="font-subtitle text-lg font-semibold tracking-tight text-onyx">Bem-vinda à AFROGLOW</p>
-        <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
-          Cria a tua conta para marcar sessões e receber avisos quando forem confirmadas.
-        </p>
-        <Link
-          to="/entrar"
-          className="mt-4 inline-block rounded-full bg-gold-deep px-6 py-2.5 font-subtitle text-sm text-[#ffffff]"
-        >
-          Entrar ou criar conta
-        </Link>
-      </div>
+      <Link to="/entrar" className={`${rule} flex items-center justify-between`}>
+        <span>
+          <Kicker>Bem-vinda</Kicker>
+          <span className="mt-2 block font-display text-2xl font-semibold text-onyx">Entrar ou criar conta</span>
+        </span>
+        <i className="bx bx-right-arrow-alt text-3xl text-gold-ink" aria-hidden="true" />
+      </Link>
     )
   }
 
   const next = (bookings ?? [])
     .filter((b) => (b.status === 'PENDING' || b.status === 'ACCEPTED') && new Date(b.slot.startsAt) > new Date())
     .sort((a, b) => a.slot.startsAt.localeCompare(b.slot.startsAt))[0]
-  const first = customer.name.split(' ')[0]
 
   if (!next) {
     return (
-      <div className="rounded-3xl border border-gold/25 bg-cream p-6">
-        <p className="font-subtitle text-lg font-semibold tracking-tight text-onyx">Olá, {first}</p>
-        <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
-          Ainda não tens nenhuma sessão marcada. Que tal a próxima?
-        </p>
-        <Link
-          to="/marcar"
-          className="mt-4 inline-block rounded-full bg-gold-deep px-6 py-2.5 font-subtitle text-sm text-[#ffffff]"
-        >
-          Marcar sessão
-        </Link>
-      </div>
+      <Link to="/marcar" className={`${rule} flex items-center justify-between`}>
+        <span>
+          <Kicker>Olá, {customer.name.split(' ')[0]}</Kicker>
+          <span className="mt-2 block font-display text-2xl font-semibold text-onyx">Marcar a próxima sessão</span>
+        </span>
+        <i className="bx bx-right-arrow-alt text-3xl text-gold-ink" aria-hidden="true" />
+      </Link>
     )
   }
 
-  const parts = dayParts(next.slot.startsAt)
   return (
-    <Link to="/marcacoes" className="flex items-center gap-4 rounded-3xl border border-gold/25 bg-cream p-5">
-      <div className="flex h-20 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-gold-deep text-[#ffffff]">
-        <span className="font-subtitle text-[10px] uppercase tracking-wide opacity-80">{parts.weekday}</span>
-        <span className="font-subtitle text-3xl font-semibold leading-none">{parts.day}</span>
-        <span className="font-subtitle text-[10px] uppercase opacity-80">{parts.month}</span>
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="font-subtitle text-[11px] uppercase tracking-[0.18em] text-gold-ink">A tua próxima sessão</p>
-        <p className="mt-1 truncate font-subtitle text-lg font-semibold tracking-tight text-onyx">
-          {next.service.name}
-        </p>
-        <p className="font-subtitle text-sm font-light text-muted-dark">
-          {longDay(next.slot.startsAt)} · {timeLabel(next.slot.startsAt)}
-        </p>
-        <p className="mt-1 font-subtitle text-xs text-gold-ink">
-          {next.status === 'PENDING' ? 'À espera de confirmação' : 'Confirmada'}
-        </p>
-      </div>
-      <i className="bx bx-chevron-right text-2xl text-muted-dark" aria-hidden="true" />
+    <Link to="/marcacoes" className={`${rule} flex items-center justify-between gap-4`}>
+      <span className="min-w-0">
+        <Kicker>A tua próxima sessão</Kicker>
+        <span className="mt-2 block font-display text-[26px] font-semibold leading-tight text-onyx">
+          {longDay(next.slot.startsAt)}
+        </span>
+        <span className="mt-1 block truncate font-subtitle text-sm text-muted-dark">
+          {timeLabel(next.slot.startsAt)} · {next.service.name} ·{' '}
+          {next.status === 'PENDING' ? 'por confirmar' : 'confirmada'}
+        </span>
+      </span>
+      <i className="bx bx-right-arrow-alt shrink-0 text-3xl text-gold-ink" aria-hidden="true" />
     </Link>
   )
 }
 
-const PHOTOS = [
-  { src: '/images/hero/hero-1.jpg', alt: 'Knotless braids com pontas cacheadas' },
-  { src: '/images/hero/hero-2.jpg', alt: 'Detalhe de knotless braids com pontas cacheadas' },
-  { src: '/images/hero/hero-3.jpg', alt: 'Vista lateral de knotless braids com pontas cacheadas' },
-  { src: '/images/hero/hero-4.jpg', alt: 'Padrão de repartição triangular em knotless braids' },
-  { src: '/images/hero/hero-5.jpg', alt: 'Detalhe do couro cabeludo com repartição triangular' },
-]
-
-function SectionTitle({ title, hint }: { title: string; hint?: string }) {
+/** A short statement of what the studio is about, set large. */
+export function Manifesto() {
   return (
-    <div className="mx-auto max-w-2xl px-5">
-      <h2 className="font-subtitle text-2xl font-semibold tracking-tight text-onyx">{title}</h2>
-      {hint && <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">{hint}</p>}
-    </div>
+    <Block>
+      <Reveal>
+        <Kicker>A AFROGLOW</Kicker>
+        <p className="mt-5 font-display text-[28px] font-normal leading-[1.22] text-onyx">
+          Nasceu da paixão por preservar e celebrar a arte das tranças afro. Cada penteado é feito com técnica apurada e
+          respeito pela identidade de quem o usa.
+        </p>
+        <span aria-hidden="true" className="mt-8 block h-px w-14 bg-gold-deep" />
+      </Reveal>
+    </Block>
   )
 }
 
-const strip =
-  'flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
-
-/** Four big shortcuts right under the greeting. */
-export function QuickActions({ whatsappUrl }: { whatsappUrl?: string }) {
-  const items: Array<{ icon: string; label: string; to?: string; href?: string; tint: string }> = [
-    {
-      icon: 'bx bx-calendar-plus',
-      label: 'Marcar',
-      to: '/marcar',
-      tint: 'bg-[#c9a84c]/20 text-[#8c6a24] dark:text-[#e0c36e]',
-    },
-    {
-      icon: 'bx bx-calendar-check',
-      label: 'Marcações',
-      to: '/marcacoes',
-      tint: 'bg-[#5f9a76]/15 text-[#3f7a58] dark:text-[#86c4a0]',
-    },
-    whatsappUrl
-      ? {
-          icon: 'bx bxl-whatsapp',
-          label: 'WhatsApp',
-          href: whatsappUrl,
-          tint: 'bg-[#4f86c6]/15 text-[#356aa8] dark:text-[#86b4e6]',
-        }
-      : {
-          icon: 'bx bx-user',
-          label: 'Conta',
-          to: '/conta',
-          tint: 'bg-[#4f86c6]/15 text-[#356aa8] dark:text-[#86b4e6]',
-        },
-    {
-      icon: 'bxl-instagram',
-      label: 'Instagram',
-      href: instagramDmUrl(),
-      tint: 'bg-[#c9626b]/15 text-[#b04a54] dark:text-[#e58a93]',
-    },
-  ]
+/** The services as a printed menu: numeral, name, duration, price. */
+export function ServiceMenu({ services }: { services: Service[] | null }) {
   return (
-    <div className="mt-5 grid grid-cols-4 gap-3">
-      {items.map((item) => {
-        const inner = (
-          <>
-            <span className={`flex h-14 w-14 items-center justify-center rounded-2xl text-2xl ${item.tint}`}>
-              <i className={item.icon.startsWith('bx ') ? item.icon : `bx ${item.icon}`} aria-hidden="true" />
-            </span>
-            <span className="mt-2 font-subtitle text-[11px] text-onyx">{item.label}</span>
-          </>
-        )
-        return item.to ? (
-          <Link key={item.label} to={item.to} className="flex flex-col items-center">
-            {inner}
-          </Link>
-        ) : (
-          <a key={item.label} href={item.href} target="_blank" rel="noreferrer" className="flex flex-col items-center">
-            {inner}
-          </a>
-        )
-      })}
-    </div>
-  )
-}
+    <Block>
+      <Reveal>
+        <Kicker>Serviços</Kicker>
+        <Heading>A carta</Heading>
+      </Reveal>
 
-/** Services as swipeable photo cards. */
-export function ServiceCarousel({ services }: { services: Service[] | null }) {
-  return (
-    <section className="pt-12">
-      <SectionTitle title="Os nossos serviços" hint="Desliza e escolhe o teu modelo." />
-      <div className={`${strip} mt-5`}>
+      <div className="mt-8 border-t border-onyx/15">
         {services === null &&
-          [0, 1].map((i) => <div key={i} className="h-80 w-[78%] shrink-0 animate-pulse rounded-[2rem] bg-gold/10" />)}
+          [0, 1, 2].map((i) => <div key={i} className="h-24 animate-pulse border-b border-onyx/10 bg-gold/5" />)}
         {services?.map((service, index) => (
           <Link
             key={service.id}
             to={`/marcar?service=${service.id}`}
-            className="relative h-80 w-[78%] max-w-xs shrink-0 snap-center overflow-hidden rounded-[2rem] bg-[#2a170a]"
+            className="group flex items-baseline gap-4 border-b border-onyx/15 py-6 active:bg-gold-deep/5"
           >
-            <img
-              src={PHOTOS[index % PHOTOS.length].src}
-              alt=""
-              loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            <span className="absolute inset-0 bg-gradient-to-t from-[#1a1008]/90 via-[#1a1008]/25 to-transparent" />
-            <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-[#1a1008]/40 px-3 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
-              <i className="bx bx-time-five text-sm" aria-hidden="true" />
-              {service.durationLabel}
+            <span className="w-8 shrink-0 font-display text-lg text-gold-ink">
+              {String(index + 1).padStart(2, '0')}
             </span>
-            <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5 text-[#ffffff]">
-              <span className="min-w-0">
-                <span className="block truncate font-subtitle text-xl font-semibold tracking-tight">
-                  {service.name}
-                </span>
-                <span className="mt-0.5 block font-subtitle text-base text-[#e0c36e]">
-                  {formatPrice(service.priceCents)}
-                </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-display text-[26px] font-semibold leading-tight text-onyx">
+                {service.name}
               </span>
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1a1008]/40 text-xl backdrop-blur-md">
-                <i className="bx bx-right-arrow-alt" aria-hidden="true" />
+              <span className="mt-1 block font-subtitle text-xs uppercase tracking-[0.18em] text-muted-dark">
+                {service.durationLabel}
               </span>
+            </span>
+            <span className="shrink-0 font-display text-2xl font-semibold text-onyx">
+              {formatPrice(service.priceCents)}
             </span>
           </Link>
         ))}
       </div>
-    </section>
+      {services && services.length > 0 && (
+        <p className="mt-4 font-subtitle text-xs font-light text-muted-dark">
+          Toca num modelo para marcar a tua sessão.
+        </p>
+      )}
+    </Block>
+  )
+}
+
+/** Photographs at their own pace: two uneven columns with captions. */
+export function Lookbook() {
+  const left = PHOTOS.filter((_, i) => i % 2 === 0)
+  const right = PHOTOS.filter((_, i) => i % 2 === 1)
+  const figure = (photo: (typeof PHOTOS)[number], number: number, tall: boolean) => (
+    <motion.figure
+      key={photo.src}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <img
+        src={photo.src}
+        alt={photo.caption}
+        loading="lazy"
+        className={`w-full object-cover ${tall ? 'aspect-[3/4.4]' : 'aspect-[3/3.6]'}`}
+      />
+      <figcaption className="mt-2 font-subtitle text-[10px] uppercase leading-snug tracking-[0.16em] text-muted-dark">
+        <span className="text-gold-ink">{String(number).padStart(2, '0')}</span> — {photo.caption}
+      </figcaption>
+    </motion.figure>
+  )
+  return (
+    <Block>
+      <Reveal>
+        <Kicker>Lookbook</Kicker>
+        <Heading>O nosso trabalho</Heading>
+      </Reveal>
+      <div className="mt-8 grid grid-cols-2 gap-x-3">
+        <div className="flex flex-col gap-8">{left.map((p, i) => figure(p, i * 2 + 1, i % 2 === 0))}</div>
+        <div className="flex flex-col gap-8 pt-14">{right.map((p, i) => figure(p, i * 2 + 2, i % 2 === 1))}</div>
+      </div>
+      <a
+        href={instagramDmUrl()}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-10 inline-flex items-center gap-2 border-b border-gold-deep pb-1 font-subtitle text-sm text-onyx"
+      >
+        Ver mais no Instagram <i className="bx bx-up-arrow-alt rotate-45 text-lg" aria-hidden="true" />
+      </a>
+    </Block>
   )
 }
 
 const STEPS = [
-  { icon: 'bx bx-list-check', title: 'Escolhe', text: 'o modelo' },
-  { icon: 'bx bx-calendar-plus', title: 'Marca', text: 'o dia e a hora' },
-  { icon: 'bx bx-bell', title: 'Recebe', text: 'a confirmação' },
+  { title: 'Escolhe o modelo', text: 'Vê a duração e o preço de cada um.' },
+  { title: 'Marca o dia e a hora', text: 'Escolhe um horário livre e envia o pedido.' },
+  { title: 'Recebe a confirmação', text: 'Avisamos-te na app e lembramos-te antes da sessão.' },
 ]
 
-/** Three compact steps side by side. */
-export function StepsRow() {
+/** Three steps in roman numerals, separated by hairlines. */
+export function Process() {
   return (
-    <section className="pt-12">
-      <SectionTitle title="Como funciona" />
-      <div className="mx-auto mt-5 grid max-w-2xl grid-cols-3 gap-3 px-5">
+    <Block>
+      <Reveal>
+        <Kicker>Como funciona</Kicker>
+        <Heading>Em três passos</Heading>
+      </Reveal>
+      <ol className="mt-8 border-t border-onyx/15">
         {STEPS.map((step, index) => (
-          <motion.div
-            key={step.title}
-            initial={{ opacity: 0, y: 14 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.6 }}
-            transition={{ delay: index * 0.08 }}
-            className="relative rounded-3xl border border-gold/25 bg-cream px-3 pb-4 pt-6 text-center"
-          >
-            <span className="absolute -top-3 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full bg-gold-deep font-subtitle text-xs font-semibold text-[#ffffff]">
-              {index + 1}
+          <li key={step.title} className="flex gap-5 border-b border-onyx/15 py-5">
+            <span className="w-8 shrink-0 font-display text-2xl text-gold-ink">{ROMAN[index]}</span>
+            <span>
+              <span className="block font-display text-[22px] font-semibold leading-tight text-onyx">{step.title}</span>
+              <span className="mt-1 block font-subtitle text-sm font-light text-muted-dark">{step.text}</span>
             </span>
-            <i className={`${step.icon} text-3xl text-gold-ink`} aria-hidden="true" />
-            <p className="mt-2 font-subtitle text-sm font-semibold text-onyx">{step.title}</p>
-            <p className="font-subtitle text-xs font-light text-muted-dark">{step.text}</p>
-          </motion.div>
+          </li>
         ))}
-      </div>
-    </section>
+      </ol>
+    </Block>
   )
 }
 
-/** Photo mosaic of the studio's work. */
-export function WorkGrid() {
-  const tall = new Set([0, 3])
-  return (
-    <section className="pt-12">
-      <SectionTitle title="O nosso trabalho" />
-      <div className="mx-auto mt-5 grid max-w-2xl auto-rows-[9.5rem] grid-flow-dense grid-cols-2 gap-2 px-5">
-        {PHOTOS.map((photo, index) => (
-          <img
-            key={photo.src}
-            src={photo.src}
-            alt={photo.alt}
-            loading="lazy"
-            className={`h-full w-full rounded-3xl object-cover ${tall.has(index) ? 'row-span-2' : ''}`}
-          />
-        ))}
-        <a
-          href={instagramDmUrl()}
-          target="_blank"
-          rel="noreferrer"
-          className="flex flex-col items-center justify-center gap-2 rounded-3xl border border-gold/25 bg-cream text-center font-subtitle text-sm font-medium text-onyx"
-        >
-          <i className="bx bxl-instagram text-2xl text-gold-ink" aria-hidden="true" />
-          Mais no Instagram
-        </a>
-      </div>
-    </section>
-  )
-}
-
-/** Testimonials as swipeable quote cards. */
-export function ReviewsRow({ reviews }: { reviews: Array<{ id: string; quote: string; name: string }> }) {
+/** Testimonials as one big quote at a time, with dashes to move between them. */
+export function Voices({ reviews }: { reviews: Array<{ id: string; quote: string; name: string }> }) {
+  const [index, setIndex] = useState(0)
+  const startX = useRef<number | null>(null)
   if (reviews.length === 0) return null
+  const review = reviews[Math.min(index, reviews.length - 1)]
+  const go = (delta: number) => setIndex((i) => (i + delta + reviews.length) % reviews.length)
+
   return (
-    <section className="pt-12">
-      <SectionTitle title="O que dizem as nossas clientes" />
-      <div className={`${strip} mt-5`}>
-        {reviews.map((review) => (
-          <figure
+    <Block>
+      <Reveal>
+        <Kicker>Vozes</Kicker>
+      </Reveal>
+      <div
+        className="mt-6"
+        onTouchStart={(e) => (startX.current = e.touches[0].clientX)}
+        onTouchEnd={(e) => {
+          if (startX.current === null) return
+          const delta = e.changedTouches[0].clientX - startX.current
+          if (Math.abs(delta) > 40) go(delta < 0 ? 1 : -1)
+          startX.current = null
+        }}
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.blockquote
             key={review.id}
-            className="flex w-[82%] max-w-xs shrink-0 snap-center flex-col rounded-3xl border border-gold/25 bg-cream p-5"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.25 }}
           >
-            <i className="bx bxs-quote-alt-left text-3xl text-gold-ink/60" aria-hidden="true" />
-            <blockquote className="mt-2 line-clamp-6 flex-1 font-subtitle text-sm font-light leading-relaxed text-onyx">
-              {review.quote}
-            </blockquote>
-            <figcaption className="mt-4 flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gold-deep font-subtitle text-sm font-semibold text-[#ffffff]">
-                {review.name.trim().charAt(0).toUpperCase()}
-              </span>
-              <span className="font-subtitle text-sm font-semibold text-onyx">{review.name}</span>
-            </figcaption>
-          </figure>
-        ))}
+            <span aria-hidden="true" className="block font-logo text-6xl leading-none text-gold-deep">
+              “
+            </span>
+            <p className="-mt-2 font-display text-[26px] font-normal leading-[1.25] text-onyx">{review.quote}</p>
+            <footer className="mt-5 font-subtitle text-xs font-medium uppercase tracking-[0.2em] text-muted-dark">
+              — {review.name}
+            </footer>
+          </motion.blockquote>
+        </AnimatePresence>
       </div>
-    </section>
+      {reviews.length > 1 && (
+        <div className="mt-8 flex gap-2" role="tablist" aria-label="Testemunhos">
+          {reviews.map((r, i) => (
+            <button
+              key={r.id}
+              type="button"
+              role="tab"
+              aria-selected={i === index}
+              aria-label={`Testemunho ${i + 1}`}
+              onClick={() => setIndex(i)}
+              className="py-3"
+            >
+              <span className={`block h-0.5 transition-all ${i === index ? 'w-10 bg-gold-deep' : 'w-5 bg-onyx/20'}`} />
+            </button>
+          ))}
+        </div>
+      )}
+    </Block>
   )
 }
 
-/** Contact tiles at the end of the page. */
-export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
+/** Questions as a plain list: tap a line to read the answer. */
+export function Questions() {
+  const business = useBusinessInfo()
+  const questions = buildQuestions(business)
+  const [open, setOpen] = useState<number | null>(null)
   return (
-    <section className="mx-auto max-w-2xl px-5 pt-14">
-      <h2 className="font-subtitle text-2xl font-semibold tracking-tight text-onyx">Fala connosco</h2>
-      <div className="mt-5 grid grid-cols-2 gap-3">
+    <Block>
+      <Reveal>
+        <Kicker>Dúvidas</Kicker>
+        <Heading>Perguntas frequentes</Heading>
+      </Reveal>
+      <div className="mt-8 border-t border-onyx/15">
+        {questions.map((item, i) => (
+          <div key={item.q} className="border-b border-onyx/15">
+            <button
+              type="button"
+              aria-expanded={open === i}
+              onClick={() => setOpen(open === i ? null : i)}
+              className="flex w-full items-center justify-between gap-4 py-5 text-left"
+            >
+              <span className="font-display text-xl font-semibold leading-snug text-onyx">{item.q}</span>
+              <span className="shrink-0 font-subtitle text-xl text-gold-ink" aria-hidden="true">
+                {open === i ? '−' : '+'}
+              </span>
+            </button>
+            <AnimatePresence initial={false}>
+              {open === i && (
+                <motion.p
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="overflow-hidden pr-8 font-subtitle text-sm font-light leading-relaxed text-muted-dark"
+                >
+                  <span className="block pb-5">{item.a}</span>
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </div>
+        ))}
+      </div>
+    </Block>
+  )
+}
+
+/** Address and hours, only when filled in. */
+export function Visit() {
+  const business = useBusinessInfo()
+  if (!business.address && business.openingHours.length === 0) return null
+  return (
+    <Block>
+      <Reveal>
+        <Kicker>Visita</Kicker>
+        <Heading>Onde estamos</Heading>
+      </Reveal>
+      {business.address && <p className="mt-6 font-display text-2xl leading-snug text-onyx">{business.address}</p>}
+      {business.mapUrl && (
+        <a
+          href={business.mapUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 inline-block border-b border-gold-deep pb-0.5 font-subtitle text-sm text-onyx"
+        >
+          Abrir no mapa
+        </a>
+      )}
+      {business.phone && (
+        <p className="mt-3 font-subtitle text-sm text-muted-dark">
+          <a href={`tel:${business.phone.replace(/[^+\d]/g, '')}`}>{business.phone}</a>
+        </p>
+      )}
+      {business.openingHours.length > 0 && (
+        <dl className="mt-6 border-t border-onyx/15">
+          {business.openingHours.map((row) => (
+            <div
+              key={row.days}
+              className="flex justify-between gap-4 border-b border-onyx/15 py-3 font-subtitle text-sm"
+            >
+              <dt className="text-muted-dark">{row.days}</dt>
+              <dd className="text-onyx">{row.hours}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </Block>
+  )
+}
+
+/** Closing: a large wordmark and plain text links. */
+export function Closing({ whatsappUrl }: { whatsappUrl?: string }) {
+  return (
+    <section className="mx-auto max-w-2xl px-6 pb-10 pt-24 lining-nums">
+      <p aria-hidden="true" className="font-logo text-[17vw] leading-none text-gold-deep/25">
+        AFROGLOW
+      </p>
+      <div className="mt-6 flex flex-wrap gap-x-8 gap-y-3">
         <a
           href={instagramDmUrl()}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-3 rounded-3xl border border-gold/25 bg-cream p-4"
+          className="border-b border-onyx/40 pb-0.5 font-subtitle text-sm text-onyx"
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#c9626b]/15 text-2xl text-[#b04a54]">
-            <i className="bx bxl-instagram" aria-hidden="true" />
-          </span>
-          <span className="font-subtitle text-sm font-semibold text-onyx">Instagram</span>
+          Instagram
         </a>
         {whatsappUrl && (
           <a
             href={whatsappUrl}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-3 rounded-3xl border border-gold/25 bg-cream p-4"
+            className="border-b border-onyx/40 pb-0.5 font-subtitle text-sm text-onyx"
           >
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#5f9a76]/15 text-2xl text-[#3f7a58]">
-              <i className="bx bxl-whatsapp" aria-hidden="true" />
-            </span>
-            <span className="font-subtitle text-sm font-semibold text-onyx">WhatsApp</span>
+            WhatsApp
           </a>
         )}
+        <a
+          href={`mailto:${siteConfig.email}`}
+          className="border-b border-onyx/40 pb-0.5 font-subtitle text-sm text-onyx"
+        >
+          {siteConfig.email}
+        </a>
       </div>
     </section>
   )

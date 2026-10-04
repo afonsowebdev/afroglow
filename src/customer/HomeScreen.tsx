@@ -1,14 +1,4 @@
-import Faq from '@/components/sections/Faq'
-import Location from '@/components/sections/Location'
-import {
-  ContactTiles,
-  QuickActions,
-  ReviewsRow,
-  ServiceCarousel,
-  StepsRow,
-  WelcomeCard,
-  WorkGrid,
-} from './HomeSections'
+import { Closing, Lookbook, Manifesto, Process, Questions, ServiceMenu, Visit, Voices, Welcome } from './HomeSections'
 import { useLightStatusBar } from './useLightStatusBar'
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
@@ -47,7 +37,7 @@ export default function HomeScreen() {
   }, [])
 
   return (
-    <main className="pb-40">
+    <main>
       {/* The hero fills the whole first screen, edge to edge, like the website. */}
       <section
         data-hero
@@ -81,32 +71,23 @@ export default function HomeScreen() {
         </motion.div>
       </section>
 
-      <section className="relative z-10 bg-white px-5 pt-10">
-        <div className="mx-auto max-w-2xl">
-          <WelcomeCard />
-          <QuickActions
-            whatsappUrl={
-              whatsapp.enabled ? whatsapp.url('Olá! Gostaria de saber mais sobre os vossos serviços.') : undefined
-            }
-          />
-        </div>
-      </section>
-
-      <ServiceCarousel services={services} />
-      <StepsRow />
-      <WorkGrid />
-      <ReviewsRow reviews={testimonials} />
-
-      <div>
-        <Faq app />
-        <Location app />
+      <div className="relative z-10 bg-white pb-40 lining-nums">
+        <section className="mx-auto max-w-2xl px-6 pt-10">
+          <Welcome />
+        </section>
+        <Manifesto />
+        <ServiceMenu services={services} />
+        <Lookbook />
+        <Process />
+        <Voices reviews={testimonials} />
+        <Questions />
+        <Visit />
+        <Closing
+          whatsappUrl={
+            whatsapp.enabled ? whatsapp.url('Olá! Gostaria de saber mais sobre os vossos serviços.') : undefined
+          }
+        />
       </div>
-
-      <ContactTiles
-        whatsappUrl={
-          whatsapp.enabled ? whatsapp.url('Olá! Gostaria de saber mais sobre os vossos serviços.') : undefined
-        }
-      />
     </main>
   )
 }

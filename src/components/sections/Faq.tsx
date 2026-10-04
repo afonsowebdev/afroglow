@@ -9,7 +9,7 @@ interface Question {
 
 // Only things the system really does. Business-specific rules (prices, cancellation window…)
 // come from siteConfig so the client can fill them in without touching this file.
-function buildQuestions(business: BusinessInfo): Question[] {
+export function buildQuestions(business: BusinessInfo): Question[] {
   const contact = [
     `Instagram @${siteConfig.instagramHandle}`,
     hasWhatsappNumber(business.whatsappNumber) ? 'WhatsApp' : null,
