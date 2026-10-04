@@ -6,7 +6,14 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { MotionButton } from '@/components/ui/motion-button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { adminToken, api, ApiError } from '@/lib/api'
+import { CustomersView } from '@/pages/admin/CustomersView'
+import type { AdminCustomer } from '@/pages/admin/admin-types'
+import { ManualBookingSheet } from '@/pages/admin/ManualBookingSheet'
+import { MoreView, type MoreTarget } from '@/pages/admin/MoreView'
+import { BlockDaySheet, GenerateSlotsSheet } from '@/pages/admin/ScheduleTools'
+import { SecurityView } from '@/pages/admin/SecurityView'
 import { SettingsView } from '@/pages/admin/SettingsView'
+import { StatsView } from '@/pages/admin/StatsView'
 import { registerForPushNotifications } from '@/lib/push-notifications'
 import { customerWhatsappUrl } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service, type Testimonial } from '@/lib/types'
@@ -81,16 +88,24 @@ const HISTORY_STATUS_LABEL: Record<Booking['status'], string> = {
   CANCELLED: 'Cancelada',
 }
 
-type AdminTab = 'pedidos' | 'agenda' | 'disponibilidade' | 'servicos' | 'testemunhos' | 'definicoes'
+type NavTab = 'pedidos' | 'agenda' | 'disponibilidade' | 'clientes' | 'mais'
+type AdminTab = NavTab | MoreTarget
 
-type NavTab = Exclude<AdminTab, 'definicoes'>
+const MORE_TARGETS: MoreTarget[] = ['servicos', 'testemunhos', 'estatisticas', 'definicoes', 'seguranca']
+const MORE_TITLE: Record<MoreTarget, string> = {
+  servicos: 'Serviços',
+  testemunhos: 'Testemunhos',
+  estatisticas: 'Estatísticas',
+  definicoes: 'Definições do negócio',
+  seguranca: 'Segurança',
+}
 
 const TABS: Array<{ id: NavTab; label: string; icon: string }> = [
   { id: 'pedidos', label: 'Pedidos', icon: 'bx bx-bell' },
   { id: 'agenda', label: 'Agenda', icon: 'bx bx-calendar-check' },
   { id: 'disponibilidade', label: 'Horários', icon: 'bx bx-time-five' },
-  { id: 'servicos', label: 'Serviços', icon: 'bx bx-cut' },
-  { id: 'testemunhos', label: 'Testemunhos', icon: 'bx bx-message-rounded-dots' },
+  { id: 'clientes', label: 'Clientes', icon: 'bx bx-user' },
+  { id: 'mais', label: 'Mais', icon: 'bx bx-dots-horizontal-rounded' },
 ]
 
 function dayHeading(iso: string) {
@@ -128,6 +143,7 @@ function AgendaView({
   history,
   busyId,
   onCancel,
+  onNew,
 }: {
   pendingCount: number
   confirmedCount: number
@@ -136,8 +152,20 @@ function AgendaView({
   history: Booking[]
   busyId: string | null
   onCancel: (id: string) => void
+  onNew: () => void
 }) {
   const [view, setView] = useState<'proximas' | 'historico'>('proximas')
+  const [search, setSearch] = useState('')
+  const needle = search.trim().toLowerCase()
+  const matches = (b: Booking) =>
+    !needle ||
+    b.customerName.toLowerCase().includes(needle) ||
+    b.customerPhone.replace(/\s/g, '').includes(needle.replace(/\s/g, '')) ||
+    b.service.name.toLowerCase().includes(needle)
+  const upcomingAll = upcoming
+  const historyAll = history
+  upcoming = upcomingAll.filter(matches)
+  history = historyAll.filter(matches)
   const stats = [
     { icon: 'bx bx-time-five', label: 'Pendentes', value: String(pendingCount) },
     { icon: 'bx bx-calendar-check', label: 'Confirmadas', value: String(confirmedCount) },
@@ -156,7 +184,26 @@ function AgendaView({
         ))}
       </div>
 
-      <div className="mt-6 flex rounded-full border border-gold/20 bg-white p-1 shadow-sm shadow-black/5">
+      <div className="mt-6 flex gap-2">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Pesquisar cliente, telemóvel ou modelo"
+          aria-label="Pesquisar na agenda"
+          className="min-w-0 flex-1 rounded-full border border-gold/30 bg-white px-5 py-3 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/40 focus-visible:border-gold-deep"
+        />
+        <button
+          type="button"
+          onClick={onNew}
+          aria-label="Nova marcação"
+          className="flex shrink-0 items-center gap-2 rounded-full bg-gold-deep px-5 py-3 font-subtitle text-sm text-[#ffffff] transition-opacity hover:opacity-90"
+        >
+          <i className="bx bx-plus text-lg" aria-hidden="true" />
+          <span className="hidden sm:inline">Nova marcação</span>
+        </button>
+      </div>
+
+      <div className="mt-4 flex rounded-full border border-gold/20 bg-white p-1 shadow-sm shadow-black/5">
         {(
           [
             ['proximas', 'Próximas', upcoming.length],
@@ -921,9 +968,10 @@ function PendingCard({
 }: {
   booking: Booking
   busy: boolean
-  onDecision: (id: string, decision: 'accept' | 'reject') => void
+  onDecision: (id: string, decision: 'accept' | 'reject', reason?: string) => void
 }) {
   const [confirmingReject, setConfirmingReject] = useState(false)
+  const [reason, setReason] = useState('')
   const { day, month, weekday, time } = dateParts(booking.slot.startsAt)
   const hoursUntil = (new Date(booking.slot.startsAt).getTime() - Date.now()) / 3_600_000
   const badge =
@@ -989,10 +1037,18 @@ function PendingCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-gold/15 bg-gold-deep/[0.03] px-4 py-3">
+      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-gold/15 bg-gold-deep/[0.03] px-4 py-3">
         {confirmingReject ? (
           <>
             <span className="mr-auto font-subtitle text-sm text-onyx">Recusar este pedido?</span>
+            <input
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              maxLength={300}
+              placeholder="Motivo (opcional, vai no email ao cliente)"
+              aria-label="Motivo da recusa"
+              className="w-full rounded-xl border border-gold/30 bg-white px-3 py-2 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/40 focus-visible:border-gold-deep"
+            />
             <button
               type="button"
               onClick={() => setConfirmingReject(false)}
@@ -1003,7 +1059,7 @@ function PendingCard({
             </button>
             <button
               type="button"
-              onClick={() => onDecision(booking.id, 'reject')}
+              onClick={() => onDecision(booking.id, 'reject', reason.trim() || undefined)}
               disabled={busy}
               className="rounded-full bg-red-700 px-4 py-2 font-subtitle text-sm text-[#ffffff] disabled:opacity-50"
             >
@@ -1041,7 +1097,7 @@ function PendingView({
 }: {
   bookings: Booking[]
   busyId: string | null
-  onDecision: (id: string, decision: 'accept' | 'reject') => void
+  onDecision: (id: string, decision: 'accept' | 'reject', reason?: string) => void
 }) {
   const [order, setOrder] = useState<'sessao' | 'recebido'>('sessao')
   const [showPast, setShowPast] = useState(false)
@@ -1171,7 +1227,7 @@ export default function AdminDashboardPage() {
   const [adminEmail, setAdminEmail] = useState<string | null>(null)
   const [tab, setTab] = useState<AdminTab>(() => {
     const fromHash = window.location.hash.slice(1)
-    return TABS.some((t) => t.id === fromHash) || fromHash === 'definicoes' ? (fromHash as AdminTab) : 'pedidos'
+    return TABS.some((t) => t.id === fromHash) || MORE_TARGETS.includes(fromHash as MoreTarget) ? (fromHash as AdminTab) : 'pedidos'
   })
   const [scrolled, setScrolled] = useState(false)
 
@@ -1194,6 +1250,12 @@ export default function AdminDashboardPage() {
   const [deletingService, setDeletingService] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [serviceNotice, setServiceNotice] = useState<string | null>(null)
+
+  const [manualOpen, setManualOpen] = useState(false)
+  const [manualCustomer, setManualCustomer] = useState<AdminCustomer | null>(null)
+  const [generateOpen, setGenerateOpen] = useState(false)
+  const [blockOpen, setBlockOpen] = useState(false)
+  const [scheduleNotice, setScheduleNotice] = useState<string | null>(null)
 
   const [viewMonth, setViewMonth] = useState(() => getLisbonYearMonth(new Date()))
   const [clearingOpen, setClearingOpen] = useState(false)
@@ -1408,11 +1470,11 @@ export default function AdminDashboardPage() {
     }
   }
 
-  async function handleBookingDecision(id: string, decision: 'accept' | 'reject' | 'cancel') {
+  async function handleBookingDecision(id: string, decision: 'accept' | 'reject' | 'cancel', reason?: string) {
     setBusyId(id)
     setError(null)
     try {
-      await api.post(`/admin/bookings/${id}/${decision}`)
+      await api.post(`/admin/bookings/${id}/${decision}`, reason ? { reason } : undefined)
       await loadDashboard()
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Erro ao atualizar marcação.')
@@ -1568,19 +1630,6 @@ export default function AdminDashboardPage() {
             <ThemeToggle className="h-12 w-12 border-transparent bg-white/95 shadow-lg shadow-black/10 backdrop-blur" />
             <button
               type="button"
-              aria-label="Definições do negócio"
-              onClick={() => {
-                setTab('definicoes')
-                window.scrollTo({ top: 0 })
-              }}
-              className={`h-12 w-12 justify-center text-xl transition-colors duration-300 hover:text-gold-deep ${pillClasses} ${
-                tab === 'definicoes' ? 'text-gold-deep' : 'text-onyx'
-              }`}
-            >
-              <i className="bx bx-cog" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
               onClick={handleLogout}
               className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-deep sm:px-6 ${pillClasses}`}
             >
@@ -1596,6 +1645,17 @@ export default function AdminDashboardPage() {
         <p className="mt-4 font-subtitle text-lg font-light text-muted-dark">{adminEmail}</p>
 
         {error && <p className="mt-6 font-subtitle text-sm text-red-700">{error}</p>}
+
+        {MORE_TARGETS.includes(tab as MoreTarget) && (
+          <button
+            type="button"
+            onClick={() => setTab('mais')}
+            className="mt-6 inline-flex items-center gap-1 font-subtitle text-sm text-gold-deep"
+          >
+            <i className="bx bx-chevron-left text-lg" aria-hidden="true" /> Mais
+            <span className="ml-2 font-logo text-xl text-onyx">{MORE_TITLE[tab as MoreTarget]}</span>
+          </button>
+        )}
 
         {(tab === 'agenda' || tab === 'disponibilidade') && (
           <div className="mt-6 flex items-center justify-center gap-4 rounded-full border border-gold/20 bg-white px-4 py-2 shadow-sm shadow-black/5 sm:justify-start">
@@ -1628,6 +1688,10 @@ export default function AdminDashboardPage() {
             history={history}
             busyId={busyId}
             onCancel={(id) => handleBookingDecision(id, 'cancel')}
+            onNew={() => {
+              setManualCustomer(null)
+              setManualOpen(true)
+            }}
           />
         )}
 
@@ -1756,6 +1820,27 @@ export default function AdminDashboardPage() {
 
           {tab === 'disponibilidade' && (
             <section className="mt-4">
+              {scheduleNotice && (
+                <p className="mb-4 rounded-2xl border border-gold/20 bg-white p-4 font-subtitle text-sm text-onyx shadow-sm shadow-black/5">
+                  {scheduleNotice}
+                </p>
+              )}
+              <div className="mb-4 grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setGenerateOpen(true)}
+                  className="flex items-center justify-center gap-2 rounded-full bg-gold-deep px-4 py-3 font-subtitle text-sm text-[#ffffff] transition-opacity hover:opacity-90"
+                >
+                  <i className="bx bx-calendar-week text-lg" aria-hidden="true" /> Horário semanal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBlockOpen(true)}
+                  className="flex items-center justify-center gap-2 rounded-full border border-gold/30 bg-white px-4 py-3 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep"
+                >
+                  <i className="bx bx-calendar-x text-lg" aria-hidden="true" /> Fechar um dia
+                </button>
+              </div>
               {clearResult && (
                 <div className="mb-4 flex items-start gap-3 rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
                   <i className="bx bx-check-circle mt-0.5 text-xl text-gold-deep" aria-hidden="true" />
@@ -1999,10 +2084,32 @@ export default function AdminDashboardPage() {
             <PendingView
               bookings={pendingBookings}
               busyId={busyId}
-              onDecision={(id, decision) => handleBookingDecision(id, decision)}
+              onDecision={(id, decision, reason) => handleBookingDecision(id, decision, reason)}
             />
           )}
 
+          {tab === 'clientes' && (
+            <CustomersView
+              refreshKey={bookings.map((b) => b.id + b.status).join()}
+              onNewBooking={(customer) => {
+                setManualCustomer(customer)
+                setManualOpen(true)
+              }}
+            />
+          )}
+
+          {tab === 'mais' && (
+            <MoreView
+              onOpen={(id) => {
+                setTab(id)
+                window.scrollTo({ top: 0 })
+              }}
+              badges={{ testemunhos: pendingTestimonials.length }}
+            />
+          )}
+
+          {tab === 'estatisticas' && <StatsView />}
+          {tab === 'seguranca' && <SecurityView />}
           {tab === 'definicoes' && <SettingsView />}
 
           {tab === 'testemunhos' && (
@@ -2011,9 +2118,34 @@ export default function AdminDashboardPage() {
         </div>
       </main>
 
+      <ManualBookingSheet
+        open={manualOpen}
+        services={services}
+        presetCustomer={manualCustomer}
+        onClose={() => setManualOpen(false)}
+        onDone={() => void loadDashboard()}
+      />
+      <GenerateSlotsSheet
+        open={generateOpen}
+        onClose={() => setGenerateOpen(false)}
+        onDone={(message) => {
+          setScheduleNotice(message)
+          void loadDashboard()
+        }}
+      />
+      <BlockDaySheet
+        open={blockOpen}
+        slots={slots}
+        onClose={() => setBlockOpen(false)}
+        onDone={(message) => {
+          setScheduleNotice(message)
+          void loadDashboard()
+        }}
+      />
+
       <BottomNavBar
         stickyBottom
-        value={tab}
+        value={(MORE_TARGETS.includes(tab as MoreTarget) ? 'mais' : tab) as NavTab}
         onChange={(id) => {
           setTab(id)
           window.scrollTo({ top: 0 })
@@ -2022,7 +2154,7 @@ export default function AdminDashboardPage() {
           id,
           label,
           icon,
-          badge: id === 'pedidos' ? pendingBookings.length : id === 'testemunhos' ? pendingTestimonials.length : 0,
+          badge: id === 'pedidos' ? pendingBookings.length : id === 'mais' ? pendingTestimonials.length : 0,
         }))}
       />
     </div>

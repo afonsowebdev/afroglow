@@ -121,7 +121,13 @@ interface BookingEmailInput {
   priceCents: number
 }
 
+/** Clients added by hand (no account) get a placeholder address that must never be emailed. */
+export function isPlaceholderEmail(address: string) {
+  return address.endsWith('@manual.invalid') || address.endsWith('@removed.invalid')
+}
+
 export async function sendBookingConfirmationEmail(to: string, booking: BookingEmailInput) {
+  if (isPlaceholderEmail(to)) return
   if (!resend) {
     console.warn('[resend] Email de confirmação de marcação ignorado: RESEND_API_KEY não configurada.')
     return
@@ -182,6 +188,7 @@ export async function sendBookingNotification(booking: BookingNotificationInput)
 }
 
 export async function sendBookingAcceptedEmail(to: string, booking: BookingEmailInput) {
+  if (isPlaceholderEmail(to)) return
   if (!resend) {
     console.warn('[resend] Email de marcação aceite ignorado: RESEND_API_KEY não configurada.')
     return
@@ -212,7 +219,9 @@ export async function sendBookingAcceptedEmail(to: string, booking: BookingEmail
 export async function sendBookingRejectedEmail(
   to: string,
   booking: Pick<BookingEmailInput, 'serviceName' | 'startsAt'>,
+  reason?: string,
 ) {
+  if (isPlaceholderEmail(to)) return
   if (!resend) {
     console.warn('[resend] Email de marcação rejeitada ignorado: RESEND_API_KEY não configurada.')
     return
@@ -231,6 +240,11 @@ export async function sendBookingRejectedEmail(
           (${escapeHtml(formatDate(booking.startsAt))}) já não está disponível.
           Entra na tua conta e escolhe outro horário — temos todo o gosto em receber-te.
         </p>
+        ${
+          reason
+            ? `<p style="margin:16px 0 0; font-size:15px; line-height:1.6; color:#6B5B47;"><strong style="color:#1A1008;">Nota:</strong> ${escapeHtml(reason)}</p>`
+            : ''
+        }
       `),
     })
   } catch (error) {
@@ -239,6 +253,7 @@ export async function sendBookingRejectedEmail(
 }
 
 export async function sendBookingReminderEmail(to: string, booking: BookingEmailInput) {
+  if (isPlaceholderEmail(to)) return
   if (!resend) {
     console.warn('[resend] Lembrete de marcação ignorado: RESEND_API_KEY não configurada.')
     return

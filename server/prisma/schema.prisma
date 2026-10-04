@@ -61,6 +61,8 @@ model Customer {
   email        String        @unique
   phone        String
   passwordHash String
+  // Private notes the business keeps about this client (never shown to the client).
+  adminNotes   String        @default("")
   createdAt    DateTime      @default(now())
   bookings     Booking[]
   testimonials Testimonial[]

@@ -14,7 +14,7 @@ export const createSlotSchema = z.object({
 })
 
 export const createSlotsBatchSchema = z.object({
-  startsAtList: z.array(z.string().datetime()).min(1).max(50),
+  startsAtList: z.array(z.string().datetime()).min(1).max(300),
 })
 
 export const updateServiceSchema = z.object({
@@ -112,4 +112,27 @@ export const businessSettingsSchema = z.object({
     .array(z.object({ days: z.string().trim().min(1).max(60), hours: z.string().trim().min(1).max(60) }))
     .max(10),
   cancellationPolicy: z.string().trim().max(600),
+})
+
+export const manualBookingSchema = z.object({
+  startsAt: z.string().datetime(),
+  serviceId: z.string().min(1),
+  // Either an existing client, or the name + phone of someone without an account.
+  customerId: z.string().min(1).optional(),
+  customerName: z.string().trim().min(2).max(100).optional(),
+  customerPhone: z.string().trim().min(6).max(30).optional(),
+  notes: z.string().trim().max(500).optional(),
+})
+
+export const rejectBookingSchema = z.object({
+  reason: z.string().trim().max(300).optional(),
+})
+
+export const customerNotesSchema = z.object({
+  adminNotes: z.string().trim().max(1000),
+})
+
+export const adminChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8).max(100),
 })

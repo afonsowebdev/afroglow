@@ -5,6 +5,8 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import { isHosted } from './lib/env.js'
 import { sendDueBookingReminders } from './lib/reminders.js'
 import { accountRouter } from './routes/account.js'
+import { adminCustomersRouter } from './routes/admin-customers.js'
+import { adminStatsRouter } from './routes/admin-stats.js'
 import { adminMaintenanceRouter } from './routes/admin-maintenance.js'
 import { adminAvailabilityRouter, availabilityRouter } from './routes/availability.js'
 import { authRouter } from './routes/auth.js'
@@ -58,6 +60,8 @@ app.use('/api/auth', registerRouter)
 app.use('/api/services', servicesRouter)
 app.use('/api/settings', settingsRouter)
 app.use('/api/admin/settings', adminSettingsRouter)
+app.use('/api/admin/customers', adminCustomersRouter)
+app.use('/api/admin/stats', adminStatsRouter)
 app.use('/api/admin/services', adminServicesRouter)
 app.use('/api/availability', availabilityRouter)
 app.use('/api/admin/availability', adminAvailabilityRouter)

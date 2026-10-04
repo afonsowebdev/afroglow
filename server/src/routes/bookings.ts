@@ -1,6 +1,7 @@
+import { randomBytes } from 'node:crypto'
 import { Router } from 'express'
 import { sendBookingPushNotification } from '../lib/apns.js'
-import { requireAdmin, requireCustomer } from '../lib/auth.js'
+import { hashPassword, requireAdmin, requireCustomer } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
 import {
   sendBookingAcceptedEmail,
@@ -8,7 +9,7 @@ import {
   sendBookingNotification,
   sendBookingRejectedEmail,
 } from '../lib/resend.js'
-import { createBookingSchema } from '../lib/validation.js'
+import { createBookingSchema, manualBookingSchema, rejectBookingSchema } from '../lib/validation.js'
 
 export const bookingsRouter = Router()
 
@@ -100,7 +101,93 @@ adminBookingsRouter.post('/:id/accept', async (req, res) => {
 })
 
 adminBookingsRouter.post('/:id/reject', async (req, res) => {
-  await resolveBooking(req.params.id, 'REJECTED', 'OPEN', res, ['PENDING'])
+  const parsed = rejectBookingSchema.safeParse(req.body ?? {})
+  await resolveBooking(req.params.id, 'REJECTED', 'OPEN', res, ['PENDING'], parsed.success ? parsed.data.reason : undefined)
+})
+
+class ManualSlotTakenError extends Error {}
+
+// A booking the business adds itself (client booked by WhatsApp, Instagram, in person…).
+// It is confirmed straight away. Clients without an account get a placeholder customer
+// (never emailed) so the booking, history and stats all work the same way.
+adminBookingsRouter.post('/manual', async (req, res) => {
+  const parsed = manualBookingSchema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Dados da marcação inválidos.' })
+    return
+  }
+  const { startsAt, serviceId, customerId, customerName, customerPhone, notes } = parsed.data
+  if (!customerId && (!customerName || !customerPhone)) {
+    res.status(400).json({ error: 'Indica o nome e o telemóvel do cliente.' })
+    return
+  }
+
+  try {
+    const placeholderHash = customerId ? '' : await hashPassword(randomBytes(24).toString('hex'))
+    const { booking, customer, service, slot } = await prisma.$transaction(async (tx) => {
+      const service = await tx.service.findUnique({ where: { id: serviceId } })
+      if (!service) throw new ServiceNotFoundError()
+
+      let customer = customerId ? await tx.customer.findUnique({ where: { id: customerId } }) : null
+      if (customerId && !customer) throw new Error('customer-not-found')
+      if (!customer) {
+        customer = await tx.customer.findFirst({ where: { phone: customerPhone!, email: { endsWith: '@manual.invalid' } } })
+      }
+      if (!customer) {
+        customer = await tx.customer.create({
+          data: {
+            name: customerName!,
+            phone: customerPhone!,
+            email: `manual-${randomBytes(8).toString('hex')}@manual.invalid`,
+            passwordHash: placeholderHash,
+          },
+        })
+      }
+
+      const existing = await tx.availabilitySlot.findUnique({ where: { startsAt: new Date(startsAt) } })
+      if (existing && existing.status !== 'OPEN') throw new ManualSlotTakenError()
+      const slot = existing
+        ? await tx.availabilitySlot.update({ where: { id: existing.id }, data: { status: 'BOOKED' } })
+        : await tx.availabilitySlot.create({ data: { startsAt: new Date(startsAt), status: 'BOOKED' } })
+
+      const booking = await tx.booking.create({
+        data: {
+          slotId: slot.id,
+          serviceId: service.id,
+          customerId: customer.id,
+          customerName: customerName ?? customer.name,
+          customerPhone: customerPhone ?? customer.phone,
+          notes,
+          status: 'ACCEPTED',
+        },
+        include: { slot: true, service: true },
+      })
+      return { booking, customer, service, slot }
+    })
+
+    await sendBookingAcceptedEmail(customer.email, {
+      serviceName: service.name,
+      priceCents: service.priceCents,
+      startsAt: slot.startsAt,
+      durationLabel: service.durationLabel,
+    })
+    res.status(201).json(booking)
+  } catch (error) {
+    if (error instanceof ManualSlotTakenError) {
+      res.status(409).json({ error: 'Já existe uma marcação nesse horário.' })
+      return
+    }
+    if (error instanceof ServiceNotFoundError) {
+      res.status(404).json({ error: 'Serviço não encontrado.' })
+      return
+    }
+    if (error instanceof Error && error.message === 'customer-not-found') {
+      res.status(404).json({ error: 'Cliente não encontrado.' })
+      return
+    }
+    console.error('[bookings] manual create failed:', error)
+    res.status(500).json({ error: 'Erro ao criar marcação.' })
+  }
 })
 
 adminBookingsRouter.post('/:id/cancel', async (req, res) => {
@@ -113,6 +200,7 @@ async function resolveBooking(
   slotStatus: 'BOOKED' | 'OPEN',
   res: import('express').Response,
   allowedFrom: Array<'PENDING' | 'ACCEPTED'>,
+  reason?: string,
 ) {
   try {
     const booking = await prisma.booking.findUnique({
@@ -144,7 +232,7 @@ async function resolveBooking(
       await sendBookingRejectedEmail(booking.customer.email, {
         serviceName: booking.service.name,
         startsAt: booking.slot.startsAt,
-      })
+      }, reason)
     }
 
     res.json(updated)

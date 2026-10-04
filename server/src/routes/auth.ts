@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import {
+  hashPassword,
   loginRateLimit,
   requireAdmin,
   SESSION_COOKIE,
@@ -8,7 +9,7 @@ import {
   verifyPassword,
 } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
-import { loginSchema } from '../lib/validation.js'
+import { adminChangePasswordSchema, loginSchema } from '../lib/validation.js'
 
 export const authRouter = Router()
 
@@ -49,4 +50,19 @@ authRouter.get('/me', requireAdmin, async (req, res) => {
     return
   }
   res.json({ email: admin.email })
+})
+
+authRouter.post('/change-password', requireAdmin, loginRateLimit, async (req, res) => {
+  const parsed = adminChangePasswordSchema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: 'A nova password deve ter pelo menos 8 caracteres.' })
+    return
+  }
+  const admin = await prisma.admin.findUnique({ where: { id: req.adminId } })
+  if (!admin || !(await verifyPassword(parsed.data.currentPassword, admin.passwordHash))) {
+    res.status(401).json({ error: 'Password atual incorreta.' })
+    return
+  }
+  await prisma.admin.update({ where: { id: admin.id }, data: { passwordHash: await hashPassword(parsed.data.newPassword) } })
+  res.json({ ok: true })
 })
