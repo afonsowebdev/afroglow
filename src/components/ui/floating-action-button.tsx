@@ -62,13 +62,13 @@ export function AnimatedSocialIcons({ icons, className, iconSize = 22, onToggle 
               aria-expanded={active}
               className={cn(
                 buttonSize,
-                'flex items-center justify-center rounded-full bg-gold-deep shadow-lg shadow-gold-deep/30 transition-colors hover:bg-gold-deep/90',
+                'flex items-center justify-center rounded-full bg-brand shadow-lg shadow-brand/30 transition-colors hover:bg-brand/90',
               )}
               onClick={toggle}
               animate={{ rotate: active ? 45 : 0 }}
               transition={{ type: 'tween', ease: 'easeInOut', duration: 0.5 }}
             >
-              <Plus size={iconSize} strokeWidth={3} className="text-[#ffffff]" />
+              <Plus size={iconSize} strokeWidth={3} className="text-brand-ink" />
             </motion.button>
           </div>
         </motion.div>

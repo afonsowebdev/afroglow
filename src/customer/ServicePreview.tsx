@@ -134,7 +134,7 @@ export function ServicePreview({
                   onChoose()
                 }}
                 className={`w-full rounded-xl py-4 font-subtitle text-base font-medium ${
-                  chosen ? 'border border-onyx/25 bg-white text-onyx' : 'bg-onyx text-white'
+                  chosen ? 'border border-onyx/25 bg-white text-onyx' : 'bg-brand text-brand-ink'
                 }`}
               >
                 {chosen ? 'Retirar escolha' : 'Escolher este modelo'}

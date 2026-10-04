@@ -73,33 +73,33 @@ export function SlotPicker({
                 setActiveDay(key)
               }}
               className={`relative flex h-[96px] w-[68px] shrink-0 flex-col items-center justify-center rounded-3xl border-2 transition-colors ${
-                active ? 'border-gold-deep' : 'border-gold/30 bg-white'
+                active ? 'border-brand' : 'border-gold/30 bg-white'
               }`}
             >
               {active && (
                 <motion.span
                   layoutId="slot-day"
-                  className="absolute -inset-0.5 rounded-3xl bg-gold-deep"
+                  className="absolute -inset-0.5 rounded-3xl bg-brand"
                   transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                 />
               )}
               <span
                 className={`relative font-subtitle text-xs font-medium uppercase tracking-wide ${
-                  active ? 'text-[#ffffff]' : 'text-muted-dark'
+                  active ? 'text-brand-ink' : 'text-muted-dark'
                 }`}
               >
                 {relative ?? parts.weekday.slice(0, 3)}
               </span>
               <span
                 className={`relative mt-0.5 font-subtitle text-[28px] font-semibold leading-none ${
-                  active ? 'text-[#ffffff]' : 'text-onyx'
+                  active ? 'text-brand-ink' : 'text-onyx'
                 }`}
               >
                 {parts.day}
               </span>
               <span
                 className={`relative mt-1.5 rounded-full px-2 py-0.5 font-subtitle text-[10px] font-medium ${
-                  active ? 'bg-[#ffffff]/25 text-[#ffffff]' : 'bg-gold-deep/10 text-gold-ink'
+                  active ? 'bg-black/10 text-brand-ink' : 'bg-gold-deep/10 text-gold-ink'
                 }`}
               >
                 {daySlots.length} {daySlots.length === 1 ? 'vaga' : 'vagas'}
@@ -125,7 +125,7 @@ export function SlotPicker({
                 }}
                 className={`rounded-2xl border-2 py-3.5 font-subtitle text-base font-medium transition-colors ${
                   value === slot.id
-                    ? 'border-gold-deep bg-gold-deep text-[#ffffff] shadow-md shadow-gold-deep/25'
+                    ? 'border-brand bg-brand text-brand-ink shadow-md shadow-brand/25'
                     : 'border-gold/30 bg-white text-onyx'
                 }`}
               >

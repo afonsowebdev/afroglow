@@ -107,7 +107,7 @@ function CustomerShell() {
   }, [location.pathname])
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="app-neutral min-h-screen bg-white">
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={tab}

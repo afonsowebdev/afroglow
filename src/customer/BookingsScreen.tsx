@@ -194,11 +194,11 @@ export default function BookingsScreen() {
               {tab === id && (
                 <motion.span
                   layoutId="bookings-tab"
-                  className="absolute inset-0 rounded-full bg-gold-deep"
+                  className="absolute inset-0 rounded-full bg-brand"
                   transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                 />
               )}
-              <span className={`relative ${tab === id ? 'text-[#ffffff]' : 'text-onyx/70'}`}>
+              <span className={`relative ${tab === id ? 'text-brand-ink' : 'text-onyx/70'}`}>
                 {label} {count > 0 && <span className="opacity-70">· {count}</span>}
               </span>
             </button>
@@ -236,7 +236,7 @@ export default function BookingsScreen() {
                 <button
                   type="button"
                   onClick={() => navigate('/marcar')}
-                  className="mt-6 rounded-full bg-gold-deep px-8 py-3.5 font-subtitle text-sm text-[#ffffff]"
+                  className="mt-6 rounded-xl bg-brand px-8 py-3.5 font-subtitle text-sm font-medium text-brand-ink"
                 >
                   Marcar sessão
                 </button>
@@ -332,7 +332,7 @@ export default function BookingsScreen() {
               <button
                 type="button"
                 onClick={() => navigate('/marcar')}
-                className="rounded-xl bg-onyx py-3.5 font-subtitle text-sm font-medium text-white"
+                className="rounded-xl bg-brand py-3.5 font-subtitle text-sm font-medium text-brand-ink"
               >
                 Escolher outro horário
               </button>

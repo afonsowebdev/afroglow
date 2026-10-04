@@ -128,7 +128,7 @@ function NotificationsRow() {
           aria-checked={on}
           aria-label="Notificações"
           onClick={() => void toggle()}
-          className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${on ? 'bg-gold-deep' : 'bg-onyx/20'}`}
+          className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${on ? 'bg-brand' : 'bg-onyx/20'}`}
         >
           <span
             className={`absolute top-0.5 h-6 w-6 rounded-full bg-[#ffffff] shadow transition-all ${on ? 'left-[22px]' : 'left-0.5'}`}
@@ -248,7 +248,7 @@ export default function ProfileScreen() {
   return (
     <main className="pb-40">
       {/* Header: brand gradient, big avatar, name */}
-      <header className="relative overflow-hidden rounded-b-[2.5rem] bg-gradient-to-b from-[#2a170a] via-[#4a2a14] to-[#7a5a22] px-6 pb-24 pt-[calc(3rem+env(safe-area-inset-top))] text-center text-[#f5efdf]">
+      <header className="relative overflow-hidden rounded-b-[2.5rem] bg-gradient-to-b from-[#1c1c1e] via-[#2c2a26] to-[#7d6a2f] px-6 pb-24 pt-[calc(3rem+env(safe-area-inset-top))] text-center text-[#f5efdf]">
         <span
           aria-hidden="true"
           className="pointer-events-none absolute -bottom-6 left-1/2 -translate-x-1/2 select-none whitespace-nowrap font-logo text-[26vw] leading-none text-[#ffffff]/[0.06]"
@@ -256,7 +256,7 @@ export default function ProfileScreen() {
           AFROGLOW
         </span>
         <div className="relative mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#e0c36e] to-[#a8842f] p-[3px] shadow-xl shadow-black/30">
-          <span className="flex h-full w-full items-center justify-center rounded-full bg-[#2a170a] font-logo text-5xl text-[#e0c36e]">
+          <span className="flex h-full w-full items-center justify-center rounded-full bg-[#1c1c1e] font-logo text-5xl text-[#e0c36e]">
             {initial}
           </span>
         </div>
@@ -338,7 +338,7 @@ export default function ProfileScreen() {
           <span className="mt-1 block font-subtitle text-sm font-light text-muted-dark">
             Deixa um testemunho sobre o teu atendimento.
           </span>
-          <span className="mt-4 flex items-center justify-between rounded-xl bg-onyx px-5 py-3.5 font-subtitle text-sm font-medium text-white">
+          <span className="mt-4 flex items-center justify-between rounded-xl bg-brand px-5 py-3.5 font-subtitle text-sm font-medium text-brand-ink">
             Escrever testemunho <i className="bx bx-right-arrow-alt text-xl" aria-hidden="true" />
           </span>
         </button>

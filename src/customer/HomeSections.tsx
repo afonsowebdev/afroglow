@@ -37,7 +37,7 @@ export function WelcomeCard() {
       <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">{text}</p>
       <Link
         to={to}
-        className="mt-5 flex items-center justify-between rounded-xl bg-onyx px-5 py-3.5 font-subtitle text-sm font-medium text-white"
+        className="mt-5 flex items-center justify-between rounded-xl bg-brand px-5 py-3.5 font-subtitle text-sm font-medium text-brand-ink"
       >
         {cta}
         <i className="bx bx-right-arrow-alt text-xl" aria-hidden="true" />
@@ -152,7 +152,7 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
           <Link
             key={service.id}
             to={`/marcar?preview=${service.id}`}
-            className="relative h-80 w-[78%] max-w-xs shrink-0 snap-center overflow-hidden rounded-[2rem] bg-[#2a170a]"
+            className="relative h-80 w-[78%] max-w-xs shrink-0 snap-center overflow-hidden rounded-[2rem] bg-[#1c1c1e]"
           >
             <img
               src={serviceImageUrls(service)[0] ?? PHOTOS[index % PHOTOS.length].src}
@@ -160,8 +160,8 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
               loading="lazy"
               className="absolute inset-0 h-full w-full object-cover"
             />
-            <span className="absolute inset-0 bg-gradient-to-t from-[#1a1008]/90 via-[#1a1008]/25 to-transparent" />
-            <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-[#1a1008]/40 px-3 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
+            <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+            <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
               <i className="bx bx-time-five text-sm" aria-hidden="true" />
               {service.durationLabel}
             </span>
@@ -174,7 +174,7 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
                   {formatPrice(service.priceCents)}
                 </span>
               </span>
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1a1008]/40 text-xl backdrop-blur-md">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black/40 text-xl backdrop-blur-md">
                 <i className="bx bx-right-arrow-alt" aria-hidden="true" />
               </span>
             </span>

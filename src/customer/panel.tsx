@@ -9,7 +9,7 @@ import type { BookingStatus } from '@/lib/types'
 export const panelClass = 'rounded-2xl border border-onyx/15 bg-white p-5'
 export const labelClass = 'font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-muted-dark'
 export const actionClass =
-  'flex w-full items-center justify-between rounded-xl bg-onyx px-5 py-3.5 font-subtitle text-sm font-medium text-white'
+  'flex w-full items-center justify-between rounded-xl bg-brand px-5 py-3.5 font-subtitle text-sm font-medium text-brand-ink'
 
 const DOT: Record<BookingStatus, { color: string; label: string }> = {
   PENDING: { color: 'bg-amber-500', label: 'Por confirmar' },

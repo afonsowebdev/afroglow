@@ -36,7 +36,7 @@ function Cta({ label, busy, onClick }: { label: string; busy?: boolean; onClick:
           void tap('medium')
           onClick()
         }}
-        className="pointer-events-auto mx-auto block w-full max-w-md rounded-xl bg-onyx py-4 font-subtitle text-base font-medium text-white shadow-lg shadow-black/20 transition-opacity disabled:opacity-60"
+        className="pointer-events-auto mx-auto block w-full max-w-md rounded-xl bg-brand py-4 font-subtitle text-base font-medium text-brand-ink shadow-lg shadow-black/20 transition-opacity disabled:opacity-60"
       >
         {busy ? 'A enviar...' : label}
       </button>
@@ -162,7 +162,7 @@ export default function BookScreen() {
             <button
               type="button"
               onClick={() => navigate('/marcacoes')}
-              className="rounded-xl bg-onyx px-8 py-3.5 font-subtitle text-sm font-medium text-white"
+              className="rounded-xl bg-brand px-8 py-3.5 font-subtitle text-sm font-medium text-brand-ink"
             >
               Ver as minhas marcações
             </button>
@@ -210,7 +210,7 @@ export default function BookScreen() {
             <div key={label} className="flex-1">
               <div className="h-1 overflow-hidden rounded-full bg-gold/20">
                 <motion.div
-                  className="h-full rounded-full bg-gold-deep"
+                  className="h-full rounded-full bg-brand"
                   initial={false}
                   animate={{ width: i <= step ? '100%' : '0%' }}
                   transition={{ duration: 0.35 }}
@@ -262,7 +262,7 @@ export default function BookScreen() {
                         <div
                           key={s.id}
                           className={`relative overflow-hidden rounded-2xl border bg-white transition-colors ${
-                            chosen ? 'border-onyx ring-1 ring-onyx' : 'border-onyx/15'
+                            chosen ? 'border-brand ring-2 ring-brand' : 'border-onyx/15'
                           }`}
                         >
                           {/* Tapping the card opens the photos; the circle picks the model directly. */}
@@ -322,7 +322,7 @@ export default function BookScreen() {
                             }}
                             className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border-2 backdrop-blur-md ${
                               chosen
-                                ? 'border-onyx bg-onyx text-white'
+                                ? 'border-brand bg-brand text-brand-ink'
                                 : photos.length > 0
                                   ? 'border-white/90 bg-black/30 text-transparent'
                                   : 'border-onyx/30 bg-white text-transparent'
