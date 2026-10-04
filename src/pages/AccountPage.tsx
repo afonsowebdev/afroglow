@@ -1,10 +1,13 @@
 import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'
+import { Capacitor } from '@capacitor/core'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { MotionButton } from '@/components/ui/motion-button'
 import { api, ApiError } from '@/lib/api'
+import { downloadBookingIcs } from '@/lib/calendar'
 import { useCustomerAuth } from '@/lib/customer-auth'
+import { siteConfig } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking } from '@/lib/types'
 
 const LISBON_TZ = 'Europe/Lisbon'
@@ -135,6 +138,7 @@ function ReschedulePicker({
 
 function BookingCard({ booking, onChanged }: { booking: Booking; onChanged: () => void }) {
   const [rescheduling, setRescheduling] = useState(false)
+  const [confirmingCancel, setConfirmingCancel] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const canManage = booking.status === 'PENDING' || booking.status === 'ACCEPTED'
@@ -148,6 +152,7 @@ function BookingCard({ booking, onChanged }: { booking: Booking; onChanged: () =
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Erro inesperado. Tenta novamente.')
       setBusy(false)
+      setConfirmingCancel(false)
     }
   }
 
@@ -168,14 +173,49 @@ function BookingCard({ booking, onChanged }: { booking: Booking; onChanged: () =
 
       {error && <p className="mt-3 font-subtitle text-sm text-red-700">{error}</p>}
 
-      {canManage && !rescheduling && (
-        <div className="mt-4 flex gap-2">
+      {canManage && !rescheduling && !confirmingCancel && (
+        <div className="mt-4 flex flex-wrap gap-2">
           <Button size="sm" variant="outline" disabled={busy} onClick={() => setRescheduling(true)}>
             Reagendar
           </Button>
-          <Button size="sm" variant="destructive" disabled={busy} onClick={handleCancel}>
+          {!Capacitor.isNativePlatform() && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                downloadBookingIcs({
+                  serviceName: booking.service.name,
+                  startsAtIso: booking.slot.startsAt,
+                  durationLabel: booking.service.durationLabel,
+                })
+              }
+            >
+              Calendário
+            </Button>
+          )}
+          <Button size="sm" variant="destructive" disabled={busy} onClick={() => setConfirmingCancel(true)}>
             Cancelar
           </Button>
+        </div>
+      )}
+
+      {confirmingCancel && (
+        <div className="mt-4 rounded-xl bg-cream p-4">
+          <p className="font-subtitle text-sm text-onyx">
+            Cancelar {booking.service.name} em {formatDateHeading(booking.slot.startsAt)} às{' '}
+            {formatTime(booking.slot.startsAt)}? O horário fica livre para outra pessoa.
+          </p>
+          {siteConfig.cancellationPolicy && (
+            <p className="mt-2 font-subtitle text-xs font-light text-muted-dark">{siteConfig.cancellationPolicy}</p>
+          )}
+          <div className="mt-3 flex gap-2">
+            <Button size="sm" variant="destructive" disabled={busy} onClick={handleCancel}>
+              {busy ? 'A cancelar...' : 'Sim, cancelar'}
+            </Button>
+            <Button size="sm" variant="ghost" disabled={busy} onClick={() => setConfirmingCancel(false)}>
+              Manter marcação
+            </Button>
+          </div>
         </div>
       )}
 
