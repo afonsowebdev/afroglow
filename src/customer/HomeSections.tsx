@@ -8,7 +8,7 @@ import { tap } from '@/lib/haptics'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { instagramDmUrl } from '@/lib/site-config'
 import { formatPrice, type Booking, type Service } from '@/lib/types'
-import { dayParts, longDay, timeLabel } from './dates'
+import { longDay, timeLabel } from './dates'
 
 /** Greeting card: the next session when there is one, otherwise a nudge to book or sign in. */
 export function WelcomeCard() {
@@ -23,28 +23,32 @@ export function WelcomeCard() {
       .catch(() => setBookings([]))
   }, [customer])
 
-  if (loading) return <div className="h-32 animate-pulse rounded-3xl bg-gold/10" />
+  if (loading) return <div className="h-40 animate-pulse rounded-2xl bg-onyx/5" />
 
-  // Photo + text card, used when there is no upcoming session to show.
-  const photoCard = (kicker: string, title: string, text: string, to: string, cta: string) => (
-    <Link to={to} className="flex items-stretch gap-4 overflow-hidden rounded-3xl border border-gold/25 bg-cream pr-4">
-      <img src="/images/hero/hero-3.jpg" alt="" className="w-28 shrink-0 object-cover" />
-      <div className="min-w-0 flex-1 py-5">
-        <p className="font-subtitle text-[11px] uppercase tracking-[0.18em] text-gold-ink">{kicker}</p>
-        <p className="mt-1 font-subtitle text-lg font-semibold leading-snug tracking-tight text-onyx">{title}</p>
-        <p className="mt-1 font-subtitle text-xs font-light text-muted-dark">{text}</p>
-        <span className="mt-3 inline-flex items-center gap-1 font-subtitle text-sm font-medium text-gold-ink">
-          {cta} <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
-        </span>
-      </div>
-    </Link>
+  const panel = 'rounded-2xl border border-onyx/15 bg-white p-5'
+  const label = 'font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-muted-dark'
+
+  // Plain panel with one clear action, used when there is no upcoming session to show.
+  const invite = (kicker: string, title: string, text: string, to: string, cta: string) => (
+    <div className={panel}>
+      <p className={label}>{kicker}</p>
+      <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">{title}</p>
+      <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">{text}</p>
+      <Link
+        to={to}
+        className="mt-5 flex items-center justify-between rounded-xl bg-onyx px-5 py-3.5 font-subtitle text-sm font-medium text-white"
+      >
+        {cta}
+        <i className="bx bx-right-arrow-alt text-xl" aria-hidden="true" />
+      </Link>
+    </div>
   )
 
   if (!customer) {
-    return photoCard(
-      'Bem-vinda',
-      'Cria a tua conta',
-      'Marca sessões e recebe um aviso quando forem confirmadas.',
+    return invite(
+      'A tua conta',
+      'Entra para marcar sessões',
+      'Com conta recebes um aviso quando a marcação é confirmada.',
       '/entrar',
       'Entrar ou criar conta',
     )
@@ -53,50 +57,43 @@ export function WelcomeCard() {
   const next = (bookings ?? [])
     .filter((b) => (b.status === 'PENDING' || b.status === 'ACCEPTED') && new Date(b.slot.startsAt) > new Date())
     .sort((a, b) => a.slot.startsAt.localeCompare(b.slot.startsAt))[0]
-  const first = customer.name.split(' ')[0]
 
   if (!next) {
-    return photoCard(
-      `Olá, ${first}`,
-      'Pronta para a próxima sessão?',
-      'Ainda não tens nenhuma marcada.',
+    return invite(
+      `Olá, ${customer.name.split(' ')[0]}`,
+      'Sem sessões marcadas',
+      'Escolhe o modelo e o horário em poucos passos.',
       '/marcar',
       'Marcar sessão',
     )
   }
 
-  // Ticket: date stub on the left, perforation, details on the right.
-  const parts = dayParts(next.slot.startsAt)
+  const pending = next.status === 'PENDING'
   return (
-    <Link to="/marcacoes" className="relative flex overflow-hidden rounded-3xl border border-gold/25 bg-cream">
-      <div className="flex w-24 shrink-0 flex-col items-center justify-center bg-gold-deep py-6 text-[#ffffff]">
-        <span className="font-subtitle text-[11px] uppercase tracking-[0.2em] opacity-80">{parts.weekday}</span>
-        <span className="font-subtitle text-4xl font-semibold leading-none">{parts.day}</span>
-        <span className="mt-1 font-subtitle text-[11px] uppercase tracking-[0.2em] opacity-80">{parts.month}</span>
-      </div>
-
-      <div className="relative w-0 border-l-2 border-dashed border-gold/50">
-        <span className="absolute -left-[11px] -top-[11px] h-5 w-5 rounded-full bg-white" aria-hidden="true" />
-        <span className="absolute -bottom-[11px] -left-[11px] h-5 w-5 rounded-full bg-white" aria-hidden="true" />
-      </div>
-
-      <div className="min-w-0 flex-1 p-5">
-        <p className="font-subtitle text-[11px] uppercase tracking-[0.18em] text-gold-ink">A tua próxima sessão</p>
-        <p className="mt-1 truncate font-subtitle text-lg font-semibold tracking-tight text-onyx">
-          {next.service.name}
-        </p>
-        <p className="font-subtitle text-sm text-muted-dark">
-          {timeLabel(next.slot.startsAt)} · {longDay(next.slot.startsAt).split(',')[0]}
-        </p>
-        <span
-          className={`mt-2 inline-block rounded-full px-2.5 py-1 font-subtitle text-[11px] ${
-            next.status === 'PENDING' ? 'bg-gold-deep/15 text-gold-ink' : 'bg-emerald-600/15 text-emerald-700'
-          }`}
-        >
-          {next.status === 'PENDING' ? 'Por confirmar' : 'Confirmada'}
+    <Link to="/marcacoes" className={`${panel} block`}>
+      <div className="flex items-center justify-between">
+        <p className={label}>Próxima sessão</p>
+        <span className="flex items-center gap-1.5 font-subtitle text-xs text-onyx">
+          <span className={`h-2 w-2 rounded-full ${pending ? 'bg-amber-500' : 'bg-emerald-600'}`} aria-hidden="true" />
+          {pending ? 'Por confirmar' : 'Confirmada'}
         </span>
       </div>
-      <i className="bx bx-chevron-right self-center pr-3 text-2xl text-muted-dark/60" aria-hidden="true" />
+      <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">{next.service.name}</p>
+
+      <dl className="mt-4 grid grid-cols-[2fr_1fr] gap-4 border-t border-onyx/15 pt-4">
+        <div>
+          <dt className={label}>Data</dt>
+          <dd className="mt-1 font-subtitle text-sm font-medium text-onyx">{longDay(next.slot.startsAt)}</dd>
+        </div>
+        <div>
+          <dt className={label}>Hora</dt>
+          <dd className="mt-1 font-subtitle text-sm font-medium text-onyx">{timeLabel(next.slot.startsAt)}</dd>
+        </div>
+      </dl>
+
+      <p className="mt-4 flex items-center justify-end gap-1 font-subtitle text-sm font-medium text-onyx">
+        Ver detalhes <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+      </p>
     </Link>
   )
 }
