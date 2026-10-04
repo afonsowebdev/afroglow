@@ -1,74 +1,67 @@
-import { useEffect } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { BottomNavBar } from "@/components/ui/bottom-nav-bar";
-import AccountAuthPage from "@/pages/AccountAuthPage";
-import { useCustomerAuth } from "@/lib/customer-auth";
-import {
-  enableCustomerPush,
-  onNotificationOpened,
-  pushWanted,
-} from "@/lib/customer-push";
-import { tap } from "@/lib/haptics";
-import BookingsScreen from "./BookingsScreen";
-import BookScreen from "./BookScreen";
-import HomeScreen from "./HomeScreen";
-import ProfileScreen from "./ProfileScreen";
+import { useEffect } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
+import AccountAuthPage from '@/pages/AccountAuthPage'
+import { useCustomerAuth } from '@/lib/customer-auth'
+import { enableCustomerPush, onNotificationOpened, pushWanted } from '@/lib/customer-push'
+import { tap } from '@/lib/haptics'
+import BookingsScreen from './BookingsScreen'
+import BookScreen from './BookScreen'
+import HomeScreen from './HomeScreen'
+import ProfileScreen from './ProfileScreen'
 
-type TabId = "inicio" | "marcar" | "marcacoes" | "conta";
+type TabId = 'inicio' | 'marcar' | 'marcacoes' | 'conta'
 
 const TABS: Array<{ id: TabId; label: string; icon: string; path: string }> = [
-  { id: "inicio", label: "Início", icon: "bx bx-home-alt", path: "/" },
+  { id: 'inicio', label: 'Início', icon: 'bx bx-home-alt', path: '/' },
   {
-    id: "marcar",
-    label: "Marcar",
-    icon: "bx bx-calendar-plus",
-    path: "/marcar",
+    id: 'marcar',
+    label: 'Marcar',
+    icon: 'bx bx-calendar-plus',
+    path: '/marcar',
   },
   {
-    id: "marcacoes",
-    label: "Marcações",
-    icon: "bx bx-calendar-check",
-    path: "/marcacoes",
+    id: 'marcacoes',
+    label: 'Marcações',
+    icon: 'bx bx-calendar-check',
+    path: '/marcacoes',
   },
-  { id: "conta", label: "Conta", icon: "bx bx-user", path: "/conta" },
-];
+  { id: 'conta', label: 'Conta', icon: 'bx bx-user', path: '/conta' },
+]
 
 function tabFor(pathname: string): TabId {
-  if (pathname.startsWith("/marcar")) return "marcar";
-  if (pathname.startsWith("/marcacoes")) return "marcacoes";
-  if (pathname.startsWith("/conta") || pathname.startsWith("/entrar"))
-    return "conta";
-  return "inicio";
+  if (pathname.startsWith('/marcar')) return 'marcar'
+  if (pathname.startsWith('/marcacoes')) return 'marcacoes'
+  if (pathname.startsWith('/conta') || pathname.startsWith('/entrar')) return 'conta'
+  return 'inicio'
 }
 
 // Tabs that need an account show the sign-in/sign-up screen until the customer has one.
 function RequireAccount({ children }: { children: React.ReactNode }) {
-  const { customer, loading } = useCustomerAuth();
-  if (loading) return <div className="min-h-screen bg-white" />;
-  return <>{customer ? children : <AccountAuthPage embedded />}</>;
+  const { customer, loading } = useCustomerAuth()
+  if (loading) return <div className="min-h-screen bg-white" />
+  return <>{customer ? children : <AccountAuthPage embedded />}</>
 }
 
 export default function CustomerApp() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { customer } = useCustomerAuth();
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { customer } = useCustomerAuth()
 
   // Signed in: make sure this iPhone is registered for booking notifications (asks permission once).
   useEffect(() => {
-    if (customer && pushWanted()) void enableCustomerPush();
-  }, [customer]);
+    if (customer && pushWanted()) void enableCustomerPush()
+  }, [customer])
 
   // Tapping a notification opens the bookings tab.
   useEffect(() => {
-    let off: (() => void) | undefined;
-    void onNotificationOpened(() => navigate("/marcacoes")).then(
-      (remove) => (off = remove),
-    );
-    return () => off?.();
-  }, [navigate]);
+    let off: (() => void) | undefined
+    void onNotificationOpened(() => navigate('/marcacoes')).then((remove) => (off = remove))
+    return () => off?.()
+  }, [navigate])
 
-  const tab = tabFor(location.pathname);
+  const tab = tabFor(location.pathname)
 
   return (
     <div className="min-h-screen bg-white">
@@ -109,13 +102,13 @@ export default function CustomerApp() {
         stickyBottom
         value={tab}
         onChange={(id) => {
-          const target = TABS.find((t) => t.id === id);
-          void tap();
-          if (target) navigate(target.path);
-          window.scrollTo({ top: 0 });
+          const target = TABS.find((t) => t.id === id)
+          void tap()
+          if (target) navigate(target.path)
+          window.scrollTo({ top: 0 })
         }}
         items={TABS.map(({ id, label, icon }) => ({ id, label, icon }))}
       />
     </div>
-  );
+  )
 }

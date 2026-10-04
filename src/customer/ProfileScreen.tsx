@@ -1,115 +1,126 @@
-import { useEffect, useState } from "react";
-import { Sheet, SheetField, sheetFieldClass } from "@/components/ui/sheet";
-import { TestimonialForm } from "@/pages/AccountPage";
-import { ApiError } from "@/lib/api";
-import { useCustomerAuth } from "@/lib/customer-auth";
-import {
-  disableCustomerPush,
-  enableCustomerPush,
-  pushSupported,
-  pushWanted,
-} from "@/lib/customer-push";
-import { instagramDmUrl, siteConfig, useWhatsapp } from "@/lib/site-config";
+import { useEffect, useState } from 'react'
+import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
+import { TestimonialForm } from '@/pages/AccountPage'
+import { api } from '@/lib/api'
+import type { Booking } from '@/lib/types'
+import { useNavigate } from 'react-router-dom'
+import { dayParts } from './dates'
+import { useLightStatusBar } from './useLightStatusBar'
+import { ApiError } from '@/lib/api'
+import { useCustomerAuth } from '@/lib/customer-auth'
+import { disableCustomerPush, enableCustomerPush, pushSupported, pushWanted } from '@/lib/customer-push'
+import { instagramDmUrl, siteConfig, useWhatsapp } from '@/lib/site-config'
 
-const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$/;
-const APP_VERSION = "1.0";
+const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$/
+const APP_VERSION = '1.0'
 
-type SheetId = "name" | "phone" | "password" | "delete" | null;
+type SheetId = 'name' | 'phone' | 'password' | 'delete' | 'testimonial' | null
 
 function errorText(err: unknown) {
-  return err instanceof ApiError
-    ? err.message
-    : "Erro inesperado. Tenta novamente.";
+  return err instanceof ApiError ? err.message : 'Erro inesperado. Tenta novamente.'
 }
 
-function Row({
+type Tone = 'gold' | 'rose' | 'sage' | 'sky' | 'plum' | 'ink'
+
+const TONES: Record<Tone, string> = {
+  gold: 'bg-[#c9a84c]/20 text-[#8c6a24] dark:text-[#e0c36e]',
+  rose: 'bg-[#c9626b]/15 text-[#b04a54] dark:text-[#e58a93]',
+  sage: 'bg-[#5f9a76]/15 text-[#3f7a58] dark:text-[#86c4a0]',
+  sky: 'bg-[#4f86c6]/15 text-[#356aa8] dark:text-[#86b4e6]',
+  plum: 'bg-[#8a5fb0]/15 text-[#6f4496] dark:text-[#b996dc]',
+  ink: 'bg-onyx/10 text-onyx',
+}
+
+function Item({
   icon,
+  tone = 'gold',
   label,
   value,
   onClick,
   href,
   locked,
 }: {
-  icon: string;
-  label: string;
-  value?: string;
-  onClick?: () => void;
-  href?: string;
-  locked?: boolean;
+  icon: string
+  tone?: Tone
+  label: string
+  value?: string
+  onClick?: () => void
+  href?: string
+  locked?: boolean
 }) {
   const content = (
     <>
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 text-lg text-gold-ink">
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${TONES[tone]}`}>
         <i className={icon} aria-hidden="true" />
       </span>
       <span className="min-w-0 flex-1 text-left">
-        <span className="block font-subtitle text-sm text-onyx">{label}</span>
-        {value && (
-          <span className="block truncate font-subtitle text-xs text-muted-dark">
-            {value}
-          </span>
-        )}
+        <span className="block font-subtitle text-[15px] text-onyx">{label}</span>
+        {value && <span className="block truncate font-subtitle text-xs text-muted-dark">{value}</span>}
       </span>
       <i
-        className={`bx ${locked ? "bx-lock-alt" : "bx-chevron-right"} shrink-0 text-xl text-muted-dark/70`}
+        className={`bx ${locked ? 'bx-lock-alt' : href ? 'bx-link-external' : 'bx-chevron-right'} shrink-0 text-lg text-muted-dark/60`}
         aria-hidden="true"
       />
     </>
-  );
-  const cls =
-    "flex w-full items-center gap-3 px-4 py-3.5 transition-colors hover:bg-gold-deep/5";
-  if (href) {
+  )
+  const cls = 'flex w-full items-center gap-3.5 px-4 py-3 transition-colors active:bg-gold-deep/10'
+  if (href)
     return (
       <a href={href} target="_blank" rel="noreferrer" className={cls}>
         {content}
       </a>
-    );
-  }
-  if (locked || !onClick)
-    return (
-      <div className={cls.replace("hover:bg-gold-deep/5", "")}>{content}</div>
-    );
+    )
+  if (locked || !onClick) return <div className="flex w-full items-center gap-3.5 px-4 py-3">{content}</div>
   return (
     <button type="button" onClick={onClick} className={cls}>
       {content}
     </button>
-  );
+  )
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mt-7">
+      <h2 className="mb-2.5 px-2 font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-muted-dark">
+        {title}
+      </h2>
+      <div className="divide-y divide-gold/15 overflow-hidden rounded-3xl border border-gold/20 bg-white shadow-sm shadow-black/5">
+        {children}
+      </div>
+    </section>
+  )
 }
 
 /** Notifications row: switches this iPhone's booking notifications on or off. */
 function NotificationsRow() {
-  const [on, setOn] = useState(pushWanted());
-  const [note, setNote] = useState<string | null>(null);
+  const [on, setOn] = useState(pushWanted())
+  const [note, setNote] = useState<string | null>(null)
 
   useEffect(() => {
-    setOn(pushWanted());
-  }, []);
+    setOn(pushWanted())
+  }, [])
 
   async function toggle() {
-    setNote(null);
+    setNote(null)
     if (on) {
-      setOn(false);
-      await disableCustomerPush({ remember: true });
-      return;
+      setOn(false)
+      await disableCustomerPush({ remember: true })
+      return
     }
-    const result = await enableCustomerPush();
-    if (result === "granted") setOn(true);
-    else setNote("Ativa as notificações da AFROGLOW nas Definições do iPhone.");
+    const result = await enableCustomerPush()
+    if (result === 'granted') setOn(true)
+    else setNote('Ativa as notificações da AFROGLOW nas Definições do iPhone.')
   }
 
   return (
-    <div className="px-4 py-3.5">
-      <div className="flex items-center gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 text-lg text-gold-ink">
+    <div className="px-4 py-3">
+      <div className="flex items-center gap-3.5">
+        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${TONES.rose}`}>
           <i className="bx bx-bell" aria-hidden="true" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-subtitle text-sm text-onyx">
-            Notificações
-          </span>
-          <span className="block font-subtitle text-xs text-muted-dark">
-            Marcação confirmada e lembrete da sessão
-          </span>
+          <span className="block font-subtitle text-[15px] text-onyx">Notificações</span>
+          <span className="block font-subtitle text-xs text-muted-dark">Marcação confirmada e lembrete da sessão</span>
         </span>
         <button
           type="button"
@@ -117,253 +128,272 @@ function NotificationsRow() {
           aria-checked={on}
           aria-label="Notificações"
           onClick={() => void toggle()}
-          className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${on ? "bg-gold-deep" : "bg-onyx/20"}`}
+          className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${on ? 'bg-gold-deep' : 'bg-onyx/20'}`}
         >
           <span
-            className={`absolute top-0.5 h-6 w-6 rounded-full bg-[#ffffff] shadow transition-all ${on ? "left-[22px]" : "left-0.5"}`}
+            className={`absolute top-0.5 h-6 w-6 rounded-full bg-[#ffffff] shadow transition-all ${on ? 'left-[22px]' : 'left-0.5'}`}
           />
         </button>
       </div>
-      {note && (
-        <p className="mt-2 pl-12 font-subtitle text-xs text-red-700">{note}</p>
-      )}
+      {note && <p className="mt-2 pl-[54px] font-subtitle text-xs text-red-700">{note}</p>}
     </div>
-  );
+  )
 }
 
-function Group({
-  title,
-  children,
+function QuickAction({
+  icon,
+  label,
+  onClick,
+  href,
 }: {
-  title: string;
-  children: React.ReactNode;
+  icon: string
+  label: string
+  onClick?: () => void
+  href?: string
 }) {
-  return (
-    <section className="mt-8">
-      <h2 className="mb-2 px-1 font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-        {title}
-      </h2>
-      <div className="divide-y divide-gold/15 overflow-hidden rounded-2xl border border-gold/20 bg-white shadow-sm shadow-black/5">
-        {children}
-      </div>
-    </section>
-  );
+  const inner = (
+    <>
+      <span className="flex h-14 w-14 items-center justify-center rounded-full border border-gold/25 bg-white text-2xl text-gold-ink shadow-sm shadow-black/5">
+        <i className={icon} aria-hidden="true" />
+      </span>
+      <span className="mt-2 font-subtitle text-xs text-onyx">{label}</span>
+    </>
+  )
+  const cls = 'flex flex-1 flex-col items-center'
+  return href ? (
+    <a href={href} target="_blank" rel="noreferrer" className={cls}>
+      {inner}
+    </a>
+  ) : (
+    <button type="button" onClick={onClick} className={cls}>
+      {inner}
+    </button>
+  )
 }
 
 export default function ProfileScreen() {
-  const whatsapp = useWhatsapp();
-  const { customer, updateProfile, changePassword, deleteAccount, logout } =
-    useCustomerAuth();
-  const [sheet, setSheet] = useState<SheetId>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  useLightStatusBar()
+  const whatsapp = useWhatsapp()
+  const navigate = useNavigate()
+  const [bookings, setBookings] = useState<Booking[] | null>(null)
 
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [deletePassword, setDeletePassword] = useState("");
-  const [deleteAck, setDeleteAck] = useState(false);
+  useEffect(() => {
+    api
+      .get<Booking[]>('/account/bookings')
+      .then(setBookings)
+      .catch(() => setBookings([]))
+  }, [])
+  const { customer, updateProfile, changePassword, deleteAccount, logout } = useCustomerAuth()
+  const [sheet, setSheet] = useState<SheetId>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
-  if (!customer) return <div className="min-h-screen bg-white" />;
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteAck, setDeleteAck] = useState(false)
+
+  if (!customer) return <div className="min-h-screen bg-white" />
+
+  const now = Date.now()
+  const live = (bookings ?? []).filter(
+    (b) => (b.status === 'PENDING' || b.status === 'ACCEPTED') && new Date(b.slot.startsAt).getTime() >= now,
+  )
+  const nextBooking = [...live].sort((a, b) => a.slot.startsAt.localeCompare(b.slot.startsAt))[0]
+  const sessions = (bookings ?? []).filter(
+    (b) => b.status === 'ACCEPTED' && new Date(b.slot.startsAt).getTime() < now,
+  ).length
+  const nextParts = nextBooking ? dayParts(nextBooking.slot.startsAt) : null
 
   function open(next: Exclude<SheetId, null>) {
-    setError(null);
-    setNotice(null);
-    if (next === "name") setName(customer!.name);
-    if (next === "phone") setPhone(customer!.phone);
-    if (next === "password") {
-      setCurrentPassword("");
-      setNewPassword("");
+    setError(null)
+    setNotice(null)
+    if (next === 'name') setName(customer!.name)
+    if (next === 'phone') setPhone(customer!.phone)
+    if (next === 'password') {
+      setCurrentPassword('')
+      setNewPassword('')
     }
-    if (next === "delete") {
-      setDeletePassword("");
-      setDeleteAck(false);
+    if (next === 'delete') {
+      setDeletePassword('')
+      setDeleteAck(false)
     }
-    setSheet(next);
+    setSheet(next)
   }
 
   async function run(action: () => Promise<void>, done?: string) {
-    setBusy(true);
-    setError(null);
+    setBusy(true)
+    setError(null)
     try {
-      await action();
-      setSheet(null);
-      if (done) setNotice(done);
+      await action()
+      setSheet(null)
+      if (done) setNotice(done)
     } catch (err) {
-      setError(errorText(err));
+      setError(errorText(err))
     } finally {
-      setBusy(false);
+      setBusy(false)
     }
   }
 
-  const initial = customer.name.trim().charAt(0).toUpperCase() || "?";
+  const initial = customer.name.trim().charAt(0).toUpperCase() || '?'
+  const stats: Array<[string, string]> = [
+    ['Sessões feitas', bookings ? String(sessions) : '–'],
+    ['Próxima', nextParts ? `${nextParts.day} ${nextParts.month}` : '–'],
+    ['Por confirmar', bookings ? String(live.filter((b) => b.status === 'PENDING').length) : '–'],
+  ]
 
   return (
-    <main className="mx-auto max-w-2xl px-5 pb-40 pt-[calc(2.5rem+env(safe-area-inset-top))]">
-      <div className="flex items-center gap-4">
-        <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gold-deep font-logo text-3xl text-[#ffffff]">
-          {initial}
+    <main className="pb-40">
+      {/* Header: brand gradient, big avatar, name */}
+      <header className="relative overflow-hidden rounded-b-[2.5rem] bg-gradient-to-b from-[#2a170a] via-[#4a2a14] to-[#7a5a22] px-6 pb-24 pt-[calc(3rem+env(safe-area-inset-top))] text-center text-[#f5efdf]">
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-6 left-1/2 -translate-x-1/2 select-none whitespace-nowrap font-logo text-[26vw] leading-none text-[#ffffff]/[0.06]"
+        >
+          AFROGLOW
         </span>
-        <div className="min-w-0">
-          <h1 className="truncate font-logo text-3xl text-onyx">
-            {customer.name}
-          </h1>
-          <p className="truncate font-subtitle text-sm text-muted-dark">
-            {customer.email}
-          </p>
+        <div className="relative mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#e0c36e] to-[#a8842f] p-[3px] shadow-xl shadow-black/30">
+          <span className="flex h-full w-full items-center justify-center rounded-full bg-[#2a170a] font-logo text-5xl text-[#e0c36e]">
+            {initial}
+          </span>
         </div>
-      </div>
+        <h1 className="relative mt-5 truncate font-logo text-4xl text-[#f5efdf]">{customer.name}</h1>
+        <p className="relative mt-1 truncate font-subtitle text-sm text-[#f5efdf]/70">{customer.email}</p>
+        <span className="relative mt-4 inline-flex items-center gap-1.5 rounded-full border border-[#e0c36e]/40 bg-[#ffffff]/10 px-3.5 py-1.5 font-subtitle text-[11px] uppercase tracking-[0.18em] text-[#e0c36e]">
+          <i className="bx bx-crown" aria-hidden="true" /> Cliente AFROGLOW
+        </span>
+      </header>
 
-      {notice && (
-        <div className="mt-6 flex items-start gap-3 rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
-          <i
-            className="bx bx-check-circle mt-0.5 text-xl text-gold-ink"
-            aria-hidden="true"
-          />
-          <p className="flex-1 font-subtitle text-sm text-onyx">{notice}</p>
-          <button
-            type="button"
-            onClick={() => setNotice(null)}
-            aria-label="Fechar aviso"
-            className="text-lg text-muted-dark"
-          >
-            <i className="bx bx-x" aria-hidden="true" />
-          </button>
+      <div className="mx-auto max-w-2xl px-5">
+        {/* Numbers overlap the header */}
+        <div className="relative z-10 -mt-12 grid grid-cols-3 gap-3">
+          {stats.map(([label, value]) => (
+            <div
+              key={label}
+              className="rounded-2xl border border-gold/20 bg-white px-2 py-4 text-center shadow-lg shadow-black/10"
+            >
+              <p className="font-logo text-2xl leading-none text-onyx">{value}</p>
+              <p className="mt-2 font-subtitle text-[10px] uppercase tracking-wide text-muted-dark">{label}</p>
+            </div>
+          ))}
         </div>
-      )}
 
-      <Group title="Os meus dados">
-        <Row
-          icon="bx bx-user"
-          label="Nome"
-          value={customer.name}
-          onClick={() => open("name")}
-        />
-        <Row
-          icon="bx bx-phone"
-          label="Telemóvel"
-          value={customer.phone}
-          onClick={() => open("phone")}
-        />
-        <Row
-          icon="bx bx-envelope"
-          label="Email"
-          value={customer.email}
-          locked
-        />
-      </Group>
-
-      {pushSupported() && (
-        <Group title="Notificações">
-          <NotificationsRow />
-        </Group>
-      )}
-
-      <Group title="Segurança">
-        <Row
-          icon="bx bx-key"
-          label="Alterar password"
-          onClick={() => open("password")}
-        />
-      </Group>
-
-      <section className="mt-8">
-        <h2 className="mb-2 px-1 font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-          Deixar um testemunho
-        </h2>
-        <div className="rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
-          <p className="mb-4 font-subtitle text-sm font-light text-muted-dark">
-            Conta como foi o teu atendimento. Depois de aprovado, aparece na
-            página principal com o teu nome.
-          </p>
-          <TestimonialForm />
+        <div className="mt-7 flex">
+          <QuickAction icon="bx bx-calendar-plus" label="Marcar" onClick={() => navigate('/marcar')} />
+          <QuickAction icon="bx bx-calendar-check" label="Marcações" onClick={() => navigate('/marcacoes')} />
+          {whatsapp.enabled && (
+            <QuickAction
+              icon="bx bxl-whatsapp"
+              label="WhatsApp"
+              href={whatsapp.url('Olá! Preciso de ajuda com a minha conta AFROGLOW.')}
+            />
+          )}
+          <QuickAction icon="bx bxl-instagram" label="Instagram" href={instagramDmUrl()} />
         </div>
-      </section>
 
-      <Group title="Ajuda e informação">
-        {whatsapp.enabled && (
-          <Row
-            icon="bx bxl-whatsapp"
-            label="Falar connosco no WhatsApp"
-            href={whatsapp.url(
-              "Olá! Preciso de ajuda com a minha conta AFROGLOW.",
-            )}
-          />
+        {notice && (
+          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
+            <i className="bx bx-check-circle mt-0.5 text-xl text-gold-ink" aria-hidden="true" />
+            <p className="flex-1 font-subtitle text-sm text-onyx">{notice}</p>
+            <button
+              type="button"
+              onClick={() => setNotice(null)}
+              aria-label="Fechar aviso"
+              className="text-lg text-muted-dark"
+            >
+              <i className="bx bx-x" aria-hidden="true" />
+            </button>
+          </div>
         )}
-        <Row
-          icon="bx bx-envelope"
-          label={siteConfig.email}
-          href={`mailto:${siteConfig.email}`}
-        />
-        <Row
-          icon="bx bxl-instagram"
-          label={`Instagram @${siteConfig.instagramHandle}`}
-          href={instagramDmUrl()}
-        />
-        <Row
-          icon="bx bx-shield-quarter"
-          label="Política de privacidade"
-          href="https://www.afroglow.pt/privacidade"
-        />
-      </Group>
 
-      <button
-        type="button"
-        onClick={() => void logout()}
-        className="mt-8 flex w-full items-center justify-center gap-2 rounded-2xl border border-gold/30 bg-white py-3.5 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep"
-      >
-        <i className="bx bx-log-out text-lg" aria-hidden="true" />
-        Terminar sessão
-      </button>
+        <Section title="Conta">
+          <Item icon="bx bx-user" tone="gold" label="Nome" value={customer.name} onClick={() => open('name')} />
+          <Item icon="bx bx-phone" tone="sage" label="Telemóvel" value={customer.phone} onClick={() => open('phone')} />
+          <Item icon="bx bx-envelope" tone="sky" label="Email" value={customer.email} locked />
+          <Item icon="bx bx-key" tone="plum" label="Alterar password" onClick={() => open('password')} />
+        </Section>
 
-      <div className="mt-12">
-        <p className="mb-2 px-1 font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-          Zona de perigo
-        </p>
+        {pushSupported() && (
+          <Section title="Preferências">
+            <NotificationsRow />
+          </Section>
+        )}
+
         <button
           type="button"
-          onClick={() => open("delete")}
-          className="flex w-full items-center gap-3 rounded-2xl border border-red-700/20 bg-red-700/5 p-4 text-left transition-colors hover:bg-red-700/10"
+          onClick={() => open('testimonial')}
+          className="mt-7 flex w-full items-center gap-4 rounded-3xl bg-gradient-to-br from-[#c9a84c]/25 to-[#c9a84c]/5 p-5 text-left ring-1 ring-gold/30"
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-700/10 text-lg text-red-700">
-            <i className="bx bx-trash" aria-hidden="true" />
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gold-deep text-2xl text-[#ffffff]">
+            <i className="bx bx-message-rounded-dots" aria-hidden="true" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block font-subtitle text-sm font-semibold text-red-700">
-              Eliminar conta
-            </span>
+            <span className="block font-logo text-lg text-onyx">Conta como foi</span>
             <span className="block font-subtitle text-xs text-muted-dark">
-              Apaga os teus dados de forma permanente
+              Deixa um testemunho sobre o teu atendimento
             </span>
           </span>
-          <i
-            className="bx bx-chevron-right text-xl text-red-700/70"
-            aria-hidden="true"
-          />
+          <i className="bx bx-chevron-right text-xl text-gold-ink" aria-hidden="true" />
         </button>
+
+        <Section title="Ajuda e informação">
+          <Item icon="bx bx-envelope" tone="sky" label={siteConfig.email} href={`mailto:${siteConfig.email}`} />
+          <Item
+            icon="bx bx-shield-quarter"
+            tone="sage"
+            label="Política de privacidade"
+            href="https://www.afroglow.pt/privacidade"
+          />
+          <Item icon="bx bx-file" tone="ink" label="Termos e condições" href="https://www.afroglow.pt/termos" />
+        </Section>
+
+        <button
+          type="button"
+          onClick={() => void logout()}
+          className="mt-7 flex w-full items-center justify-center gap-2 rounded-full border border-gold/30 bg-white py-3.5 font-subtitle text-sm text-onyx shadow-sm shadow-black/5 transition-colors active:bg-gold-deep/10"
+        >
+          <i className="bx bx-log-out text-lg" aria-hidden="true" />
+          Terminar sessão
+        </button>
+
+        <div className="mt-8 text-center">
+          <button
+            type="button"
+            onClick={() => open('delete')}
+            className="font-subtitle text-xs text-red-700/80 underline underline-offset-4"
+          >
+            Eliminar a minha conta
+          </button>
+          <p className="mt-4 font-subtitle text-xs text-muted-dark">AFROGLOW · versão {APP_VERSION}</p>
+        </div>
       </div>
 
-      <p className="mt-10 text-center font-subtitle text-xs text-muted-dark">
-        AFROGLOW · versão {APP_VERSION}
-      </p>
+      <Sheet
+        open={sheet === 'testimonial'}
+        icon="bx bx-message-rounded-dots"
+        title="O teu testemunho"
+        description="Depois de aprovado, aparece na página principal com o teu nome."
+        hideSubmit
+        submitLabel=""
+        onSubmit={() => {}}
+        onClose={() => setSheet(null)}
+      >
+        <TestimonialForm />
+      </Sheet>
 
       {/* Edit name */}
       <Sheet
-        open={sheet === "name"}
+        open={sheet === 'name'}
         title="Alterar nome"
         description="É o nome que aparece nas tuas marcações."
         busy={busy}
         error={error}
         submitLabel="Guardar"
         submitDisabled={name.trim().length < 2 || name.trim() === customer.name}
-        onSubmit={() =>
-          void run(
-            () => updateProfile({ name: name.trim(), phone: customer.phone }),
-            "Nome atualizado.",
-          )
-        }
+        onSubmit={() => void run(() => updateProfile({ name: name.trim(), phone: customer.phone }), 'Nome atualizado.')}
         onClose={() => setSheet(null)}
       >
         <SheetField label="Nome">
@@ -379,21 +409,16 @@ export default function ProfileScreen() {
 
       {/* Edit phone */}
       <Sheet
-        open={sheet === "phone"}
+        open={sheet === 'phone'}
         icon="bx bx-phone"
         title="Alterar telemóvel"
         description="Usamos este número para te contactar sobre as marcações."
         busy={busy}
         error={error}
         submitLabel="Guardar"
-        submitDisabled={
-          phone.trim().length < 6 || phone.trim() === customer.phone
-        }
+        submitDisabled={phone.trim().length < 6 || phone.trim() === customer.phone}
         onSubmit={() =>
-          void run(
-            () => updateProfile({ name: customer.name, phone: phone.trim() }),
-            "Telemóvel atualizado.",
-          )
+          void run(() => updateProfile({ name: customer.name, phone: phone.trim() }), 'Telemóvel atualizado.')
         }
         onClose={() => setSheet(null)}
       >
@@ -411,21 +436,14 @@ export default function ProfileScreen() {
 
       {/* Change password */}
       <Sheet
-        open={sheet === "password"}
+        open={sheet === 'password'}
         icon="bx bx-key"
         title="Alterar password"
         busy={busy}
         error={error}
         submitLabel="Guardar"
-        submitDisabled={
-          currentPassword.length < 1 || !PASSWORD_RULE.test(newPassword)
-        }
-        onSubmit={() =>
-          void run(
-            () => changePassword(currentPassword, newPassword),
-            "Password alterada.",
-          )
-        }
+        submitDisabled={currentPassword.length < 1 || !PASSWORD_RULE.test(newPassword)}
+        onSubmit={() => void run(() => changePassword(currentPassword, newPassword), 'Password alterada.')}
         onClose={() => setSheet(null)}
       >
         <SheetField label="Password atual">
@@ -448,8 +466,7 @@ export default function ProfileScreen() {
           />
           {newPassword.length > 0 && !PASSWORD_RULE.test(newPassword) && (
             <span className="mt-1.5 block font-subtitle text-xs text-muted-dark">
-              Pelo menos 8 caracteres, 1 maiúscula, 1 número e 1 caractere
-              especial.
+              Pelo menos 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial.
             </span>
           )}
         </SheetField>
@@ -457,7 +474,7 @@ export default function ProfileScreen() {
 
       {/* Delete account */}
       <Sheet
-        open={sheet === "delete"}
+        open={sheet === 'delete'}
         icon="bx bx-trash"
         destructive
         title="Eliminar conta"
@@ -471,27 +488,16 @@ export default function ProfileScreen() {
       >
         <ul className="flex flex-col gap-2 rounded-xl bg-red-700/5 p-4 font-subtitle text-sm text-onyx">
           <li className="flex gap-2">
-            <i
-              className="bx bx-x-circle mt-0.5 text-red-700"
-              aria-hidden="true"
-            />
+            <i className="bx bx-x-circle mt-0.5 text-red-700" aria-hidden="true" />
             As tuas marcações futuras são canceladas.
           </li>
           <li className="flex gap-2">
-            <i
-              className="bx bx-x-circle mt-0.5 text-red-700"
-              aria-hidden="true"
-            />
-            O teu nome, telemóvel e notas são removidos, bem como os teus
-            testemunhos.
+            <i className="bx bx-x-circle mt-0.5 text-red-700" aria-hidden="true" />O teu nome, telemóvel e notas são
+            removidos, bem como os teus testemunhos.
           </li>
           <li className="flex gap-2">
-            <i
-              className="bx bx-x-circle mt-0.5 text-red-700"
-              aria-hidden="true"
-            />
-            Deixas de poder entrar com este email. Podes criar uma conta nova
-            quando quiseres.
+            <i className="bx bx-x-circle mt-0.5 text-red-700" aria-hidden="true" />
+            Deixas de poder entrar com este email. Podes criar uma conta nova quando quiseres.
           </li>
         </ul>
         <SheetField label="Confirma com a tua password">
@@ -510,11 +516,9 @@ export default function ProfileScreen() {
             onChange={(e) => setDeleteAck(e.target.checked)}
             className="mt-0.5 h-5 w-5 shrink-0 accent-red-700"
           />
-          <span className="font-subtitle text-sm text-onyx">
-            Compreendo que não pode ser desfeito.
-          </span>
+          <span className="font-subtitle text-sm text-onyx">Compreendo que não pode ser desfeito.</span>
         </label>
       </Sheet>
     </main>
-  );
+  )
 }

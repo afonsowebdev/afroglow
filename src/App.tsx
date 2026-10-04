@@ -1,34 +1,23 @@
-import { Capacitor } from "@capacitor/core";
-import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
-import LandingPage from "@/pages/LandingPage";
+import { Capacitor } from '@capacitor/core'
+import { lazy, Suspense } from 'react'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import LandingPage from '@/pages/LandingPage'
 
-const AccountAuthPage = lazy(() => import("@/pages/AccountAuthPage"));
-const AccountPage = lazy(() => import("@/pages/AccountPage"));
-const BookingPage = lazy(() => import("@/pages/BookingPage"));
-const CeoPage = lazy(() => import("@/pages/CeoPage"));
-const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
-const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
-const TermsPage = lazy(() => import("@/pages/TermsPage"));
-const AdminLoginPage = lazy(() => import("@/pages/admin/AdminLoginPage"));
-const AdminDashboardPage = lazy(
-  () => import("@/pages/admin/AdminDashboardPage"),
-);
+const AccountAuthPage = lazy(() => import('@/pages/AccountAuthPage'))
+const AccountPage = lazy(() => import('@/pages/AccountPage'))
+const BookingPage = lazy(() => import('@/pages/BookingPage'))
+const CeoPage = lazy(() => import('@/pages/CeoPage'))
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
+const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'))
+const TermsPage = lazy(() => import('@/pages/TermsPage'))
+const AdminLoginPage = lazy(() => import('@/pages/admin/AdminLoginPage'))
+const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage'))
 
 export default function App() {
   return (
     <Suspense fallback={null}>
       <Routes>
-        <Route
-          path="/"
-          element={
-            Capacitor.isNativePlatform() ? (
-              <Navigate to="/admin" replace />
-            ) : (
-              <LandingPage />
-            )
-          }
-        />
+        <Route path="/" element={Capacitor.isNativePlatform() ? <Navigate to="/admin" replace /> : <LandingPage />} />
         <Route path="/agendar" element={<BookingPage />} />
         <Route path="/entrar" element={<AccountAuthPage />} />
         <Route path="/conta" element={<AccountPage />} />
@@ -54,5 +43,5 @@ export default function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
-  );
+  )
 }
