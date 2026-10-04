@@ -14,10 +14,10 @@ export default defineConfig(({ mode }) => ({
       // discover client-side routes on its own — public ones are added
       // here; private/account/admin routes are excluded from both the
       // sitemap and robots.txt so they're never offered for indexing.
-      dynamicRoutes: ['/agendar', '/privacidade'],
+      dynamicRoutes: ['/agendar', '/privacidade', '/termos'],
       exclude: ['/entrar', '/conta', '/admin', '/admin/login', '/ceo'],
       changefreq: 'weekly',
-      priority: { '/': 1.0, '/agendar': 0.8, '/privacidade': 0.3 },
+      priority: { '/': 1.0, '/agendar': 0.8, '/privacidade': 0.3, '/termos': 0.3 },
       robots: [{ userAgent: '*', allow: '/', disallow: ['/entrar', '/conta', '/admin', '/ceo'] }],
     }),
   ],

@@ -8,6 +8,7 @@ import BookingPage from '@/pages/BookingPage'
 import CeoPage from '@/pages/CeoPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import PrivacyPage from '@/pages/PrivacyPage'
+import TermsPage from '@/pages/TermsPage'
 
 const AdminLoginPage = lazy(() => import('@/pages/admin/AdminLoginPage'))
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage'))
@@ -21,6 +22,7 @@ export default function App() {
       <Route path="/conta" element={<AccountPage />} />
       <Route path="/ceo" element={<CeoPage />} />
       <Route path="/privacidade" element={<PrivacyPage />} />
+      <Route path="/termos" element={<TermsPage />} />
       <Route
         path="/admin/login"
         element={

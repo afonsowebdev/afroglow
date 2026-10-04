@@ -114,9 +114,22 @@ export default function Footer() {
           <p className="font-body text-sm text-muted-dark">
             &copy; {year} {siteConfig.name}. Todos os direitos reservados.
           </p>
-          <a href="/privacidade" className="font-body text-sm text-muted-dark transition-colors hover:text-gold-deep">
-            Política de privacidade
-          </a>
+          <nav aria-label="Informação legal" className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+            <a href="/privacidade" className="font-body text-sm text-muted-dark transition-colors hover:text-gold-deep">
+              Política de privacidade
+            </a>
+            <a href="/termos" className="font-body text-sm text-muted-dark transition-colors hover:text-gold-deep">
+              Termos e condições
+            </a>
+            <a
+              href="https://www.livroreclamacoes.pt/"
+              target="_blank"
+              rel="noreferrer"
+              className="font-body text-sm text-muted-dark transition-colors hover:text-gold-deep"
+            >
+              Livro de Reclamações
+            </a>
+          </nav>
         </div>
       </div>
 
