@@ -130,7 +130,7 @@ export function ServicePreview({
               <ActionButton
                 label={chosen ? 'Retirar escolha' : 'Escolher este modelo'}
                 variant={chosen ? 'secondary' : 'primary'}
-                icon={chosen ? null : 'bx bx-right-arrow-alt'}
+                icon={chosen ? 'bx bx-x' : undefined}
                 onClick={onChoose}
               />
             </div>

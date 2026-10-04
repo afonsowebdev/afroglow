@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ActionButton, actionClasses } from '@/components/ui/action-button'
+import { ActionButton } from '@/components/ui/action-button'
 import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
 import { TestimonialForm } from '@/pages/AccountPage'
 import { api } from '@/lib/api'
@@ -325,24 +325,16 @@ export default function ProfileScreen() {
           </Section>
         )}
 
-        <button
-          type="button"
-          onClick={() => open('testimonial')}
-          className="mt-7 block w-full rounded-2xl border border-onyx/15 bg-white p-5 text-left"
-        >
-          <span className="block font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-muted-dark">
+        <div className="mt-7 rounded-2xl border border-onyx/15 bg-white p-5">
+          <p className="font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-muted-dark">
             Testemunho
-          </span>
-          <span className="mt-2 block font-subtitle text-xl font-semibold tracking-tight text-onyx">
-            Conta como foi
-          </span>
-          <span className="mt-1 block font-subtitle text-sm font-light text-muted-dark">
+          </p>
+          <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">Conta como foi</p>
+          <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
             Deixa um testemunho sobre o teu atendimento.
-          </span>
-          <span className={`${actionClasses()} mt-4`}>
-            Escrever testemunho <i className="bx bx-right-arrow-alt text-xl" aria-hidden="true" />
-          </span>
-        </button>
+          </p>
+          <ActionButton label="Escrever testemunho" className="mt-4" onClick={() => open('testimonial')} />
+        </div>
 
         <Section title="Ajuda e informação">
           <Item icon="bx bx-envelope" tone="sky" label={siteConfig.email} href={`mailto:${siteConfig.email}`} />
