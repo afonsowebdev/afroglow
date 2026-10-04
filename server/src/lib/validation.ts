@@ -136,3 +136,7 @@ export const adminChangePasswordSchema = z.object({
   currentPassword: z.string().min(1),
   newPassword: z.string().min(8).max(100),
 })
+
+export const customerPushTokenSchema = z.object({
+  token: z.string().trim().min(10).max(500),
+})

@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto'
 import { Router } from 'express'
 import { sendBookingPushNotification } from '../lib/apns.js'
 import { hashPassword, requireAdmin, requireCustomer } from '../lib/auth.js'
+import { bookingPush } from '../lib/booking-push.js'
 import { prisma } from '../lib/prisma.js'
 import {
   sendBookingAcceptedEmail,
@@ -171,6 +172,7 @@ adminBookingsRouter.post('/manual', async (req, res) => {
       startsAt: slot.startsAt,
       durationLabel: service.durationLabel,
     })
+    await bookingPush.accepted({ customerId: customer.id, id: booking.id, service, slot })
     res.status(201).json(booking)
   } catch (error) {
     if (error instanceof ManualSlotTakenError) {
@@ -234,6 +236,10 @@ async function resolveBooking(
         startsAt: booking.slot.startsAt,
       }, reason)
     }
+
+    if (bookingStatus === 'ACCEPTED') await bookingPush.accepted(booking)
+    else if (bookingStatus === 'REJECTED') await bookingPush.rejected(booking, reason)
+    else await bookingPush.cancelled(booking)
 
     res.json(updated)
   } catch (error) {

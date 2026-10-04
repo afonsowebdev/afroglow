@@ -1,3 +1,4 @@
+import { bookingPush } from './booking-push.js'
 import { prisma } from './prisma.js'
 import { sendBookingReminderEmail } from './resend.js'
 
@@ -28,6 +29,7 @@ export async function sendDueBookingReminders() {
         startsAt: booking.slot.startsAt,
         durationLabel: booking.service.durationLabel,
       })
+      await bookingPush.reminder(booking)
       await prisma.booking.update({ where: { id: booking.id }, data: { reminderSentAt: new Date() } })
       console.log(`[reminders] enviado para ${booking.customer.email} (booking ${booking.id})`)
     } catch (error) {

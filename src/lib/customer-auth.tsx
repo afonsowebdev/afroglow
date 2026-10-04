@@ -1,3 +1,4 @@
+import { disableCustomerPush } from './customer-push'
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import { api, ApiError, customerToken } from '@/lib/api'
 import type { Customer } from '@/lib/types'
@@ -78,6 +79,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
+      await disableCustomerPush()
       await api.post('/account/logout')
     } finally {
       customerToken.set(null)

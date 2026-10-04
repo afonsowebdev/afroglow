@@ -63,6 +63,7 @@ model Customer {
   passwordHash String
   // Private notes the business keeps about this client (never shown to the client).
   adminNotes   String        @default("")
+  pushTokens   CustomerPushToken[]
   createdAt    DateTime      @default(now())
   bookings     Booking[]
   testimonials Testimonial[]
@@ -123,4 +124,15 @@ model BusinessSettings {
   openingHours       Json     @default("[]")
   cancellationPolicy String   @default("")
   updatedAt          DateTime @updatedAt
+}
+
+// iPhone push tokens of the customer app (one customer can have several devices).
+model CustomerPushToken {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  token      String   @unique
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
 }

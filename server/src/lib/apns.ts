@@ -5,8 +5,14 @@ import { prisma } from './prisma.js'
 const teamId = process.env.APNS_TEAM_ID
 const keyId = process.env.APNS_KEY_ID
 const privateKey = process.env.APNS_PRIVATE_KEY?.replace(/\\n/g, '\n')
-const bundleId = 'com.afroglow.app2'
-const apnsHost = process.env.APNS_PRODUCTION === 'true' ? 'api.push.apple.com' : 'api.sandbox.push.apple.com'
+const ADMIN_BUNDLE_ID = 'com.afroglow.app2'
+const CUSTOMER_BUNDLE_ID = 'pt.afroglow.app'
+const bundleId = ADMIN_BUNDLE_ID
+const PRODUCTION_HOST = 'api.push.apple.com'
+const SANDBOX_HOST = 'api.sandbox.push.apple.com'
+// Apps installed from Xcode use sandbox tokens, App Store / TestFlight builds use production ones.
+// The configured host is tried first and the other one is the fallback (see sendToToken).
+const apnsHost = process.env.APNS_PRODUCTION === 'true' ? PRODUCTION_HOST : SANDBOX_HOST
 
 let cachedToken: { token: string; issuedAt: number } | null = null
 
@@ -22,22 +28,25 @@ function getProviderToken(): string | null {
   return token
 }
 
-function sendToToken(deviceToken: string, title: string, body: string): Promise<{ token: string; status: number }> {
-  const providerToken = getProviderToken()
-  if (!providerToken) return Promise.resolve({ token: deviceToken, status: 0 })
-
+function sendOnce(
+  host: string,
+  deviceToken: string,
+  topic: string,
+  providerToken: string,
+  payload: object,
+): Promise<{ status: number; reason: string }> {
   return new Promise((resolve) => {
-    const client = http2.connect(`https://${apnsHost}`)
+    const client = http2.connect(`https://${host}`)
     client.on('error', (error) => {
       console.error('[apns] connection error:', error)
-      resolve({ token: deviceToken, status: 0 })
+      resolve({ status: 0, reason: 'connection' })
     })
 
     const req = client.request({
       ':method': 'POST',
       ':path': `/3/device/${deviceToken}`,
       authorization: `bearer ${providerToken}`,
-      'apns-topic': bundleId,
+      'apns-topic': topic,
       'apns-push-type': 'alert',
       'apns-priority': '10',
     })
@@ -52,21 +61,49 @@ function sendToToken(deviceToken: string, title: string, body: string): Promise<
       responseBody += chunk
     })
     req.on('end', () => {
-      if (status !== 200) {
-        console.error(`[apns] push failed (${status}) for a device token:`, responseBody)
-      }
       client.close()
-      resolve({ token: deviceToken, status })
+      let reason = ''
+      try {
+        reason = (JSON.parse(responseBody) as { reason?: string }).reason ?? ''
+      } catch {
+        // empty body on success
+      }
+      resolve({ status, reason })
     })
     req.on('error', (error) => {
       console.error('[apns] request error:', error)
       client.close()
-      resolve({ token: deviceToken, status: 0 })
+      resolve({ status: 0, reason: 'request' })
     })
 
-    req.write(JSON.stringify({ aps: { alert: { title, body }, sound: 'default', badge: 1 } }))
+    req.write(JSON.stringify(payload))
     req.end()
   })
+}
+
+async function sendToToken(
+  deviceToken: string,
+  title: string,
+  body: string,
+  topic: string = ADMIN_BUNDLE_ID,
+  data: Record<string, string> = {},
+): Promise<{ token: string; status: number }> {
+  const providerToken = getProviderToken()
+  if (!providerToken) return { token: deviceToken, status: 0 }
+
+  const payload = { aps: { alert: { title, body }, sound: 'default', badge: 1 }, ...data }
+  let result = await sendOnce(apnsHost, deviceToken, topic, providerToken, payload)
+  // A token from the other environment (Xcode vs App Store build) is "BadDeviceToken" here: try the other host.
+  if (result.status === 400 && result.reason === 'BadDeviceToken') {
+    const other = apnsHost === PRODUCTION_HOST ? SANDBOX_HOST : PRODUCTION_HOST
+    result = await sendOnce(other, deviceToken, topic, providerToken, payload)
+  }
+  if (result.status !== 200) {
+    console.error(`[apns] push failed (${result.status} ${result.reason}) for a device token`)
+  }
+  // 410 / BadDeviceToken / Unregistered: the token is dead and should be deleted by the caller.
+  const dead = result.status === 410 || (result.status === 400 && result.reason === 'BadDeviceToken')
+  return { token: deviceToken, status: dead ? 410 : result.status }
 }
 
 /** Temporary diagnostic helper — reports exactly what Apple said, instead of just logging server-side. */
@@ -117,5 +154,19 @@ export async function sendBookingPushNotification(booking: { customerName: strin
     }
   } catch (error) {
     console.error('[apns] Falha ao enviar push de marcação:', error)
+  }
+}
+
+/** Pushes a message to every iPhone a customer has the app on. No-ops when APNs isn't configured. */
+export async function sendCustomerPush(customerId: string, title: string, body: string, data: Record<string, string> = {}) {
+  if (!teamId || !keyId || !privateKey) return
+  try {
+    const tokens = await prisma.customerPushToken.findMany({ where: { customerId } })
+    if (tokens.length === 0) return
+    const results = await Promise.all(tokens.map((t) => sendToToken(t.token, title, body, CUSTOMER_BUNDLE_ID, data)))
+    const dead = results.filter((r) => r.status === 410).map((r) => r.token)
+    if (dead.length > 0) await prisma.customerPushToken.deleteMany({ where: { token: { in: dead } } })
+  } catch (error) {
+    console.error('[apns] Falha ao enviar push ao cliente:', error)
   }
 }

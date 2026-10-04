@@ -17,6 +17,7 @@ import { sendPasswordResetCodeEmail } from '../lib/resend.js'
 import {
   changePasswordSchema,
   createTestimonialSchema,
+  customerPushTokenSchema,
   deleteAccountSchema,
   forgotPasswordSchema,
   loginSchema,
@@ -207,6 +208,7 @@ accountRouter.post('/delete', requireCustomer, async (req, res) => {
         data: { customerName: 'Conta eliminada', customerPhone: '-', notes: null },
       })
       await tx.testimonial.deleteMany({ where: { customerId: customer.id } })
+      await tx.customerPushToken.deleteMany({ where: { customerId: customer.id } })
       await tx.pendingRegistration.deleteMany({ where: { email: customer.email } })
       await tx.customer.update({
         where: { id: customer.id },
@@ -224,6 +226,30 @@ accountRouter.post('/delete', requireCustomer, async (req, res) => {
     console.error('[account] delete failed:', error)
     res.status(500).json({ error: 'Erro ao eliminar a conta.' })
   }
+})
+
+// The customer app registers its iPhone here so the business can notify about booking decisions.
+accountRouter.post('/push-token', requireCustomer, async (req, res) => {
+  const parsed = customerPushTokenSchema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Token inválido.' })
+    return
+  }
+  await prisma.customerPushToken.upsert({
+    where: { token: parsed.data.token },
+    update: { customerId: req.customerId! },
+    create: { token: parsed.data.token, customerId: req.customerId! },
+  })
+  res.status(204).end()
+})
+
+// Turning notifications off in the app (or logging out) forgets this device.
+accountRouter.delete('/push-token', requireCustomer, async (req, res) => {
+  const parsed = customerPushTokenSchema.safeParse(req.body)
+  if (parsed.success) {
+    await prisma.customerPushToken.deleteMany({ where: { token: parsed.data.token, customerId: req.customerId! } })
+  }
+  res.status(204).end()
 })
 
 accountRouter.get('/bookings', requireCustomer, async (req, res) => {
