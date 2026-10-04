@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ForgotPasswordSheet } from '@/components/ui/forgot-password-sheet'
+import { ActionButton } from '@/components/ui/action-button'
 import { MotionButton } from '@/components/ui/motion-button'
+import { isCustomerApp } from '@/lib/app-mode'
 import { ApiError } from '@/lib/api'
 import { useCustomerAuth } from '@/lib/customer-auth'
 
@@ -97,6 +99,15 @@ function PasswordChecklist({ password }: { password: string }) {
 }
 
 const RESEND_COOLDOWN_SECONDS = 60
+
+/** Submit button: the website keeps its round button; the customer app uses the shared glass action button. */
+function SubmitButton({ label, disabled }: { label: string; disabled: boolean }) {
+  return isCustomerApp ? (
+    <ActionButton label={label} type="submit" disabled={disabled} />
+  ) : (
+    <MotionButton label={label} disabled={disabled} type="submit" />
+  )
+}
 
 export type AuthMode = 'login' | 'register' | 'verify'
 
@@ -231,11 +242,7 @@ export function AccountAuthForm({
             <AnimatePresence>{error && <ErrorMessage>{error}</ErrorMessage>}</AnimatePresence>
 
             <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-              <MotionButton
-                label={submitting ? 'A verificar...' : 'Confirmar'}
-                disabled={!canSubmit || submitting}
-                type="submit"
-              />
+              <SubmitButton label={submitting ? 'A verificar...' : 'Confirmar'} disabled={!canSubmit || submitting} />
               <button
                 type="button"
                 onClick={handleResend}
@@ -375,10 +382,9 @@ export function AccountAuthForm({
           </AnimatePresence>
 
           <div className="flex justify-center sm:justify-start">
-            <MotionButton
+            <SubmitButton
               label={submitting ? 'A processar...' : mode === 'login' ? 'Entrar' : 'Criar conta'}
               disabled={!canSubmit || submitting}
-              type="submit"
             />
           </div>
         </form>

@@ -1,14 +1,7 @@
 import type { MouseEventHandler } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { MotionButton } from '@/components/ui/motion-button'
-import { tap } from '@/lib/haptics'
-import { cn } from '@/lib/utils'
+import { GlassButton } from '@/components/ui/glass-button'
 
-/**
- * The system's own button (`MotionButton`: white pill, round icon disc that slides across) for the customer
- * app. Adds in-app navigation (`to`) and a light haptic tap. `icon` is an icon-font class for the disc; omit it
- * for the arrow.
- */
+/** The customer app's action button: brown-tinted liquid glass (primary) or light glass (secondary). */
 export function ActionButton({
   label,
   variant = 'primary',
@@ -30,24 +23,16 @@ export function ActionButton({
   onClick?: MouseEventHandler<HTMLElement>
   className?: string
 }) {
-  const navigate = useNavigate()
-  const handle: MouseEventHandler<HTMLElement> = (event) => {
-    void tap('medium')
-    onClick?.(event)
-    if (to) navigate(to)
-  }
-
   return (
-    <MotionButton
+    <GlassButton
       label={label}
       variant={variant}
-      icon={icon ? <i className={cn(icon, 'text-lg')} aria-hidden="true" /> : undefined}
+      icon={icon}
+      to={to}
       href={href}
-      target={href ? '_blank' : undefined}
-      rel={href ? 'noreferrer' : undefined}
       type={type}
       disabled={disabled}
-      onClick={type === 'submit' ? undefined : handle}
+      onClick={onClick}
       className={className}
     />
   )
