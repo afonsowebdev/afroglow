@@ -23,22 +23,30 @@ export function WelcomeCard() {
       .catch(() => setBookings([]))
   }, [customer])
 
-  if (loading) return <div className="h-28 animate-pulse rounded-3xl bg-gold/10" />
+  if (loading) return <div className="h-32 animate-pulse rounded-3xl bg-gold/10" />
+
+  // Photo + text card, used when there is no upcoming session to show.
+  const photoCard = (kicker: string, title: string, text: string, to: string, cta: string) => (
+    <Link to={to} className="flex items-stretch gap-4 overflow-hidden rounded-3xl border border-gold/25 bg-cream pr-4">
+      <img src="/images/hero/hero-3.jpg" alt="" className="w-28 shrink-0 object-cover" />
+      <div className="min-w-0 flex-1 py-5">
+        <p className="font-subtitle text-[11px] uppercase tracking-[0.18em] text-gold-ink">{kicker}</p>
+        <p className="mt-1 font-subtitle text-lg font-semibold leading-snug tracking-tight text-onyx">{title}</p>
+        <p className="mt-1 font-subtitle text-xs font-light text-muted-dark">{text}</p>
+        <span className="mt-3 inline-flex items-center gap-1 font-subtitle text-sm font-medium text-gold-ink">
+          {cta} <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+        </span>
+      </div>
+    </Link>
+  )
 
   if (!customer) {
-    return (
-      <div className="rounded-3xl border border-gold/25 bg-cream p-6">
-        <p className="font-subtitle text-lg font-semibold tracking-tight text-onyx">Bem-vinda à AFROGLOW</p>
-        <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
-          Cria a tua conta para marcar sessões e receber avisos quando forem confirmadas.
-        </p>
-        <Link
-          to="/entrar"
-          className="mt-4 inline-block rounded-full bg-gold-deep px-6 py-2.5 font-subtitle text-sm text-[#ffffff]"
-        >
-          Entrar ou criar conta
-        </Link>
-      </div>
+    return photoCard(
+      'Bem-vinda',
+      'Cria a tua conta',
+      'Marca sessões e recebe um aviso quando forem confirmadas.',
+      '/entrar',
+      'Entrar ou criar conta',
     )
   }
 
@@ -48,43 +56,47 @@ export function WelcomeCard() {
   const first = customer.name.split(' ')[0]
 
   if (!next) {
-    return (
-      <div className="rounded-3xl border border-gold/25 bg-cream p-6">
-        <p className="font-subtitle text-lg font-semibold tracking-tight text-onyx">Olá, {first}</p>
-        <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
-          Ainda não tens nenhuma sessão marcada. Que tal a próxima?
-        </p>
-        <Link
-          to="/marcar"
-          className="mt-4 inline-block rounded-full bg-gold-deep px-6 py-2.5 font-subtitle text-sm text-[#ffffff]"
-        >
-          Marcar sessão
-        </Link>
-      </div>
+    return photoCard(
+      `Olá, ${first}`,
+      'Pronta para a próxima sessão?',
+      'Ainda não tens nenhuma marcada.',
+      '/marcar',
+      'Marcar sessão',
     )
   }
 
+  // Ticket: date stub on the left, perforation, details on the right.
   const parts = dayParts(next.slot.startsAt)
   return (
-    <Link to="/marcacoes" className="flex items-center gap-4 rounded-3xl border border-gold/25 bg-cream p-5">
-      <div className="flex h-20 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-gold-deep text-[#ffffff]">
-        <span className="font-subtitle text-[10px] uppercase tracking-wide opacity-80">{parts.weekday}</span>
-        <span className="font-subtitle text-3xl font-semibold leading-none">{parts.day}</span>
-        <span className="font-subtitle text-[10px] uppercase opacity-80">{parts.month}</span>
+    <Link to="/marcacoes" className="relative flex overflow-hidden rounded-3xl border border-gold/25 bg-cream">
+      <div className="flex w-24 shrink-0 flex-col items-center justify-center bg-gold-deep py-6 text-[#ffffff]">
+        <span className="font-subtitle text-[11px] uppercase tracking-[0.2em] opacity-80">{parts.weekday}</span>
+        <span className="font-subtitle text-4xl font-semibold leading-none">{parts.day}</span>
+        <span className="mt-1 font-subtitle text-[11px] uppercase tracking-[0.2em] opacity-80">{parts.month}</span>
       </div>
-      <div className="min-w-0 flex-1">
+
+      <div className="relative w-0 border-l-2 border-dashed border-gold/50">
+        <span className="absolute -left-[11px] -top-[11px] h-5 w-5 rounded-full bg-white" aria-hidden="true" />
+        <span className="absolute -bottom-[11px] -left-[11px] h-5 w-5 rounded-full bg-white" aria-hidden="true" />
+      </div>
+
+      <div className="min-w-0 flex-1 p-5">
         <p className="font-subtitle text-[11px] uppercase tracking-[0.18em] text-gold-ink">A tua próxima sessão</p>
         <p className="mt-1 truncate font-subtitle text-lg font-semibold tracking-tight text-onyx">
           {next.service.name}
         </p>
-        <p className="font-subtitle text-sm font-light text-muted-dark">
-          {longDay(next.slot.startsAt)} · {timeLabel(next.slot.startsAt)}
+        <p className="font-subtitle text-sm text-muted-dark">
+          {timeLabel(next.slot.startsAt)} · {longDay(next.slot.startsAt).split(',')[0]}
         </p>
-        <p className="mt-1 font-subtitle text-xs text-gold-ink">
-          {next.status === 'PENDING' ? 'À espera de confirmação' : 'Confirmada'}
-        </p>
+        <span
+          className={`mt-2 inline-block rounded-full px-2.5 py-1 font-subtitle text-[11px] ${
+            next.status === 'PENDING' ? 'bg-gold-deep/15 text-gold-ink' : 'bg-emerald-600/15 text-emerald-700'
+          }`}
+        >
+          {next.status === 'PENDING' ? 'Por confirmar' : 'Confirmada'}
+        </span>
       </div>
-      <i className="bx bx-chevron-right text-2xl text-muted-dark" aria-hidden="true" />
+      <i className="bx bx-chevron-right self-center pr-3 text-2xl text-muted-dark/60" aria-hidden="true" />
     </Link>
   )
 }
