@@ -65,9 +65,11 @@
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=DM+Sans:wght@300;400;500&family=Poppins:wght@300;400;500;600&display=swap"
       />
     </noscript>
-    <!-- Icon font served from our own domain (no third-party CDN round trip). -->
-    <link rel="preload" href="/vendor/boxicons/fonts/boxicons.woff2" as="font" type="font/woff2" crossorigin />
-    <link href="/vendor/boxicons/css/boxicons.min.css" rel="stylesheet" />
+    <!-- Brand font used by the hero title: fetched at once so the title paints in it right away. -->
+    <link rel="preload" href="/fonts/lamoric-rowen.ttf" as="font" type="font/ttf" crossorigin />
+    <!-- Icon font served from our own domain; loaded without blocking the first paint. -->
+    <link rel="stylesheet" href="/vendor/boxicons/css/boxicons.min.css" media="print" onload="this.media = 'all'" />
+    <noscript><link rel="stylesheet" href="/vendor/boxicons/css/boxicons.min.css" /></noscript>
     <script>
       (function () {
         try {
