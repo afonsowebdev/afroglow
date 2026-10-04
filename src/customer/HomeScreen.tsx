@@ -75,13 +75,15 @@ export default function HomeScreen() {
           <p className="mt-5 font-subtitle text-base font-light text-[#ffffff] [text-shadow:0_1px_16px_rgba(0,0,0,0.65)]">
             Tranças afro feitas com cuidado, técnica e identidade.
           </p>
-          <div className="mt-8">
-            <GlassButton label="Marcar sessão" to="/marcar" />
-          </div>
+        </div>
+
+        {/* Call to action: low in the hero, just above the tab bar, in the same glass. */}
+        <div className="absolute inset-x-0 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-10 mx-auto w-full max-w-md px-3">
+          <GlassButton label="Marcar sessão" to="/marcar" />
         </div>
 
         <motion.div
-          className="absolute bottom-[28%] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1"
+          className="absolute bottom-[calc(9.5rem+env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1"
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
           aria-hidden="true"
