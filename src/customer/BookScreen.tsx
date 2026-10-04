@@ -7,7 +7,7 @@ import { useCustomerAuth } from '@/lib/customer-auth'
 import { success, tap } from '@/lib/haptics'
 import { useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Service } from '@/lib/types'
-import { longDay, timeLabel } from './dates'
+import { dayParts, longDay, timeLabel } from './dates'
 import { useHideNav } from './nav-visibility'
 import { SlotPicker } from './SlotPicker'
 
@@ -317,15 +317,65 @@ export default function BookScreen() {
               {step === 2 && service && slot && (
                 <>
                   <h2 className="font-subtitle text-xl text-onyx">Confirma o teu pedido</h2>
-                  <div className="mt-5 rounded-3xl border border-gold/25 bg-cream p-5">
-                    <p className="font-subtitle font-semibold tracking-tight text-xl text-onyx">{service.name}</p>
-                    <p className="mt-2 font-subtitle text-sm text-onyx">
-                      {longDay(slot.startsAt)} às {timeLabel(slot.startsAt)}
-                    </p>
-                    <p className="mt-1 font-subtitle text-xs text-muted-dark">Duração: {service.durationLabel}</p>
-                    <p className="mt-3 font-subtitle font-semibold tracking-tight text-2xl text-gold-ink">
-                      {formatPrice(service.priceCents)}
-                    </p>
+
+                  {/* Summary ticket */}
+                  <div className="mt-5 overflow-hidden rounded-3xl border border-gold/25 bg-cream">
+                    <div className="flex items-start justify-between gap-4 p-5">
+                      <div className="min-w-0">
+                        <p className="font-subtitle text-[11px] uppercase tracking-[0.18em] text-gold-ink">Modelo</p>
+                        <p className="mt-1 font-subtitle text-xl font-semibold tracking-tight text-onyx">
+                          {service.name}
+                        </p>
+                        <p className="mt-0.5 font-subtitle text-xs text-muted-dark">Duração: {service.durationLabel}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setStep(0)}
+                        className="shrink-0 font-subtitle text-sm text-gold-ink underline underline-offset-4"
+                      >
+                        Alterar
+                      </button>
+                    </div>
+
+                    <div className="relative border-t border-dashed border-gold/40">
+                      <span className="absolute -left-3 -top-3 h-6 w-6 rounded-full bg-white" aria-hidden="true" />
+                      <span className="absolute -right-3 -top-3 h-6 w-6 rounded-full bg-white" aria-hidden="true" />
+                    </div>
+
+                    <div className="flex items-center gap-4 p-5">
+                      <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-gold-deep text-[#ffffff]">
+                        <span className="font-subtitle text-[10px] uppercase tracking-wide opacity-80">
+                          {dayParts(slot.startsAt).month}
+                        </span>
+                        <span className="font-subtitle text-2xl font-semibold leading-none">
+                          {dayParts(slot.startsAt).day}
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-subtitle text-base font-semibold text-onyx">{longDay(slot.startsAt)}</p>
+                        <p className="font-subtitle text-sm text-muted-dark">às {timeLabel(slot.startsAt)}</p>
+                        {business.address && (
+                          <p className="mt-1 flex items-center gap-1 truncate font-subtitle text-xs text-muted-dark">
+                            <i className="bx bx-map text-sm" aria-hidden="true" />
+                            {business.address}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setStep(1)}
+                        className="shrink-0 font-subtitle text-sm text-gold-ink underline underline-offset-4"
+                      >
+                        Alterar
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-gold/25 bg-gold-deep/5 px-5 py-4">
+                      <span className="font-subtitle text-sm text-muted-dark">Preço</span>
+                      <span className="font-subtitle text-2xl font-semibold tracking-tight text-gold-ink">
+                        {formatPrice(service.priceCents)}
+                      </span>
+                    </div>
                   </div>
 
                   {authLoading ? null : !customer ? (
@@ -337,19 +387,37 @@ export default function BookScreen() {
                     </div>
                   ) : (
                     <div className="mt-6 flex flex-col gap-4">
+                      <div className="flex items-start gap-3 rounded-2xl bg-gold-deep/10 p-4">
+                        <i className="bx bx-info-circle mt-0.5 text-xl text-gold-ink" aria-hidden="true" />
+                        <p className="font-subtitle text-sm text-onyx">
+                          O pedido fica <strong className="font-semibold">por confirmar</strong>. Avisamos-te na app
+                          assim que for aceite. Não há pagamentos na app.
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-gold/25 bg-white p-4">
+                        <p className="font-subtitle text-[11px] uppercase tracking-[0.18em] text-muted-dark">
+                          Os teus dados
+                        </p>
+                        <p className="mt-2 flex items-center gap-2 font-subtitle text-sm text-onyx">
+                          <i className="bx bx-user text-lg text-gold-ink" aria-hidden="true" />
+                          {customer.name}
+                        </p>
+                        <label className="mt-3 flex items-center gap-2 rounded-xl border border-gold/30 px-3 focus-within:border-gold-deep">
+                          <i className="bx bx-phone text-lg text-gold-ink" aria-hidden="true" />
+                          <input
+                            type="tel"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            aria-label="Telemóvel"
+                            placeholder="O teu telemóvel"
+                            className="w-full bg-transparent py-3 font-subtitle text-onyx outline-none"
+                          />
+                        </label>
+                      </div>
+
                       <label className="block">
-                        <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                          Telemóvel
-                        </span>
-                        <input
-                          type="tel"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          className={fieldClass}
-                        />
-                      </label>
-                      <label className="block">
-                        <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+                        <span className="mb-1.5 block font-subtitle text-[11px] uppercase tracking-[0.18em] text-muted-dark">
                           Notas (opcional)
                         </span>
                         <textarea
@@ -357,14 +425,18 @@ export default function BookScreen() {
                           onChange={(e) => setNotes(e.target.value)}
                           rows={3}
                           maxLength={500}
-                          placeholder="Alguma preferência ou informação extra"
+                          placeholder="Tamanho, comprimento, cor… ou qualquer informação extra"
                           className={`${fieldClass} resize-none`}
                         />
                       </label>
+
                       {business.cancellationPolicy && (
-                        <p className="font-subtitle text-xs font-light text-muted-dark">
-                          <strong className="font-medium text-onyx">Cancelamentos:</strong>{' '}
-                          {business.cancellationPolicy}
+                        <p className="flex items-start gap-2 font-subtitle text-xs font-light text-muted-dark">
+                          <i className="bx bx-calendar-x mt-0.5 text-base text-gold-ink" aria-hidden="true" />
+                          <span>
+                            <strong className="font-medium text-onyx">Cancelamentos:</strong>{' '}
+                            {business.cancellationPolicy}
+                          </span>
                         </p>
                       )}
                       {error && <p className="font-subtitle text-sm text-red-700">{error}</p>}
@@ -381,7 +453,7 @@ export default function BookScreen() {
         {ctaVisible && (
           <Cta
             key={`cta-${step}`}
-            label={step === 2 ? 'Enviar pedido' : 'Continuar'}
+            label={step === 2 && service ? `Enviar pedido · ${formatPrice(service.priceCents)}` : 'Continuar'}
             busy={submitting}
             onClick={() => (step === 2 ? void submit() : setStep(step + 1))}
           />
