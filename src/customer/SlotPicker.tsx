@@ -4,6 +4,20 @@ import { tap } from '@/lib/haptics'
 import type { AvailabilitySlot } from '@/lib/types'
 import { dayKey, dayParts, longDay, timeLabel } from './dates'
 
+const TZ = 'Europe/Lisbon'
+
+function relativeLabel(iso: string) {
+  const today = dayKey(new Date().toISOString())
+  const tomorrow = dayKey(new Date(Date.now() + 86_400_000).toISOString())
+  const key = dayKey(iso)
+  return key === today ? 'Hoje' : key === tomorrow ? 'Amanhã' : null
+}
+
+function monthYear(iso: string) {
+  const label = new Date(iso).toLocaleDateString('pt-PT', { timeZone: TZ, month: 'long', year: 'numeric' })
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
+
 /** Horizontal strip of days + the times of the chosen day. Used to book and to reschedule. */
 export function SlotPicker({
   slots,
@@ -36,36 +50,59 @@ export function SlotPicker({
 
   return (
     <div>
-      <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex items-baseline justify-between">
+        <p className="font-subtitle text-base font-semibold text-onyx">{monthYear(times[0].startsAt)}</p>
+        <p className="font-subtitle text-xs text-muted-dark">
+          {days.length} {days.length === 1 ? 'dia disponível' : 'dias disponíveis'}
+        </p>
+      </div>
+
+      <div className="-mx-5 mt-4 flex gap-2.5 overflow-x-auto px-5 pb-3 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {days.map(([key, daySlots]) => {
           const parts = dayParts(daySlots[0].startsAt)
           const active = key === current
+          const relative = relativeLabel(daySlots[0].startsAt)
           return (
             <button
               key={key}
               type="button"
+              aria-pressed={active}
               onClick={() => {
                 void tap()
                 setActiveDay(key)
               }}
-              className={`relative flex h-[76px] w-[60px] shrink-0 flex-col items-center justify-center rounded-2xl border transition-colors ${
-                active ? 'border-gold-deep text-[#ffffff]' : 'border-gold/25 bg-white text-onyx'
+              className={`relative flex h-[96px] w-[68px] shrink-0 flex-col items-center justify-center rounded-3xl border-2 transition-colors ${
+                active ? 'border-gold-deep' : 'border-gold/30 bg-white'
               }`}
             >
               {active && (
                 <motion.span
                   layoutId="slot-day"
-                  className="absolute inset-0 rounded-2xl bg-gold-deep"
+                  className="absolute -inset-0.5 rounded-3xl bg-gold-deep"
                   transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                 />
               )}
-              <span className="relative font-subtitle text-[11px] uppercase tracking-wide opacity-80">
-                {parts.weekday}
+              <span
+                className={`relative font-subtitle text-xs font-medium uppercase tracking-wide ${
+                  active ? 'text-[#ffffff]' : 'text-muted-dark'
+                }`}
+              >
+                {relative ?? parts.weekday.slice(0, 3)}
               </span>
-              <span className="relative font-subtitle font-semibold tracking-tight text-2xl leading-none">
+              <span
+                className={`relative mt-0.5 font-subtitle text-[28px] font-semibold leading-none ${
+                  active ? 'text-[#ffffff]' : 'text-onyx'
+                }`}
+              >
                 {parts.day}
               </span>
-              <span className="relative mt-0.5 font-subtitle text-[10px] uppercase opacity-80">{parts.month}</span>
+              <span
+                className={`relative mt-1.5 rounded-full px-2 py-0.5 font-subtitle text-[10px] font-medium ${
+                  active ? 'bg-[#ffffff]/25 text-[#ffffff]' : 'bg-gold-deep/10 text-gold-ink'
+                }`}
+              >
+                {daySlots.length} {daySlots.length === 1 ? 'vaga' : 'vagas'}
+              </span>
             </button>
           )
         })}
@@ -73,19 +110,21 @@ export function SlotPicker({
 
       {current && (
         <motion.div key={current} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-5">
-          <p className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">{longDay(times[0].startsAt)}</p>
-          <div className="mt-3 grid grid-cols-3 gap-2">
+          <p className="font-subtitle text-sm font-medium text-onyx">{longDay(times[0].startsAt)}</p>
+          <p className="mt-0.5 font-subtitle text-xs text-muted-dark">Escolhe a hora de início</p>
+          <div className="mt-3 grid grid-cols-3 gap-2.5">
             {times.map((slot) => (
               <button
                 key={slot.id}
                 type="button"
+                aria-pressed={value === slot.id}
                 onClick={() => {
                   void tap()
                   onChange(slot.id)
                 }}
-                className={`rounded-full border py-3 font-subtitle text-sm transition-colors ${
+                className={`rounded-2xl border-2 py-3.5 font-subtitle text-base font-medium transition-colors ${
                   value === slot.id
-                    ? 'border-gold-deep bg-gold-deep text-[#ffffff]'
+                    ? 'border-gold-deep bg-gold-deep text-[#ffffff] shadow-md shadow-gold-deep/25'
                     : 'border-gold/30 bg-white text-onyx'
                 }`}
               >
