@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { ActionButton } from '@/components/ui/action-button'
 import { AccountAuthForm } from '@/components/ui/account-auth-form'
 import { api, ApiError } from '@/lib/api'
 import { useCustomerAuth } from '@/lib/customer-auth'
@@ -29,17 +30,9 @@ function Cta({ label, busy, onClick }: { label: string; busy?: boolean; onClick:
       transition={{ type: 'spring', stiffness: 320, damping: 30 }}
       className="pointer-events-none fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 px-5"
     >
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => {
-          void tap('medium')
-          onClick()
-        }}
-        className="pointer-events-auto mx-auto block w-full max-w-md rounded-xl bg-brand py-4 font-subtitle text-base font-medium text-brand-ink shadow-lg shadow-black/20 transition-opacity disabled:opacity-60"
-      >
-        {busy ? 'A enviar...' : label}
-      </button>
+      <div className="pointer-events-auto mx-auto w-full max-w-md shadow-lg shadow-black/20">
+        <ActionButton label={busy ? 'A enviar...' : label} disabled={busy} onClick={onClick} />
+      </div>
     </motion.div>
   )
 }
@@ -159,20 +152,8 @@ export default function BookScreen() {
             Vais receber uma notificação assim que for confirmada.
           </p>
           <div className="mt-10 flex flex-col gap-3">
-            <button
-              type="button"
-              onClick={() => navigate('/marcacoes')}
-              className="rounded-xl bg-brand px-8 py-3.5 font-subtitle text-sm font-medium text-brand-ink"
-            >
-              Ver as minhas marcações
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="font-subtitle text-sm text-gold-ink underline"
-            >
-              Voltar ao início
-            </button>
+            <ActionButton label="Ver as minhas marcações" onClick={() => navigate('/marcacoes')} />
+            <ActionButton label="Voltar ao início" variant="secondary" onClick={() => navigate('/')} />
           </div>
         </motion.div>
       </main>

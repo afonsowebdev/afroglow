@@ -111,7 +111,9 @@ export function Sheet({
                 onClick={onClose}
                 disabled={busy}
                 className={`border py-3 font-subtitle text-sm text-onyx transition-colors disabled:opacity-50 ${
-                  sober ? 'rounded-xl border-onyx/20 font-medium' : 'rounded-full border-gold/30 hover:border-gold-deep'
+                  sober
+                    ? 'rounded-xl border-onyx/20 py-3.5 font-medium'
+                    : 'rounded-full border-gold/30 hover:border-gold-deep'
                 }`}
               >
                 {hideSubmit ? 'Fechar' : 'Cancelar'}
@@ -121,7 +123,7 @@ export function Sheet({
                   type="submit"
                   disabled={busy || submitDisabled}
                   className={`py-3 font-subtitle text-sm transition-opacity hover:opacity-90 disabled:opacity-40 ${
-                    sober ? 'rounded-xl font-medium' : 'rounded-full'
+                    sober ? 'rounded-xl py-3.5 font-medium' : 'rounded-full'
                   } ${destructive ? 'bg-red-700 text-[#ffffff]' : sober ? 'bg-brand text-brand-ink' : 'bg-gold-deep text-[#ffffff]'}`}
                 >
                   {busy ? 'A processar...' : submitLabel}

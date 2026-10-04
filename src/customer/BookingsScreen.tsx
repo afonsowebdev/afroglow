@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
+import { ActionButton } from '@/components/ui/action-button'
 import { Sheet } from '@/components/ui/sheet'
 import { api, ApiError } from '@/lib/api'
 import { success, tap } from '@/lib/haptics'
@@ -233,13 +234,7 @@ export default function BookingsScreen() {
                 <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
                   Marca a tua próxima sessão em poucos toques.
                 </p>
-                <button
-                  type="button"
-                  onClick={() => navigate('/marcar')}
-                  className="mt-6 rounded-xl bg-brand px-8 py-3.5 font-subtitle text-sm font-medium text-brand-ink"
-                >
-                  Marcar sessão
-                </button>
+                <ActionButton label="Marcar sessão" className="mt-6" onClick={() => navigate('/marcar')} />
               </>
             )}
           </div>
@@ -329,13 +324,7 @@ export default function BookingsScreen() {
               </button>
             )}
             {selected.status === 'REJECTED' && (
-              <button
-                type="button"
-                onClick={() => navigate('/marcar')}
-                className="rounded-xl bg-brand py-3.5 font-subtitle text-sm font-medium text-brand-ink"
-              >
-                Escolher outro horário
-              </button>
+              <ActionButton label="Escolher outro horário" onClick={() => navigate('/marcar')} />
             )}
           </>
         )}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { isCustomerApp } from '@/lib/app-mode'
 import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
 import { ApiError } from '@/lib/api'
 import { useCustomerAuth } from '@/lib/customer-auth'
@@ -51,6 +52,7 @@ export function ForgotPasswordSheet({
 
   return (
     <Sheet
+      sober={isCustomerApp}
       open={open}
       icon="bx bx-key"
       title={step === 'done' ? 'Password alterada' : 'Recuperar password'}

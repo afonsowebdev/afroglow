@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { tap } from '@/lib/haptics'
+import { ActionButton } from '@/components/ui/action-button'
 import { serviceImageUrls } from '@/lib/service-images'
 import { formatPrice, type Service } from '@/lib/types'
 import { Fact, Facts, labelClass } from './panel'
@@ -127,18 +127,12 @@ export function ServicePreview({
             </div>
 
             <div className="border-t border-onyx/10 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-              <button
-                type="button"
-                onClick={() => {
-                  void tap('medium')
-                  onChoose()
-                }}
-                className={`w-full rounded-xl py-4 font-subtitle text-base font-medium ${
-                  chosen ? 'border border-onyx/25 bg-white text-onyx' : 'bg-brand text-brand-ink'
-                }`}
-              >
-                {chosen ? 'Retirar escolha' : 'Escolher este modelo'}
-              </button>
+              <ActionButton
+                label={chosen ? 'Retirar escolha' : 'Escolher este modelo'}
+                variant={chosen ? 'secondary' : 'primary'}
+                icon={chosen ? null : 'bx bx-right-arrow-alt'}
+                onClick={onChoose}
+              />
             </div>
           </motion.div>
         </div>

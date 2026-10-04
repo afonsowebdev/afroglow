@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ActionButton, actionClasses } from '@/components/ui/action-button'
 import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
 import { TestimonialForm } from '@/pages/AccountPage'
 import { api } from '@/lib/api'
@@ -338,7 +339,7 @@ export default function ProfileScreen() {
           <span className="mt-1 block font-subtitle text-sm font-light text-muted-dark">
             Deixa um testemunho sobre o teu atendimento.
           </span>
-          <span className="mt-4 flex items-center justify-between rounded-xl bg-brand px-5 py-3.5 font-subtitle text-sm font-medium text-brand-ink">
+          <span className={`${actionClasses()} mt-4`}>
             Escrever testemunho <i className="bx bx-right-arrow-alt text-xl" aria-hidden="true" />
           </span>
         </button>
@@ -354,14 +355,13 @@ export default function ProfileScreen() {
           <Item icon="bx bx-file" tone="ink" label="Termos e condições" href="https://www.afroglow.pt/termos" />
         </Section>
 
-        <button
-          type="button"
+        <ActionButton
+          label="Terminar sessão"
+          variant="secondary"
+          icon="bx bx-log-out"
+          className="mt-7"
           onClick={() => void logout()}
-          className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl border border-onyx/20 bg-white py-3.5 font-subtitle text-sm font-medium text-onyx transition-colors active:bg-onyx/5"
-        >
-          <i className="bx bx-log-out text-lg" aria-hidden="true" />
-          Terminar sessão
-        </button>
+        />
 
         <div className="mt-8 text-center">
           <button

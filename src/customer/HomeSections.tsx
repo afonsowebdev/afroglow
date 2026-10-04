@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
 import { CalendarCheck, CalendarPlus, UserRound } from 'lucide-react'
+import { ActionButton } from '@/components/ui/action-button'
 import { AnimatedSocialIcons, type ActionIcon } from '@/components/ui/floating-action-button'
 import { api } from '@/lib/api'
 import { tap } from '@/lib/haptics'
@@ -35,13 +36,7 @@ export function WelcomeCard() {
       <p className={label}>{kicker}</p>
       <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">{title}</p>
       <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">{text}</p>
-      <Link
-        to={to}
-        className="mt-5 flex items-center justify-between rounded-xl bg-brand px-5 py-3.5 font-subtitle text-sm font-medium text-brand-ink"
-      >
-        {cta}
-        <i className="bx bx-right-arrow-alt text-xl" aria-hidden="true" />
-      </Link>
+      <ActionButton to={to} label={cta} className="mt-5" />
     </div>
   )
 
