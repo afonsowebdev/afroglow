@@ -7,6 +7,7 @@ import { success, tap } from '@/lib/haptics'
 import { useBusinessInfo } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking } from '@/lib/types'
 import { dayParts, longDay, timeLabel } from './dates'
+import { useBookingAlerts } from './booking-alerts'
 import { SlotPicker } from './SlotPicker'
 import { usePullToRefresh } from './usePullToRefresh'
 
@@ -35,7 +36,7 @@ const STATUS: Record<Booking['status'], { label: string; chip: string; hint: str
 
 type Mode = 'details' | 'reschedule' | 'cancel'
 
-function BookingCard({ booking, onOpen }: { booking: Booking; onOpen: () => void }) {
+function BookingCard({ booking, onOpen, isNew }: { booking: Booking; onOpen: () => void; isNew?: boolean }) {
   const parts = dayParts(booking.slot.startsAt)
   const status = STATUS[booking.status]
   return (
@@ -60,9 +61,16 @@ function BookingCard({ booking, onOpen }: { booking: Booking; onOpen: () => void
         <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
           {timeLabel(booking.slot.startsAt)} · {formatPrice(booking.service.priceCents)}
         </p>
-        <span className={`mt-2 inline-block rounded-full px-2.5 py-1 font-subtitle text-[11px] ${status.chip}`}>
-          {status.label}
-        </span>
+        <div className="mt-2 flex items-center gap-2">
+          <span className={`inline-block rounded-full px-2.5 py-1 font-subtitle text-[11px] ${status.chip}`}>
+            {status.label}
+          </span>
+          {isNew && (
+            <span className="inline-flex items-center rounded-full bg-red-600 px-2 py-0.5 font-subtitle text-[10px] font-semibold uppercase tracking-wide text-[#ffffff]">
+              Novo
+            </span>
+          )}
+        </div>
       </div>
       <i className="bx bx-chevron-right self-center pr-3 text-xl text-muted-dark/60" aria-hidden="true" />
     </motion.button>
@@ -97,6 +105,19 @@ export default function BookingsScreen() {
   }, [load])
 
   const { handlers, indicator } = usePullToRefresh(load)
+
+  // Decisions the customer hasn't seen get a "Novo" tag; opening this screen clears the red dot on the tab.
+  const { unseen, markSeen, refresh } = useBookingAlerts()
+  const [fresh, setFresh] = useState<Set<string>>(new Set())
+  useEffect(() => {
+    if (unseen.size === 0) return
+    setFresh((previous) => new Set([...previous, ...unseen]))
+    const timer = window.setTimeout(markSeen, 1500)
+    return () => window.clearTimeout(timer)
+  }, [unseen, markSeen])
+  useEffect(() => {
+    void refresh()
+  }, [refresh])
 
   const { next, past } = useMemo(() => {
     const now = Date.now()
@@ -225,7 +246,14 @@ export default function BookingsScreen() {
 
         <div className="mt-6 flex flex-col gap-3">
           {bookings &&
-            list.map((booking) => <BookingCard key={booking.id} booking={booking} onOpen={() => open(booking)} />)}
+            list.map((booking) => (
+              <BookingCard
+                key={booking.id}
+                booking={booking}
+                isNew={fresh.has(booking.id)}
+                onOpen={() => open(booking)}
+              />
+            ))}
         </div>
       </div>
 

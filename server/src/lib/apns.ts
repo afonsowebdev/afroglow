@@ -91,7 +91,12 @@ async function sendToToken(
   const providerToken = getProviderToken()
   if (!providerToken) return { token: deviceToken, status: 0 }
 
-  const payload = { aps: { alert: { title, body }, sound: 'default', badge: 1 }, ...data }
+  // Only the admin app counts unread requests on its icon; customers get plain banners.
+  const aps =
+    topic === ADMIN_BUNDLE_ID
+      ? { alert: { title, body }, sound: 'default', badge: 1 }
+      : { alert: { title, body }, sound: 'default' }
+  const payload = { aps, ...data }
   let result = await sendOnce(apnsHost, deviceToken, topic, providerToken, payload)
   // A token from the other environment (Xcode vs App Store build) is "BadDeviceToken" here: try the other host.
   if (result.status === 400 && result.reason === 'BadDeviceToken') {

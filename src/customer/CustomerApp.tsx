@@ -9,6 +9,7 @@ import { tap } from '@/lib/haptics'
 import BookingsScreen from './BookingsScreen'
 import BookScreen from './BookScreen'
 import HomeScreen from './HomeScreen'
+import { BookingAlertsProvider, useBookingAlerts } from './booking-alerts'
 import { NavVisibilityProvider, useNavHidden } from './nav-visibility'
 import ProfileScreen from './ProfileScreen'
 
@@ -48,13 +49,16 @@ function RequireAccount({ children }: { children: React.ReactNode }) {
 export default function CustomerApp() {
   return (
     <NavVisibilityProvider>
-      <CustomerShell />
+      <BookingAlertsProvider>
+        <CustomerShell />
+      </BookingAlertsProvider>
     </NavVisibilityProvider>
   )
 }
 
 function CustomerShell() {
   const navHidden = useNavHidden()
+  const { unseen } = useBookingAlerts()
   const location = useLocation()
   const navigate = useNavigate()
   const { customer } = useCustomerAuth()
@@ -149,7 +153,7 @@ function CustomerShell() {
           if (target) navigate(target.path)
           window.scrollTo({ top: 0 })
         }}
-        items={TABS.map(({ id, label, icon }) => ({ id, label, icon }))}
+        items={TABS.map(({ id, label, icon }) => ({ id, label, icon, dot: id === 'marcacoes' && unseen.size > 0 }))}
       />
     </div>
   )

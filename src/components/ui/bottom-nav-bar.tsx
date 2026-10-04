@@ -8,6 +8,8 @@ export interface BottomNavItem<T extends string = string> {
   icon: string
   /** Optional count shown on the icon. */
   badge?: number
+  /** A plain red dot (something new here) instead of a count. */
+  dot?: boolean
 }
 
 interface BottomNavBarProps<T extends string> {
@@ -79,6 +81,13 @@ export function BottomNavBar<T extends string>({
           >
             <span className="relative text-[22px] leading-none">
               <i className={item.icon} aria-hidden="true" />
+              {item.dot && !item.badge ? (
+                <span
+                  className="absolute -right-1 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-[rgba(255,255,255,0.9)]"
+                  role="status"
+                  aria-label="Novidades"
+                />
+              ) : null}
               {item.badge ? (
                 <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none text-[#ffffff]">
                   {item.badge}

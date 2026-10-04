@@ -70,6 +70,14 @@ export async function disableCustomerPush(options: { remember?: boolean } = {}) 
   }
 }
 
+/** Fires when a notification arrives while the app is open. */
+export async function onPushReceived(handler: () => void) {
+  if (!pushSupported()) return () => {}
+  const { PushNotifications } = await import('@capacitor/push-notifications')
+  const handle = await PushNotifications.addListener('pushNotificationReceived', handler)
+  return () => void handle.remove()
+}
+
 /** Opens the bookings tab when the customer taps a notification. */
 export async function onNotificationOpened(handler: () => void) {
   if (!pushSupported()) return () => {}
