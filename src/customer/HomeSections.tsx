@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
+import { CalendarCheck, CalendarPlus, UserRound } from 'lucide-react'
+import { AnimatedSocialIcons, type ActionIcon } from '@/components/ui/floating-action-button'
 import { api } from '@/lib/api'
+import { tap } from '@/lib/haptics'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { instagramDmUrl } from '@/lib/site-config'
 import { formatPrice, type Booking, type Service } from '@/lib/types'
@@ -106,62 +109,23 @@ function SectionTitle({ title, hint }: { title: string; hint?: string }) {
 const strip =
   'flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
 
-/** Four big shortcuts right under the greeting. */
+/** Four shortcuts behind a "+" button that slides away to show them. */
 export function QuickActions({ whatsappUrl }: { whatsappUrl?: string }) {
-  const items: Array<{ icon: string; label: string; to?: string; href?: string; tint: string }> = [
-    {
-      icon: 'bx bx-calendar-plus',
-      label: 'Marcar',
-      to: '/marcar',
-      tint: 'bg-[#c9a84c]/20 text-[#8c6a24] dark:text-[#e0c36e]',
-    },
-    {
-      icon: 'bx bx-calendar-check',
-      label: 'Marcações',
-      to: '/marcacoes',
-      tint: 'bg-[#5f9a76]/15 text-[#3f7a58] dark:text-[#86c4a0]',
-    },
+  const icons: ActionIcon[] = [
+    { Icon: CalendarPlus, label: 'Marcar', to: '/marcar' },
+    { Icon: CalendarCheck, label: 'Marcações', to: '/marcacoes' },
     whatsappUrl
-      ? {
-          icon: 'bx bxl-whatsapp',
-          label: 'WhatsApp',
-          href: whatsappUrl,
-          tint: 'bg-[#4f86c6]/15 text-[#356aa8] dark:text-[#86b4e6]',
-        }
-      : {
-          icon: 'bx bx-user',
-          label: 'Conta',
-          to: '/conta',
-          tint: 'bg-[#4f86c6]/15 text-[#356aa8] dark:text-[#86b4e6]',
-        },
-    {
-      icon: 'bxl-instagram',
-      label: 'Instagram',
-      href: instagramDmUrl(),
-      tint: 'bg-[#c9626b]/15 text-[#b04a54] dark:text-[#e58a93]',
-    },
+      ? { iconClass: 'bx bxl-whatsapp', label: 'WhatsApp', href: whatsappUrl }
+      : { Icon: UserRound, label: 'Conta', to: '/conta' },
+    { iconClass: 'bx bxl-instagram', label: 'Instagram', href: instagramDmUrl() },
   ]
   return (
-    <div className="mt-5 grid grid-cols-4 gap-3">
-      {items.map((item) => {
-        const inner = (
-          <>
-            <span className={`flex h-14 w-14 items-center justify-center rounded-2xl text-2xl ${item.tint}`}>
-              <i className={item.icon.startsWith('bx ') ? item.icon : `bx ${item.icon}`} aria-hidden="true" />
-            </span>
-            <span className="mt-2 font-subtitle text-[11px] text-onyx">{item.label}</span>
-          </>
-        )
-        return item.to ? (
-          <Link key={item.label} to={item.to} className="flex flex-col items-center">
-            {inner}
-          </Link>
-        ) : (
-          <a key={item.label} href={item.href} target="_blank" rel="noreferrer" className="flex flex-col items-center">
-            {inner}
-          </a>
-        )
-      })}
+    <div className="mt-8">
+      <div className="mb-4 flex items-baseline justify-between">
+        <p className="font-subtitle text-sm font-semibold tracking-tight text-onyx">Atalhos</p>
+        <p className="font-subtitle text-xs text-muted-dark">Toca no + para abrir</p>
+      </div>
+      <AnimatedSocialIcons icons={icons} onToggle={() => void tap()} />
     </div>
   )
 }
