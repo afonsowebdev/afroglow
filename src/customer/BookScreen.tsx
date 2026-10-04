@@ -140,7 +140,7 @@ export default function BookScreen() {
           <i className="bx bx-check text-6xl text-gold-ink" aria-hidden="true" />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-          <h1 className="mt-8 font-logo text-4xl text-onyx">Pedido enviado!</h1>
+          <h1 className="mt-8 font-subtitle font-semibold tracking-tight text-4xl text-onyx">Pedido enviado!</h1>
           <p className="mx-auto mt-4 max-w-xs font-subtitle text-base font-light text-muted-dark">
             {service?.name} · {slot && `${longDay(slot.startsAt)} às ${timeLabel(slot.startsAt)}`}
           </p>
@@ -188,7 +188,9 @@ export default function BookScreen() {
           ) : (
             <span className="h-10 w-10" />
           )}
-          <h1 className="flex-1 text-center font-logo text-2xl text-onyx">Marcar sessão</h1>
+          <h1 className="flex-1 text-center font-subtitle font-semibold tracking-tight text-2xl text-onyx">
+            Marcar sessão
+          </h1>
           <span className="h-10 w-10" />
         </div>
 
@@ -256,13 +258,15 @@ export default function BookScreen() {
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div>
-                            <p className="font-logo text-xl text-onyx">{s.name}</p>
+                            <p className="font-subtitle font-semibold tracking-tight text-xl text-onyx">{s.name}</p>
                             <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-gold-deep/10 px-2.5 py-1 font-subtitle text-[11px] text-gold-ink">
                               <i className="bx bx-time-five text-sm" aria-hidden="true" />
                               {s.durationLabel}
                             </span>
                           </div>
-                          <p className="font-logo text-xl text-onyx">{formatPrice(s.priceCents)}</p>
+                          <p className="font-subtitle font-semibold tracking-tight text-xl text-onyx">
+                            {formatPrice(s.priceCents)}
+                          </p>
                         </div>
                         <p className="mt-3 line-clamp-2 font-subtitle text-sm font-light text-muted-dark">
                           {s.description}
@@ -307,12 +311,14 @@ export default function BookScreen() {
                 <>
                   <h2 className="font-subtitle text-xl text-onyx">Confirma o teu pedido</h2>
                   <div className="mt-5 rounded-3xl border border-gold/25 bg-cream p-5">
-                    <p className="font-logo text-xl text-onyx">{service.name}</p>
+                    <p className="font-subtitle font-semibold tracking-tight text-xl text-onyx">{service.name}</p>
                     <p className="mt-2 font-subtitle text-sm text-onyx">
                       {longDay(slot.startsAt)} às {timeLabel(slot.startsAt)}
                     </p>
                     <p className="mt-1 font-subtitle text-xs text-muted-dark">Duração: {service.durationLabel}</p>
-                    <p className="mt-3 font-logo text-2xl text-gold-ink">{formatPrice(service.priceCents)}</p>
+                    <p className="mt-3 font-subtitle font-semibold tracking-tight text-2xl text-gold-ink">
+                      {formatPrice(service.priceCents)}
+                    </p>
                   </div>
 
                   {authLoading ? null : !customer ? (

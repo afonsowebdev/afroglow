@@ -52,11 +52,11 @@ function BookingCard({ booking, onOpen }: { booking: Booking; onOpen: () => void
     >
       <div className="flex w-20 shrink-0 flex-col items-center justify-center bg-gold-deep/10 py-4">
         <span className="font-subtitle text-[11px] uppercase text-muted-dark">{parts.weekday}</span>
-        <span className="font-logo text-3xl leading-none text-onyx">{parts.day}</span>
+        <span className="font-subtitle font-semibold tracking-tight text-3xl leading-none text-onyx">{parts.day}</span>
         <span className="font-subtitle text-[11px] uppercase text-muted-dark">{parts.month}</span>
       </div>
       <div className="min-w-0 flex-1 p-4">
-        <p className="truncate font-logo text-lg text-onyx">{booking.service.name}</p>
+        <p className="truncate font-subtitle font-semibold tracking-tight text-lg text-onyx">{booking.service.name}</p>
         <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
           {timeLabel(booking.slot.startsAt)} · {formatPrice(booking.service.priceCents)}
         </p>
@@ -151,7 +151,7 @@ export default function BookingsScreen() {
     <main className="px-5 pb-40 pt-[calc(1.25rem+env(safe-area-inset-top))]" {...handlers}>
       {indicator}
       <div className="mx-auto max-w-md">
-        <h1 className="font-logo text-4xl text-onyx">As minhas marcações</h1>
+        <h1 className="font-subtitle font-semibold tracking-tight text-4xl text-onyx">As minhas marcações</h1>
 
         <div className="mt-6 flex rounded-full border border-gold/25 bg-white p-1">
           {(
@@ -276,7 +276,9 @@ export default function BookingsScreen() {
                 <span className={`rounded-full px-2.5 py-1 font-subtitle text-[11px] ${STATUS[selected.status].chip}`}>
                   {STATUS[selected.status].label}
                 </span>
-                <span className="font-logo text-xl text-onyx">{formatPrice(selected.service.priceCents)}</span>
+                <span className="font-subtitle font-semibold tracking-tight text-xl text-onyx">
+                  {formatPrice(selected.service.priceCents)}
+                </span>
               </div>
               <p className="mt-3 font-subtitle text-xs text-muted-dark">Duração: {selected.service.durationLabel}</p>
               {STATUS[selected.status].hint && (

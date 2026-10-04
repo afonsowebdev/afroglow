@@ -54,16 +54,26 @@ function buildQuestions(business: BusinessInfo): Question[] {
   ]
 }
 
-export default function Faq() {
+export default function Faq({ app = false }: { app?: boolean }) {
   const questions = buildQuestions(useBusinessInfo())
   const [open, setOpen] = useState<number | null>(0)
 
   return (
-    <section id="perguntas-frequentes" className="bg-cream px-5 py-24 sm:px-8 md:py-32">
-      <div className="mx-auto max-w-3xl">
-        <h2 className="text-center font-logo text-4xl sm:text-5xl">Perguntas frequentes</h2>
+    <section id="perguntas-frequentes" className={app ? 'bg-white px-5 pt-14' : 'bg-cream px-5 py-24 sm:px-8 md:py-32'}>
+      <div className={app ? 'mx-auto max-w-2xl' : 'mx-auto max-w-3xl'}>
+        <h2
+          className={
+            app
+              ? 'font-subtitle text-2xl font-semibold tracking-tight text-onyx'
+              : 'text-center font-logo text-4xl sm:text-5xl'
+          }
+        >
+          Perguntas frequentes
+        </h2>
 
-        <div className="mt-14 divide-y divide-gold/20 overflow-hidden rounded-2xl border border-gold/20 bg-white">
+        <div
+          className={`${app ? 'mt-5' : 'mt-14'} divide-y divide-gold/20 overflow-hidden rounded-2xl border border-gold/20 bg-white`}
+        >
           {questions.map((item, index) => {
             const isOpen = open === index
             return (

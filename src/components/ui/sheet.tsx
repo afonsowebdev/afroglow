@@ -93,7 +93,7 @@ export function Sheet({
                 <i className={icon} aria-hidden="true" />
               </span>
               <div>
-                <h2 className="font-logo text-xl text-onyx">{title}</h2>
+                <h2 className="font-subtitle text-xl font-semibold tracking-tight text-onyx">{title}</h2>
                 {description && <p className="mt-1 font-subtitle text-sm text-muted-dark">{description}</p>}
               </div>
             </div>

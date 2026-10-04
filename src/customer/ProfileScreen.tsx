@@ -260,7 +260,9 @@ export default function ProfileScreen() {
             {initial}
           </span>
         </div>
-        <h1 className="relative mt-5 truncate font-logo text-4xl text-[#f5efdf]">{customer.name}</h1>
+        <h1 className="relative mt-5 truncate font-subtitle font-semibold tracking-tight text-4xl text-[#f5efdf]">
+          {customer.name}
+        </h1>
         <p className="relative mt-1 truncate font-subtitle text-sm text-[#f5efdf]/70">{customer.email}</p>
         <span className="relative mt-4 inline-flex items-center gap-1.5 rounded-full border border-[#e0c36e]/40 bg-[#ffffff]/10 px-3.5 py-1.5 font-subtitle text-[11px] uppercase tracking-[0.18em] text-[#e0c36e]">
           <i className="bx bx-crown" aria-hidden="true" /> Cliente AFROGLOW
@@ -275,7 +277,7 @@ export default function ProfileScreen() {
               key={label}
               className="rounded-2xl border border-gold/20 bg-white px-2 py-4 text-center shadow-lg shadow-black/10"
             >
-              <p className="font-logo text-2xl leading-none text-onyx">{value}</p>
+              <p className="font-subtitle font-semibold tracking-tight text-2xl leading-none text-onyx">{value}</p>
               <p className="mt-2 font-subtitle text-[10px] uppercase tracking-wide text-muted-dark">{label}</p>
             </div>
           ))}
@@ -331,7 +333,7 @@ export default function ProfileScreen() {
             <i className="bx bx-message-rounded-dots" aria-hidden="true" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block font-logo text-lg text-onyx">Conta como foi</span>
+            <span className="block font-subtitle font-semibold tracking-tight text-lg text-onyx">Conta como foi</span>
             <span className="block font-subtitle text-xs text-muted-dark">
               Deixa um testemunho sobre o teu atendimento
             </span>

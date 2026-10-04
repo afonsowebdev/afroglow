@@ -62,7 +62,9 @@ export function SlotPicker({
               <span className="relative font-subtitle text-[11px] uppercase tracking-wide opacity-80">
                 {parts.weekday}
               </span>
-              <span className="relative font-logo text-2xl leading-none">{parts.day}</span>
+              <span className="relative font-subtitle font-semibold tracking-tight text-2xl leading-none">
+                {parts.day}
+              </span>
               <span className="relative mt-0.5 font-subtitle text-[10px] uppercase opacity-80">{parts.month}</span>
             </button>
           )
