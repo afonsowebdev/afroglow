@@ -8,6 +8,7 @@ import { success, tap } from '@/lib/haptics'
 import { useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Service } from '@/lib/types'
 import { longDay, timeLabel } from './dates'
+import { useHideNav } from './nav-visibility'
 import { SlotPicker } from './SlotPicker'
 
 const STEPS = ['Modelo', 'Data', 'Confirmar'] as const
@@ -15,31 +16,28 @@ const STEPS = ['Modelo', 'Data', 'Confirmar'] as const
 const fieldClass =
   'w-full rounded-2xl border border-gold/30 bg-white px-4 py-3.5 font-subtitle text-onyx outline-none focus-visible:border-gold-deep'
 
-function Cta({
-  label,
-  disabled,
-  busy,
-  onClick,
-}: {
-  label: string
-  disabled?: boolean
-  busy?: boolean
-  onClick: () => void
-}) {
+/** Bottom action button: slides up from the bottom edge only once there is something to continue with. */
+function Cta({ label, busy, onClick }: { label: string; busy?: boolean; onClick: () => void }) {
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-40 px-5">
+    <motion.div
+      initial={{ y: 90, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: 90, opacity: 0 }}
+      transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+      className="pointer-events-none fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 px-5"
+    >
       <button
         type="button"
-        disabled={disabled || busy}
+        disabled={busy}
         onClick={() => {
           void tap('medium')
           onClick()
         }}
-        className="pointer-events-auto mx-auto block w-full max-w-md rounded-full bg-gold-deep py-4 font-subtitle text-base text-[#ffffff] shadow-lg shadow-black/20 transition-opacity disabled:opacity-40"
+        className="pointer-events-auto mx-auto block w-full max-w-md rounded-full bg-gold-deep py-4 font-subtitle text-base text-[#ffffff] shadow-lg shadow-black/20 transition-opacity disabled:opacity-60"
       >
         {busy ? 'A enviar...' : label}
       </button>
-    </div>
+    </motion.div>
   )
 }
 
@@ -99,6 +97,15 @@ export default function BookScreen() {
 
   const service = services?.find((s) => s.id === serviceId) ?? null
   const slot = slots?.find((s) => s.id === slotId) ?? null
+
+  // The button only exists once the step has a choice; while it is on screen the tab bar steps aside.
+  const ctaVisible =
+    !done &&
+    Boolean(services && slots) &&
+    ((step === 0 && Boolean(service)) ||
+      (step === 1 && Boolean(slot) && (slots?.length ?? 0) > 0) ||
+      (step === 2 && Boolean(customer) && phone.trim().length >= 6))
+  useHideNav(ctaVisible)
 
   async function submit() {
     if (!slot || !service || !customer) return
@@ -169,7 +176,7 @@ export default function BookScreen() {
   }
 
   return (
-    <main className="px-5 pb-48 pt-[calc(1.25rem+env(safe-area-inset-top))]">
+    <main className="px-5 pb-32 pt-[calc(1.25rem+env(safe-area-inset-top))]">
       <div className="mx-auto max-w-md">
         <div className="flex items-center gap-3">
           {step > 0 ? (
@@ -370,13 +377,16 @@ export default function BookScreen() {
         )}
       </div>
 
-      {services && slots && step === 0 && <Cta label="Continuar" disabled={!service} onClick={() => setStep(1)} />}
-      {services && slots && step === 1 && slots.length > 0 && (
-        <Cta label="Continuar" disabled={!slot} onClick={() => setStep(2)} />
-      )}
-      {services && slots && step === 2 && customer && (
-        <Cta label="Enviar pedido" disabled={phone.trim().length < 6} busy={submitting} onClick={() => void submit()} />
-      )}
+      <AnimatePresence>
+        {ctaVisible && (
+          <Cta
+            key={`cta-${step}`}
+            label={step === 2 ? 'Enviar pedido' : 'Continuar'}
+            busy={submitting}
+            onClick={() => (step === 2 ? void submit() : setStep(step + 1))}
+          />
+        )}
+      </AnimatePresence>
     </main>
   )
 }

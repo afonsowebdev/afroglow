@@ -9,6 +9,7 @@ import { tap } from '@/lib/haptics'
 import BookingsScreen from './BookingsScreen'
 import BookScreen from './BookScreen'
 import HomeScreen from './HomeScreen'
+import { NavVisibilityProvider, useNavHidden } from './nav-visibility'
 import ProfileScreen from './ProfileScreen'
 
 type TabId = 'inicio' | 'marcar' | 'marcacoes' | 'conta'
@@ -45,6 +46,15 @@ function RequireAccount({ children }: { children: React.ReactNode }) {
 }
 
 export default function CustomerApp() {
+  return (
+    <NavVisibilityProvider>
+      <CustomerShell />
+    </NavVisibilityProvider>
+  )
+}
+
+function CustomerShell() {
+  const navHidden = useNavHidden()
   const location = useLocation()
   const navigate = useNavigate()
   const { customer } = useCustomerAuth()
@@ -130,6 +140,7 @@ export default function CustomerApp() {
       <BottomNavBar
         stickyBottom
         glass
+        hidden={navHidden}
         tone={overHero ? 'onDark' : 'onLight'}
         value={tab}
         onChange={(id) => {

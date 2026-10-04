@@ -20,6 +20,8 @@ interface BottomNavBarProps<T extends string> {
   glass?: boolean
   /** With `glass`: what is behind the bar, so icons and labels stay readable. */
   tone?: 'onLight' | 'onDark'
+  /** Slides the bar off the bottom of the screen (e.g. while a screen shows its own action button). */
+  hidden?: boolean
 }
 
 // Floating pill navigation: the active item expands to show its label while
@@ -32,13 +34,16 @@ export function BottomNavBar<T extends string>({
   stickyBottom = false,
   glass = false,
   tone = 'onLight',
+  hidden = false,
 }: BottomNavBarProps<T>) {
   const onDark = glass && tone === 'onDark'
   return (
     <motion.nav
       initial={{ scale: 0.9, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+      animate={hidden ? { scale: 0.96, opacity: 0, y: 120 } : { scale: 1, opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+      style={{ pointerEvents: hidden ? 'none' : 'auto' }}
+      aria-hidden={hidden || undefined}
       aria-label="Secções do painel"
       className={cn(
         'flex h-[56px] max-w-[95vw] items-center gap-1 rounded-full p-2 transition-colors duration-300',
