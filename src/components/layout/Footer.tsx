@@ -1,6 +1,6 @@
 import { FooterBackgroundGradient, TextHoverEffect } from '@/components/ui/hover-footer'
 import { MotionButton } from '@/components/ui/motion-button'
-import { instagramDmUrl, siteConfig, whatsappUrl } from '@/lib/site-config'
+import { hasWhatsapp, instagramDmUrl, siteConfig, whatsappUrl } from '@/lib/site-config'
 
 const NAV_LINKS = [
   { label: 'Início', href: '#top' },
@@ -12,12 +12,22 @@ const NAV_LINKS = [
 
 const CONTACT_INFO = [
   { icon: 'bx bxl-instagram', text: `@${siteConfig.instagramHandle}`, href: instagramDmUrl() },
-  {
-    icon: 'bx bxl-whatsapp',
-    text: 'WhatsApp',
-    href: whatsappUrl('Olá! Gostaria de marcar uma sessão de tranças.'),
-  },
-  { icon: 'bx bx-map', text: siteConfig.location },
+  ...(hasWhatsapp
+    ? [
+        {
+          icon: 'bx bxl-whatsapp',
+          text: 'WhatsApp',
+          href: whatsappUrl('Olá! Gostaria de marcar uma sessão de tranças.'),
+        },
+      ]
+    : []),
+  ...(siteConfig.phone
+    ? [{ icon: 'bx bx-phone', text: siteConfig.phone, href: `tel:${siteConfig.phone.replace(/[^+\d]/g, '')}` }]
+    : []),
+  { icon: 'bx bx-envelope', text: siteConfig.email, href: `mailto:${siteConfig.email}` },
+  siteConfig.address
+    ? { icon: 'bx bx-map', text: siteConfig.address, href: siteConfig.mapUrl || undefined }
+    : { icon: 'bx bx-map', text: siteConfig.location },
 ]
 
 export default function Footer() {

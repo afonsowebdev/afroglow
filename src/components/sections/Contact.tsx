@@ -1,6 +1,6 @@
 import { ImageStreamHero, type StreamImage } from '@/components/ui/image-stream-hero'
 import { MotionButton } from '@/components/ui/motion-button'
-import { instagramDmUrl, whatsappUrl } from '@/lib/site-config'
+import { hasWhatsapp, instagramDmUrl, whatsappUrl } from '@/lib/site-config'
 
 const HERO_PHOTOS = [
   '/images/hero/hero-1.jpg',
@@ -36,14 +36,16 @@ export default function Contact() {
             target="_blank"
             rel="noreferrer"
           />
-          <MotionButton
-            label="Enviar mensagem"
-            variant="secondary"
-            icon={<i className="bx bxl-whatsapp text-lg" aria-hidden="true" />}
-            href={whatsappUrl('Olá! Gostaria de marcar uma sessão de tranças.')}
-            target="_blank"
-            rel="noreferrer"
-          />
+          {hasWhatsapp && (
+            <MotionButton
+              label="Enviar mensagem"
+              variant="secondary"
+              icon={<i className="bx bxl-whatsapp text-lg" aria-hidden="true" />}
+              href={whatsappUrl('Olá! Gostaria de marcar uma sessão de tranças.')}
+              target="_blank"
+              rel="noreferrer"
+            />
+          )}
         </div>
       </div>
     </section>

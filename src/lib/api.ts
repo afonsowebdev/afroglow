@@ -9,20 +9,24 @@ export class ApiError extends Error {
 }
 
 function tokenStore(key: string) {
+  // If storage is blocked (private mode), keep the token for this page session so a
+  // login still works until the tab is closed.
+  let memory: string | null = null
   return {
     get() {
       try {
-        return localStorage.getItem(key)
+        return localStorage.getItem(key) ?? memory
       } catch {
-        return null
+        return memory
       }
     },
     set(token: string | null) {
+      memory = token
       try {
         if (token) localStorage.setItem(key, token)
         else localStorage.removeItem(key)
       } catch {
-        // storage unavailable (private mode) — cookie auth still applies
+        // storage unavailable — the in-memory copy above still applies
       }
     },
   }

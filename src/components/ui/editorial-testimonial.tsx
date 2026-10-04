@@ -75,7 +75,14 @@ export function TestimonialsEditorial({ testimonials }: { testimonials: Testimon
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
             {testimonials.map((_, index) => (
-              <button key={index} onClick={() => handleChange(index)} className="group relative py-4">
+              <button
+                key={index}
+                type="button"
+                onClick={() => handleChange(index)}
+                aria-label={`Ver testemunho ${index + 1} de ${testimonials.length}`}
+                aria-current={index === active ? 'true' : undefined}
+                className="group relative py-4"
+              >
                 <span
                   className={`block h-px transition-all duration-500 ease-out ${
                     index === active

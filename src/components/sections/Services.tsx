@@ -86,13 +86,13 @@ export default function Services() {
                       onFocus={() => setActiveId(service.id)}
                       onClick={() => setActiveId(service.id)}
                       className={`group flex w-full items-baseline justify-between gap-6 py-6 text-left transition-colors duration-300 ${
-                        isActive ? 'text-onyx' : 'text-onyx/50 hover:text-onyx'
+                        isActive ? 'text-onyx' : 'text-onyx/60 hover:text-onyx'
                       }`}
                     >
                       <span className="flex items-baseline gap-4">
                         <span
                           className={`font-logo text-sm transition-colors duration-300 ${
-                            isActive ? 'text-gold-deep' : 'text-onyx/30 group-hover:text-gold-deep'
+                            isActive ? 'text-gold-deep' : 'text-onyx/60 group-hover:text-gold-deep'
                           }`}
                         >
                           {String(index + 1).padStart(2, '0')}

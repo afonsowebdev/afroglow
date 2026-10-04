@@ -26,6 +26,12 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   const refresh = useCallback(async () => {
+    // Visitors who never signed in have no token: skip the request instead of
+    // collecting a 401 (and a red error in the browser console) on every page load.
+    if (!customerToken.get()) {
+      setCustomer(null)
+      return
+    }
     try {
       const data = await api.get<Customer>('/account/me')
       setCustomer(data)

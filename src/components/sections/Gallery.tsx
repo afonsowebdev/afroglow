@@ -4,7 +4,8 @@ import { ImageGallery, ImageGrid, type ImageGalleryItem } from '@/components/ui/
 import { MotionButton } from '@/components/ui/motion-button'
 import { instagramDmUrl } from '@/lib/site-config'
 
-const featuredItems: ImageGalleryItem[] = [
+// Items without a photo yet are listed here but filtered out below, so visitors never see empty boxes.
+const allFeaturedItems: ImageGalleryItem[] = [
   { src: '/images/hero/hero-1.jpg', alt: 'Knotless braids com pontas cacheadas' },
   { src: '/images/hero/hero-2.jpg', alt: 'Detalhe de knotless braids com pontas cacheadas' },
   { src: '/images/hero/hero-3.jpg', alt: 'Vista lateral de knotless braids com pontas cacheadas' },
@@ -13,7 +14,7 @@ const featuredItems: ImageGalleryItem[] = [
   { alt: 'Feed-in braids acabamento natural' },
 ]
 
-const moreItems: ImageGalleryItem[] = [
+const allMoreItems: ImageGalleryItem[] = [
   { alt: 'Penteado finalizado em estúdio' },
   { alt: 'Cliente sorrindo após sessão' },
   { alt: 'Tranças com acabamento brilhante' },
@@ -21,6 +22,9 @@ const moreItems: ImageGalleryItem[] = [
   { alt: 'Styling de box braids em ambiente natural' },
   { alt: 'Cliente com penteado protetor completo' },
 ]
+
+const featuredItems = allFeaturedItems.filter((item) => item.src)
+const moreItems = allMoreItems.filter((item) => item.src)
 
 export default function Gallery() {
   const [showMore, setShowMore] = useState(false)
@@ -51,16 +55,17 @@ export default function Gallery() {
         </AnimatePresence>
 
         <div className="mt-14 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          {showMore ? (
-            <MotionButton
-              label="Ver menos"
-              variant="secondary"
-              icon={<i className="bx bx-chevron-up text-xl" aria-hidden="true" />}
-              onClick={() => setShowMore(false)}
-            />
-          ) : (
-            <MotionButton label="Ver mais imagens" variant="secondary" onClick={() => setShowMore(true)} />
-          )}
+          {moreItems.length > 0 &&
+            (showMore ? (
+              <MotionButton
+                label="Ver menos"
+                variant="secondary"
+                icon={<i className="bx bx-chevron-up text-xl" aria-hidden="true" />}
+                onClick={() => setShowMore(false)}
+              />
+            ) : (
+              <MotionButton label="Ver mais imagens" variant="secondary" onClick={() => setShowMore(true)} />
+            ))}
           <MotionButton
             label="Ver no Instagram"
             variant="primary"

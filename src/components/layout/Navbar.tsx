@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { MotionButton } from '@/components/ui/motion-button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useCustomerAuth } from '@/lib/customer-auth'
-import { instagramDmUrl, whatsappUrl } from '@/lib/site-config'
+import { hasWhatsapp, instagramDmUrl, whatsappUrl } from '@/lib/site-config'
 
 const NAV_LINKS = [
   { label: 'Início', href: '#top' },
@@ -17,7 +17,15 @@ const NAV_LINKS = [
 
 const SOCIAL_LINKS = [
   { label: 'Instagram', href: instagramDmUrl(), icon: 'bx bxl-instagram' },
-  { label: 'WhatsApp', href: whatsappUrl('Olá! Gostaria de saber mais sobre os vossos serviços.'), icon: 'bx bxl-whatsapp' },
+  ...(hasWhatsapp
+    ? [
+        {
+          label: 'WhatsApp',
+          href: whatsappUrl('Olá! Gostaria de saber mais sobre os vossos serviços.'),
+          icon: 'bx bxl-whatsapp',
+        },
+      ]
+    : []),
 ]
 
 function SocialIcons({ className }: { className?: string }) {
