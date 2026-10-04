@@ -26,7 +26,8 @@ export function SlotPicker({
 }: {
   slots: AvailabilitySlot[]
   value: string | null
-  onChange: (slotId: string) => void
+  /** Called with the slot id, or `null` when the chosen time is tapped again (deselect). */
+  onChange: (slotId: string | null) => void
 }) {
   const days = useMemo(() => {
     const groups = new Map<string, AvailabilitySlot[]>()
@@ -120,7 +121,7 @@ export function SlotPicker({
                 aria-pressed={value === slot.id}
                 onClick={() => {
                   void tap()
-                  onChange(slot.id)
+                  onChange(value === slot.id ? null : slot.id)
                 }}
                 className={`rounded-2xl border-2 py-3.5 font-subtitle text-base font-medium transition-colors ${
                   value === slot.id

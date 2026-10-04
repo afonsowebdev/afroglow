@@ -257,7 +257,7 @@ export default function BookScreen() {
                         type="button"
                         onClick={() => {
                           void tap()
-                          setServiceId(s.id)
+                          setServiceId(serviceId === s.id ? null : s.id)
                         }}
                         className={`rounded-3xl border p-5 text-left transition-colors ${
                           serviceId === s.id ? 'border-gold-deep bg-cream' : 'border-gold/25 bg-white'
