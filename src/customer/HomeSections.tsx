@@ -5,6 +5,7 @@ import { CalendarCheck, CalendarPlus, UserRound } from 'lucide-react'
 import { AnimatedSocialIcons, type ActionIcon } from '@/components/ui/floating-action-button'
 import { api } from '@/lib/api'
 import { tap } from '@/lib/haptics'
+import { serviceImageUrls } from '@/lib/service-images'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { instagramDmUrl } from '@/lib/site-config'
 import { formatPrice, type Booking, type Service } from '@/lib/types'
@@ -150,11 +151,11 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
         {services?.map((service, index) => (
           <Link
             key={service.id}
-            to={`/marcar?service=${service.id}`}
+            to={`/marcar?preview=${service.id}`}
             className="relative h-80 w-[78%] max-w-xs shrink-0 snap-center overflow-hidden rounded-[2rem] bg-[#2a170a]"
           >
             <img
-              src={PHOTOS[index % PHOTOS.length].src}
+              src={serviceImageUrls(service)[0] ?? PHOTOS[index % PHOTOS.length].src}
               alt=""
               loading="lazy"
               className="absolute inset-0 h-full w-full object-cover"

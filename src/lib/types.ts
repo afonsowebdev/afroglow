@@ -5,6 +5,8 @@ export interface Service {
   durationLabel: string
   priceCents: number
   createdAt: string
+  /** Photos of the hairstyle, cover first. */
+  images?: Array<{ id: string }>
 }
 
 export type SlotStatus = 'OPEN' | 'PENDING' | 'BOOKED'

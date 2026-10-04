@@ -9,7 +9,9 @@ import { useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Service } from '@/lib/types'
 import { longDay, timeLabel } from './dates'
 import { useHideNav } from './nav-visibility'
+import { serviceImageUrls } from '@/lib/service-images'
 import { Fact, Facts, labelClass, panelClass } from './panel'
+import { ServicePreview } from './ServicePreview'
 import { SlotPicker } from './SlotPicker'
 
 const STEPS = ['Modelo', 'Data', 'Confirmar'] as const
@@ -55,6 +57,7 @@ export default function BookScreen() {
 
   const [step, setStep] = useState(0)
   const [serviceId, setServiceId] = useState<string | null>(searchParams.get('service'))
+  const [previewId, setPreviewId] = useState<string | null>(searchParams.get('preview'))
   const [slotId, setSlotId] = useState<string | null>(null)
   const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
@@ -254,41 +257,80 @@ export default function BookScreen() {
                   <div className="mt-5 flex flex-col gap-3">
                     {services.map((s) => {
                       const chosen = serviceId === s.id
+                      const photos = serviceImageUrls(s)
                       return (
-                        <button
+                        <div
                           key={s.id}
-                          type="button"
-                          aria-pressed={chosen}
-                          onClick={() => {
-                            void tap()
-                            setServiceId(chosen ? null : s.id)
-                          }}
-                          className={`block w-full rounded-2xl border bg-white p-5 text-left transition-colors ${
+                          className={`relative overflow-hidden rounded-2xl border bg-white transition-colors ${
                             chosen ? 'border-onyx ring-1 ring-onyx' : 'border-onyx/15'
                           }`}
                         >
-                          <div className="flex items-center justify-between gap-3">
-                            <p className={labelClass}>Modelo</p>
-                            <span
-                              className={`flex h-5 w-5 items-center justify-center rounded-full border ${
-                                chosen ? 'border-onyx bg-onyx text-white' : 'border-onyx/30'
-                              }`}
-                              aria-hidden="true"
-                            >
-                              {chosen && <i className="bx bx-check text-sm" />}
-                            </span>
-                          </div>
-                          <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">{s.name}</p>
-                          {s.description && (
-                            <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light text-muted-dark">
-                              {s.description}
-                            </p>
-                          )}
-                          <Facts columns="1fr 1fr">
-                            <Fact label="Duração">{s.durationLabel}</Fact>
-                            <Fact label="Preço">{formatPrice(s.priceCents)}</Fact>
-                          </Facts>
-                        </button>
+                          {/* Tapping the card opens the photos; the circle picks the model directly. */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              void tap()
+                              setPreviewId(s.id)
+                            }}
+                            className="block w-full text-left"
+                            aria-label={`Ver fotos e detalhes de ${s.name}`}
+                          >
+                            {photos.length > 0 && (
+                              <div className="relative">
+                                <img
+                                  src={photos[0]}
+                                  alt=""
+                                  loading="lazy"
+                                  className="aspect-[16/10] w-full object-cover"
+                                />
+                                {photos.length > 1 && (
+                                  <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
+                                    <i className="bx bx-images text-sm" aria-hidden="true" />
+                                    {photos.length} fotos
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            <div className="p-5">
+                              <p className={labelClass}>Modelo</p>
+                              <p className="mt-2 pr-8 font-subtitle text-xl font-semibold tracking-tight text-onyx">
+                                {s.name}
+                              </p>
+                              {s.description && (
+                                <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light text-muted-dark">
+                                  {s.description}
+                                </p>
+                              )}
+                              <Facts columns="1fr 1fr">
+                                <Fact label="Duração">{s.durationLabel}</Fact>
+                                <Fact label="Preço">{formatPrice(s.priceCents)}</Fact>
+                              </Facts>
+                              <p className="mt-4 flex items-center gap-1 font-subtitle text-sm font-medium text-onyx">
+                                {photos.length > 0 ? 'Ver fotos' : 'Ver detalhes'}
+                                <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+                              </p>
+                            </div>
+                          </button>
+
+                          <button
+                            type="button"
+                            aria-pressed={chosen}
+                            aria-label={chosen ? `Retirar ${s.name}` : `Escolher ${s.name}`}
+                            onClick={() => {
+                              void tap()
+                              setServiceId(chosen ? null : s.id)
+                            }}
+                            className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border-2 backdrop-blur-md ${
+                              chosen
+                                ? 'border-onyx bg-onyx text-white'
+                                : photos.length > 0
+                                  ? 'border-white/90 bg-black/30 text-transparent'
+                                  : 'border-onyx/30 bg-white text-transparent'
+                            }`}
+                          >
+                            <i className="bx bx-check text-xl" aria-hidden="true" />
+                          </button>
+                        </div>
                       )
                     })}
                   </div>
@@ -435,6 +477,16 @@ export default function BookScreen() {
           />
         )}
       </AnimatePresence>
+
+      <ServicePreview
+        service={services?.find((x) => x.id === previewId) ?? null}
+        chosen={Boolean(previewId) && serviceId === previewId}
+        onClose={() => setPreviewId(null)}
+        onChoose={() => {
+          setServiceId(serviceId === previewId ? null : previewId)
+          setPreviewId(null)
+        }}
+      />
     </main>
   )
 }

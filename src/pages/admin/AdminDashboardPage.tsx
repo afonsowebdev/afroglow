@@ -12,6 +12,7 @@ import { ManualBookingSheet } from '@/pages/admin/ManualBookingSheet'
 import { MoreView, type MoreTarget } from '@/pages/admin/MoreView'
 import { BlockDaySheet, GenerateSlotsSheet } from '@/pages/admin/ScheduleTools'
 import { SecurityView } from '@/pages/admin/SecurityView'
+import { ServicePhotos } from '@/pages/admin/ServicePhotos'
 import { SettingsView } from '@/pages/admin/SettingsView'
 import { StatsView } from '@/pages/admin/StatsView'
 import { registerForPushNotifications } from '@/lib/push-notifications'
@@ -514,6 +515,8 @@ function ServiceDialog({
   form,
   busy,
   error,
+  images,
+  onImagesChanged,
   onChange,
   onSave,
   onClose,
@@ -521,6 +524,8 @@ function ServiceDialog({
   form: ServiceFormState | null
   busy: boolean
   error: string | null
+  images: Array<{ id: string }>
+  onImagesChanged: () => void
   onChange: (form: ServiceFormState) => void
   onSave: () => void
   onClose: () => void
@@ -635,6 +640,14 @@ function ServiceDialog({
                   </span>
                 </label>
               </div>
+
+              {form.id ? (
+                <ServicePhotos serviceId={form.id} images={images} onChanged={onImagesChanged} />
+              ) : (
+                <p className="rounded-xl bg-gold-deep/5 px-3 py-2.5 font-subtitle text-xs text-muted-dark">
+                  Guarda o modelo primeiro. Depois podes voltar a abri-lo para adicionar fotos.
+                </p>
+              )}
             </div>
 
             {error && <p className="mt-4 font-subtitle text-sm text-red-700">{error}</p>}
@@ -1811,6 +1824,8 @@ export default function AdminDashboardPage() {
                 form={serviceForm}
                 busy={savingService}
                 error={serviceError}
+                images={services.find((s) => s.id === serviceForm?.id)?.images ?? []}
+                onImagesChanged={() => void loadDashboard({ silent: true })}
                 onChange={setServiceForm}
                 onSave={saveService}
                 onClose={closeServiceDialog}

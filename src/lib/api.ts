@@ -32,6 +32,9 @@ function tokenStore(key: string) {
   }
 }
 
+/** Absolute URL for something served by the API (e.g. a service photo). */
+export const assetUrl = (path: string) => `${API_URL}${path}`
+
 // Fallback for browsers that refuse to keep the cross-site session cookie.
 export const customerToken = tokenStore('afroglow-customer-token')
 export const adminToken = tokenStore('afroglow-admin-token')

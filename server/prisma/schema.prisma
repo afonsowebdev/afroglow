@@ -32,6 +32,7 @@ model Service {
   priceCents    Int
   createdAt     DateTime  @default(now())
   bookings      Booking[]
+  images        ServiceImage[]
 }
 
 enum SlotStatus {
@@ -135,4 +136,18 @@ model CustomerPushToken {
   createdAt  DateTime @default(now())
 
   @@index([customerId])
+}
+
+// Photos of a hairstyle, shown to customers before they pick it. Stored in the database (small, resized
+// by the admin app before upload); position 0 is the cover.
+model ServiceImage {
+  id          String   @id @default(cuid())
+  serviceId   String
+  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  data        Bytes
+  contentType String
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([serviceId, position])
 }

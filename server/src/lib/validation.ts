@@ -140,3 +140,9 @@ export const adminChangePasswordSchema = z.object({
 export const customerPushTokenSchema = z.object({
   token: z.string().trim().min(10).max(500),
 })
+
+export const serviceImageSchema = z.object({
+  contentType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+  // base64 of the (already resized) image; roughly 4 MB of binary at most
+  data: z.string().min(100).max(5_600_000),
+})
