@@ -24,14 +24,14 @@ export function WelcomeCard() {
 
   if (!customer) {
     return (
-      <div className="rounded-3xl bg-gradient-to-br from-[#2a170a] to-[#6b4a1c] p-6 text-[#f5efdf]">
-        <p className="font-subtitle text-lg font-semibold tracking-tight">Bem-vinda à AFROGLOW</p>
-        <p className="mt-1 font-subtitle text-sm font-light text-[#f5efdf]/80">
+      <div className="rounded-3xl border border-gold/25 bg-cream p-6">
+        <p className="font-subtitle text-lg font-semibold tracking-tight text-onyx">Bem-vinda à AFROGLOW</p>
+        <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
           Cria a tua conta para marcar sessões e receber avisos quando forem confirmadas.
         </p>
         <Link
           to="/entrar"
-          className="mt-4 inline-block rounded-full bg-[#e0c36e] px-6 py-2.5 font-subtitle text-sm font-medium text-[#2a170a]"
+          className="mt-4 inline-block rounded-full bg-gold-deep px-6 py-2.5 font-subtitle text-sm text-[#ffffff]"
         >
           Entrar ou criar conta
         </Link>
@@ -63,26 +63,25 @@ export function WelcomeCard() {
 
   const parts = dayParts(next.slot.startsAt)
   return (
-    <Link
-      to="/marcacoes"
-      className="flex items-center gap-4 rounded-3xl bg-gradient-to-br from-[#2a170a] to-[#6b4a1c] p-5 text-[#f5efdf]"
-    >
-      <div className="flex h-20 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-[#ffffff]/10">
-        <span className="font-subtitle text-[10px] uppercase tracking-wide text-[#e0c36e]">{parts.weekday}</span>
+    <Link to="/marcacoes" className="flex items-center gap-4 rounded-3xl border border-gold/25 bg-cream p-5">
+      <div className="flex h-20 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-gold-deep text-[#ffffff]">
+        <span className="font-subtitle text-[10px] uppercase tracking-wide opacity-80">{parts.weekday}</span>
         <span className="font-subtitle text-3xl font-semibold leading-none">{parts.day}</span>
-        <span className="font-subtitle text-[10px] uppercase text-[#f5efdf]/70">{parts.month}</span>
+        <span className="font-subtitle text-[10px] uppercase opacity-80">{parts.month}</span>
       </div>
       <div className="min-w-0 flex-1">
-        <p className="font-subtitle text-[11px] uppercase tracking-[0.18em] text-[#e0c36e]">A tua próxima sessão</p>
-        <p className="mt-1 truncate font-subtitle text-lg font-semibold tracking-tight">{next.service.name}</p>
-        <p className="font-subtitle text-sm font-light text-[#f5efdf]/80">
+        <p className="font-subtitle text-[11px] uppercase tracking-[0.18em] text-gold-ink">A tua próxima sessão</p>
+        <p className="mt-1 truncate font-subtitle text-lg font-semibold tracking-tight text-onyx">
+          {next.service.name}
+        </p>
+        <p className="font-subtitle text-sm font-light text-muted-dark">
           {longDay(next.slot.startsAt)} · {timeLabel(next.slot.startsAt)}
         </p>
-        <p className="mt-1 font-subtitle text-xs text-[#f5efdf]/70">
+        <p className="mt-1 font-subtitle text-xs text-gold-ink">
           {next.status === 'PENDING' ? 'À espera de confirmação' : 'Confirmada'}
         </p>
       </div>
-      <i className="bx bx-chevron-right text-2xl text-[#e0c36e]" aria-hidden="true" />
+      <i className="bx bx-chevron-right text-2xl text-muted-dark" aria-hidden="true" />
     </Link>
   )
 }
@@ -154,9 +153,9 @@ export function WorkGallery() {
           href={instagramDmUrl()}
           target="_blank"
           rel="noreferrer"
-          className="flex h-72 w-56 shrink-0 snap-center flex-col items-center justify-center gap-3 rounded-3xl bg-gradient-to-br from-[#2a170a] to-[#6b4a1c] text-[#f5efdf]"
+          className="flex h-72 w-56 shrink-0 snap-center flex-col items-center justify-center gap-3 rounded-3xl border border-gold/25 bg-cream text-onyx"
         >
-          <i className="bx bxl-instagram text-5xl text-[#e0c36e]" aria-hidden="true" />
+          <i className="bx bxl-instagram text-5xl text-gold-ink" aria-hidden="true" />
           <span className="font-subtitle text-sm font-semibold">Ver mais no Instagram</span>
         </a>
       </div>

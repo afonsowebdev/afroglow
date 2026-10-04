@@ -66,7 +66,12 @@ export default function CustomerApp() {
   // The glass bar sits over the hero photo on the home screen and over white pages elsewhere.
   const [overHero, setOverHero] = useState(true)
   useEffect(() => {
-    const update = () => setOverHero(location.pathname === '/' && window.scrollY < window.innerHeight - 120)
+    // Over the photo only while the hero's bottom edge is still below the middle of the bar.
+    const update = () => {
+      const hero = document.querySelector('[data-hero]')
+      const barCentre = window.innerHeight - 60
+      setOverHero(location.pathname === '/' && !!hero && hero.getBoundingClientRect().bottom > barCentre)
+    }
     update()
     window.addEventListener('scroll', update, { passive: true })
     return () => window.removeEventListener('scroll', update)

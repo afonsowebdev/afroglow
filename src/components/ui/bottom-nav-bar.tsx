@@ -66,7 +66,7 @@ export function BottomNavBar<T extends string>({
                   ? `liquid-glass-bubble ${onDark ? 'text-[#ffffff]' : 'text-onyx'}`
                   : onDark
                     ? 'text-[#ffffff]/80'
-                    : 'text-onyx/70'
+                    : 'text-onyx'
                 : isActive
                   ? 'bg-[rgba(255,255,255,0.5)] text-onyx shadow-sm shadow-black/5 dark:bg-[rgba(255,255,255,0.14)]'
                   : 'text-onyx/60 hover:bg-[rgba(255,255,255,0.3)] hover:text-onyx dark:hover:bg-[rgba(255,255,255,0.08)]',

@@ -44,6 +44,7 @@ export default function HomeScreen() {
     <main className="pb-40">
       {/* The hero fills the whole first screen, edge to edge, like the website. */}
       <section
+        data-hero
         className="relative flex items-center justify-center overflow-hidden px-6 pb-24 pt-[env(safe-area-inset-top)] text-center"
         style={{ minHeight: '100dvh' }}
       >
