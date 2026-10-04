@@ -7,14 +7,15 @@ import { useCustomerAuth } from '@/lib/customer-auth'
 import { success, tap } from '@/lib/haptics'
 import { useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Service } from '@/lib/types'
-import { dayParts, longDay, timeLabel } from './dates'
+import { longDay, timeLabel } from './dates'
 import { useHideNav } from './nav-visibility'
+import { Fact, Facts, labelClass, panelClass } from './panel'
 import { SlotPicker } from './SlotPicker'
 
 const STEPS = ['Modelo', 'Data', 'Confirmar'] as const
 
 const fieldClass =
-  'w-full rounded-2xl border border-gold/30 bg-white px-4 py-3.5 font-subtitle text-onyx outline-none focus-visible:border-gold-deep'
+  'w-full rounded-xl border border-onyx/20 bg-white px-4 py-3.5 font-subtitle text-onyx outline-none focus-visible:border-onyx'
 
 /** Bottom action button: slides up from the bottom edge only once there is something to continue with. */
 function Cta({ label, busy, onClick }: { label: string; busy?: boolean; onClick: () => void }) {
@@ -33,7 +34,7 @@ function Cta({ label, busy, onClick }: { label: string; busy?: boolean; onClick:
           void tap('medium')
           onClick()
         }}
-        className="pointer-events-auto mx-auto block w-full max-w-md rounded-full bg-gold-deep py-4 font-subtitle text-base text-[#ffffff] shadow-lg shadow-black/20 transition-opacity disabled:opacity-60"
+        className="pointer-events-auto mx-auto block w-full max-w-md rounded-xl bg-onyx py-4 font-subtitle text-base font-medium text-white shadow-lg shadow-black/20 transition-opacity disabled:opacity-60"
       >
         {busy ? 'A enviar...' : label}
       </button>
@@ -158,7 +159,7 @@ export default function BookScreen() {
             <button
               type="button"
               onClick={() => navigate('/marcacoes')}
-              className="rounded-full bg-gold-deep px-8 py-3.5 font-subtitle text-sm text-[#ffffff]"
+              className="rounded-xl bg-onyx px-8 py-3.5 font-subtitle text-sm font-medium text-white"
             >
               Ver as minhas marcações
             </button>
@@ -251,35 +252,45 @@ export default function BookScreen() {
                 <>
                   <h2 className="font-subtitle text-xl text-onyx">Que tranças queres?</h2>
                   <div className="mt-5 flex flex-col gap-3">
-                    {services.map((s) => (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => {
-                          void tap()
-                          setServiceId(serviceId === s.id ? null : s.id)
-                        }}
-                        className={`rounded-3xl border p-5 text-left transition-colors ${
-                          serviceId === s.id ? 'border-gold-deep bg-cream' : 'border-gold/25 bg-white'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <p className="font-subtitle font-semibold tracking-tight text-xl text-onyx">{s.name}</p>
-                            <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-gold-deep/10 px-2.5 py-1 font-subtitle text-[11px] text-gold-ink">
-                              <i className="bx bx-time-five text-sm" aria-hidden="true" />
-                              {s.durationLabel}
+                    {services.map((s) => {
+                      const chosen = serviceId === s.id
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          aria-pressed={chosen}
+                          onClick={() => {
+                            void tap()
+                            setServiceId(chosen ? null : s.id)
+                          }}
+                          className={`block w-full rounded-2xl border bg-white p-5 text-left transition-colors ${
+                            chosen ? 'border-onyx ring-1 ring-onyx' : 'border-onyx/15'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <p className={labelClass}>Modelo</p>
+                            <span
+                              className={`flex h-5 w-5 items-center justify-center rounded-full border ${
+                                chosen ? 'border-onyx bg-onyx text-white' : 'border-onyx/30'
+                              }`}
+                              aria-hidden="true"
+                            >
+                              {chosen && <i className="bx bx-check text-sm" />}
                             </span>
                           </div>
-                          <p className="font-subtitle font-semibold tracking-tight text-xl text-onyx">
-                            {formatPrice(s.priceCents)}
-                          </p>
-                        </div>
-                        <p className="mt-3 line-clamp-2 font-subtitle text-sm font-light text-muted-dark">
-                          {s.description}
-                        </p>
-                      </button>
-                    ))}
+                          <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">{s.name}</p>
+                          {s.description && (
+                            <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light text-muted-dark">
+                              {s.description}
+                            </p>
+                          )}
+                          <Facts columns="1fr 1fr">
+                            <Fact label="Duração">{s.durationLabel}</Fact>
+                            <Fact label="Preço">{formatPrice(s.priceCents)}</Fact>
+                          </Facts>
+                        </button>
+                      )
+                    })}
                   </div>
                 </>
               )}
@@ -318,63 +329,35 @@ export default function BookScreen() {
                 <>
                   <h2 className="font-subtitle text-xl text-onyx">Confirma o teu pedido</h2>
 
-                  {/* Summary ticket */}
-                  <div className="mt-5 overflow-hidden rounded-3xl border border-gold/25 bg-cream">
-                    <div className="flex items-start justify-between gap-4 p-5">
-                      <div className="min-w-0">
-                        <p className="font-subtitle text-[11px] uppercase tracking-[0.18em] text-gold-ink">Modelo</p>
-                        <p className="mt-1 font-subtitle text-xl font-semibold tracking-tight text-onyx">
-                          {service.name}
-                        </p>
-                        <p className="mt-0.5 font-subtitle text-xs text-muted-dark">Duração: {service.durationLabel}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setStep(0)}
-                        className="shrink-0 font-subtitle text-sm text-gold-ink underline underline-offset-4"
-                      >
-                        Alterar
+                  {/* Summary */}
+                  <div className={`${panelClass} mt-5`}>
+                    <div className="flex items-center justify-between">
+                      <p className={labelClass}>Resumo</p>
+                      <span className="font-subtitle text-xs text-muted-dark">Por confirmar</span>
+                    </div>
+                    <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">{service.name}</p>
+
+                    <Facts columns="2fr 1fr">
+                      <Fact label="Data">{longDay(slot.startsAt)}</Fact>
+                      <Fact label="Hora">{timeLabel(slot.startsAt)}</Fact>
+                    </Facts>
+                    <Facts columns="1fr 1fr">
+                      <Fact label="Duração">{service.durationLabel}</Fact>
+                      <Fact label="Preço">{formatPrice(service.priceCents)}</Fact>
+                    </Facts>
+                    {business.address && (
+                      <Facts columns="1fr">
+                        <Fact label="Local">{business.address}</Fact>
+                      </Facts>
+                    )}
+
+                    <div className="mt-4 flex items-center justify-between border-t border-onyx/15 pt-4 font-subtitle text-sm font-medium text-onyx">
+                      <button type="button" onClick={() => setStep(0)} className="underline underline-offset-4">
+                        Alterar modelo
                       </button>
-                    </div>
-
-                    <div className="relative border-t border-dashed border-gold/40">
-                      <span className="absolute -left-3 -top-3 h-6 w-6 rounded-full bg-white" aria-hidden="true" />
-                      <span className="absolute -right-3 -top-3 h-6 w-6 rounded-full bg-white" aria-hidden="true" />
-                    </div>
-
-                    <div className="flex items-center gap-4 p-5">
-                      <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-gold-deep text-[#ffffff]">
-                        <span className="font-subtitle text-[10px] uppercase tracking-wide opacity-80">
-                          {dayParts(slot.startsAt).month}
-                        </span>
-                        <span className="font-subtitle text-2xl font-semibold leading-none">
-                          {dayParts(slot.startsAt).day}
-                        </span>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-subtitle text-base font-semibold text-onyx">{longDay(slot.startsAt)}</p>
-                        <p className="font-subtitle text-sm text-muted-dark">às {timeLabel(slot.startsAt)}</p>
-                        {business.address && (
-                          <p className="mt-1 flex items-center gap-1 truncate font-subtitle text-xs text-muted-dark">
-                            <i className="bx bx-map text-sm" aria-hidden="true" />
-                            {business.address}
-                          </p>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setStep(1)}
-                        className="shrink-0 font-subtitle text-sm text-gold-ink underline underline-offset-4"
-                      >
-                        Alterar
+                      <button type="button" onClick={() => setStep(1)} className="underline underline-offset-4">
+                        Alterar data
                       </button>
-                    </div>
-
-                    <div className="flex items-center justify-between border-t border-gold/25 bg-gold-deep/5 px-5 py-4">
-                      <span className="font-subtitle text-sm text-muted-dark">Preço</span>
-                      <span className="font-subtitle text-2xl font-semibold tracking-tight text-gold-ink">
-                        {formatPrice(service.priceCents)}
-                      </span>
                     </div>
                   </div>
 
@@ -387,24 +370,19 @@ export default function BookScreen() {
                     </div>
                   ) : (
                     <div className="mt-6 flex flex-col gap-4">
-                      <div className="flex items-start gap-3 rounded-2xl bg-gold-deep/10 p-4">
-                        <i className="bx bx-info-circle mt-0.5 text-xl text-gold-ink" aria-hidden="true" />
-                        <p className="font-subtitle text-sm text-onyx">
-                          O pedido fica <strong className="font-semibold">por confirmar</strong>. Avisamos-te na app
-                          assim que for aceite. Não há pagamentos na app.
-                        </p>
-                      </div>
+                      <p className="font-subtitle text-sm font-light text-muted-dark">
+                        O pedido fica <strong className="font-semibold text-onyx">por confirmar</strong>. Avisamos-te na
+                        app assim que for aceite. Não há pagamentos na app.
+                      </p>
 
-                      <div className="rounded-2xl border border-gold/25 bg-white p-4">
-                        <p className="font-subtitle text-[11px] uppercase tracking-[0.18em] text-muted-dark">
-                          Os teus dados
-                        </p>
+                      <div className={panelClass}>
+                        <p className={labelClass}>Os teus dados</p>
                         <p className="mt-2 flex items-center gap-2 font-subtitle text-sm text-onyx">
-                          <i className="bx bx-user text-lg text-gold-ink" aria-hidden="true" />
+                          <i className="bx bx-user text-lg text-muted-dark" aria-hidden="true" />
                           {customer.name}
                         </p>
-                        <label className="mt-3 flex items-center gap-2 rounded-xl border border-gold/30 px-3 focus-within:border-gold-deep">
-                          <i className="bx bx-phone text-lg text-gold-ink" aria-hidden="true" />
+                        <label className="mt-3 flex items-center gap-2 rounded-xl border border-onyx/20 px-3 focus-within:border-onyx">
+                          <i className="bx bx-phone text-lg text-muted-dark" aria-hidden="true" />
                           <input
                             type="tel"
                             value={phone}
@@ -417,9 +395,7 @@ export default function BookScreen() {
                       </div>
 
                       <label className="block">
-                        <span className="mb-1.5 block font-subtitle text-[11px] uppercase tracking-[0.18em] text-muted-dark">
-                          Notas (opcional)
-                        </span>
+                        <span className={`${labelClass} mb-1.5 block`}>Notas (opcional)</span>
                         <textarea
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
@@ -432,7 +408,7 @@ export default function BookScreen() {
 
                       {business.cancellationPolicy && (
                         <p className="flex items-start gap-2 font-subtitle text-xs font-light text-muted-dark">
-                          <i className="bx bx-calendar-x mt-0.5 text-base text-gold-ink" aria-hidden="true" />
+                          <i className="bx bx-calendar-x mt-0.5 text-base text-muted-dark" aria-hidden="true" />
                           <span>
                             <strong className="font-medium text-onyx">Cancelamentos:</strong>{' '}
                             {business.cancellationPolicy}

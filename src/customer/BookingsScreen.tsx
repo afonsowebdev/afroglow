@@ -6,8 +6,9 @@ import { api, ApiError } from '@/lib/api'
 import { success, tap } from '@/lib/haptics'
 import { useBusinessInfo } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking } from '@/lib/types'
-import { dayParts, longDay, timeLabel } from './dates'
+import { longDay, timeLabel } from './dates'
 import { useBookingAlerts } from './booking-alerts'
+import { Fact, Facts, labelClass, panelClass, StatusDot } from './panel'
 import { SlotPicker } from './SlotPicker'
 import { usePullToRefresh } from './usePullToRefresh'
 
@@ -37,8 +38,6 @@ const STATUS: Record<Booking['status'], { label: string; chip: string; hint: str
 type Mode = 'details' | 'reschedule' | 'cancel'
 
 function BookingCard({ booking, onOpen, isNew }: { booking: Booking; onOpen: () => void; isNew?: boolean }) {
-  const parts = dayParts(booking.slot.startsAt)
-  const status = STATUS[booking.status]
   return (
     <motion.button
       layout
@@ -49,30 +48,32 @@ function BookingCard({ booking, onOpen, isNew }: { booking: Booking; onOpen: () 
         void tap()
         onOpen()
       }}
-      className="flex w-full items-stretch overflow-hidden rounded-3xl border border-gold/25 bg-white text-left shadow-sm shadow-black/5"
+      className={`${panelClass} block w-full text-left`}
     >
-      <div className="flex w-20 shrink-0 flex-col items-center justify-center bg-gold-deep/10 py-4">
-        <span className="font-subtitle text-[11px] uppercase text-muted-dark">{parts.weekday}</span>
-        <span className="font-subtitle font-semibold tracking-tight text-3xl leading-none text-onyx">{parts.day}</span>
-        <span className="font-subtitle text-[11px] uppercase text-muted-dark">{parts.month}</span>
-      </div>
-      <div className="min-w-0 flex-1 p-4">
-        <p className="truncate font-subtitle font-semibold tracking-tight text-lg text-onyx">{booking.service.name}</p>
-        <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
-          {timeLabel(booking.slot.startsAt)} · {formatPrice(booking.service.priceCents)}
-        </p>
-        <div className="mt-2 flex items-center gap-2">
-          <span className={`inline-block rounded-full px-2.5 py-1 font-subtitle text-[11px] ${status.chip}`}>
-            {status.label}
-          </span>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <p className={labelClass}>Sessão</p>
           {isNew && (
             <span className="inline-flex items-center rounded-full bg-red-600 px-2 py-0.5 font-subtitle text-[10px] font-semibold uppercase tracking-wide text-[#ffffff]">
               Novo
             </span>
           )}
         </div>
+        <StatusDot status={booking.status} />
       </div>
-      <i className="bx bx-chevron-right self-center pr-3 text-xl text-muted-dark/60" aria-hidden="true" />
+      <p className="mt-2 truncate font-subtitle text-xl font-semibold tracking-tight text-onyx">
+        {booking.service.name}
+      </p>
+      <Facts columns="2fr 1fr">
+        <Fact label="Data">{longDay(booking.slot.startsAt)}</Fact>
+        <Fact label="Hora">{timeLabel(booking.slot.startsAt)}</Fact>
+      </Facts>
+      <p className="mt-4 flex items-center justify-between font-subtitle text-sm font-medium text-onyx">
+        <span>{formatPrice(booking.service.priceCents)}</span>
+        <span className="flex items-center gap-1">
+          Ver detalhes <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+        </span>
+      </p>
     </motion.button>
   )
 }
@@ -258,6 +259,7 @@ export default function BookingsScreen() {
       </div>
 
       <Sheet
+        sober
         open={Boolean(selected)}
         title={
           mode === 'reschedule'
@@ -299,18 +301,19 @@ export default function BookingsScreen() {
       >
         {selected && mode === 'details' && (
           <>
-            <div className="rounded-2xl bg-cream p-4">
+            <div className="rounded-2xl border border-onyx/15 p-4">
               <div className="flex items-center justify-between">
-                <span className={`rounded-full px-2.5 py-1 font-subtitle text-[11px] ${STATUS[selected.status].chip}`}>
-                  {STATUS[selected.status].label}
-                </span>
-                <span className="font-subtitle font-semibold tracking-tight text-xl text-onyx">
+                <StatusDot status={selected.status} />
+                <span className="font-subtitle text-xl font-semibold tracking-tight text-onyx">
                   {formatPrice(selected.service.priceCents)}
                 </span>
               </div>
-              <p className="mt-3 font-subtitle text-xs text-muted-dark">Duração: {selected.service.durationLabel}</p>
+              <Facts columns="1fr 1fr">
+                <Fact label="Duração">{selected.service.durationLabel}</Fact>
+                <Fact label="Hora">{timeLabel(selected.slot.startsAt)}</Fact>
+              </Facts>
               {STATUS[selected.status].hint && (
-                <p className="mt-2 font-subtitle text-sm text-onyx">{STATUS[selected.status].hint}</p>
+                <p className="mt-4 font-subtitle text-sm font-light text-muted-dark">{STATUS[selected.status].hint}</p>
               )}
             </div>
             {manageable && (
@@ -329,7 +332,7 @@ export default function BookingsScreen() {
               <button
                 type="button"
                 onClick={() => navigate('/marcar')}
-                className="rounded-full bg-gold-deep py-3 font-subtitle text-sm text-[#ffffff]"
+                className="rounded-xl bg-onyx py-3.5 font-subtitle text-sm font-medium text-white"
               >
                 Escolher outro horário
               </button>

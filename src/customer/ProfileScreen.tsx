@@ -23,12 +23,12 @@ function errorText(err: unknown) {
 type Tone = 'gold' | 'rose' | 'sage' | 'sky' | 'plum' | 'ink'
 
 const TONES: Record<Tone, string> = {
-  gold: 'bg-[#c9a84c]/20 text-[#8c6a24] dark:text-[#e0c36e]',
-  rose: 'bg-[#c9626b]/15 text-[#b04a54] dark:text-[#e58a93]',
-  sage: 'bg-[#5f9a76]/15 text-[#3f7a58] dark:text-[#86c4a0]',
-  sky: 'bg-[#4f86c6]/15 text-[#356aa8] dark:text-[#86b4e6]',
-  plum: 'bg-[#8a5fb0]/15 text-[#6f4496] dark:text-[#b996dc]',
-  ink: 'bg-onyx/10 text-onyx',
+  gold: 'bg-onyx/5 text-onyx',
+  rose: 'bg-onyx/5 text-onyx',
+  sage: 'bg-onyx/5 text-onyx',
+  sky: 'bg-onyx/5 text-onyx',
+  plum: 'bg-onyx/5 text-onyx',
+  ink: 'bg-onyx/5 text-onyx',
 }
 
 function Item({
@@ -84,7 +84,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="mb-2.5 px-2 font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-muted-dark">
         {title}
       </h2>
-      <div className="divide-y divide-gold/15 overflow-hidden rounded-3xl border border-gold/20 bg-white shadow-sm shadow-black/5">
+      <div className="divide-y divide-onyx/10 overflow-hidden rounded-2xl border border-onyx/15 bg-white">
         {children}
       </div>
     </section>
@@ -153,7 +153,7 @@ function QuickAction({
 }) {
   const inner = (
     <>
-      <span className="flex h-14 w-14 items-center justify-center rounded-full border border-gold/25 bg-white text-2xl text-gold-ink shadow-sm shadow-black/5">
+      <span className="flex h-14 w-14 items-center justify-center rounded-full border border-onyx/15 bg-white text-2xl text-onyx">
         <i className={icon} aria-hidden="true" />
       </span>
       <span className="mt-2 font-subtitle text-xs text-onyx">{label}</span>
@@ -275,7 +275,7 @@ export default function ProfileScreen() {
           {stats.map(([label, value]) => (
             <div
               key={label}
-              className="rounded-2xl border border-gold/20 bg-white px-2 py-4 text-center shadow-lg shadow-black/10"
+              className="rounded-2xl border border-onyx/15 bg-white px-2 py-4 text-center shadow-lg shadow-black/10"
             >
               <p className="font-subtitle font-semibold tracking-tight text-2xl leading-none text-onyx">{value}</p>
               <p className="mt-2 font-subtitle text-[10px] uppercase tracking-wide text-muted-dark">{label}</p>
@@ -297,7 +297,7 @@ export default function ProfileScreen() {
         </div>
 
         {notice && (
-          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
+          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-onyx/15 bg-white p-4">
             <i className="bx bx-check-circle mt-0.5 text-xl text-gold-ink" aria-hidden="true" />
             <p className="flex-1 font-subtitle text-sm text-onyx">{notice}</p>
             <button
@@ -327,18 +327,20 @@ export default function ProfileScreen() {
         <button
           type="button"
           onClick={() => open('testimonial')}
-          className="mt-7 flex w-full items-center gap-4 rounded-3xl bg-gradient-to-br from-[#c9a84c]/25 to-[#c9a84c]/5 p-5 text-left ring-1 ring-gold/30"
+          className="mt-7 block w-full rounded-2xl border border-onyx/15 bg-white p-5 text-left"
         >
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gold-deep text-2xl text-[#ffffff]">
-            <i className="bx bx-message-rounded-dots" aria-hidden="true" />
+          <span className="block font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-muted-dark">
+            Testemunho
           </span>
-          <span className="min-w-0 flex-1">
-            <span className="block font-subtitle font-semibold tracking-tight text-lg text-onyx">Conta como foi</span>
-            <span className="block font-subtitle text-xs text-muted-dark">
-              Deixa um testemunho sobre o teu atendimento
-            </span>
+          <span className="mt-2 block font-subtitle text-xl font-semibold tracking-tight text-onyx">
+            Conta como foi
           </span>
-          <i className="bx bx-chevron-right text-xl text-gold-ink" aria-hidden="true" />
+          <span className="mt-1 block font-subtitle text-sm font-light text-muted-dark">
+            Deixa um testemunho sobre o teu atendimento.
+          </span>
+          <span className="mt-4 flex items-center justify-between rounded-xl bg-onyx px-5 py-3.5 font-subtitle text-sm font-medium text-white">
+            Escrever testemunho <i className="bx bx-right-arrow-alt text-xl" aria-hidden="true" />
+          </span>
         </button>
 
         <Section title="Ajuda e informação">
@@ -355,7 +357,7 @@ export default function ProfileScreen() {
         <button
           type="button"
           onClick={() => void logout()}
-          className="mt-7 flex w-full items-center justify-center gap-2 rounded-full border border-gold/30 bg-white py-3.5 font-subtitle text-sm text-onyx shadow-sm shadow-black/5 transition-colors active:bg-gold-deep/10"
+          className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl border border-onyx/20 bg-white py-3.5 font-subtitle text-sm font-medium text-onyx transition-colors active:bg-onyx/5"
         >
           <i className="bx bx-log-out text-lg" aria-hidden="true" />
           Terminar sessão
@@ -374,6 +376,7 @@ export default function ProfileScreen() {
       </div>
 
       <Sheet
+        sober
         open={sheet === 'testimonial'}
         icon="bx bx-message-rounded-dots"
         title="O teu testemunho"
@@ -388,6 +391,7 @@ export default function ProfileScreen() {
 
       {/* Edit name */}
       <Sheet
+        sober
         open={sheet === 'name'}
         title="Alterar nome"
         description="É o nome que aparece nas tuas marcações."
@@ -411,6 +415,7 @@ export default function ProfileScreen() {
 
       {/* Edit phone */}
       <Sheet
+        sober
         open={sheet === 'phone'}
         icon="bx bx-phone"
         title="Alterar telemóvel"
@@ -438,6 +443,7 @@ export default function ProfileScreen() {
 
       {/* Change password */}
       <Sheet
+        sober
         open={sheet === 'password'}
         icon="bx bx-key"
         title="Alterar password"
@@ -476,6 +482,7 @@ export default function ProfileScreen() {
 
       {/* Delete account */}
       <Sheet
+        sober
         open={sheet === 'delete'}
         icon="bx bx-trash"
         destructive
