@@ -131,20 +131,8 @@ export function WelcomeCard() {
         'Repetir este penteado',
       )
     }
-    return (
-      <div className={panel}>
-        <p className={label}>Para ti</p>
-        <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">Descobre os penteados</p>
-        <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
-          Vê as fotos de cada modelo antes de escolheres.
-        </p>
-        <ActionButton
-          label="Ver os penteados"
-          className="mt-5"
-          onClick={() => document.getElementById('servicos')?.scrollIntoView({ behavior: 'smooth' })}
-        />
-      </div>
-    )
+    // First time here: the services are right below, so no card is needed.
+    return null
   }
 
   const pending = next.status === 'PENDING'
