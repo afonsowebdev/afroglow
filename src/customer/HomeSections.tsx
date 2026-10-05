@@ -12,13 +12,15 @@ import { instagramDmUrl, siteConfig, useBusinessInfo } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service } from '@/lib/types'
 import { useBookingAlerts } from './booking-alerts'
 import { ServicePreview } from './ServicePreview'
-import { dayParts, longDay, timeLabel } from './dates'
+import { dayKey, dayParts, longDay, timeLabel } from './dates'
 
 /** Time-of-day greeting plus one line of what matters right now (a decision to look at, or free slots). */
 export function Greeting() {
   const { customer } = useCustomerAuth()
   const { unseen } = useBookingAlerts()
   const [slots, setSlots] = useState<AvailabilitySlot[] | null>(null)
+  const [allOpen, setAllOpen] = useState(false)
+  const [moreDays, setMoreDays] = useState(false)
 
   useEffect(() => {
     api
@@ -33,10 +35,19 @@ export function Greeting() {
   const hello = hour < 6 ? 'Boa noite' : hour < 13 ? 'Bom dia' : hour < 20 ? 'Boa tarde' : 'Boa noite'
   const first = customer?.name.split(' ')[0]
 
-  const upcoming = (slots ?? [])
+  const future = (slots ?? [])
     .filter((s) => new Date(s.startsAt).getTime() > Date.now())
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
-    .slice(0, 6)
+  const upcoming = future.slice(0, 6)
+
+  // The full list: every day with its free and taken times; three days first, the rest on "Ver mais".
+  const days = [
+    ...future.reduce(
+      (map, s) => map.set(dayKey(s.startsAt), [...(map.get(dayKey(s.startsAt)) ?? []), s]),
+      new Map<string, AvailabilitySlot[]>(),
+    ),
+  ]
+  const shownDays = moreDays ? days : days.slice(0, 3)
 
   return (
     <div>
@@ -58,9 +69,20 @@ export function Greeting() {
           <h2 className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">
             Horários disponíveis
           </h2>
-          <Link to="/marcar" className="font-subtitle text-xs font-medium text-onyx underline underline-offset-4">
-            Ver todos
-          </Link>
+          {future.length > 0 && (
+            <button
+              type="button"
+              aria-expanded={allOpen}
+              onClick={() => {
+                void tap()
+                setAllOpen((v) => !v)
+                setMoreDays(false)
+              }}
+              className="font-subtitle text-xs font-medium text-onyx underline underline-offset-4"
+            >
+              {allOpen ? 'Fechar' : 'Ver todos'}
+            </button>
+          )}
         </div>
         <p className="mt-1 font-subtitle text-xs font-light text-muted-dark">
           Livres ou ocupados. Toca num livre para o reservares.
@@ -73,6 +95,60 @@ export function Greeting() {
           </div>
         ) : upcoming.length === 0 ? (
           <p className="mt-3 font-subtitle text-sm text-muted-dark">Sem horários livres de momento.</p>
+        ) : allOpen ? (
+          <div className="mt-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
+            {shownDays.map(([key, daySlots], index) => {
+              const free = daySlots.filter((x) => x.status === 'OPEN').length
+              return (
+                <div key={key} className={index > 0 ? 'mt-4 border-t border-onyx/10 pt-4' : ''}>
+                  <div className="flex items-baseline justify-between">
+                    <p className="font-subtitle text-sm font-semibold text-onyx">{longDay(daySlots[0].startsAt)}</p>
+                    <p className={`font-subtitle text-xs ${free > 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                      {free > 0 ? `${free} ${free === 1 ? 'livre' : 'livres'}` : 'Dia completo'}
+                    </p>
+                  </div>
+                  <div className="mt-2.5 flex flex-wrap gap-2">
+                    {daySlots.map((slot) => {
+                      const busy = slot.status !== 'OPEN'
+                      return busy ? (
+                        <span
+                          key={slot.id}
+                          aria-label={`${timeLabel(slot.startsAt)}, ocupado`}
+                          className="flex items-center gap-1.5 rounded-full bg-onyx/5 px-3 py-1.5 font-subtitle text-sm text-onyx/40 line-through"
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-red-600" aria-hidden="true" />
+                          {timeLabel(slot.startsAt)}
+                        </span>
+                      ) : (
+                        <Link
+                          key={slot.id}
+                          to={`/marcar?slot=${slot.id}`}
+                          onClick={() => void tap()}
+                          className="glass-chip flex items-center gap-1.5 rounded-full px-3 py-1.5 font-subtitle text-sm text-onyx"
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" aria-hidden="true" />
+                          {timeLabel(slot.startsAt)}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+            {days.length > 3 && (
+              <button
+                type="button"
+                onClick={() => {
+                  void tap()
+                  setMoreDays((v) => !v)
+                }}
+                className="mt-4 flex w-full items-center justify-center gap-1 border-t border-onyx/10 pt-3 font-subtitle text-sm font-medium text-onyx"
+              >
+                {moreDays ? 'Ver menos' : `Ver mais (${days.length - 3} ${days.length - 3 === 1 ? 'dia' : 'dias'})`}
+                <i className={`bx ${moreDays ? 'bx-chevron-up' : 'bx-chevron-down'} text-lg`} aria-hidden="true" />
+              </button>
+            )}
+          </div>
         ) : (
           <div className="-mx-5 mt-3 flex gap-2.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {upcoming.map((slot) => {
