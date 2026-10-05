@@ -59,11 +59,11 @@ export default function HomeScreen() {
         {/* Bottom edge: frosted blur that melts into the page instead of a straight cut. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[14%] backdrop-blur-xl [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_80%)] [mask-image:linear-gradient(to_bottom,transparent,black_80%)]"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[8%] backdrop-blur-xl [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_80%)] [mask-image:linear-gradient(to_bottom,transparent,black_80%)]"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] h-[14%] bg-gradient-to-b from-white/0 via-white/40 to-white"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] h-[8%] bg-gradient-to-b from-white/0 via-white/40 to-white"
         />
         <div className="relative z-10 flex max-w-md flex-col items-center">
           <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-[#ffffff] [text-shadow:0_1px_12px_rgba(0,0,0,0.6)]">

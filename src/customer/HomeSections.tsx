@@ -229,9 +229,6 @@ function SectionTitle({ title, hint }: { title: string; hint?: string }) {
   )
 }
 
-const strip =
-  'flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
-
 /** Four shortcuts behind a "+" button that slides away to show them. */
 export function QuickActions({ whatsappUrl }: { whatsappUrl?: string }) {
   const icons: ActionIcon[] = [
@@ -719,40 +716,45 @@ function ReviewCard({ review }: { review: Review }) {
   const long = review.quote.length > 150
   const when = review.date ? new Date(review.date) : null
   return (
-    <figure className="flex w-[86%] max-w-sm shrink-0 snap-center flex-col rounded-[2rem] border-[1.5px] border-onyx/25 bg-white p-6">
-      <i className="bx bxs-quote-alt-left text-5xl text-onyx/15" aria-hidden="true" />
-      <blockquote
-        className={`mt-2 flex-1 font-subtitle text-[17px] font-normal leading-relaxed text-onyx ${open ? '' : 'line-clamp-5'}`}
-      >
-        {review.quote}
-      </blockquote>
-      {long && (
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="mt-2 self-start font-subtitle text-sm font-medium text-onyx underline underline-offset-4"
+    <div className="flex w-full shrink-0 snap-center snap-always px-3">
+      <figure className="mx-auto flex w-full max-w-md flex-col rounded-[2rem] border-[1.5px] border-onyx/25 bg-white p-7">
+        <i className="bx bxs-quote-alt-left text-6xl text-onyx/15" aria-hidden="true" />
+        <blockquote
+          className={`mt-3 flex-1 font-subtitle text-[19px] font-normal leading-relaxed text-onyx ${open ? '' : 'line-clamp-6'}`}
         >
-          {open ? 'Ler menos' : 'Ler mais'}
-        </button>
-      )}
-      <figcaption className="mt-5 flex items-center gap-3 border-t border-onyx/10 pt-4">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-onyx font-subtitle text-base font-semibold text-[#ffffff] dark:bg-gold-deep">
-          {review.name.trim().charAt(0).toUpperCase()}
-        </span>
-        <span className="min-w-0">
-          <span className="block truncate font-subtitle text-sm font-semibold text-onyx">{review.name}</span>
-          <span className="block font-subtitle text-xs text-muted-dark">
-            Cliente AFROGLOW{when ? ` · ${MONTHS_PT[when.getMonth()]} ${when.getFullYear()}` : ''}
+          {review.quote}
+        </blockquote>
+        {long && (
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="mt-2 self-start font-subtitle text-sm font-medium text-onyx underline underline-offset-4"
+          >
+            {open ? 'Ler menos' : 'Ler mais'}
+          </button>
+        )}
+        <figcaption className="mt-5 flex items-center gap-3 border-t border-onyx/10 pt-4">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-onyx font-subtitle text-base font-semibold text-[#ffffff] dark:bg-gold-deep">
+            {review.name.trim().charAt(0).toUpperCase()}
           </span>
-        </span>
-      </figcaption>
-    </figure>
+          <span className="min-w-0">
+            <span className="block truncate font-subtitle text-sm font-semibold text-onyx">{review.name}</span>
+            <span className="block font-subtitle text-xs text-muted-dark">
+              Cliente AFROGLOW{when ? ` · ${MONTHS_PT[when.getMonth()]} ${when.getFullYear()}` : ''}
+            </span>
+          </span>
+        </figcaption>
+      </figure>
+    </div>
   )
 }
 
 /** Testimonials as large swipeable quotes, with a counter and position dots. */
 export function ReviewsRow({ reviews }: { reviews: Review[] }) {
   const [index, setIndex] = useState(0)
+  const [swiped, setSwiped] = useState(false)
+  const track = useRef<HTMLDivElement>(null)
+  useSwipeNudge(track, reviews.length)
   if (reviews.length === 0) return null
   return (
     <section className="pt-12">
@@ -771,20 +773,22 @@ export function ReviewsRow({ reviews }: { reviews: Review[] }) {
         )}
       </div>
       <div
-        className={`${strip} mt-5 items-stretch`}
+        ref={track}
+        className="mt-5 flex snap-x snap-mandatory items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         onScroll={(e) => {
           const el = e.currentTarget
-          const card = el.firstElementChild as HTMLElement | null
-          if (card)
-            setIndex(Math.min(reviews.length - 1, Math.max(0, Math.round(el.scrollLeft / (card.offsetWidth + 12)))))
+          const i = Math.min(reviews.length - 1, Math.max(0, Math.round(el.scrollLeft / el.clientWidth)))
+          setIndex(i)
+          if (i > 0) setSwiped(true)
         }}
       >
         {reviews.map((review) => (
           <ReviewCard key={review.id} review={review} />
         ))}
       </div>
+      <SwipeHint index={index} slides={reviews.length} swiped={swiped} what="testemunhos" />
       {reviews.length > 1 && reviews.length <= 12 && (
-        <div className="mt-4 flex justify-center gap-1.5" aria-hidden="true">
+        <div className="mt-3 flex justify-center gap-1.5" aria-hidden="true">
           {reviews.map((review, i) => (
             <span
               key={review.id}
