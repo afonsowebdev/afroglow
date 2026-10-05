@@ -2079,51 +2079,61 @@ export default function AdminDashboardPage() {
                 ) : (
                   slotsByDate.map(([key, daySlots]) => {
                     const heading = dayHeading(daySlots[0].startsAt)
+                    const first = dateParts(daySlots[0].startsAt)
                     const past = key < dateKey(new Date().toISOString())
                     return (
-                      <div key={key} className={`mt-7 ${past ? 'opacity-55' : ''}`}>
-                        <div className="flex items-baseline gap-3">
-                          <h3 className="font-subtitle font-semibold lining-nums tracking-tight text-lg text-onyx">
-                            {heading.title}
-                          </h3>
-                          {heading.sub && <span className="font-subtitle text-xs text-muted-dark">{heading.sub}</span>}
+                      <div
+                        key={key}
+                        className={`mt-4 flex overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white ${past ? 'opacity-55' : ''}`}
+                      >
+                        <div className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-onyx/10 bg-onyx/5 py-4 text-center">
+                          <span className="font-subtitle text-[11px] font-medium uppercase tracking-wide text-muted-dark first-letter:uppercase">
+                            {first.weekday.slice(0, 3)}
+                          </span>
+                          <span className="font-subtitle text-2xl font-semibold lining-nums leading-none tracking-tight text-onyx">
+                            {first.day}
+                          </span>
+                          <span className="mt-0.5 font-subtitle text-[11px] uppercase text-muted-dark">
+                            {first.month}
+                          </span>
+                          {heading.sub && (
+                            <span className="mt-2 rounded-full bg-onyx/10 px-2 py-0.5 font-subtitle text-[10px] font-medium text-onyx">
+                              {heading.title}
+                            </span>
+                          )}
                         </div>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {daySlots.map((slot) => (
-                            <div
-                              key={slot.id}
-                              className={`flex items-center gap-2 rounded-full py-1.5 pl-4 ${
-                                slot.status === 'OPEN' ? 'pr-2' : 'pr-4'
-                              } font-subtitle text-sm ${
-                                slot.status === 'BOOKED'
-                                  ? 'bg-onyx text-white'
-                                  : slot.status === 'PENDING'
-                                    ? 'glass-chip-on text-onyx'
-                                    : 'glass-chip text-onyx'
-                              }`}
-                            >
-                              <span className="font-semibold">{dateParts(slot.startsAt).time}</span>
-                              <span
-                                className={`text-[11px] uppercase tracking-wide ${
-                                  slot.status === 'BOOKED' ? 'text-white/70' : 'text-muted-dark'
-                                }`}
-                              >
-                                {SLOT_STATUS_LABEL[slot.status]}
-                              </span>
-                              {slot.status === 'OPEN' && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteSlot(slot.id)}
-                                  disabled={busyId === slot.id}
-                                  aria-label="Remover vaga"
-                                  className="flex h-6 w-6 items-center justify-center rounded-full text-muted-dark transition-colors hover:bg-red-700/10 hover:text-red-700"
-                                >
-                                  <i className="bx bx-x text-lg" aria-hidden="true" />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
+                        <ul className="min-w-0 flex-1 divide-y divide-onyx/10">
+                          {daySlots.map((slot) => {
+                            const dot =
+                              slot.status === 'BOOKED'
+                                ? 'bg-onyx'
+                                : slot.status === 'PENDING'
+                                  ? 'bg-amber-500'
+                                  : 'bg-emerald-600'
+                            return (
+                              <li key={slot.id} className="flex h-12 items-center gap-3 px-4">
+                                <span className="w-12 font-subtitle text-base font-semibold lining-nums tracking-tight text-onyx">
+                                  {dateParts(slot.startsAt).time}
+                                </span>
+                                <span className="flex flex-1 items-center gap-2 font-subtitle text-sm text-muted-dark">
+                                  <span className={`size-2 rounded-full ${dot}`} aria-hidden="true" />
+                                  {SLOT_STATUS_LABEL[slot.status]}
+                                </span>
+                                {slot.status === 'OPEN' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteSlot(slot.id)}
+                                    disabled={busyId === slot.id}
+                                    aria-label="Remover vaga"
+                                    className="flex size-8 items-center justify-center rounded-full text-lg text-muted-dark active:bg-red-700/10 active:text-red-700 disabled:opacity-40"
+                                  >
+                                    <i className="bx bx-trash" aria-hidden="true" />
+                                  </button>
+                                )}
+                              </li>
+                            )
+                          })}
+                        </ul>
                       </div>
                     )
                   })
