@@ -8,7 +8,6 @@ import { disableCustomerPush, enableCustomerPush, pushSupported, pushWanted } fr
 import { siteConfig } from '@/lib/site-config'
 
 const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$/
-const APP_VERSION = '1.0'
 
 type SheetId = 'name' | 'phone' | 'password' | 'delete' | null
 
@@ -255,7 +254,11 @@ export default function SettingsScreen() {
           >
             Eliminar a minha conta
           </button>
-          <p className="mt-4 font-subtitle text-xs text-muted-dark">AFROGLOW · versão {APP_VERSION}</p>
+          <p className="mt-4 font-subtitle text-xs text-muted-dark">
+            AFROGLOW · versão {__APP_VERSION__}
+            <br />
+            build {__APP_BUILD__} · {__APP_COMMIT__}
+          </p>
         </div>
       </div>
 

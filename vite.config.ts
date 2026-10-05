@@ -1,4 +1,6 @@
+import { execSync } from 'node:child_process'
 import path from 'node:path'
+import pkg from './package.json' with { type: 'json' }
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
@@ -25,7 +27,21 @@ function startAppAfterFirstPaint(): Plugin {
   }
 }
 
+const git = (command: string, fallback: string) => {
+  try {
+    return execSync(command, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+  } catch {
+    return fallback
+  }
+}
+
 export default defineConfig(({ mode }) => ({
+  define: {
+    // Shown in the app's Settings: marketing version + build number (commits so far) + short commit.
+    __APP_VERSION__: JSON.stringify(pkg.version),
+    __APP_BUILD__: JSON.stringify(git('git rev-list --count HEAD', '0')),
+    __APP_COMMIT__: JSON.stringify(git('git rev-parse --short HEAD', 'dev')),
+  },
   plugins: [
     react(),
     ...(mode === 'customer' ? [] : [startAppAfterFirstPaint()]),
