@@ -1,10 +1,11 @@
 import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
+import { LogOut, Moon, Sun } from 'lucide-react'
 import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
+import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import { DatePicker } from '@/components/ui/date-picker'
 import { MotionButton } from '@/components/ui/motion-button'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { adminToken, api, ApiError } from '@/lib/api'
 import { CustomersView } from '@/pages/admin/CustomersView'
 import type { AdminCustomer } from '@/pages/admin/admin-types'
@@ -17,6 +18,7 @@ import { ServicePhotos } from '@/pages/admin/ServicePhotos'
 import { SettingsView } from '@/pages/admin/SettingsView'
 import { StatsView } from '@/pages/admin/StatsView'
 import { registerForPushNotifications } from '@/lib/push-notifications'
+import { useTheme } from '@/lib/theme'
 import { customerWhatsappUrl } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service, type Testimonial } from '@/lib/types'
 
@@ -1258,6 +1260,7 @@ function PendingView({
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
+  const theme = useTheme()
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [adminEmail, setAdminEmail] = useState<string | null>(null)
   const [tab, setTab] = useState<AdminTab>(() => {
@@ -1646,6 +1649,15 @@ export default function AdminDashboardPage() {
     scrolled ? 'shadow-xl shadow-black/15' : ''
   }`
 
+  const menuActions: MenuAction[] = [
+    {
+      Icon: theme.theme === 'dark' ? Sun : Moon,
+      label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
+      onClick: theme.toggleTheme,
+    },
+    { Icon: LogOut, label: 'Sair', onClick: () => void handleLogout() },
+  ]
+
   if (checkingAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white font-subtitle text-muted-dark">
@@ -1658,21 +1670,9 @@ export default function AdminDashboardPage() {
     <div className="relative min-h-screen bg-white font-medium">
       {/* Not fixed: the header scrolls away with the page. */}
       <div className="absolute inset-x-0 top-0 z-40 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
+        <div className="mx-auto flex max-w-5xl items-center justify-center">
           <div className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
             <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <ThemeToggle className="h-12 w-12 border-transparent bg-white/95 shadow-lg shadow-black/10 backdrop-blur" />
-            <button
-              type="button"
-              onClick={handleLogout}
-              className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-deep sm:px-6 ${pillClasses}`}
-            >
-              <span>Sair</span>
-              <i className="bx bx-log-out text-lg" aria-hidden="true" />
-            </button>
           </div>
         </div>
       </div>
@@ -2183,20 +2183,27 @@ export default function AdminDashboardPage() {
         }}
       />
 
-      <BottomNavBar
-        stickyBottom
-        value={(MORE_TARGETS.includes(tab as MoreTarget) ? 'mais' : tab) as NavTab}
-        onChange={(id) => {
-          setTab(id)
-          window.scrollTo({ top: 0 })
-        }}
-        items={TABS.map(({ id, label, icon }) => ({
-          id,
-          label,
-          icon,
-          badge: id === 'pedidos' ? pendingBookings.length : id === 'mais' ? pendingTestimonials.length : 0,
-        }))}
-      />
+      {/* Tab bar with the round options button beside it, same as the customer app. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center gap-2.5 px-3">
+        <div className="pointer-events-auto min-w-0">
+          <BottomNavBar
+            glass
+            compact
+            value={(MORE_TARGETS.includes(tab as MoreTarget) ? 'mais' : tab) as NavTab}
+            onChange={(id) => {
+              setTab(id)
+              window.scrollTo({ top: 0 })
+            }}
+            items={TABS.map(({ id, label, icon }) => ({
+              id,
+              label,
+              icon,
+              badge: id === 'pedidos' ? pendingBookings.length : id === 'mais' ? pendingTestimonials.length : 0,
+            }))}
+          />
+        </div>
+        <FloatingActionMenu actions={menuActions} />
+      </div>
     </div>
   )
 }
