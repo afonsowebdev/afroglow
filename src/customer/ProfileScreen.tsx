@@ -10,7 +10,6 @@ import { formatPrice, type Booking } from '@/lib/types'
 import { TestimonialForm } from '@/pages/AccountPage'
 import { dayParts, longDay, timeLabel } from './dates'
 import { Fact, Facts, labelClass, panelClass, StatusDot } from './panel'
-import { useLightStatusBar } from './useLightStatusBar'
 
 const MONTHS = [
   'janeiro',
@@ -30,7 +29,7 @@ const MONTHS = [
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div className="flex-1 px-2 text-center">
-      <p className="font-subtitle text-3xl font-semibold leading-none tracking-tight text-onyx">{value}</p>
+      <p className="font-subtitle text-2xl font-light leading-none tracking-tight text-onyx">{value}</p>
       <p className="mt-2 font-subtitle text-[10px] uppercase tracking-[0.14em] text-muted-dark">{label}</p>
     </div>
   )
@@ -38,7 +37,6 @@ function Stat({ value, label }: { value: string; label: string }) {
 
 /** Who the customer is and what they have done with us. Account settings live on their own screen. */
 export default function ProfileScreen() {
-  useLightStatusBar()
   const navigate = useNavigate()
   const { customer } = useCustomerAuth()
   const [bookings, setBookings] = useState<Booking[] | null>(null)
@@ -76,16 +74,21 @@ export default function ProfileScreen() {
 
   return (
     <main className="pb-40">
-      <header className="relative overflow-hidden rounded-b-[2.5rem] bg-gradient-to-b from-[#1c1c1e] via-[#2c2a26] to-[#7d6a2f] px-6 pb-20 pt-[calc(1.25rem+env(safe-area-inset-top))] text-center text-[#f5efdf] dark:from-[#2b1d12] dark:via-[#3b2616] dark:to-[#7a5a22]">
+      <header className="relative overflow-hidden bg-gradient-to-b from-cream via-white to-white px-6 pb-8 pt-[calc(1.25rem+env(safe-area-inset-top))] text-center">
+        {/* A soft golden glow behind the avatar, and the brand word barely visible */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-16 h-72 w-72 -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(201,168,76,0.28),transparent)]"
+        />
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-6 left-1/2 -translate-x-1/2 select-none whitespace-nowrap font-logo text-[26vw] leading-none text-[#ffffff]/[0.06]"
+          className="pointer-events-none absolute left-1/2 top-24 -translate-x-1/2 select-none whitespace-nowrap font-logo text-[30vw] leading-none text-gold/[0.10]"
         >
           AFROGLOW
         </span>
 
         <div className="relative flex items-center justify-between">
-          <span className="font-subtitle text-[11px] uppercase tracking-[0.22em] text-[#f5efdf]/70">O meu perfil</span>
+          <span className="font-subtitle text-[11px] uppercase tracking-[0.28em] text-muted-dark">O meu perfil</span>
           <button
             type="button"
             aria-label="Definições"
@@ -93,33 +96,41 @@ export default function ProfileScreen() {
               void tap()
               navigate('/definicoes')
             }}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-[#ffffff]/30 bg-[#ffffff]/10 text-xl text-[#ffffff] backdrop-blur-md"
+            className="glass-chip flex h-10 w-10 items-center justify-center rounded-full text-xl text-onyx"
           >
             <i className="bx bx-cog" aria-hidden="true" />
           </button>
         </div>
 
         <motion.div
-          initial={{ scale: 0.85, opacity: 0 }}
+          initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-          className="relative mx-auto mt-6 flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-[#e0c36e] to-[#a8842f] p-[3px] shadow-xl shadow-black/30"
+          transition={{ type: 'spring', stiffness: 200, damping: 22 }}
+          className="relative mx-auto mt-8 h-32 w-32"
         >
-          <span className="flex h-full w-full items-center justify-center rounded-full bg-[#1c1c1e] font-logo text-6xl text-[#e0c36e] dark:bg-[#2b1d12]">
+          {/* two fine rings around the monogram */}
+          <span className="absolute inset-0 rounded-full border border-gold-ink/30" aria-hidden="true" />
+          <span className="absolute inset-[7px] rounded-full border border-gold-ink/60" aria-hidden="true" />
+          <span className="absolute inset-[14px] flex items-center justify-center rounded-full bg-white font-logo text-6xl text-gold-ink shadow-[0_8px_24px_rgba(201,168,76,0.25)]">
             {initial}
           </span>
         </motion.div>
 
-        <h1 className="relative mt-5 truncate font-subtitle text-3xl font-semibold tracking-tight text-[#ffffff]">
+        <h1 className="relative mt-6 truncate font-subtitle text-[28px] font-light tracking-tight text-onyx">
           {customer.name}
         </h1>
-        <p className="relative mt-1 font-subtitle text-sm text-[#f5efdf]/70">
+        <div className="relative mx-auto mt-3 flex items-center justify-center gap-3" aria-hidden="true">
+          <span className="h-px w-8 bg-gold-ink/40" />
+          <i className="bx bxs-diamond text-[10px] text-gold-ink" />
+          <span className="h-px w-8 bg-gold-ink/40" />
+        </div>
+        <p className="relative mt-3 font-subtitle text-xs uppercase tracking-[0.22em] text-muted-dark">
           {sinceLabel ? `Cliente desde ${sinceLabel}` : 'Cliente AFROGLOW'}
         </p>
       </header>
 
       <div className="mx-auto max-w-2xl px-5">
-        <div className="relative z-10 -mt-10 flex divide-x divide-onyx/20 rounded-2xl border-[1.5px] border-onyx/25 bg-white py-5 shadow-md shadow-black/10">
+        <div className="flex divide-x divide-gold-ink/25 border-y border-gold-ink/25 py-5">
           <Stat value={bookings ? String(data.done.length) : '–'} label="Sessões" />
           <Stat value={nextParts ? `${nextParts.day} ${nextParts.month}` : '–'} label="Próxima" />
           <Stat value={bookings ? formatPrice(data.spent).replace(/,00/, '') : '–'} label="Investido" />
