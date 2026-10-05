@@ -131,11 +131,7 @@ export default function ProfileScreen() {
   return (
     <main className="pb-40">
       <header className="relative overflow-hidden bg-gradient-to-b from-cream via-white to-white px-6 pb-8 pt-[calc(1.25rem+env(safe-area-inset-top))] text-center">
-        {/* A soft golden glow behind the avatar, and the brand word barely visible */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-16 h-72 w-72 -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(201,168,76,0.28),transparent)]"
-        />
+        {/* The brand word, barely visible */}
         <span
           aria-hidden="true"
           className="pointer-events-none absolute left-1/2 top-24 -translate-x-1/2 select-none whitespace-nowrap font-logo text-[30vw] leading-none text-gold/[0.10]"
@@ -172,7 +168,7 @@ export default function ProfileScreen() {
               void tap()
               photoInput.current?.click()
             }}
-            className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-b from-cream to-white font-logo text-6xl text-gold-ink shadow-[0_16px_36px_rgba(26,16,8,0.18)]"
+            className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-b from-cream to-white font-logo text-6xl text-gold-ink"
           >
             {photo ? <img src={photo} alt="" className="h-full w-full object-cover" /> : initial}
           </button>
