@@ -15,8 +15,8 @@ interface Clip {
 // Dark theme playlist (1080p only).
 const isApp = import.meta.env.MODE === 'customer'
 
-// Dark theme playlist (1080p only). The iPhone app plays only clips 3 and 5 for now.
-const DARK_CLIPS: Clip[] = (isApp ? [3, 5] : [1, 2, 3, 4, 5, 6]).map((n) => ({
+// Dark theme playlist (1080p only).
+const DARK_CLIPS: Clip[] = [1, 2, 3, 4, 5, 6].map((n) => ({
   sd: `/videos/hero-hd-${n}-sd.mp4`,
   hd: `/videos/hero-hd-${n}.mp4`,
 }))
@@ -30,7 +30,7 @@ const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
   app: `/videos/hero-light-${n}-app.mp4?v=1`,
 }))
 
-// The customer iPhone app plays one pre-edited file: hero-light-1, 2, 3 and 5, each played to its end before
+// The customer iPhone app plays one pre-edited file: light and dark clips alternating (light 1, dark 3, light 2, dark 5, light 3), each played to its end before
 // a soft sliding wipe hands over to the next (also at the loop point, so the native loop shows no seam). It
 // travels inside the app.
 const APP_CLIPS: Clip[] = [
@@ -57,8 +57,8 @@ const POSTER_BY_TONE = {
 } as const
 
 // Normal playback speed (1 = real time). Lower it for a calmer, slow-motion feel.
-// The app's light-theme loop is played a little slower, for a calmer feel; everything else at normal speed.
-const playbackRateFor = (tone: 'dark' | 'light') => (import.meta.env.MODE === 'customer' && tone === 'light' ? 0.8 : 1)
+// The app's loop is played a little slower, for a calmer feel; the website at normal speed.
+const playbackRateFor = (_tone: 'dark' | 'light') => (isApp ? 0.8 : 1)
 
 // The next clip starts this long before the current one ends, and the two
 // crossfade over the same window, so playback is continuous: no frozen last
@@ -89,9 +89,8 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
   const [firstPlaying, setFirstPlaying] = useState(false)
   // Resolved once per mount; the Hero remounts this component when the theme changes.
   const [videos] = useState(() => {
-    // In the app every clip travels inside it (so the video starts at once, with no download): the light theme
-    // plays the edited loop, the dark theme the HD playlist.
-    const clips = isApp && tone === 'light' ? APP_CLIPS : tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
+    // In the app both themes play the same edited loop, which travels inside it (no download, starts at once).
+    const clips = isApp ? APP_CLIPS : tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
     return clips.map((clip) => pickRendition(clip))
   })
   const [sources, setSources] = useState([videos[0], videos[1 % videos.length]])
