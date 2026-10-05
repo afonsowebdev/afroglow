@@ -9,7 +9,7 @@ type Variant = 'overlay' | 'primary' | 'secondary'
 /*
  * The customer app's button, in liquid glass like the tab bar:
  *  - overlay: over the hero video, clear glass with a light dark veil, white letters;
- *  - primary: clear glass like the tab bar, dark letters, with a faint gold tint to mark the main action;
+ *  - primary: clear glass like the tab bar, dark letters, no colour at all;
  *  - secondary: clear glass, dark letters.
  * Always a compact pill: label on the left, round glass disc with an arrow on the right.
  */
@@ -61,12 +61,7 @@ export function GlassButton({
     onClick?.(event)
   }
   // On the video the clear glass needs a faint veil so white letters stay legible on bright frames.
-  const style =
-    variant === 'overlay'
-      ? { background: 'rgba(0, 0, 0, 0.14)' }
-      : variant === 'primary'
-        ? { background: 'rgba(201, 168, 76, 0.16)' }
-        : undefined
+  const style = variant === 'overlay' ? { background: 'rgba(0, 0, 0, 0.14)' } : undefined
 
   const inner = to ? (
     <Link to={to} onClick={handle} className={classes} style={style}>
