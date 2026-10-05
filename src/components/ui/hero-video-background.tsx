@@ -15,8 +15,8 @@ interface Clip {
 // Dark theme playlist (1080p only).
 const isApp = import.meta.env.MODE === 'customer'
 
-// Dark theme playlist (1080p only). The iPhone app leaves out clips 2 and 4 for now.
-const DARK_CLIPS: Clip[] = (isApp ? [1, 3, 5, 6] : [1, 2, 3, 4, 5, 6]).map((n) => ({
+// Dark theme playlist (1080p only). The iPhone app plays only clips 3 and 5 for now.
+const DARK_CLIPS: Clip[] = (isApp ? [3, 5] : [1, 2, 3, 4, 5, 6]).map((n) => ({
   sd: `/videos/hero-hd-${n}-sd.mp4`,
   hd: `/videos/hero-hd-${n}.mp4`,
 }))
