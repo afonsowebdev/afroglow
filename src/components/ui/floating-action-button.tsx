@@ -167,7 +167,7 @@ export function FloatingActionMenu({
           type="button"
           aria-label="Fechar"
           onClick={close}
-          className="pointer-events-auto fixed inset-0 z-40 cursor-default bg-black/20"
+          className="pointer-events-auto fixed inset-0 z-40 cursor-default bg-black/35 backdrop-blur-md"
         />
       )}
 
@@ -185,7 +185,8 @@ export function FloatingActionMenu({
             ) : (
               <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 22 }} aria-hidden="true" />
             )
-            const circle = 'glass-chip flex size-12 items-center justify-center rounded-full'
+            const circle =
+              'flex size-12 items-center justify-center rounded-full border border-onyx/10 bg-white shadow-md shadow-black/10'
             const run = () => {
               onClick?.()
               close()
@@ -205,7 +206,7 @@ export function FloatingActionMenu({
                 }}
                 transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4, delay: open ? index * 0.05 : 0 }}
               >
-                <span className="glass-chip whitespace-nowrap rounded-full px-3.5 py-1.5 font-subtitle text-xs font-medium text-onyx">
+                <span className="whitespace-nowrap rounded-full border border-onyx/10 bg-white px-3.5 py-1.5 font-subtitle text-xs font-medium text-onyx shadow-md shadow-black/10">
                   {label}
                 </span>
                 {href ? (
