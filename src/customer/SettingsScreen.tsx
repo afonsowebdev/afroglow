@@ -3,6 +3,7 @@ import { ActionButton } from '@/components/ui/action-button'
 import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
 import { useNavigate } from 'react-router-dom'
 import { ApiError } from '@/lib/api'
+import { useAvatar } from '@/lib/avatar-store'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { disableCustomerPush, enableCustomerPush, pushSupported, pushWanted } from '@/lib/customer-push'
 import { siteConfig } from '@/lib/site-config'
@@ -15,20 +16,8 @@ function errorText(err: unknown) {
   return err instanceof ApiError ? err.message : 'Erro inesperado. Tenta novamente.'
 }
 
-type Tone = 'gold' | 'rose' | 'sage' | 'sky' | 'plum' | 'ink'
-
-const TONES: Record<Tone, string> = {
-  gold: 'bg-onyx/5 text-onyx',
-  rose: 'bg-onyx/5 text-onyx',
-  sage: 'bg-onyx/5 text-onyx',
-  sky: 'bg-onyx/5 text-onyx',
-  plum: 'bg-onyx/5 text-onyx',
-  ink: 'bg-onyx/5 text-onyx',
-}
-
 function Item({
   icon,
-  tone = 'gold',
   label,
   value,
   onClick,
@@ -36,7 +25,6 @@ function Item({
   locked,
 }: {
   icon: string
-  tone?: Tone
   label: string
   value?: string
   onClick?: () => void
@@ -45,27 +33,23 @@ function Item({
 }) {
   const content = (
     <>
-      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${TONES[tone]}`}>
-        <i className={icon} aria-hidden="true" />
-      </span>
-      <span className="min-w-0 flex-1 text-left">
-        <span className="block font-subtitle text-[15px] text-onyx">{label}</span>
-        {value && <span className="block truncate font-subtitle text-xs text-muted-dark">{value}</span>}
-      </span>
+      <i className={`${icon} w-6 shrink-0 text-center text-[22px] text-muted-dark`} aria-hidden="true" />
+      <span className="min-w-0 flex-1 truncate text-left font-subtitle text-[15px] text-onyx">{label}</span>
+      {value && <span className="max-w-[45%] truncate font-subtitle text-sm text-muted-dark">{value}</span>}
       <i
-        className={`bx ${locked ? 'bx-lock-alt' : href ? 'bx-link-external' : 'bx-chevron-right'} shrink-0 text-lg text-muted-dark/60`}
+        className={`bx ${locked ? 'bx-lock-alt' : href ? 'bx-link-external' : 'bx-chevron-right'} shrink-0 text-lg text-muted-dark/50`}
         aria-hidden="true"
       />
     </>
   )
-  const cls = 'flex w-full items-center gap-3.5 px-4 py-3 transition-colors active:bg-gold-deep/10'
+  const cls = 'flex w-full items-center gap-3.5 px-4 py-3.5 transition-colors active:bg-onyx/5'
   if (href)
     return (
       <a href={href} target="_blank" rel="noreferrer" className={cls}>
         {content}
       </a>
     )
-  if (locked || !onClick) return <div className="flex w-full items-center gap-3.5 px-4 py-3">{content}</div>
+  if (locked || !onClick) return <div className="flex w-full items-center gap-3.5 px-4 py-3.5">{content}</div>
   return (
     <button type="button" onClick={onClick} className={cls}>
       {content}
@@ -75,11 +59,11 @@ function Item({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mt-7">
-      <h2 className="mb-2.5 px-2 font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-muted-dark">
+    <section className="mt-8">
+      <h2 className="mb-2 px-1 font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-muted-dark">
         {title}
       </h2>
-      <div className="divide-y divide-onyx/20 overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white">
+      <div className="divide-y divide-onyx/10 overflow-hidden rounded-2xl border-[1.5px] border-onyx/20 bg-white">
         {children}
       </div>
     </section>
@@ -110,9 +94,7 @@ function NotificationsRow() {
   return (
     <div className="px-4 py-3">
       <div className="flex items-center gap-3.5">
-        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${TONES.rose}`}>
-          <i className="bx bx-bell" aria-hidden="true" />
-        </span>
+        <i className="bx bx-bell w-6 shrink-0 text-center text-[22px] text-muted-dark" aria-hidden="true" />
         <span className="min-w-0 flex-1">
           <span className="block font-subtitle text-[15px] text-onyx">Notificações</span>
           <span className="block font-subtitle text-xs text-muted-dark">Marcação confirmada e lembrete da sessão</span>
@@ -137,6 +119,7 @@ function NotificationsRow() {
 
 export default function SettingsScreen() {
   const navigate = useNavigate()
+  const photo = useAvatar()
   const { customer, updateProfile, changePassword, deleteAccount, logout } = useCustomerAuth()
   const [sheet, setSheet] = useState<SheetId>(null)
   const [busy, setBusy] = useState(false)
@@ -184,8 +167,8 @@ export default function SettingsScreen() {
 
   return (
     <main className="pb-40">
-      <header className="px-5 pb-2 pt-[calc(1.25rem+env(safe-area-inset-top))]">
-        <div className="mx-auto flex max-w-2xl items-center gap-3">
+      <header className="px-5 pb-1 pt-[calc(1.25rem+env(safe-area-inset-top))]">
+        <div className="mx-auto max-w-2xl">
           <button
             type="button"
             aria-label="Voltar ao perfil"
@@ -194,7 +177,10 @@ export default function SettingsScreen() {
           >
             <i className="bx bx-chevron-left" aria-hidden="true" />
           </button>
-          <h1 className="font-subtitle text-3xl font-semibold tracking-tight text-onyx">Definições</h1>
+          <h1 className="mt-5 font-subtitle text-[32px] font-semibold leading-none tracking-tight text-onyx">
+            Definições
+          </h1>
+          <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">A tua conta e as preferências da app.</p>
         </div>
       </header>
 
@@ -214,11 +200,27 @@ export default function SettingsScreen() {
           </div>
         )}
 
+        <div className="mt-6 flex items-center gap-4 rounded-2xl border-[1.5px] border-onyx/20 bg-white p-4">
+          {photo ? (
+            <img src={photo} alt="" className="size-14 shrink-0 rounded-full object-cover" />
+          ) : (
+            <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-3xl text-gold-ink">
+              {customer.name.trim().charAt(0).toUpperCase() || '?'}
+            </span>
+          )}
+          <span className="min-w-0 flex-1">
+            <span className="block truncate font-subtitle text-lg font-semibold tracking-tight text-onyx">
+              {customer.name}
+            </span>
+            <span className="block truncate font-subtitle text-sm text-muted-dark">{customer.email}</span>
+          </span>
+        </div>
+
         <Section title="Conta">
-          <Item icon="bx bx-user" tone="gold" label="Nome" value={customer.name} onClick={() => open('name')} />
-          <Item icon="bx bx-phone" tone="sage" label="Telemóvel" value={customer.phone} onClick={() => open('phone')} />
-          <Item icon="bx bx-envelope" tone="sky" label="Email" value={customer.email} locked />
-          <Item icon="bx bx-key" tone="plum" label="Alterar password" onClick={() => open('password')} />
+          <Item icon="bx bx-user" label="Nome" value={customer.name} onClick={() => open('name')} />
+          <Item icon="bx bx-phone" label="Telemóvel" value={customer.phone} onClick={() => open('phone')} />
+          <Item icon="bx bx-envelope" label="Email" value={customer.email} locked />
+          <Item icon="bx bx-key" label="Alterar password" onClick={() => open('password')} />
         </Section>
 
         {pushSupported() && (
@@ -228,14 +230,14 @@ export default function SettingsScreen() {
         )}
 
         <Section title="Ajuda e informação">
-          <Item icon="bx bx-envelope" tone="sky" label={siteConfig.email} href={`mailto:${siteConfig.email}`} />
+          <Item icon="bx bx-envelope" label={siteConfig.email} href={`mailto:${siteConfig.email}`} />
           <Item
             icon="bx bx-shield-quarter"
-            tone="sage"
+
             label="Política de privacidade"
             href="https://www.afroglow.pt/privacidade"
           />
-          <Item icon="bx bx-file" tone="ink" label="Termos e condições" href="https://www.afroglow.pt/termos" />
+          <Item icon="bx bx-file" label="Termos e condições" href="https://www.afroglow.pt/termos" />
         </Section>
 
         <ActionButton
