@@ -35,11 +35,14 @@ const MONTHS = [
   'dezembro',
 ]
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Stat({ icon, value, label }: { icon: string; value: string; label: string }) {
   return (
-    <div className="flex-1 px-2 text-center">
-      <p className="font-subtitle text-2xl font-light leading-none tracking-tight text-onyx">{value}</p>
-      <p className="mt-2 font-subtitle text-[10px] uppercase tracking-[0.14em] text-muted-dark">{label}</p>
+    <div className="flex flex-col items-center rounded-2xl border-[1.5px] border-onyx/25 bg-white px-2 pb-4 pt-4 text-center">
+      <span className="flex size-9 items-center justify-center rounded-full bg-gold-ink/10 text-lg text-gold-ink">
+        <i className={icon} aria-hidden="true" />
+      </span>
+      <p className="mt-3 font-subtitle text-xl font-semibold leading-none tracking-tight text-onyx">{value}</p>
+      <p className="mt-1.5 font-subtitle text-[10px] uppercase tracking-[0.14em] text-muted-dark">{label}</p>
     </div>
   )
 }
@@ -219,10 +222,14 @@ export default function ProfileScreen() {
       </header>
 
       <div className="mx-auto max-w-2xl px-5">
-        <div className="flex divide-x divide-gold-ink/25 border-y border-gold-ink/25 py-5">
-          <Stat value={bookings ? String(data.done.length) : '–'} label="Sessões" />
-          <Stat value={nextParts ? `${nextParts.day} ${nextParts.month}` : '–'} label="Próxima" />
-          <Stat value={bookings ? formatPrice(data.spent).replace(/,00/, '') : '–'} label="Investido" />
+        <div className="grid grid-cols-3 gap-3">
+          <Stat icon="bx bx-check-circle" value={bookings ? String(data.done.length) : '–'} label="Sessões" />
+          <Stat icon="bx bx-calendar" value={nextParts ? `${nextParts.day} ${nextParts.month}` : '–'} label="Próxima" />
+          <Stat
+            icon="bx bx-wallet"
+            value={bookings ? formatPrice(data.spent).replace(/,00/, '') : '–'}
+            label="Investido"
+          />
         </div>
 
         {/* Stays at the top while the page scrolls, so the three views are always one tap away. */}
