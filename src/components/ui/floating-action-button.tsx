@@ -139,8 +139,6 @@ export interface MenuAction {
   /** Icon-font class for brand logos lucide doesn't ship (e.g. WhatsApp). */
   iconClass?: string
   label: string
-  /** One short line saying what the action does, shown beside the button. */
-  description?: string
   onClick?: () => void
   /** External link (opens in a new tab). */
   href?: string
@@ -181,7 +179,7 @@ export function FloatingActionMenu({
         aria-hidden={hidden || undefined}
       >
         <div className="absolute bottom-full right-0 mb-3 flex flex-col-reverse items-end gap-2.5">
-          {actions.map(({ Icon, iconClass, label, description, onClick, href }, index) => {
+          {actions.map(({ Icon, iconClass, label, onClick, href }, index) => {
             const glyph = Icon ? (
               <Icon size={20} className="text-onyx" />
             ) : (
@@ -208,14 +206,9 @@ export function FloatingActionMenu({
                 }}
                 transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4, delay: open ? index * 0.05 : 0 }}
               >
-                {/* A white card with the name and what it does, so the text never sits straight on the page. */}
-                <span className="rounded-2xl border-[1.5px] border-onyx/20 bg-white px-4 py-2 text-right shadow-md shadow-black/10">
-                  <span className="block font-subtitle text-sm font-semibold text-onyx">{label}</span>
-                  {description && (
-                    <span className="block max-w-[13rem] font-subtitle text-xs leading-snug text-muted-dark">
-                      {description}
-                    </span>
-                  )}
+                {/* A small white card with the name, so the text never sits straight on the page. */}
+                <span className="rounded-full border-[1.5px] border-onyx/20 bg-white px-3.5 py-1.5 shadow-md shadow-black/10">
+                  <span className="block font-subtitle text-sm font-medium text-onyx">{label}</span>
                 </span>
                 {href ? (
                   <a

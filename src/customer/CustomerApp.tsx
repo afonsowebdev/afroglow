@@ -123,13 +123,11 @@ function CustomerShell() {
     {
       Icon: theme.theme === 'dark' ? Sun : Moon,
       label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
-      description: theme.theme === 'dark' ? 'Muda a app para o fundo claro' : 'Muda a app para o fundo escuro',
       onClick: theme.toggleTheme,
     },
     {
       Icon: Settings,
       label: 'Definições',
-      description: 'A tua conta, palavra-passe e avisos',
       onClick: () => navigate('/definicoes'),
     },
     ...(pushSupported()
@@ -137,9 +135,6 @@ function CustomerShell() {
           {
             Icon: notificationsOn ? Bell : BellOff,
             label: notificationsOn ? 'Desligar avisos' : 'Ligar avisos',
-            description: notificationsOn
-              ? 'Deixas de receber avisos das marcações'
-              : 'Recebe avisos quando a marcação for confirmada',
             onClick: async () => {
               if (notificationsOn) {
                 setNotificationsOn(false)
@@ -156,7 +151,6 @@ function CustomerShell() {
           {
             iconClass: 'bx bxl-whatsapp',
             label: 'WhatsApp',
-            description: 'Fala diretamente connosco',
             href: whatsappUrl('Olá! Gostaria de saber mais sobre os vossos serviços.'),
           },
         ]
