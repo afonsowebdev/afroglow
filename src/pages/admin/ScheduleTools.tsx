@@ -63,6 +63,32 @@ function buildTimes(pattern: Pattern, daysOff: string[]) {
   return times
 }
 
+const miniLabel = 'mb-1.5 block font-subtitle text-[11px] uppercase tracking-wide text-muted-dark'
+
+/** A titled card that groups related fields. */
+function Group({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl border-[1.5px] border-onyx/25 p-4">
+      <h3 className="mb-3 font-subtitle text-sm font-semibold tracking-tight text-onyx">{title}</h3>
+      {children}
+    </section>
+  )
+}
+
+/** One choice out of a few, as a glass chip. */
+function Option({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`h-10 rounded-full font-subtitle text-sm text-onyx ${active ? 'glass-chip-on font-semibold' : 'glass-chip'}`}
+    >
+      {label}
+    </button>
+  )
+}
+
 /** Opens a repeating weekly pattern in one go (e.g. Tuesday to Saturday, 09:00–18:00, every 2h). */
 export function GenerateSlotsSheet({
   open,
@@ -133,82 +159,79 @@ export function GenerateSlotsSheet({
       onSubmit={submit}
       onClose={onClose}
     >
-      <div>
-        <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-          Dias da semana
-        </span>
-        <div className="flex flex-wrap gap-2">
+      <Group title="Dias da semana">
+        <div className="grid grid-cols-7 gap-1.5">
           {WEEKDAYS.map((day) => (
             <button
               key={day.id}
               type="button"
               aria-pressed={pattern.days.includes(day.id)}
               onClick={() => toggleDay(day.id)}
-              className={`rounded-full px-3.5 py-2 font-subtitle text-sm transition-colors ${
-                pattern.days.includes(day.id) ? 'glass-chip-on text-onyx' : 'glass-chip text-onyx'
+              className={`h-11 rounded-full font-subtitle text-xs ${
+                pattern.days.includes(day.id) ? 'glass-chip-on font-semibold text-onyx' : 'glass-chip text-onyx'
               }`}
             >
               {day.label}
             </button>
           ))}
         </div>
-      </div>
+      </Group>
 
-      <div className="grid grid-cols-2 gap-3">
-        <SheetField label="Primeira hora">
-          <input
-            type="time"
-            value={pattern.from}
-            onChange={(e) => setPattern({ ...pattern, from: e.target.value })}
-            className={sheetFieldClass}
-          />
-        </SheetField>
-        <SheetField label="Até às">
-          <input
-            type="time"
-            value={pattern.to}
-            onChange={(e) => setPattern({ ...pattern, to: e.target.value })}
-            className={sheetFieldClass}
-          />
-        </SheetField>
-        <SheetField label="Uma vaga a cada">
-          <select
-            value={pattern.everyMinutes}
-            onChange={(e) => setPattern({ ...pattern, everyMinutes: Number(e.target.value) })}
-            className={sheetFieldClass}
-          >
-            {[60, 90, 120, 180, 240, 360].map((m) => (
-              <option key={m} value={m}>
-                {m / 60} h
-              </option>
-            ))}
-          </select>
-        </SheetField>
-        <SheetField label="Para as próximas">
-          <select
-            value={pattern.weeks}
-            onChange={(e) => setPattern({ ...pattern, weeks: Number(e.target.value) })}
-            className={sheetFieldClass}
-          >
-            {[1, 2, 3, 4, 6, 8].map((w) => (
-              <option key={w} value={w}>
-                {w} {w === 1 ? 'semana' : 'semanas'}
-              </option>
-            ))}
-          </select>
-        </SheetField>
-      </div>
+      <Group title="Horas">
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block">
+            <span className={miniLabel}>Primeira hora</span>
+            <input
+              type="time"
+              value={pattern.from}
+              onChange={(e) => setPattern({ ...pattern, from: e.target.value })}
+              className={`${sheetFieldClass} h-12`}
+            />
+          </label>
+          <label className="block">
+            <span className={miniLabel}>Até às</span>
+            <input
+              type="time"
+              value={pattern.to}
+              onChange={(e) => setPattern({ ...pattern, to: e.target.value })}
+              className={`${sheetFieldClass} h-12`}
+            />
+          </label>
+        </div>
 
-      <div>
-        <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-          Folgas (dias a saltar)
-        </span>
-        <div className="flex gap-2">
+        <span className={`${miniLabel} mt-4`}>Uma vaga a cada</span>
+        <div className="grid grid-cols-6 gap-1.5">
+          {[60, 90, 120, 180, 240, 360].map((m) => (
+            <Option
+              key={m}
+              active={pattern.everyMinutes === m}
+              onClick={() => setPattern({ ...pattern, everyMinutes: m })}
+              label={m % 60 === 0 ? `${m / 60}h` : `${Math.floor(m / 60)}h${m % 60}`}
+            />
+          ))}
+        </div>
+
+        <span className={`${miniLabel} mt-4`}>Para as próximas (semanas)</span>
+        <div className="grid grid-cols-6 gap-1.5">
+          {[1, 2, 3, 4, 6, 8].map((w) => (
+            <Option
+              key={w}
+              active={pattern.weeks === w}
+              onClick={() => setPattern({ ...pattern, weeks: w })}
+              label={String(w)}
+            />
+          ))}
+        </div>
+      </Group>
+
+      <Group title="Folgas (dias a saltar)">
+        <div className="flex items-stretch gap-2">
           <input
             type="date"
             value={offInput}
             onChange={(e) => setOffInput(e.target.value)}
-            className={sheetFieldClass}
+            aria-label="Dia a saltar"
+            className={`${sheetFieldClass} h-12 min-w-0 flex-1`}
           />
           <button
             type="button"
@@ -217,26 +240,34 @@ export function GenerateSlotsSheet({
               setDaysOff((list) => [...list, offInput].sort())
               setOffInput('')
             }}
-            className="shrink-0 rounded-xl glass-chip px-4 font-subtitle text-sm text-onyx disabled:opacity-40"
+            className="glass-chip h-12 shrink-0 rounded-xl px-4 font-subtitle text-sm text-onyx disabled:opacity-40"
           >
             Adicionar
           </button>
         </div>
         {daysOff.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             {daysOff.map((d) => (
               <button
                 key={d}
                 type="button"
                 onClick={() => setDaysOff((list) => list.filter((x) => x !== d))}
-                className="rounded-full bg-onyx/5 px-3 py-1 font-subtitle text-xs text-onyx"
+                aria-label={`Remover ${d.split('-').reverse().join('/')}`}
+                className="glass-chip flex items-center gap-1.5 rounded-full px-3 py-1.5 font-subtitle text-xs text-onyx"
               >
-                {d.split('-').reverse().join('/')} ✕
+                {d.split('-').reverse().join('/')}
+                <i className="bx bx-x text-base" aria-hidden="true" />
               </button>
             ))}
           </div>
         )}
-      </div>
+      </Group>
+
+      <p className="text-center font-subtitle text-sm text-muted-dark">
+        {times.length > 0
+          ? `${times.length} ${times.length === 1 ? 'horário' : 'horários'} até ${times[times.length - 1].toLocaleDateString('pt-PT', { day: 'numeric', month: 'long' })}`
+          : 'Escolhe os dias e as horas para ver quantos horários cria.'}
+      </p>
     </Sheet>
   )
 }
