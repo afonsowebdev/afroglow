@@ -8,7 +8,7 @@ import { api, assetUrl } from '@/lib/api'
 import { tap } from '@/lib/haptics'
 import { serviceImageUrls } from '@/lib/service-images'
 import { useCustomerAuth } from '@/lib/customer-auth'
-import { instagramDmUrl, siteConfig } from '@/lib/site-config'
+import { instagramDmUrl, siteConfig, useBusinessInfo } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service } from '@/lib/types'
 import { useBookingAlerts } from './booking-alerts'
 import { ServicePreview } from './ServicePreview'
@@ -671,36 +671,199 @@ export function ReviewsRow({ reviews }: { reviews: Array<{ id: string; quote: st
   )
 }
 
-/** Contact tiles at the end of the page. */
-export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
+const DAY_NAMES = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
+const strip_ = (text: string) =>
+  text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+
+/** Which weekdays (0 = Sunday) a free-text label like "Terça a sábado" or "Segunda, quarta e sexta" covers. */
+function parseDays(label: string): number[] {
+  const text = strip_(label)
+  const index = (word: string) => DAY_NAMES.findIndex((d) => strip_(d) === word.slice(0, strip_(d).length))
+  const found: Array<{ day: number; at: number }> = []
+  DAY_NAMES.forEach((name, day) => {
+    const at = text.indexOf(strip_(name))
+    if (at >= 0) found.push({ day, at })
+  })
+  found.sort((x, y) => x.at - y.at)
+  if (found.length === 0) return []
+  if (/\ba\b|\bate\b|-/.test(text) && found.length === 2) {
+    const days: number[] = []
+    for (let d = found[0].day; ; d = (d + 1) % 7) {
+      days.push(d)
+      if (d === found[1].day) break
+    }
+    return days
+  }
+  void index
+  return found.map((f) => f.day)
+}
+
+/** "09:00 – 18:00" → minutes since midnight, or null. */
+function parseHours(label: string): [number, number] | null {
+  const m = label.match(/(\d{1,2})[:h](\d{2})?\D+(\d{1,2})[:h](\d{2})?/)
+  if (!m) return null
+  return [Number(m[1]) * 60 + Number(m[2] ?? 0), Number(m[3]) * 60 + Number(m[4] ?? 0)]
+}
+
+/** Address, map, phone and opening hours with today highlighted and an open / closed status. Hidden until filled. */
+export function Visit() {
+  const business = useBusinessInfo()
+  const hasHours = business.openingHours.length > 0
+  if (!business.address && !hasHours && !business.phone) return null
+
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Lisbon' }))
+  const today = now.getDay()
+  const minutes = now.getHours() * 60 + now.getMinutes()
+  const rows = business.openingHours.map((row) => ({ ...row, days: parseDays(row.days), hours: parseHours(row.hours) }))
+  const todayRow = rows.find((r) => r.days.includes(today))
+  const understood = rows.some((r) => r.days.length > 0 && r.hours)
+  const open = Boolean(todayRow?.hours && minutes >= todayRow.hours[0] && minutes < todayRow.hours[1])
+
   return (
     <section className="mx-auto max-w-2xl px-5 pt-14">
-      <h2 className="font-subtitle text-2xl font-semibold tracking-tight text-onyx">Fala connosco</h2>
-      <div className="mt-5 grid grid-cols-2 gap-3">
-        <a
-          href={instagramDmUrl()}
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4"
-        >
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#c9626b]/15 text-2xl text-[#b04a54]">
-            <i className="bx bxl-instagram" aria-hidden="true" />
-          </span>
-          <span className="font-subtitle text-sm font-semibold text-onyx">Instagram</span>
-        </a>
-        {whatsappUrl && (
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4"
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Visita-nos</p>
+          <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Onde estamos</h2>
+        </div>
+        {understood && (
+          <span
+            className={`mb-1 inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-subtitle text-xs font-medium ${
+              open ? 'bg-emerald-600/15 text-emerald-700' : 'bg-red-600/10 text-red-700'
+            }`}
           >
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#5f9a76]/15 text-2xl text-[#3f7a58]">
-              <i className="bx bxl-whatsapp" aria-hidden="true" />
-            </span>
-            <span className="font-subtitle text-sm font-semibold text-onyx">WhatsApp</span>
-          </a>
+            <span className={`h-1.5 w-1.5 rounded-full ${open ? 'bg-emerald-600' : 'bg-red-600'}`} aria-hidden="true" />
+            {open ? 'Aberto agora' : 'Fechado'}
+          </span>
         )}
+      </div>
+
+      <div className="mt-5 overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white">
+        {business.address && (
+          <div className="flex items-start gap-4 p-5">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-xl text-onyx">
+              <i className="bx bx-map" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">Morada</p>
+              <p className="mt-1 font-subtitle text-base font-semibold leading-snug text-onyx">{business.address}</p>
+            </div>
+          </div>
+        )}
+
+        {(business.mapUrl || business.phone || business.address) && (
+          <div className="grid grid-cols-2 gap-2 border-t border-onyx/10 p-3">
+            <a
+              href={business.mapUrl || `https://maps.apple.com/?q=${encodeURIComponent(business.address || '')}`}
+              target="_blank"
+              rel="noreferrer"
+              className="glass-chip flex h-11 items-center justify-center gap-2 rounded-full font-subtitle text-sm font-medium text-onyx"
+            >
+              <i className="bx bx-navigation text-lg" aria-hidden="true" /> Como chegar
+            </a>
+            {business.phone ? (
+              <a
+                href={`tel:${business.phone.replace(/[^+\d]/g, '')}`}
+                className="glass-chip flex h-11 items-center justify-center gap-2 rounded-full font-subtitle text-sm font-medium text-onyx"
+              >
+                <i className="bx bx-phone text-lg" aria-hidden="true" /> Ligar
+              </a>
+            ) : (
+              <span />
+            )}
+          </div>
+        )}
+
+        {hasHours && (
+          <div className="border-t border-onyx/10 p-5">
+            <p className="font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">Horário</p>
+            <dl className="mt-3 flex flex-col gap-1">
+              {business.openingHours.map((row, i) => {
+                const isToday = rows[i].days.includes(today)
+                return (
+                  <div
+                    key={row.days}
+                    className={`flex items-center justify-between gap-4 rounded-xl px-3 py-2.5 font-subtitle text-sm ${
+                      isToday ? 'bg-onyx/5 font-semibold text-onyx' : 'text-muted-dark'
+                    }`}
+                  >
+                    <dt className="flex items-center gap-2">
+                      {isToday && <span className="h-1.5 w-1.5 rounded-full bg-onyx" aria-hidden="true" />}
+                      {row.days}
+                    </dt>
+                    <dd className={isToday ? 'text-onyx' : ''}>{row.hours}</dd>
+                  </div>
+                )
+              })}
+            </dl>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+/** Ways to reach the studio, each with a line on what it is good for. */
+export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
+  const business = useBusinessInfo()
+  const options: Array<{ icon: string; title: string; text: string; href: string }> = [
+    ...(whatsappUrl
+      ? [
+          {
+            icon: 'bx bxl-whatsapp',
+            title: 'WhatsApp',
+            text: 'Dúvidas e marcações, com resposta rápida',
+            href: whatsappUrl,
+          },
+        ]
+      : []),
+    ...(business.phone
+      ? [
+          {
+            icon: 'bx bx-phone',
+            title: 'Telefone',
+            text: business.phone,
+            href: `tel:${business.phone.replace(/[^+\d]/g, '')}`,
+          },
+        ]
+      : []),
+    {
+      icon: 'bx bxl-instagram',
+      title: 'Instagram',
+      text: `@${siteConfig.instagramHandle} · novidades e trabalhos`,
+      href: instagramDmUrl(),
+    },
+    { icon: 'bx bx-envelope', title: 'Email', text: siteConfig.email, href: `mailto:${siteConfig.email}` },
+  ]
+  return (
+    <section className="mx-auto max-w-2xl px-5 pb-6 pt-14">
+      <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Contactos</p>
+      <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Fala connosco</h2>
+      <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">
+        Escolhe a forma que for mais fácil para ti.
+      </p>
+      <div className="mt-5 divide-y divide-onyx/10 overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white">
+        {options.map((option) => (
+          <a
+            key={option.title}
+            href={option.href}
+            target={option.href.startsWith('http') ? '_blank' : undefined}
+            rel="noreferrer"
+            className="flex items-center gap-4 p-4 active:bg-onyx/5"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-2xl text-onyx">
+              <i className={option.icon} aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-subtitle text-base font-semibold text-onyx">{option.title}</span>
+              <span className="block font-subtitle text-xs text-muted-dark">{option.text}</span>
+            </span>
+            <i className="bx bx-right-arrow-alt text-xl text-muted-dark" aria-hidden="true" />
+          </a>
+        ))}
       </div>
     </section>
   )

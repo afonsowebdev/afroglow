@@ -1,5 +1,13 @@
-import Location from '@/components/sections/Location'
-import { ContactTiles, ReviewsRow, ServiceCarousel, StepsRow, WelcomeCard, Greeting, WorkGrid } from './HomeSections'
+import {
+  ContactTiles,
+  Visit,
+  ReviewsRow,
+  ServiceCarousel,
+  StepsRow,
+  WelcomeCard,
+  Greeting,
+  WorkGrid,
+} from './HomeSections'
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { HeroVideoBackground } from '@/components/ui/hero-video-background'
@@ -100,9 +108,7 @@ export default function HomeScreen() {
       <WorkGrid />
       <ReviewsRow reviews={testimonials} />
 
-      <div>
-        <Location app />
-      </div>
+      <Visit />
 
       <ContactTiles
         whatsappUrl={
