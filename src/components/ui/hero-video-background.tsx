@@ -12,12 +12,11 @@ interface Clip {
   app?: string
 }
 
-// The customer iPhone app streams the clips from the website instead of bundling
-// ~45 MB of video into the app; the site build serves them from its own origin.
-const VIDEO_BASE = import.meta.env.MODE === 'customer' ? 'https://www.afroglow.pt' : ''
-
 // Dark theme playlist (1080p only).
-const DARK_CLIPS: Clip[] = [1, 2, 3, 4, 5, 6].map((n) => ({
+const isApp = import.meta.env.MODE === 'customer'
+
+// Dark theme playlist (1080p only). The iPhone app leaves out clips 2 and 4 for now.
+const DARK_CLIPS: Clip[] = (isApp ? [1, 3, 5, 6] : [1, 2, 3, 4, 5, 6]).map((n) => ({
   sd: `/videos/hero-hd-${n}-sd.mp4`,
   hd: `/videos/hero-hd-${n}.mp4`,
 }))
@@ -90,11 +89,10 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
   const [firstPlaying, setFirstPlaying] = useState(false)
   // Resolved once per mount; the Hero remounts this component when the theme changes.
   const [videos] = useState(() => {
-    // In the app, the light theme plays the edited loop that travels inside it; the dark theme plays the HD
-    // playlist, streamed from the website like on the site itself.
-    const bundled = import.meta.env.MODE === 'customer' && tone === 'light'
-    const clips = bundled ? APP_CLIPS : tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
-    return clips.map((clip) => (bundled ? '' : VIDEO_BASE) + pickRendition(clip))
+    // In the app every clip travels inside it (so the video starts at once, with no download): the light theme
+    // plays the edited loop, the dark theme the HD playlist.
+    const clips = isApp && tone === 'light' ? APP_CLIPS : tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
+    return clips.map((clip) => pickRendition(clip))
   })
   const [sources, setSources] = useState([videos[0], videos[1 % videos.length]])
 
@@ -149,7 +147,7 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
   return (
     <div
       className="absolute inset-0 overflow-hidden bg-[#1a1008] bg-cover bg-center"
-      style={{ backgroundImage: `url(${VIDEO_BASE}${POSTER_BY_TONE[tone]})` }}
+      style={{ backgroundImage: `url(${POSTER_BY_TONE[tone]})` }}
     >
       {[0, 1].map((slot) => (
         <video
@@ -160,7 +158,7 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
           // One file that already contains the transitions: the browser's own loop restarts it seamlessly.
           loop={videos.length === 1}
           playsInline
-          poster={slot === 0 ? VIDEO_BASE + POSTER_BY_TONE[tone] : undefined}
+          poster={slot === 0 ? POSTER_BY_TONE[tone] : undefined}
           preload={slot === 0 || firstPlaying ? 'auto' : 'none'}
           onPlaying={() => {
             if (slot === 0) setFirstPlaying(true)
