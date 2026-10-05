@@ -601,7 +601,7 @@ export function WorkGrid() {
         }}
       >
         {items.map((item, i) => (
-          <div key={item.key} className="w-full shrink-0 snap-center snap-always px-5">
+          <div key={item.key} className="w-full shrink-0 snap-center snap-always px-3">
             <button
               type="button"
               aria-label={`Ver ${item.kind === 'VIDEO' ? 'vídeo' : 'foto'} ${i + 1} em ecrã inteiro`}
@@ -622,7 +622,7 @@ export function WorkGrid() {
             </button>
           </div>
         ))}
-        <div className="w-full shrink-0 snap-center snap-always px-5">
+        <div className="w-full shrink-0 snap-center snap-always px-3">
           <a
             href={instagramDmUrl()}
             target="_blank"
