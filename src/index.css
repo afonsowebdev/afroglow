@@ -135,13 +135,12 @@
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.3),
     0 0 0 0.5px rgba(0, 0, 0, 0.14),
-    0 14px 34px rgba(0, 0, 0, 0.2),
     0 3px 8px rgba(0, 0, 0, 0.1);
 }
 .dark .liquid-glass {
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.16),
-    0 14px 34px rgba(0, 0, 0, 0.45);
+    0 3px 8px rgba(0, 0, 0, 0.3);
 }
 /* The selected tab: same glass, just a slightly stronger rim, no white fill. */
 .liquid-glass-bubble {
@@ -150,7 +149,7 @@
   backdrop-filter: blur(4px) saturate(1.5);
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.5),
-    0 2px 8px rgba(0, 0, 0, 0.14);
+    0 1px 3px rgba(0, 0, 0, 0.1);
 }
 .dark .liquid-glass-bubble {
   box-shadow:
@@ -191,23 +190,23 @@
   backdrop-filter: blur(10px) saturate(1.6);
   box-shadow:
     inset 0 0 0 1px rgba(0, 0, 0, 0.14),
-    0 2px 8px rgba(0, 0, 0, 0.08);
+    0 1px 3px rgba(0, 0, 0, 0.06);
 }
 .glass-chip-on {
   background: rgba(255, 255, 255, 0.55);
   box-shadow:
     inset 0 0 0 2px rgba(28, 28, 30, 0.9),
-    0 3px 12px rgba(0, 0, 0, 0.12);
+    0 1px 4px rgba(0, 0, 0, 0.1);
 }
 .dark .glass-chip {
   background: rgba(255, 255, 255, 0.1);
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.25),
-    0 2px 8px rgba(0, 0, 0, 0.3);
+    0 1px 3px rgba(0, 0, 0, 0.25);
 }
 .dark .glass-chip-on {
   background: rgba(255, 255, 255, 0.22);
   box-shadow:
     inset 0 0 0 2px rgba(240, 230, 214, 0.95),
-    0 3px 12px rgba(0, 0, 0, 0.35);
+    0 1px 4px rgba(0, 0, 0, 0.3);
 }

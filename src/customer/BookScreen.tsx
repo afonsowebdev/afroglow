@@ -31,7 +31,7 @@ function Cta({ label, busy, onClick }: { label: string; busy?: boolean; onClick:
       className="pointer-events-none fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 px-5"
     >
       <div className="pointer-events-auto mx-auto flex max-w-md justify-center">
-        <div className="rounded-full shadow-lg shadow-black/20">
+        <div className="rounded-full">
           <ActionButton label={busy ? 'A enviar...' : label} disabled={busy} onClick={onClick} />
         </div>
       </div>
