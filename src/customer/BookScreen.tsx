@@ -66,6 +66,9 @@ export default function BookScreen() {
       const [s, a] = await Promise.all([api.get<Service[]>('/services'), api.get<AvailabilitySlot[]>('/availability')])
       setServices(s)
       setSlots(a)
+      // Coming from a free-slot chip on the home screen: that time is already chosen.
+      const wanted = searchParams.get('slot')
+      if (wanted && a.some((x) => x.id === wanted)) setSlotId((current) => current ?? wanted)
     } catch {
       setLoadError(true)
     }

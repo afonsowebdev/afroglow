@@ -11,7 +11,7 @@ import { useCustomerAuth } from '@/lib/customer-auth'
 import { instagramDmUrl } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service } from '@/lib/types'
 import { useBookingAlerts } from './booking-alerts'
-import { longDay, timeLabel } from './dates'
+import { dayParts, longDay, timeLabel } from './dates'
 
 /** Time-of-day greeting plus one line of what matters right now (a decision to look at, or free slots). */
 export function Greeting() {
@@ -32,25 +32,10 @@ export function Greeting() {
   const hello = hour < 6 ? 'Boa noite' : hour < 13 ? 'Bom dia' : hour < 20 ? 'Boa tarde' : 'Boa noite'
   const first = customer?.name.split(' ')[0]
 
-  const weekEnd = Date.now() + 7 * 86_400_000
-  const thisWeek = (slots ?? []).filter((s) => new Date(s.startsAt).getTime() < weekEnd)
-
-  let news: { text: string; to: string; cta: string } | null = null
-  if (unseen.size > 0) {
-    news = {
-      text: unseen.size === 1 ? 'Tens uma resposta à tua marcação' : `Tens ${unseen.size} respostas às tuas marcações`,
-      to: '/marcacoes',
-      cta: 'Ver',
-    }
-  } else if (slots && thisWeek.length > 0) {
-    news = {
-      text: `${thisWeek.length} ${thisWeek.length === 1 ? 'horário livre' : 'horários livres'} esta semana.`,
-      to: '/marcar',
-      cta: 'Ver datas',
-    }
-  } else if (slots) {
-    news = { text: 'Sem horários livres esta semana', to: '/marcar', cta: 'Ver datas' }
-  }
+  const upcoming = (slots ?? [])
+    .filter((s) => new Date(s.startsAt).getTime() > Date.now())
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+    .slice(0, 6)
 
   return (
     <div>
@@ -58,18 +43,55 @@ export function Greeting() {
         {hello}
         {first ? `, ${first}` : ''}
       </h1>
-      {news && (
-        <Link to={news.to} className="mt-2 flex flex-wrap items-center gap-x-2 font-subtitle text-sm text-muted-dark">
-          <span
-            className={`h-2 w-2 shrink-0 rounded-full ${unseen.size > 0 ? 'bg-red-600' : 'bg-emerald-600'}`}
-            aria-hidden="true"
-          />
-          <span>{news.text}</span>
-          <span className="flex items-center gap-0.5 font-medium text-onyx underline underline-offset-4">
-            {news.cta}
-          </span>
+
+      {unseen.size > 0 && (
+        <Link to="/marcacoes" className="mt-2 flex items-center gap-2 font-subtitle text-sm text-muted-dark">
+          <span className="h-2 w-2 shrink-0 rounded-full bg-red-600" aria-hidden="true" />
+          {unseen.size === 1 ? 'Tens uma resposta à tua marcação.' : `Tens ${unseen.size} respostas às tuas marcações.`}
+          <span className="font-medium text-onyx underline underline-offset-4">Ver</span>
         </Link>
       )}
+
+      <div className="mt-5">
+        <div className="flex items-baseline justify-between">
+          <h2 className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">
+            Próximos horários livres
+          </h2>
+          <Link to="/marcar" className="font-subtitle text-xs font-medium text-onyx underline underline-offset-4">
+            Ver todos
+          </Link>
+        </div>
+        {slots === null ? (
+          <div className="-mx-5 mt-3 flex gap-2.5 px-5">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-[72px] w-24 shrink-0 animate-pulse rounded-2xl bg-onyx/5" />
+            ))}
+          </div>
+        ) : upcoming.length === 0 ? (
+          <p className="mt-3 font-subtitle text-sm text-muted-dark">Sem horários livres de momento.</p>
+        ) : (
+          <div className="-mx-5 mt-3 flex gap-2.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {upcoming.map((slot) => {
+              const parts = dayParts(slot.startsAt)
+              return (
+                <Link
+                  key={slot.id}
+                  to={`/marcar?slot=${slot.id}`}
+                  onClick={() => void tap()}
+                  className="glass-chip flex h-[72px] w-24 shrink-0 flex-col items-center justify-center rounded-2xl"
+                >
+                  <span className="font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
+                    {parts.weekday.slice(0, 3)} {parts.day} {parts.month}
+                  </span>
+                  <span className="mt-0.5 font-subtitle text-xl font-semibold leading-none text-onyx">
+                    {timeLabel(slot.startsAt)}
+                  </span>
+                </Link>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
