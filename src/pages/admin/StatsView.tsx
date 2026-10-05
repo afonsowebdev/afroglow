@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react'
+import ProgressMetricCard, { type SeriesPoint } from '@/components/ui/progress-metric-card'
 import { api } from '@/lib/api'
 import { formatPrice } from '@/lib/types'
 import type { AdminStats } from '@/pages/admin/admin-types'
 
-function monthLabel(key: string) {
-  const [year, month] = key.split('-').map(Number)
-  return new Date(year, month - 1, 15).toLocaleDateString('pt-PT', { month: 'short' }).replace('.', '')
-}
+const PERIODS = [{ label: 'Últimos 3 meses', points: 3 }, { label: 'Últimos 6 meses' }]
 
 export function StatsView() {
   const [stats, setStats] = useState<AdminStats | null>(null)
@@ -23,7 +21,16 @@ export function StatsView() {
   if (!stats) return <p className="mt-8 font-subtitle text-muted-dark">A carregar...</p>
 
   const current = stats.months.find((m) => m.key === stats.currentMonth)
-  const maxRevenue = Math.max(1, ...stats.months.map((m) => m.revenueCents))
+  const monthName = (key: string) => {
+    const [year, month] = key.split('-').map(Number)
+    const label = new Date(year, month - 1, 15).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' })
+    return label.charAt(0).toUpperCase() + label.slice(1)
+  }
+  const revenueSeries: SeriesPoint[] = stats.months.map((m) => ({
+    value: m.revenueCents / 100,
+    date: monthName(m.key),
+  }))
+  const sessionsSeries: SeriesPoint[] = stats.months.map((m) => ({ value: m.bookings, date: monthName(m.key) }))
   const cards = [
     { icon: 'bx bx-euro', label: 'Receita do mês', value: formatPrice(current?.revenueCents ?? 0) },
     { icon: 'bx bx-calendar-check', label: 'Sessões do mês', value: String(current?.bookings ?? 0) },
@@ -45,26 +52,33 @@ export function StatsView() {
         ))}
       </div>
 
-      <section className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
-        <h2 className="font-subtitle text-base text-onyx">Receita dos últimos 6 meses</h2>
-        <div className="mt-5 flex items-end gap-3">
-          {stats.months.map((m) => (
-            <div key={m.key} className="flex flex-1 flex-col items-center gap-2">
-              <span className="font-subtitle text-[10px] text-muted-dark">
-                {m.revenueCents ? formatPrice(m.revenueCents) : ''}
-              </span>
-              <div className="flex h-24 w-full items-end">
-                <div
-                  className={`w-full rounded-t-lg ${m.key === stats.currentMonth ? 'bg-gold-deep' : 'bg-gold-deep/40'}`}
-                  style={{ height: Math.max(4, Math.round((m.revenueCents / maxRevenue) * 96)) }}
-                />
-              </div>
-              <span className="font-subtitle text-xs capitalize text-muted-dark">{monthLabel(m.key)}</span>
-            </div>
-          ))}
-        </div>
-        <p className="mt-4 font-subtitle text-xs text-muted-dark">Só conta sessões confirmadas, no mês da sessão.</p>
-      </section>
+      <ProgressMetricCard
+        title="Receita"
+        size="sm"
+        accent="gold"
+        data={revenueSeries}
+        defaultIndex={revenueSeries.length - 1}
+        period="Últimos 6 meses"
+        periodOptions={PERIODS}
+        deltaLabel="vs. mês anterior"
+        valueFormatter={(euros) => formatPrice(Math.round(euros * 100)).replace(/,00/, '')}
+      />
+
+      <ProgressMetricCard
+        title="Sessões"
+        size="sm"
+        unit="sessões"
+        data={sessionsSeries}
+        defaultIndex={sessionsSeries.length - 1}
+        period="Últimos 6 meses"
+        periodOptions={PERIODS}
+        deltaLabel="vs. mês anterior"
+        defaultView="bars"
+      />
+
+      <p className="px-1 font-subtitle text-xs text-muted-dark">
+        Só conta sessões confirmadas, no mês da sessão. Toca no gráfico para ver cada mês.
+      </p>
 
       <section className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
         <h2 className="font-subtitle text-base text-onyx">Modelos mais pedidos</h2>
