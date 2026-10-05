@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { Bell, BellOff, Moon, Settings, Sun } from 'lucide-react'
+import { Bell, BellOff, Moon, PanelBottomClose, PanelBottomOpen, Settings, Sun } from 'lucide-react'
 import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import AccountAuthPage from '@/pages/AccountAuthPage'
@@ -21,8 +21,8 @@ import BookingsScreen from './BookingsScreen'
 import BookScreen from './BookScreen'
 import HomeScreen from './HomeScreen'
 import { BookingAlertsProvider, useBookingAlerts } from './booking-alerts'
-import { useHideNavOnScrollSetting } from '@/lib/nav-prefs'
-import { NavVisibilityProvider, useAutoHideNav, useNavHidden } from './nav-visibility'
+import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
+import { NavVisibilityProvider, useAutoHideNav, useNavForcedHidden, useNavHidden } from './nav-visibility'
 import ProfileScreen from './ProfileScreen'
 import SettingsScreen from './SettingsScreen'
 
@@ -72,6 +72,7 @@ export default function CustomerApp() {
 
 function CustomerShell() {
   const navHidden = useNavHidden()
+  const menuForcedHidden = useNavForcedHidden()
   const { unseen } = useBookingAlerts()
   const location = useLocation()
   const navigate = useNavigate()
@@ -135,6 +136,11 @@ function CustomerShell() {
       Icon: theme.theme === 'dark' ? Sun : Moon,
       label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
       onClick: theme.toggleTheme,
+    },
+    {
+      Icon: hideOnScroll ? PanelBottomOpen : PanelBottomClose,
+      label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
+      onClick: () => setHideNavOnScroll(!hideOnScroll),
     },
     {
       Icon: Settings,
@@ -235,7 +241,7 @@ function CustomerShell() {
             }))}
           />
         </div>
-        <FloatingActionMenu actions={menuActions} hidden={navHidden} tone={overHero ? 'onDark' : 'onLight'} />
+        <FloatingActionMenu actions={menuActions} hidden={menuForcedHidden} tone={overHero ? 'onDark' : 'onLight'} />
       </div>
     </div>
   )

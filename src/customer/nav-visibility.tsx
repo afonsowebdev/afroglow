@@ -2,21 +2,31 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 
 interface NavVisibility {
   hidden: boolean
+  /** Only the screens' own request (not the scroll behaviour): the round menu button follows this one. */
+  forced: boolean
   /** A screen that shows its own bottom button asks for the bar to step aside. */
   setHidden: (hidden: boolean) => void
   /** The scroll behaviour (hide while scrolling down) asks separately, so the two never undo each other. */
   setAutoHidden: (hidden: boolean) => void
 }
 
-const Context = createContext<NavVisibility>({ hidden: false, setHidden: () => {}, setAutoHidden: () => {} })
+const Context = createContext<NavVisibility>({
+  hidden: false,
+  forced: false,
+  setHidden: () => {},
+  setAutoHidden: () => {},
+})
 
 export function NavVisibilityProvider({ children }: { children: ReactNode }) {
   const [forced, setHidden] = useState(false)
   const [auto, setAutoHidden] = useState(false)
-  return <Context.Provider value={{ hidden: forced || auto, setHidden, setAutoHidden }}>{children}</Context.Provider>
+  return (
+    <Context.Provider value={{ hidden: forced || auto, forced, setHidden, setAutoHidden }}>{children}</Context.Provider>
+  )
 }
 
 export const useNavHidden = () => useContext(Context).hidden
+export const useNavForcedHidden = () => useContext(Context).forced
 
 /** A screen calls this with `true` while it shows its own bottom button, so the tab bar steps aside. */
 export function useHideNav(hide: boolean) {
