@@ -1,8 +1,10 @@
 import { Router } from 'express'
-import { requireAdmin } from '../lib/auth.js'
+import { randomBytes } from 'node:crypto'
+import { hashPassword, requireAdmin, verifyPassword } from '../lib/auth.js'
+import { removeCustomer } from '../lib/customer-removal.js'
 import { prisma } from '../lib/prisma.js'
 import { isPlaceholderEmail } from '../lib/resend.js'
-import { customerNotesSchema } from '../lib/validation.js'
+import { customerNotesSchema, deleteCustomersSchema } from '../lib/validation.js'
 
 export const adminCustomersRouter = Router()
 adminCustomersRouter.use(requireAdmin)
@@ -65,5 +67,36 @@ adminCustomersRouter.patch('/:id/notes', async (req, res) => {
     res.json(present(customer))
   } catch {
     res.status(404).json({ error: 'Cliente não encontrado.' })
+  }
+})
+
+// Deletes one or many customers. Always asks for the admin's own password.
+adminCustomersRouter.post('/delete', async (req, res) => {
+  const parsed = deleteCustomersSchema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Escolhe os clientes e confirma com a tua password.' })
+    return
+  }
+  try {
+    const admin = await prisma.admin.findUnique({ where: { id: req.adminId } })
+    if (!admin || !(await verifyPassword(parsed.data.password, admin.passwordHash))) {
+      res.status(401).json({ error: 'Password incorreta.' })
+      return
+    }
+    const customers = await prisma.customer.findMany({
+      where: { id: { in: parsed.data.ids }, NOT: { email: { endsWith: '@removed.invalid' } } },
+      select: { id: true, email: true },
+    })
+    const lockedHash = await hashPassword(randomBytes(24).toString('hex'))
+    await prisma.$transaction(
+      async (tx) => {
+        for (const customer of customers) await removeCustomer(tx, customer, lockedHash)
+      },
+      { timeout: 60_000 },
+    )
+    res.json({ deleted: customers.length })
+  } catch (error) {
+    console.error('[admin-customers] delete failed:', error)
+    res.status(500).json({ error: 'Erro ao eliminar clientes.' })
   }
 })

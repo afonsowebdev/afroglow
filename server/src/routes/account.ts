@@ -1,4 +1,3 @@
-import { randomBytes } from 'node:crypto'
 import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
 import {
@@ -11,6 +10,7 @@ import {
   verifyPassword,
 } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
+import { removeCustomer } from '../lib/customer-removal.js'
 import { isHosted } from '../lib/env.js'
 import { currentResetCode, isValidResetCode } from '../lib/password-reset.js'
 import { sendPasswordResetCodeEmail } from '../lib/resend.js'
@@ -234,43 +234,7 @@ accountRouter.post('/delete', requireCustomer, async (req, res) => {
   }
 
   try {
-    const lockedHash = await hashPassword(randomBytes(24).toString('hex'))
-    await prisma.$transaction(async (tx) => {
-      const live = await tx.booking.findMany({
-        where: {
-          customerId: customer.id,
-          status: { in: ['PENDING', 'ACCEPTED'] },
-          slot: { startsAt: { gte: new Date() } },
-        },
-        select: { id: true, slotId: true },
-      })
-      if (live.length > 0) {
-        await tx.availabilitySlot.updateMany({
-          where: { id: { in: live.map((b) => b.slotId) } },
-          data: { status: 'OPEN' },
-        })
-        await tx.booking.updateMany({
-          where: { id: { in: live.map((b) => b.id) } },
-          data: { status: 'CANCELLED' },
-        })
-      }
-      await tx.booking.updateMany({
-        where: { customerId: customer.id },
-        data: { customerName: 'Conta eliminada', customerPhone: '-', notes: null },
-      })
-      await tx.testimonial.deleteMany({ where: { customerId: customer.id } })
-      await tx.customerPushToken.deleteMany({ where: { customerId: customer.id } })
-      await tx.pendingRegistration.deleteMany({ where: { email: customer.email } })
-      await tx.customer.update({
-        where: { id: customer.id },
-        data: {
-          name: 'Conta eliminada',
-          email: `eliminada-${customer.id}@removed.invalid`,
-          phone: '-',
-          passwordHash: lockedHash,
-        },
-      })
-    })
+    await prisma.$transaction((tx) => removeCustomer(tx, customer))
     res.clearCookie(CUSTOMER_SESSION_COOKIE, customerSessionCookieOptions())
     res.status(204).end()
   } catch (error) {

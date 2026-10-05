@@ -90,6 +90,11 @@ export const changePasswordSchema = z.object({
   newPassword: strongPasswordSchema,
 })
 
+export const deleteCustomersSchema = z.object({
+  ids: z.array(z.string().min(1)).min(1).max(500),
+  password: z.string().min(1),
+})
+
 export const deleteAccountSchema = z.object({
   password: z.string().min(1),
 })
