@@ -185,7 +185,8 @@ export function FloatingActionMenu({
             ) : (
               <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 22 }} aria-hidden="true" />
             )
-            const circle = 'glass-chip flex size-12 items-center justify-center rounded-full'
+            const circle =
+              'flex size-12 items-center justify-center rounded-full border border-onyx/10 bg-white shadow-md shadow-black/10'
             const run = () => {
               onClick?.()
               close()
@@ -205,9 +206,6 @@ export function FloatingActionMenu({
                 }}
                 transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4, delay: open ? index * 0.05 : 0 }}
               >
-                <span className="glass-chip whitespace-nowrap rounded-full px-3.5 py-1.5 font-subtitle text-xs font-medium text-onyx">
-                  {label}
-                </span>
                 {href ? (
                   <a
                     href={href}
