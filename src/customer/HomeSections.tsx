@@ -253,20 +253,11 @@ export function QuickActions({ whatsappUrl }: { whatsappUrl?: string }) {
   )
 }
 
-/** Services as swipeable photo cards. */
-export function ServiceCarousel({ services }: { services: Service[] | null }) {
-  const navigate = useNavigate()
-  const [previewId, setPreviewId] = useState<string | null>(null)
-  const [index, setIndex] = useState(0)
-  const [swiped, setSwiped] = useState(false)
-  const track = useRef<HTMLDivElement>(null)
-  const preview = services?.find((s) => s.id === previewId) ?? null
-  const total = services?.length ?? 0
-
-  // Once, when the carousel comes into view, nudge it sideways to show that it can be dragged.
+/** Once, when the strip first comes into view, nudge it sideways to show that it can be dragged. */
+function useSwipeNudge(ref: React.RefObject<HTMLDivElement | null>, slides: number) {
   useEffect(() => {
-    const el = track.current
-    if (!el || total < 2) return
+    const el = ref.current
+    if (!el || slides < 2) return
     let timers: number[] = []
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -287,7 +278,42 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
       timers.forEach(clearTimeout)
       el.style.scrollSnapType = ''
     }
-  }, [total])
+  }, [ref, slides])
+}
+
+/** Arrows and a line under a swipeable strip: tells the customer to drag until they do, then shows the position. */
+function SwipeHint({ index, slides, swiped, what }: { index: number; slides: number; swiped: boolean; what: string }) {
+  if (slides < 2) return null
+  return (
+    <div className="mx-auto mt-4 flex max-w-sm items-center justify-between px-5 text-onyx">
+      <i
+        className={`bx bx-chevron-left text-2xl transition-opacity ${index > 0 ? 'opacity-70' : 'opacity-0'}`}
+        aria-hidden="true"
+      />
+      <p className="font-subtitle text-xs text-muted-dark">
+        {swiped ? `${Math.min(index + 1, slides)} de ${slides}` : `Desliza para o lado para ver mais ${what}`}
+      </p>
+      <motion.i
+        className={`bx bx-chevron-right text-2xl ${index < slides - 1 ? '' : 'opacity-0'}`}
+        animate={swiped ? { x: 0 } : { x: [0, 6, 0] }}
+        transition={swiped ? undefined : { duration: 1.2, repeat: Infinity }}
+        aria-hidden="true"
+      />
+    </div>
+  )
+}
+
+/** Services as swipeable photo cards. */
+export function ServiceCarousel({ services }: { services: Service[] | null }) {
+  const navigate = useNavigate()
+  const [previewId, setPreviewId] = useState<string | null>(null)
+  const [index, setIndex] = useState(0)
+  const [swiped, setSwiped] = useState(false)
+  const track = useRef<HTMLDivElement>(null)
+  const preview = services?.find((s) => s.id === previewId) ?? null
+  const total = services?.length ?? 0
+
+  useSwipeNudge(track, total)
 
   return (
     <section id="servicos" className="scroll-mt-6 pt-12">
@@ -389,23 +415,7 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
         })}
       </div>
 
-      {total > 1 && (
-        <div className="mx-auto mt-4 flex max-w-sm items-center justify-between px-5 text-onyx">
-          <i
-            className={`bx bx-chevron-left text-2xl transition-opacity ${index > 0 ? 'opacity-70' : 'opacity-0'}`}
-            aria-hidden="true"
-          />
-          <p className="font-subtitle text-xs text-muted-dark">
-            {swiped ? `${index + 1} de ${total}` : 'Desliza para o lado para ver mais pacotes'}
-          </p>
-          <motion.i
-            className={`bx bx-chevron-right text-2xl ${index < total - 1 ? '' : 'opacity-0'}`}
-            animate={swiped ? { x: 0 } : { x: [0, 6, 0] }}
-            transition={swiped ? undefined : { duration: 1.2, repeat: Infinity }}
-            aria-hidden="true"
-          />
-        </div>
-      )}
+      <SwipeHint index={index} slides={total} swiped={swiped} what="pacotes" />
       {total > 1 && (
         <div className="mt-3 flex justify-center gap-1.5" aria-hidden="true">
           {services?.map((service, i) => (
@@ -528,6 +538,8 @@ export function WorkGrid() {
   const [index, setIndex] = useState(0)
   const [viewer, setViewer] = useState<number | null>(null)
   const viewerStrip = useRef<HTMLDivElement>(null)
+  const track = useRef<HTMLDivElement>(null)
+  const [swiped, setSwiped] = useState(false)
   const [viewerIndex, setViewerIndex] = useState(0)
 
   // The studio's own photos and videos (managed in the admin app); the sample photos show until it adds some.
@@ -560,6 +572,7 @@ export function WorkGrid() {
   }, [viewer])
 
   const total = items.length
+  useSwipeNudge(track, total + 1)
 
   return (
     <section className="pt-12">
@@ -569,7 +582,7 @@ export function WorkGrid() {
           <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">O nosso trabalho</h2>
         </div>
         <p className="pb-1 font-subtitle text-sm tabular-nums text-muted-dark">
-          <span className="font-semibold text-onyx">{String(index + 1).padStart(2, '0')}</span> /{' '}
+          <span className="font-semibold text-onyx">{String(Math.min(index, total - 1) + 1).padStart(2, '0')}</span> /{' '}
           {String(total).padStart(2, '0')}
         </p>
       </div>
@@ -578,45 +591,52 @@ export function WorkGrid() {
       </p>
 
       <div
-        className={`${strip} mt-5`}
+        ref={track}
+        className="mt-5 flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         onScroll={(e) => {
           const el = e.currentTarget
-          const card = el.firstElementChild as HTMLElement | null
-          if (card) setIndex(Math.min(total - 1, Math.max(0, Math.round(el.scrollLeft / (card.offsetWidth + 12)))))
+          const i = Math.min(total, Math.max(0, Math.round(el.scrollLeft / el.clientWidth)))
+          setIndex(i)
+          if (i > 0) setSwiped(true)
         }}
       >
         {items.map((item, i) => (
-          <button
-            key={item.key}
-            type="button"
-            aria-label={`Ver ${item.kind === 'VIDEO' ? 'vídeo' : 'foto'} ${i + 1} em ecrã inteiro`}
-            onClick={() => {
-              void tap()
-              setViewer(i)
-            }}
-            className="relative h-[23rem] w-[72%] max-w-[17rem] shrink-0 snap-center overflow-hidden rounded-[2rem] bg-black/5"
-          >
-            {item.kind === 'VIDEO' ? (
-              <AutoVideo src={item.src} className="h-full w-full object-cover" />
-            ) : (
-              <img src={item.src} alt={item.alt} loading="lazy" className="h-full w-full object-cover" />
-            )}
-            <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-[#ffffff] backdrop-blur-md">
-              <i className={item.kind === 'VIDEO' ? 'bx bx-play' : 'bx bx-expand-alt'} aria-hidden="true" />
-            </span>
-          </button>
+          <div key={item.key} className="w-full shrink-0 snap-center snap-always px-5">
+            <button
+              type="button"
+              aria-label={`Ver ${item.kind === 'VIDEO' ? 'vídeo' : 'foto'} ${i + 1} em ecrã inteiro`}
+              onClick={() => {
+                void tap()
+                setViewer(i)
+              }}
+              className="relative mx-auto block h-[23rem] w-full max-w-xs overflow-hidden rounded-[2rem] bg-black/5"
+            >
+              {item.kind === 'VIDEO' ? (
+                <AutoVideo src={item.src} className="h-full w-full object-cover" />
+              ) : (
+                <img src={item.src} alt={item.alt} loading="lazy" className="h-full w-full object-cover" />
+              )}
+              <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-[#ffffff] backdrop-blur-md">
+                <i className={item.kind === 'VIDEO' ? 'bx bx-play' : 'bx bx-expand-alt'} aria-hidden="true" />
+              </span>
+            </button>
+          </div>
         ))}
-        <a
-          href={instagramDmUrl()}
-          target="_blank"
-          rel="noreferrer"
-          className="flex h-[23rem] w-[60%] max-w-[14rem] shrink-0 snap-center flex-col items-center justify-center gap-3 rounded-[2rem] border-[1.5px] border-onyx/25 bg-white text-center"
-        >
-          <i className="bx bxl-instagram text-5xl text-onyx" aria-hidden="true" />
-          <span className="font-subtitle text-base font-semibold text-onyx">Mais no Instagram</span>
-          <span className="font-subtitle text-sm text-muted-dark">@{siteConfig.instagramHandle}</span>
-        </a>
+        <div className="w-full shrink-0 snap-center snap-always px-5">
+          <a
+            href={instagramDmUrl()}
+            target="_blank"
+            rel="noreferrer"
+            className="mx-auto flex h-[23rem] w-full max-w-xs flex-col items-center justify-center gap-3 rounded-[2rem] border-[1.5px] border-onyx/25 bg-white text-center"
+          >
+            <i className="bx bxl-instagram text-5xl text-onyx" aria-hidden="true" />
+            <span className="font-subtitle text-base font-semibold text-onyx">Mais no Instagram</span>
+            <span className="font-subtitle text-sm text-muted-dark">@{siteConfig.instagramHandle}</span>
+          </a>
+        </div>
       </div>
+
+      <SwipeHint index={index} slides={total + 1} swiped={swiped} what="trabalhos" />
 
       {total <= 12 ? (
         <div className="mt-4 flex justify-center gap-1.5" aria-hidden="true">
