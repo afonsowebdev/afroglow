@@ -11,6 +11,7 @@ import { tap } from '@/lib/haptics'
 import { formatPrice, type Booking } from '@/lib/types'
 import { TestimonialForm } from '@/pages/AccountPage'
 import { dayParts, longDay, timeLabel } from './dates'
+import { useHideNavOnScroll } from './nav-visibility'
 import { Fact, Facts, labelClass, panelClass, StatusDot } from './panel'
 
 type TabId = 'resumo' | 'historico' | 'testemunho'
@@ -49,6 +50,7 @@ function Stat({ icon, value, label }: { icon: string; value: string; label: stri
 
 /** Who the customer is and what they have done with us. Account settings live on their own screen. */
 export default function ProfileScreen() {
+  useHideNavOnScroll()
   const navigate = useNavigate()
   const { customer } = useCustomerAuth()
   const [bookings, setBookings] = useState<Booking[] | null>(null)
