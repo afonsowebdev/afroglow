@@ -384,34 +384,63 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
 }
 
 const STEPS = [
-  { icon: 'bx bx-list-check', title: 'Escolhe', text: 'o modelo' },
-  { icon: 'bx bx-calendar-plus', title: 'Marca', text: 'o dia e a hora' },
-  { icon: 'bx bx-bell', title: 'Recebe', text: 'a confirmação' },
+  { icon: 'bx bx-list-check', title: 'Escolhe', text: 'o penteado que mais gostas' },
+  { icon: 'bx bx-calendar-plus', title: 'Marca', text: 'um dia e hora livres' },
+  { icon: 'bx bx-bell', title: 'Recebe', text: 'o aviso de confirmação' },
 ]
 
-/** Three compact steps side by side. */
+/**
+ * "Como funciona" for people who haven't booked yet: three steps on a connected line plus a reassurance note.
+ * Anyone with a booking already knows the flow, so it disappears for them.
+ */
 export function StepsRow() {
+  const { customer, loading } = useCustomerAuth()
+  const [hasBookings, setHasBookings] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (!customer) {
+      setHasBookings(false)
+      return
+    }
+    api
+      .get<Booking[]>('/account/bookings')
+      .then((list) => setHasBookings(list.length > 0))
+      .catch(() => setHasBookings(false))
+  }, [customer])
+
+  if (loading || hasBookings === null || hasBookings) return null
+
   return (
     <section className="pt-12">
-      <SectionTitle title="Como funciona" />
-      <div className="mx-auto mt-5 grid max-w-2xl grid-cols-3 gap-3 px-5">
-        {STEPS.map((step, index) => (
-          <motion.div
-            key={step.title}
-            initial={{ opacity: 0, y: 14 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.6 }}
-            transition={{ delay: index * 0.08 }}
-            className="relative rounded-2xl border-[1.5px] border-onyx/25 bg-white px-3 pb-4 pt-6 text-center"
-          >
-            <span className="absolute -top-3 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full bg-gold-deep font-subtitle text-xs font-semibold text-[#ffffff]">
-              {index + 1}
-            </span>
-            <i className={`${step.icon} text-3xl text-gold-ink`} aria-hidden="true" />
-            <p className="mt-2 font-subtitle text-sm font-semibold text-onyx">{step.title}</p>
-            <p className="font-subtitle text-xs font-light text-muted-dark">{step.text}</p>
-          </motion.div>
-        ))}
+      <SectionTitle title="Como funciona" hint="Três passos e ficas despachada." />
+      <div className="mx-auto mt-6 max-w-2xl px-5">
+        <ol className="relative">
+          <span aria-hidden="true" className="absolute bottom-6 left-[21px] top-6 w-px bg-onyx/20" />
+          {STEPS.map((step, index) => (
+            <motion.li
+              key={step.title}
+              initial={{ opacity: 0, x: -10 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.7 }}
+              transition={{ delay: index * 0.08 }}
+              className="relative flex items-center gap-4 py-3"
+            >
+              <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[1.5px] border-onyx/25 bg-white text-xl text-onyx">
+                <i className={step.icon} aria-hidden="true" />
+              </span>
+              <span>
+                <span className="block font-subtitle text-base font-semibold text-onyx">
+                  {index + 1}. {step.title}
+                </span>
+                <span className="block font-subtitle text-sm font-light text-muted-dark">{step.text}</span>
+              </span>
+            </motion.li>
+          ))}
+        </ol>
+        <p className="mt-3 flex items-start gap-2 rounded-2xl border-[1.5px] border-onyx/25 px-4 py-3 font-subtitle text-sm text-muted-dark">
+          <i className="bx bx-info-circle mt-0.5 text-lg text-onyx" aria-hidden="true" />
+          Não pagas nada na app. Avisamos-te assim que o pedido for aceite.
+        </p>
       </div>
     </section>
   )
