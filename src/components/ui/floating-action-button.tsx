@@ -167,7 +167,7 @@ export function FloatingActionMenu({
           type="button"
           aria-label="Fechar"
           onClick={close}
-          className="pointer-events-auto fixed inset-0 z-40 cursor-default bg-black/35 backdrop-blur-md"
+          className="pointer-events-auto fixed inset-0 z-40 cursor-default bg-black/20"
         />
       )}
 
@@ -185,8 +185,7 @@ export function FloatingActionMenu({
             ) : (
               <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 22 }} aria-hidden="true" />
             )
-            const circle =
-              'flex size-12 items-center justify-center rounded-full border border-onyx/10 bg-white shadow-md shadow-black/10'
+            const circle = 'glass-chip flex size-12 items-center justify-center rounded-full'
             const run = () => {
               onClick?.()
               close()
@@ -206,9 +205,8 @@ export function FloatingActionMenu({
                 }}
                 transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4, delay: open ? index * 0.05 : 0 }}
               >
-                {/* A small white card with the name, so the text never sits straight on the page. */}
-                <span className="rounded-full border-[1.5px] border-onyx/20 bg-white px-3.5 py-1.5 shadow-md shadow-black/10">
-                  <span className="block font-subtitle text-sm font-medium text-onyx">{label}</span>
+                <span className="glass-chip whitespace-nowrap rounded-full px-3.5 py-1.5 font-subtitle text-xs font-medium text-onyx">
+                  {label}
                 </span>
                 {href ? (
                   <a
