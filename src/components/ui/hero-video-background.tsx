@@ -116,7 +116,8 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
   }
 
   const crossfade = useCallback(() => {
-    if (switching.current || videos.length < 2) return
+    // With a single clip the two slots take turns playing it, so it loops with the same soft crossfade.
+    if (switching.current) return
     switching.current = true
 
     const outgoing = activeRef.current
@@ -160,10 +161,8 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
         <video
           key={slot}
           ref={videoRefs[slot]}
-          src={videos.length === 1 && slot === 1 ? undefined : sources[slot]}
+          src={sources[slot]}
           muted
-          // A single clip just loops; with several, the crossfade hands over to the next one.
-          loop={videos.length === 1}
           playsInline
           poster={slot === 0 ? VIDEO_BASE + POSTER_BY_TONE[tone] : undefined}
           preload={slot === 0 || firstPlaying ? 'auto' : 'none'}
