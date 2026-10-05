@@ -21,7 +21,7 @@ export function Greeting() {
 
   useEffect(() => {
     api
-      .get<AvailabilitySlot[]>('/availability')
+      .get<AvailabilitySlot[]>('/availability?include=busy')
       .then(setSlots)
       .catch(() => setSlots([]))
   }, [])
@@ -62,7 +62,7 @@ export function Greeting() {
           </Link>
         </div>
         <p className="mt-1 font-subtitle text-xs font-light text-muted-dark">
-          Ainda livres, sem marcação. Toca num para o reservares.
+          Livres ou ocupados. Toca num livre para o reservares.
         </p>
         {slots === null ? (
           <div className="-mx-5 mt-3 flex gap-2.5 px-5">
@@ -76,22 +76,40 @@ export function Greeting() {
           <div className="-mx-5 mt-3 flex gap-2.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {upcoming.map((slot) => {
               const parts = dayParts(slot.startsAt)
-              return (
-                <Link
-                  key={slot.id}
-                  to={`/marcar?slot=${slot.id}`}
-                  onClick={() => void tap()}
-                  className="glass-chip flex h-[88px] w-24 shrink-0 flex-col items-center justify-center rounded-2xl"
-                >
+              const busy = slot.status !== 'OPEN'
+              const body = (
+                <>
                   <span className="font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
                     {parts.weekday.slice(0, 3)} {parts.day} {parts.month}
                   </span>
-                  <span className="mt-0.5 font-subtitle text-xl font-semibold leading-none text-onyx">
+                  <span
+                    className={`mt-0.5 font-subtitle text-xl font-semibold leading-none ${busy ? 'text-onyx/40 line-through' : 'text-onyx'}`}
+                  >
                     {timeLabel(slot.startsAt)}
                   </span>
-                  <span className="mt-1.5 flex items-center gap-1 font-subtitle text-[10px] font-medium text-emerald-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" aria-hidden="true" /> Livre
+                  <span
+                    className={`mt-1.5 flex items-center gap-1 font-subtitle text-[10px] font-medium ${busy ? 'text-red-700' : 'text-emerald-700'}`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${busy ? 'bg-red-600' : 'bg-emerald-600'}`}
+                      aria-hidden="true"
+                    />
+                    {busy ? 'Ocupado' : 'Livre'}
                   </span>
+                </>
+              )
+              const base = 'glass-chip flex h-[88px] w-24 shrink-0 flex-col items-center justify-center rounded-2xl'
+              return busy ? (
+                <div
+                  key={slot.id}
+                  className={`${base} opacity-70`}
+                  aria-label={`${parts.day} ${parts.month} às ${timeLabel(slot.startsAt)}, ocupado`}
+                >
+                  {body}
+                </div>
+              ) : (
+                <Link key={slot.id} to={`/marcar?slot=${slot.id}`} onClick={() => void tap()} className={base}>
+                  {body}
                 </Link>
               )
             })}

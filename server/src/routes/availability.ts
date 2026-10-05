@@ -5,9 +5,12 @@ import { createSlotSchema, createSlotsBatchSchema } from '../lib/validation.js'
 
 export const availabilityRouter = Router()
 
-availabilityRouter.get('/', async (_req, res) => {
+availabilityRouter.get('/', async (req, res) => {
+  // `?include=busy` also returns slots that are taken (status only, no personal data), so the app can show them as "Ocupado".
+  const includeBusy = req.query.include === 'busy'
   const slots = await prisma.availabilitySlot.findMany({
-    where: { status: 'OPEN', startsAt: { gte: new Date() } },
+    where: { ...(includeBusy ? {} : { status: 'OPEN' as const }), startsAt: { gte: new Date() } },
+    select: { id: true, startsAt: true, status: true, createdAt: true },
     orderBy: { startsAt: 'asc' },
   })
   res.json(slots)
