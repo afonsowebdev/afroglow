@@ -609,7 +609,7 @@ export function WorkGrid() {
                 void tap()
                 setViewer(i)
               }}
-              className="relative mx-auto block h-[23rem] w-full max-w-xs overflow-hidden rounded-[2rem] bg-black/5"
+              className="relative mx-auto block aspect-[4/5] w-full max-w-md overflow-hidden rounded-[2rem] bg-black/5"
             >
               {item.kind === 'VIDEO' ? (
                 <AutoVideo src={item.src} className="h-full w-full object-cover" />
@@ -627,7 +627,7 @@ export function WorkGrid() {
             href={instagramDmUrl()}
             target="_blank"
             rel="noreferrer"
-            className="mx-auto flex h-[23rem] w-full max-w-xs flex-col items-center justify-center gap-3 rounded-[2rem] border-[1.5px] border-onyx/25 bg-white text-center"
+            className="mx-auto flex aspect-[4/5] w-full max-w-md flex-col items-center justify-center gap-3 rounded-[2rem] border-[1.5px] border-onyx/25 bg-white text-center"
           >
             <i className="bx bxl-instagram text-5xl text-onyx" aria-hidden="true" />
             <span className="font-subtitle text-base font-semibold text-onyx">Mais no Instagram</span>
