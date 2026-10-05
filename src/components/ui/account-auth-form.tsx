@@ -7,13 +7,13 @@ import { fieldBorder, isCustomerApp } from '@/lib/app-mode'
 import { ApiError } from '@/lib/api'
 import { useCustomerAuth } from '@/lib/customer-auth'
 
-const inputClasses = `rounded-xl ${fieldBorder} bg-white px-4 py-2.5 font-subtitle text-onyx outline-none transition-colors duration-300`
+const inputClasses = `block w-full min-w-0 rounded-xl ${fieldBorder} bg-white px-4 py-2.5 font-subtitle text-onyx outline-none transition-colors duration-300`
 
 const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$/
 
 function Field({ label, ...props }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <label className="flex flex-col gap-1.5">
+    <label className="flex min-w-0 flex-col gap-1.5">
       <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">{label}</span>
       <input className={inputClasses} {...props} />
     </label>
