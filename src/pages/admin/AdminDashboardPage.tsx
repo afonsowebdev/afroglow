@@ -11,6 +11,7 @@ import { CustomersView } from '@/pages/admin/CustomersView'
 import type { AdminCustomer } from '@/pages/admin/admin-types'
 import { ManualBookingSheet } from '@/pages/admin/ManualBookingSheet'
 import { MoreView, type MoreTarget } from '@/pages/admin/MoreView'
+import { MonthStrip } from '@/pages/admin/MonthStrip'
 import { BlockDaySheet, GenerateSlotsSheet } from '@/pages/admin/ScheduleTools'
 import { PortfolioView } from '@/pages/admin/PortfolioView'
 import { SecurityView } from '@/pages/admin/SecurityView'
@@ -1574,13 +1575,8 @@ export default function AdminDashboardPage() {
     }
   }
 
-  function shiftMonth(delta: number) {
-    setViewMonth((prev) => {
-      const zeroBased = prev.month - 1 + delta
-      const year = prev.year + Math.floor(zeroBased / 12)
-      const month = (((zeroBased % 12) + 12) % 12) + 1
-      return { year, month }
-    })
+  function goToMonth(next: { year: number; month: number }) {
+    setViewMonth(next)
     setClearingOpen(false)
     setClearSummary(null)
     setClearPassword('')
@@ -1741,27 +1737,7 @@ export default function AdminDashboardPage() {
           <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">{PAGE[tab].hint}</p>
 
           {(tab === 'agenda' || tab === 'disponibilidade') && (
-            <div className="mt-6 flex items-center justify-center gap-4 rounded-full border-[1.5px] border-onyx/25 bg-white px-4 py-2 sm:justify-start">
-              <button
-                type="button"
-                aria-label="Mês anterior"
-                onClick={() => shiftMonth(-1)}
-                className="glass-chip flex size-9 items-center justify-center rounded-full text-onyx"
-              >
-                <i className="bx bx-chevron-left" aria-hidden="true" />
-              </button>
-              <span className="font-subtitle font-semibold lining-nums tracking-tight text-sm text-onyx">
-                {formatMonthLabel(viewMonth)}
-              </span>
-              <button
-                type="button"
-                aria-label="Mês seguinte"
-                onClick={() => shiftMonth(1)}
-                className="glass-chip flex size-9 items-center justify-center rounded-full text-onyx"
-              >
-                <i className="bx bx-chevron-right" aria-hidden="true" />
-              </button>
-            </div>
+            <MonthStrip value={viewMonth} today={getLisbonYearMonth(new Date())} onSelect={goToMonth} />
           )}
 
           {tab === 'agenda' && (
