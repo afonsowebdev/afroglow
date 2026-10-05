@@ -5,9 +5,10 @@ const listeners = new Set<() => void>()
 
 function read() {
   try {
-    return localStorage.getItem(KEY) === '1'
+    // On unless the customer switched it off.
+    return localStorage.getItem(KEY) !== '0'
   } catch {
-    return false
+    return true
   }
 }
 let current = read()
@@ -22,7 +23,7 @@ export function setHideNavOnScroll(on: boolean) {
   listeners.forEach((l) => l())
 }
 
-/** Customer setting: slide the tab bar away while scrolling down (every screen). Off by default. */
+/** Customer setting: slide the tab bar away while scrolling down (every screen). On by default. */
 export function useHideNavOnScrollSetting() {
   return useSyncExternalStore(
     (listener) => {
