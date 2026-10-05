@@ -257,20 +257,46 @@ export function QuickActions({ whatsappUrl }: { whatsappUrl?: string }) {
 export function ServiceCarousel({ services }: { services: Service[] | null }) {
   const navigate = useNavigate()
   const [previewId, setPreviewId] = useState<string | null>(null)
+  const [index, setIndex] = useState(0)
   const preview = services?.find((s) => s.id === previewId) ?? null
+  const total = services?.length ?? 0
 
   return (
     <section id="servicos" className="scroll-mt-6 pt-12">
-      <SectionTitle title="Os nossos serviços" hint="Toca na foto para ver mais. A seta leva-te a marcar." />
-      <div className={`${strip} mt-5`}>
+      <div className="mx-auto flex max-w-2xl items-end justify-between px-5">
+        <div>
+          <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Penteados</p>
+          <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Os nossos serviços</h2>
+        </div>
+        {total > 1 && (
+          <p className="pb-1 font-subtitle text-sm tabular-nums text-muted-dark">
+            <span className="font-semibold text-onyx">{String(index + 1).padStart(2, '0')}</span> /{' '}
+            {String(total).padStart(2, '0')}
+          </p>
+        )}
+      </div>
+      <p className="mx-auto mt-2 max-w-2xl px-5 font-subtitle text-sm font-light text-muted-dark">
+        Toca na foto para ver mais. Toca em Marcar para escolher o dia.
+      </p>
+
+      <div
+        className={`${strip} mt-5`}
+        onScroll={(e) => {
+          const el = e.currentTarget
+          const card = el.firstElementChild as HTMLElement | null
+          if (card) setIndex(Math.min(total - 1, Math.max(0, Math.round(el.scrollLeft / (card.offsetWidth + 12)))))
+        }}
+      >
         {services === null &&
-          [0, 1].map((i) => <div key={i} className="h-80 w-[78%] shrink-0 animate-pulse rounded-[2rem] bg-gold/10" />)}
-        {services?.map((service, index) => {
+          [0, 1].map((i) => (
+            <div key={i} className="h-[26rem] w-[80%] shrink-0 animate-pulse rounded-[2rem] bg-gold/10" />
+          ))}
+        {services?.map((service, i) => {
           const photos = serviceImageUrls(service)
           return (
             <div
               key={service.id}
-              className="relative h-80 w-[78%] max-w-xs shrink-0 snap-center overflow-hidden rounded-[2rem] bg-[#1c1c1e]"
+              className="relative h-[26rem] w-[80%] max-w-xs shrink-0 snap-center overflow-hidden rounded-[2rem] bg-[#1c1c1e]"
             >
               {/* The photo opens the gallery with more pictures. */}
               <button
@@ -283,12 +309,12 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
                 className="absolute inset-0 block h-full w-full"
               >
                 <img
-                  src={photos[0] ?? PHOTOS[index % PHOTOS.length].src}
+                  src={photos[0] ?? PHOTOS[i % PHOTOS.length].src}
                   alt=""
                   loading="lazy"
                   className="absolute inset-0 h-full w-full object-cover"
                 />
-                <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
               </button>
 
               <span className="pointer-events-none absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
@@ -298,34 +324,50 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
               {photos.length > 1 && (
                 <span className="pointer-events-none absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
                   <i className="bx bx-images text-sm" aria-hidden="true" />
-                  {photos.length}
+                  {photos.length} fotos
                 </span>
               )}
 
-              <span className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5 text-[#ffffff]">
-                <span className="min-w-0">
-                  <span className="block truncate font-subtitle text-xl font-semibold tracking-tight">
-                    {service.name}
-                  </span>
-                  <span className="mt-0.5 block font-subtitle text-base text-[#e0c36e]">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 text-[#ffffff]">
+                <p className="truncate font-subtitle text-2xl font-semibold tracking-tight">{service.name}</p>
+                {service.description && (
+                  <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light text-[#ffffff]/80">
+                    {service.description}
+                  </p>
+                )}
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <p className="font-subtitle text-xl font-semibold text-[#e0c36e]">
                     {formatPrice(service.priceCents)}
-                  </span>
-                </span>
-              </span>
-
-              {/* The arrow goes straight to booking this model. */}
-              <Link
-                to={`/marcar?service=${service.id}`}
-                aria-label={`Marcar ${service.name}`}
-                onClick={() => void tap('medium')}
-                className="absolute bottom-5 right-5 flex h-11 w-11 items-center justify-center rounded-full bg-[#ffffff]/25 text-2xl text-[#ffffff] backdrop-blur-md"
-              >
-                <i className="bx bx-right-arrow-alt" aria-hidden="true" />
-              </Link>
+                  </p>
+                  {/* The arrow goes straight to booking this model. */}
+                  <Link
+                    to={`/marcar?service=${service.id}`}
+                    aria-label={`Marcar ${service.name}`}
+                    onClick={() => void tap('medium')}
+                    className="pointer-events-auto flex h-11 items-center gap-2 rounded-full bg-[#ffffff]/25 pe-1.5 ps-4 font-subtitle text-sm font-medium text-[#ffffff] backdrop-blur-md"
+                  >
+                    Marcar
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ffffff]/30 text-xl">
+                      <i className="bx bx-right-arrow-alt" aria-hidden="true" />
+                    </span>
+                  </Link>
+                </div>
+              </div>
             </div>
           )
         })}
       </div>
+
+      {total > 1 && (
+        <div className="mt-4 flex justify-center gap-1.5" aria-hidden="true">
+          {services?.map((service, i) => (
+            <span
+              key={service.id}
+              className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? 'w-6 bg-onyx' : 'w-1.5 bg-onyx/25'}`}
+            />
+          ))}
+        </div>
+      )}
 
       <ServicePreview
         service={preview}
