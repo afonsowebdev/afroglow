@@ -31,12 +31,11 @@ const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
   app: `/videos/hero-light-${n}-app.mp4?v=1`,
 }))
 
-// The customer iPhone app plays just these two clips, in a loop. They travel inside the app (see build:customer).
-const APP_CLIPS: Clip[] = [3, 5].map((n) => ({
-  sd: `/videos/hero-light-${n}-app.mp4?v=1`,
-  hd: `/videos/hero-light-${n}-app.mp4?v=1`,
-  app: `/videos/hero-light-${n}-app.mp4?v=1`,
-}))
+// The customer iPhone app plays one pre-edited file: hero-light-3 and hero-light-5 joined with the dissolves baked
+// in, ending on the frame it starts with, so the native loop shows no seam. It travels inside the app.
+const APP_CLIPS: Clip[] = [
+  { sd: '/videos/hero-app-loop.mp4', hd: '/videos/hero-app-loop.mp4', app: '/videos/hero-app-loop.mp4' },
+]
 
 // Smallest file that still looks sharp on the visitor's screen: 720p on phones and
 // when data saving is on, 4K only on large/high-density screens, 1080p otherwise.
@@ -108,8 +107,7 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
   }
 
   const crossfade = useCallback(() => {
-    // With a single clip the two slots take turns playing it, so it loops with the same soft crossfade.
-    if (switching.current) return
+    if (switching.current || videos.length < 2) return
     switching.current = true
 
     const outgoing = activeRef.current
@@ -153,8 +151,10 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
         <video
           key={slot}
           ref={videoRefs[slot]}
-          src={sources[slot]}
+          src={videos.length === 1 && slot === 1 ? undefined : sources[slot]}
           muted
+          // One file that already contains the transitions: the browser's own loop restarts it seamlessly.
+          loop={videos.length === 1}
           playsInline
           poster={slot === 0 ? VIDEO_BASE + POSTER_BY_TONE[tone] : undefined}
           preload={slot === 0 || firstPlaying ? 'auto' : 'none'}
