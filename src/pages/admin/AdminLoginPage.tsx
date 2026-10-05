@@ -30,7 +30,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-cream px-5 py-16">
+    <div className="app-neutral relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-cream px-5 py-16">
       <ScrollMorphHero className="absolute inset-0" />
 
       <Link to="/" className="relative z-10 mb-8 font-logo text-3xl leading-none tracking-wide text-gold-deep">
@@ -39,7 +39,7 @@ export default function AdminLoginPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="relative z-10 w-full max-w-sm rounded-3xl border border-gold/20 bg-white/95 p-8 backdrop-blur-sm"
+        className="relative z-10 w-full max-w-sm rounded-3xl border-[1.5px] border-onyx/25 bg-white/95 p-8 backdrop-blur-sm"
       >
         <h1 className="font-logo text-2xl text-onyx">Área de Admin</h1>
         <div className="mt-6 flex flex-col gap-4">

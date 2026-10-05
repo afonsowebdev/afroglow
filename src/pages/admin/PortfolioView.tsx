@@ -102,7 +102,7 @@ export function PortfolioView() {
 
   return (
     <section className="mt-6">
-      <div className="rounded-2xl border border-gold/20 bg-white p-5">
+      <div className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
         <p className="font-subtitle text-sm text-onyx">
           As fotos que adicionares aparecem no <strong>portfólio da app dos clientes</strong>, pela ordem em que estão
           aqui. Podes juntar quantas quiseres (até 60). Os vídeos ficam no Instagram: a app mostra um cartão no fim do
@@ -118,7 +118,7 @@ export function PortfolioView() {
           type="button"
           disabled={busy !== null}
           onClick={() => input.current?.click()}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-gold-deep py-3 font-subtitle text-sm text-[#ffffff] disabled:opacity-50"
+          className="mt-4 flex w-full items-center justify-center gap-2 glass-chip rounded-full py-3 font-subtitle text-sm text-onyx disabled:opacity-50"
         >
           <i className="bx bx-plus text-lg" aria-hidden="true" />
           {busy ?? 'Adicionar fotos'}

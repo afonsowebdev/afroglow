@@ -35,7 +35,7 @@ export function StatsView() {
     <div className="mt-6 flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-3">
         {cards.map((card) => (
-          <div key={card.label} className="rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
+          <div key={card.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
             <i className={`${card.icon} text-lg text-gold-deep`} aria-hidden="true" />
             <p className="mt-2 font-logo text-xl leading-none text-onyx">{card.value}</p>
             <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{card.label}</p>
@@ -43,12 +43,14 @@ export function StatsView() {
         ))}
       </div>
 
-      <section className="rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5">
+      <section className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
         <h2 className="font-subtitle text-base text-onyx">Receita dos últimos 6 meses</h2>
         <div className="mt-5 flex items-end gap-3">
           {stats.months.map((m) => (
             <div key={m.key} className="flex flex-1 flex-col items-center gap-2">
-              <span className="font-subtitle text-[10px] text-muted-dark">{m.revenueCents ? formatPrice(m.revenueCents) : ''}</span>
+              <span className="font-subtitle text-[10px] text-muted-dark">
+                {m.revenueCents ? formatPrice(m.revenueCents) : ''}
+              </span>
               <div className="flex h-24 w-full items-end">
                 <div
                   className={`w-full rounded-t-lg ${m.key === stats.currentMonth ? 'bg-gold-deep' : 'bg-gold-deep/40'}`}
@@ -62,12 +64,12 @@ export function StatsView() {
         <p className="mt-4 font-subtitle text-xs text-muted-dark">Só conta sessões confirmadas, no mês da sessão.</p>
       </section>
 
-      <section className="rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5">
+      <section className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
         <h2 className="font-subtitle text-base text-onyx">Modelos mais pedidos</h2>
         {stats.topServices.length === 0 ? (
           <p className="mt-3 font-subtitle text-sm text-muted-dark">Ainda sem sessões confirmadas.</p>
         ) : (
-          <div className="mt-3 divide-y divide-gold/15">
+          <div className="mt-3 divide-y divide-onyx/10">
             {stats.topServices.map((service) => (
               <div key={service.name} className="flex items-center justify-between py-2.5">
                 <span className="font-subtitle text-sm text-onyx">{service.name}</span>
@@ -80,9 +82,9 @@ export function StatsView() {
         )}
       </section>
 
-      <section className="rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5">
+      <section className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
         <h2 className="font-subtitle text-base text-onyx">Em geral</h2>
-        <div className="mt-3 divide-y divide-gold/15 font-subtitle text-sm">
+        <div className="mt-3 divide-y divide-onyx/10 font-subtitle text-sm">
           {[
             ['Sessões confirmadas', String(stats.totals.accepted)],
             ['Canceladas', `${stats.totals.cancelled} (${Math.round(stats.totals.cancellationRate * 100)}%)`],

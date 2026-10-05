@@ -124,8 +124,8 @@ function dayHeading(iso: string) {
 }
 
 const HISTORY_CHIP: Record<Booking['status'], string> = {
-  PENDING: 'bg-gold-deep/10 text-gold-deep',
-  ACCEPTED: 'bg-gold-deep/10 text-gold-deep',
+  PENDING: 'bg-onyx/5 text-gold-deep',
+  ACCEPTED: 'bg-onyx/5 text-gold-deep',
   REJECTED: 'bg-red-700/10 text-red-700',
   CANCELLED: 'bg-onyx/5 text-muted-dark',
 }
@@ -180,7 +180,7 @@ function AgendaView({
     <div>
       <div className="mt-4 grid grid-cols-3 gap-3">
         {stats.map((stat) => (
-          <div key={stat.label} className="rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
+          <div key={stat.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
             <i className={`${stat.icon} text-lg text-gold-deep`} aria-hidden="true" />
             <p className="mt-2 font-logo text-xl leading-none text-onyx">{stat.value}</p>
             <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{stat.label}</p>
@@ -200,14 +200,14 @@ function AgendaView({
           type="button"
           onClick={onNew}
           aria-label="Nova marcação"
-          className="flex shrink-0 items-center gap-2 rounded-full bg-gold-deep px-5 py-3 font-subtitle text-sm text-[#ffffff] transition-opacity hover:opacity-90"
+          className="flex shrink-0 items-center gap-2 glass-chip rounded-full px-5 py-3 font-subtitle text-sm text-onyx transition-opacity hover:opacity-90"
         >
           <i className="bx bx-plus text-lg" aria-hidden="true" />
           <span className="hidden sm:inline">Nova marcação</span>
         </button>
       </div>
 
-      <div className="mt-4 flex rounded-full border border-gold/20 bg-white p-1 shadow-sm shadow-black/5">
+      <div className="mt-4 flex glass-chip rounded-full p-1">
         {(
           [
             ['proximas', 'Próximas', upcoming.length],
@@ -223,14 +223,14 @@ function AgendaView({
             {view === id && (
               <motion.span
                 layoutId="agenda-segment"
-                className="absolute inset-0 rounded-full bg-gold-deep"
+                className="glass-chip-on absolute inset-0 rounded-full"
                 transition={{ type: 'spring', stiffness: 420, damping: 34 }}
               />
             )}
-            <span className={`relative transition-colors ${view === id ? 'text-cream' : 'text-onyx/70'}`}>{label}</span>
+            <span className={`relative transition-colors ${view === id ? 'text-onyx' : 'text-onyx/70'}`}>{label}</span>
             <span
               className={`relative rounded-full px-2 py-0.5 text-[11px] leading-none transition-colors ${
-                view === id ? 'bg-cream/20 text-cream' : 'bg-gold-deep/10 text-gold-deep'
+                view === id ? 'bg-onyx/10 text-onyx' : 'bg-onyx/5 text-gold-deep'
               }`}
             >
               {count}
@@ -261,9 +261,9 @@ function AgendaView({
                   {dayBookings.map((booking) => (
                     <article
                       key={booking.id}
-                      className="flex overflow-hidden rounded-2xl border border-gold/20 bg-white shadow-sm shadow-black/5"
+                      className="flex overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white"
                     >
-                      <div className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-gold/20 bg-gold-deep/5 py-4">
+                      <div className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-onyx/10 bg-onyx/5 py-4">
                         <span className="font-logo text-xl leading-none text-onyx">
                           {dateParts(booking.slot.startsAt).time}
                         </span>
@@ -286,13 +286,13 @@ function AgendaView({
                             target="_blank"
                             rel="noreferrer"
                             aria-label={`WhatsApp de ${booking.customerName}`}
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/20 text-lg text-onyx transition-colors hover:border-gold-deep hover:text-gold-deep"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full glass-chip text-lg text-onyx transition-colors hover:text-gold-deep"
                           >
                             <i className="bx bxl-whatsapp" aria-hidden="true" />
                           </a>
                         </div>
                         {booking.notes && (
-                          <p className="mt-2 rounded-lg bg-gold-deep/5 px-3 py-2 font-subtitle text-xs italic text-muted-dark">
+                          <p className="mt-2 rounded-lg bg-onyx/5 px-3 py-2 font-subtitle text-xs italic text-muted-dark">
                             "{booking.notes}"
                           </p>
                         )}
@@ -324,7 +324,7 @@ function AgendaView({
             <p className="mt-1 font-subtitle text-sm text-muted-dark">As sessões passadas aparecem aqui.</p>
           </div>
         ) : (
-          <div className="mt-6 divide-y divide-gold/15 overflow-hidden rounded-2xl border border-gold/20 bg-white shadow-sm shadow-black/5">
+          <div className="mt-6 divide-y divide-onyx/10 overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white">
             {history.map((booking) => {
               const { day, month, time } = dateParts(booking.slot.startsAt)
               return (
@@ -440,7 +440,7 @@ function ClearMonthDialog({
               ))}
             </div>
 
-            <p className="mt-4 rounded-xl bg-gold-deep/5 px-4 py-3 font-subtitle text-xs leading-relaxed text-muted-dark">
+            <p className="mt-4 rounded-xl bg-onyx/5 px-4 py-3 font-subtitle text-xs leading-relaxed text-muted-dark">
               Inclui marcações já aceites. As clientes <strong>não recebem nenhum aviso</strong> e o histórico deste mês
               desaparece.
             </p>
@@ -486,7 +486,7 @@ function ClearMonthDialog({
                 type="button"
                 onClick={onClose}
                 disabled={busy}
-                className="rounded-full border border-gold/30 py-3 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep disabled:opacity-50"
+                className="rounded-full glass-chip py-3 font-subtitle text-sm text-onyx transition-colors disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -574,7 +574,7 @@ function ServiceDialog({
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           >
             <div className="flex items-center gap-4">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 text-xl text-gold-deep">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-xl text-gold-deep">
                 <i className={`bx ${isNew ? 'bx-plus' : 'bx-pencil'}`} aria-hidden="true" />
               </span>
               <div>
@@ -647,7 +647,7 @@ function ServiceDialog({
               {form.id ? (
                 <ServicePhotos serviceId={form.id} images={images} onChanged={onImagesChanged} />
               ) : (
-                <p className="rounded-xl bg-gold-deep/5 px-3 py-2.5 font-subtitle text-xs text-muted-dark">
+                <p className="rounded-xl bg-onyx/5 px-3 py-2.5 font-subtitle text-xs text-muted-dark">
                   Guarda o modelo primeiro. Depois podes voltar a abri-lo para adicionar fotos.
                 </p>
               )}
@@ -660,14 +660,14 @@ function ServiceDialog({
                 type="button"
                 onClick={onClose}
                 disabled={busy}
-                className="rounded-full border border-gold/30 py-3 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep disabled:opacity-50"
+                className="rounded-full glass-chip py-3 font-subtitle text-sm text-onyx transition-colors disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={busy}
-                className="rounded-full bg-gold-deep py-3 font-subtitle text-sm text-[#ffffff] transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="glass-chip rounded-full py-3 font-subtitle text-sm text-onyx transition-opacity hover:opacity-90 disabled:opacity-50"
               >
                 {busy ? 'A guardar...' : 'Guardar'}
               </button>
@@ -782,13 +782,13 @@ function DeleteServiceDialog({
                   </p>
                 </div>
               ) : usage.history > 0 ? (
-                <p className="rounded-xl bg-gold-deep/5 px-4 py-3 font-subtitle text-sm text-muted-dark">
+                <p className="rounded-xl bg-onyx/5 px-4 py-3 font-subtitle text-sm text-muted-dark">
                   Também serão apagadas <strong>{usage.history}</strong>{' '}
                   {usage.history === 1 ? 'marcação antiga' : 'marcações antigas'} (histórico) deste modelo. Não pode ser
                   desfeito.
                 </p>
               ) : (
-                <p className="rounded-xl bg-gold-deep/5 px-4 py-3 font-subtitle text-sm text-muted-dark">
+                <p className="rounded-xl bg-onyx/5 px-4 py-3 font-subtitle text-sm text-muted-dark">
                   Este modelo não tem marcações. Não pode ser desfeito.
                 </p>
               )}
@@ -801,7 +801,7 @@ function DeleteServiceDialog({
                 type="button"
                 onClick={onClose}
                 disabled={busy}
-                className="rounded-full border border-gold/30 py-3 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep disabled:opacity-50"
+                className="rounded-full glass-chip py-3 font-subtitle text-sm text-onyx transition-colors disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -841,7 +841,7 @@ function AuthorAvatar({ testimonial }: { testimonial: Testimonial }) {
   return src ? (
     <img src={src} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
   ) : (
-    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 font-logo text-lg text-gold-deep">
+    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-lg text-gold-deep">
       {testimonial.customer.name.trim().charAt(0).toUpperCase() || '?'}
     </span>
   )
@@ -880,14 +880,14 @@ function TestimonialsView({
     <div>
       <div className="mt-4 grid grid-cols-3 gap-3">
         {tabs.map((tab) => (
-          <div key={tab.id} className="rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
+          <div key={tab.id} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
             <p className="font-logo text-2xl leading-none text-onyx">{lists[tab.id].length}</p>
             <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{tab.label}</p>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 flex rounded-full border border-gold/20 bg-white p-1 shadow-sm shadow-black/5">
+      <div className="mt-6 flex glass-chip rounded-full p-1">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -898,11 +898,11 @@ function TestimonialsView({
             {view === tab.id && (
               <motion.span
                 layoutId="testimonials-segment"
-                className="absolute inset-0 rounded-full bg-gold-deep"
+                className="glass-chip-on absolute inset-0 rounded-full"
                 transition={{ type: 'spring', stiffness: 420, damping: 34 }}
               />
             )}
-            <span className={`relative transition-colors ${view === tab.id ? 'text-cream' : 'text-onyx/70'}`}>
+            <span className={`relative transition-colors ${view === tab.id ? 'text-onyx' : 'text-onyx/70'}`}>
               {tab.label}
             </span>
           </button>
@@ -918,10 +918,7 @@ function TestimonialsView({
       ) : (
         <div className="mt-6 flex flex-col gap-4">
           {current.map((testimonial) => (
-            <article
-              key={testimonial.id}
-              className="rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5"
-            >
+            <article key={testimonial.id} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
               <div className="flex items-center gap-3">
                 <AuthorAvatar testimonial={testimonial} />
                 <div className="min-w-0 flex-1">
@@ -936,7 +933,7 @@ function TestimonialsView({
                 {view !== 'PENDING' && (
                   <span
                     className={`shrink-0 rounded-full px-2.5 py-1 font-subtitle text-[11px] ${
-                      view === 'APPROVED' ? 'bg-gold-deep/10 text-gold-deep' : 'bg-red-700/10 text-red-700'
+                      view === 'APPROVED' ? 'bg-onyx/5 text-gold-deep' : 'bg-red-700/10 text-red-700'
                     }`}
                   >
                     {view === 'APPROVED' ? 'Publicado' : 'Recusado'}
@@ -944,11 +941,11 @@ function TestimonialsView({
                 )}
               </div>
 
-              <p className="mt-4 border-l-2 border-gold/40 pl-4 font-subtitle text-[15px] leading-relaxed text-onyx">
+              <p className="mt-4 border-l-2 border-onyx/25 pl-4 font-subtitle text-[15px] leading-relaxed text-onyx">
                 {testimonial.content}
               </p>
 
-              <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-gold/15 pt-4">
+              <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-onyx/10 pt-4">
                 {view === 'PENDING' && (
                   <>
                     <MotionButton
@@ -973,7 +970,7 @@ function TestimonialsView({
                     type="button"
                     disabled={busyId === testimonial.id}
                     onClick={() => onDecision(testimonial.id, 'reject')}
-                    className="rounded-full border border-gold/30 px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:border-red-700 hover:text-red-700 disabled:opacity-50"
+                    className="rounded-full glass-chip px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:text-red-700 disabled:opacity-50"
                   >
                     Retirar do site
                   </button>
@@ -983,7 +980,7 @@ function TestimonialsView({
                     type="button"
                     disabled={busyId === testimonial.id}
                     onClick={() => onDecision(testimonial.id, 'approve')}
-                    className="rounded-full border border-gold/30 px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep hover:text-gold-deep disabled:opacity-50"
+                    className="rounded-full glass-chip px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:text-gold-deep disabled:opacity-50"
                   >
                     Publicar
                   </button>
@@ -1023,10 +1020,10 @@ function PendingCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -24 }}
-      className="overflow-hidden rounded-2xl border border-gold/20 bg-white shadow-sm shadow-black/5"
+      className="overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white"
     >
       <div className="flex">
-        <div className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-gold/20 bg-gold-deep/5 py-4">
+        <div className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-onyx/10 bg-onyx/5 py-4">
           <span className="font-logo text-2xl leading-none text-onyx">{day}</span>
           <span className="mt-1 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{month}</span>
           <span className="mt-2 font-subtitle text-xs font-semibold text-onyx">{time}</span>
@@ -1049,7 +1046,7 @@ function PendingCard({
               target="_blank"
               rel="noreferrer"
               aria-label={`WhatsApp de ${booking.customerName}`}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold/20 text-xl text-onyx transition-colors hover:border-gold-deep hover:text-gold-deep"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full glass-chip text-xl text-onyx transition-colors hover:text-gold-deep"
             >
               <i className="bx bxl-whatsapp" aria-hidden="true" />
             </a>
@@ -1062,7 +1059,7 @@ function PendingCard({
           )}
 
           {booking.notes && (
-            <p className="mt-3 rounded-lg bg-gold-deep/5 px-3 py-2 font-subtitle text-xs italic text-muted-dark">
+            <p className="mt-3 rounded-lg bg-onyx/5 px-3 py-2 font-subtitle text-xs italic text-muted-dark">
               "{booking.notes}"
             </p>
           )}
@@ -1073,7 +1070,7 @@ function PendingCard({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-gold/15 bg-gold-deep/[0.03] px-4 py-3">
+      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-onyx/10 bg-gold-deep/[0.03] px-4 py-3">
         {confirmingReject ? (
           <>
             <span className="mr-auto font-subtitle text-sm text-onyx">Recusar este pedido?</span>
@@ -1089,7 +1086,7 @@ function PendingCard({
               type="button"
               onClick={() => setConfirmingReject(false)}
               disabled={busy}
-              className="rounded-full border border-gold/30 px-4 py-2 font-subtitle text-sm text-onyx disabled:opacity-50"
+              className="rounded-full glass-chip px-4 py-2 font-subtitle text-sm text-onyx disabled:opacity-50"
             >
               Voltar
             </button>
@@ -1169,14 +1166,14 @@ function PendingView({
           { label: 'Nos próx. 7 dias', value: String(thisWeek) },
           { label: 'Valor em espera', value: formatPrice(totalCents) },
         ].map((stat) => (
-          <div key={stat.label} className="rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
+          <div key={stat.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
             <p className="font-logo text-xl leading-none text-onyx">{stat.value}</p>
             <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{stat.label}</p>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 flex rounded-full border border-gold/20 bg-white p-1 shadow-sm shadow-black/5">
+      <div className="mt-6 flex glass-chip rounded-full p-1">
         {(
           [
             ['sessao', 'Por data da sessão'],
@@ -1192,13 +1189,11 @@ function PendingView({
             {order === id && (
               <motion.span
                 layoutId="pending-order"
-                className="absolute inset-0 rounded-full bg-gold-deep"
+                className="glass-chip-on absolute inset-0 rounded-full"
                 transition={{ type: 'spring', stiffness: 420, damping: 34 }}
               />
             )}
-            <span className={`relative transition-colors ${order === id ? 'text-cream' : 'text-onyx/70'}`}>
-              {label}
-            </span>
+            <span className={`relative transition-colors ${order === id ? 'text-onyx' : 'text-onyx/70'}`}>{label}</span>
           </button>
         ))}
       </div>
@@ -1677,7 +1672,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-white font-medium">
+    <div className="app-neutral relative min-h-screen bg-white font-medium">
       {/* Not fixed: the header scrolls away with the page. */}
       <div className="absolute inset-x-0 top-0 z-40 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-5xl items-center justify-center">
@@ -1705,7 +1700,7 @@ export default function AdminDashboardPage() {
         )}
 
         {(tab === 'agenda' || tab === 'disponibilidade') && (
-          <div className="mt-6 flex items-center justify-center gap-4 rounded-full border border-gold/20 bg-white px-4 py-2 shadow-sm shadow-black/5 sm:justify-start">
+          <div className="mt-6 flex items-center justify-center gap-4 rounded-full border-[1.5px] border-onyx/25 bg-white px-4 py-2 sm:justify-start">
             <button
               type="button"
               aria-label="Mês anterior"
@@ -1746,7 +1741,7 @@ export default function AdminDashboardPage() {
           {tab === 'servicos' && (
             <section className="mt-6">
               {serviceNotice && (
-                <div className="mb-4 flex items-start gap-3 rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
+                <div className="mb-4 flex items-start gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
                   <i className="bx bx-check-circle mt-0.5 text-xl text-gold-deep" aria-hidden="true" />
                   <p className="flex-1 font-subtitle text-sm text-onyx">{serviceNotice}</p>
                   <button
@@ -1771,10 +1766,7 @@ export default function AdminDashboardPage() {
                     value: services.length ? formatPrice(Math.max(...services.map((x) => x.priceCents))) : '—',
                   },
                 ].map((stat) => (
-                  <div
-                    key={stat.label}
-                    className="rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5"
-                  >
+                  <div key={stat.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
                     <p className="font-logo text-xl leading-none text-onyx">{stat.value}</p>
                     <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
                       {stat.label}
@@ -1785,14 +1777,11 @@ export default function AdminDashboardPage() {
 
               <div className="mt-6 flex flex-col gap-3">
                 {services.map((service) => (
-                  <article
-                    key={service.id}
-                    className="rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5"
-                  >
+                  <article key={service.id} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <h3 className="font-logo text-lg text-onyx">{service.name}</h3>
-                        <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-gold-deep/10 px-2.5 py-1 font-subtitle text-[11px] text-gold-deep">
+                        <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-onyx/5 px-2.5 py-1 font-subtitle text-[11px] text-gold-deep">
                           <i className="bx bx-time-five text-sm" aria-hidden="true" />
                           {service.durationLabel}
                         </span>
@@ -1802,7 +1791,7 @@ export default function AdminDashboardPage() {
                       </p>
                     </div>
                     <p className="mt-3 line-clamp-2 font-subtitle text-sm text-muted-dark">{service.description}</p>
-                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-gold/15 pt-3">
+                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-onyx/10 pt-3">
                       <button
                         type="button"
                         onClick={() => openDeleteService(service)}
@@ -1814,7 +1803,7 @@ export default function AdminDashboardPage() {
                       <button
                         type="button"
                         onClick={() => openEditService(service)}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep hover:text-gold-deep"
+                        className="inline-flex items-center gap-1.5 rounded-full glass-chip px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:text-gold-deep"
                       >
                         <i className="bx bx-pencil text-base" aria-hidden="true" />
                         Editar
@@ -1828,7 +1817,7 @@ export default function AdminDashboardPage() {
                 type="button"
                 onClick={openNewService}
                 whileTap={{ scale: 0.98 }}
-                className="group mt-4 flex w-full items-center gap-4 rounded-2xl border border-gold/30 bg-gold-deep/5 p-4 text-left transition-colors duration-300 hover:border-gold-deep hover:bg-gold-deep/10"
+                className="group mt-4 flex w-full items-center gap-4 rounded-2xl border-[1.5px] border-onyx/25 bg-onyx/5 p-4 text-left transition-colors duration-300 hover:border-gold-deep hover:bg-onyx/5"
               >
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-deep text-2xl text-[#ffffff] shadow-md shadow-gold-deep/30 transition-transform duration-300 group-hover:rotate-90">
                   <i className="bx bx-plus" aria-hidden="true" />
@@ -1870,7 +1859,7 @@ export default function AdminDashboardPage() {
           {tab === 'disponibilidade' && (
             <section className="mt-4">
               {scheduleNotice && (
-                <p className="mb-4 rounded-2xl border border-gold/20 bg-white p-4 font-subtitle text-sm text-onyx shadow-sm shadow-black/5">
+                <p className="mb-4 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4 font-subtitle text-sm text-onyx">
                   {scheduleNotice}
                 </p>
               )}
@@ -1878,20 +1867,20 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setGenerateOpen(true)}
-                  className="flex items-center justify-center gap-2 rounded-full bg-gold-deep px-4 py-3 font-subtitle text-sm text-[#ffffff] transition-opacity hover:opacity-90"
+                  className="flex items-center justify-center gap-2 glass-chip rounded-full px-4 py-3 font-subtitle text-sm text-onyx transition-opacity hover:opacity-90"
                 >
                   <i className="bx bx-calendar-week text-lg" aria-hidden="true" /> Horário semanal
                 </button>
                 <button
                   type="button"
                   onClick={() => setBlockOpen(true)}
-                  className="flex items-center justify-center gap-2 rounded-full border border-gold/30 bg-white px-4 py-3 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep"
+                  className="flex items-center justify-center gap-2 glass-chip rounded-full px-4 py-3 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep"
                 >
                   <i className="bx bx-calendar-x text-lg" aria-hidden="true" /> Fechar um dia
                 </button>
               </div>
               {clearResult && (
-                <div className="mb-4 flex items-start gap-3 rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5">
+                <div className="mb-4 flex items-start gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
                   <i className="bx bx-check-circle mt-0.5 text-xl text-gold-deep" aria-hidden="true" />
                   <p className="flex-1 font-subtitle text-sm text-onyx">{clearResult}</p>
                   <button
@@ -1910,10 +1899,7 @@ export default function AdminDashboardPage() {
                   { label: 'Pendentes', value: monthSlots.filter((slot) => slot.status === 'PENDING').length },
                   { label: 'Reservadas', value: monthSlots.filter((slot) => slot.status === 'BOOKED').length },
                 ].map((stat) => (
-                  <div
-                    key={stat.label}
-                    className="rounded-2xl border border-gold/20 bg-white p-4 shadow-sm shadow-black/5"
-                  >
+                  <div key={stat.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
                     <p className="font-logo text-2xl leading-none text-onyx">{stat.value}</p>
                     <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
                       {stat.label}
@@ -1924,7 +1910,7 @@ export default function AdminDashboardPage() {
 
               <form
                 onSubmit={handleCreateSlots}
-                className="mt-6 rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5"
+                className="mt-6 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5"
               >
                 <h3 className="font-logo text-lg text-onyx">Criar horários</h3>
                 <p className="mt-1 font-subtitle text-sm text-muted-dark">
@@ -1954,7 +1940,7 @@ export default function AdminDashboardPage() {
                               [...new Set([...batchTimes, ...preset.times.filter((t) => !takenTimes.has(t))])].sort(),
                             )
                           }
-                          className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-gold-deep/10 hover:text-onyx"
+                          className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-onyx/5 hover:text-onyx"
                         >
                           {preset.label}
                         </button>
@@ -1963,7 +1949,7 @@ export default function AdminDashboardPage() {
                         type="button"
                         onClick={() => setBatchTimes([])}
                         disabled={batchTimes.length === 0}
-                        className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-gold-deep/10 hover:text-onyx disabled:opacity-30"
+                        className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-onyx/5 hover:text-onyx disabled:opacity-30"
                       >
                         Limpar
                       </button>
@@ -1986,10 +1972,10 @@ export default function AdminDashboardPage() {
                           title={taken ? 'Já existe uma vaga a esta hora' : undefined}
                           className={`rounded-full border py-2 font-subtitle text-sm transition-colors ${
                             selected
-                              ? 'border-gold-deep bg-gold-deep text-cream'
+                              ? 'glass-chip-on text-onyx'
                               : taken
-                                ? 'border-gold/20 text-onyx/30 line-through'
-                                : 'border-gold/30 text-onyx hover:border-gold-deep'
+                                ? 'glass-chip text-onyx/30 line-through'
+                                : 'glass-chip text-onyx'
                           } disabled:cursor-not-allowed`}
                         >
                           {time}
@@ -2004,7 +1990,7 @@ export default function AdminDashboardPage() {
                   )}
                 </div>
 
-                <div className="mt-5 flex items-center justify-between gap-3 border-t border-gold/15 pt-4">
+                <div className="mt-5 flex items-center justify-between gap-3 border-t border-onyx/10 pt-4">
                   <span className="font-subtitle text-sm text-muted-dark">
                     {batchTimes.length === 0
                       ? 'Nenhuma hora selecionada'
@@ -2053,8 +2039,8 @@ export default function AdminDashboardPage() {
                               slot.status === 'BOOKED'
                                 ? 'border-onyx bg-onyx text-white'
                                 : slot.status === 'PENDING'
-                                  ? 'border-gold-deep bg-gold-deep/10 text-onyx'
-                                  : 'border-gold/30 bg-white text-onyx'
+                                  ? 'glass-chip-on text-onyx'
+                                  : 'glass-chip text-onyx'
                             }`}
                           >
                             <span className="font-semibold">{dateParts(slot.startsAt).time}</span>
@@ -2094,7 +2080,7 @@ export default function AdminDashboardPage() {
                   <span className="h-px flex-1 bg-gold/25" />
                 </div>
 
-                <div className="relative mt-4 overflow-hidden rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5">
+                <div className="relative mt-4 overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
                   <span className="absolute inset-y-0 left-0 w-1 bg-red-700" aria-hidden="true" />
                   <div className="pl-2">
                     <p className="font-logo text-lg text-onyx">Limpar {formatMonthLabel(viewMonth)}</p>

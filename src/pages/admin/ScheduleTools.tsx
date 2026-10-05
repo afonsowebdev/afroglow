@@ -102,7 +102,9 @@ export function GenerateSlotsSheet({
       let skipped = 0
       for (let i = 0; i < times.length; i += 200) {
         const chunk = times.slice(i, i + 200).map((t) => t.toISOString())
-        const result = await api.post<{ created: unknown[]; skipped: number }>('/admin/availability/batch', { startsAtList: chunk })
+        const result = await api.post<{ created: unknown[]; skipped: number }>('/admin/availability/batch', {
+          startsAtList: chunk,
+        })
         created += result.created.length
         skipped += result.skipped
       }
@@ -132,7 +134,9 @@ export function GenerateSlotsSheet({
       onClose={onClose}
     >
       <div>
-        <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">Dias da semana</span>
+        <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+          Dias da semana
+        </span>
         <div className="flex flex-wrap gap-2">
           {WEEKDAYS.map((day) => (
             <button
@@ -141,7 +145,7 @@ export function GenerateSlotsSheet({
               aria-pressed={pattern.days.includes(day.id)}
               onClick={() => toggleDay(day.id)}
               className={`rounded-full border px-3.5 py-2 font-subtitle text-sm transition-colors ${
-                pattern.days.includes(day.id) ? 'border-gold-deep bg-gold-deep text-[#ffffff]' : 'border-gold/30 text-onyx'
+                pattern.days.includes(day.id) ? 'glass-chip-on text-onyx' : 'glass-chip text-onyx'
               }`}
             >
               {day.label}
@@ -152,13 +156,27 @@ export function GenerateSlotsSheet({
 
       <div className="grid grid-cols-2 gap-3">
         <SheetField label="Primeira hora">
-          <input type="time" value={pattern.from} onChange={(e) => setPattern({ ...pattern, from: e.target.value })} className={sheetFieldClass} />
+          <input
+            type="time"
+            value={pattern.from}
+            onChange={(e) => setPattern({ ...pattern, from: e.target.value })}
+            className={sheetFieldClass}
+          />
         </SheetField>
         <SheetField label="Até às">
-          <input type="time" value={pattern.to} onChange={(e) => setPattern({ ...pattern, to: e.target.value })} className={sheetFieldClass} />
+          <input
+            type="time"
+            value={pattern.to}
+            onChange={(e) => setPattern({ ...pattern, to: e.target.value })}
+            className={sheetFieldClass}
+          />
         </SheetField>
         <SheetField label="Uma vaga a cada">
-          <select value={pattern.everyMinutes} onChange={(e) => setPattern({ ...pattern, everyMinutes: Number(e.target.value) })} className={sheetFieldClass}>
+          <select
+            value={pattern.everyMinutes}
+            onChange={(e) => setPattern({ ...pattern, everyMinutes: Number(e.target.value) })}
+            className={sheetFieldClass}
+          >
             {[60, 90, 120, 180, 240, 360].map((m) => (
               <option key={m} value={m}>
                 {m / 60} h
@@ -167,7 +185,11 @@ export function GenerateSlotsSheet({
           </select>
         </SheetField>
         <SheetField label="Para as próximas">
-          <select value={pattern.weeks} onChange={(e) => setPattern({ ...pattern, weeks: Number(e.target.value) })} className={sheetFieldClass}>
+          <select
+            value={pattern.weeks}
+            onChange={(e) => setPattern({ ...pattern, weeks: Number(e.target.value) })}
+            className={sheetFieldClass}
+          >
             {[1, 2, 3, 4, 6, 8].map((w) => (
               <option key={w} value={w}>
                 {w} {w === 1 ? 'semana' : 'semanas'}
@@ -178,9 +200,16 @@ export function GenerateSlotsSheet({
       </div>
 
       <div>
-        <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">Folgas (dias a saltar)</span>
+        <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+          Folgas (dias a saltar)
+        </span>
         <div className="flex gap-2">
-          <input type="date" value={offInput} onChange={(e) => setOffInput(e.target.value)} className={sheetFieldClass} />
+          <input
+            type="date"
+            value={offInput}
+            onChange={(e) => setOffInput(e.target.value)}
+            className={sheetFieldClass}
+          />
           <button
             type="button"
             disabled={!offInput || daysOff.includes(offInput)}
@@ -188,7 +217,7 @@ export function GenerateSlotsSheet({
               setDaysOff((list) => [...list, offInput].sort())
               setOffInput('')
             }}
-            className="shrink-0 rounded-xl border border-gold/30 px-4 font-subtitle text-sm text-onyx disabled:opacity-40"
+            className="shrink-0 rounded-xl glass-chip px-4 font-subtitle text-sm text-onyx disabled:opacity-40"
           >
             Adicionar
           </button>
@@ -200,7 +229,7 @@ export function GenerateSlotsSheet({
                 key={d}
                 type="button"
                 onClick={() => setDaysOff((list) => list.filter((x) => x !== d))}
-                className="rounded-full bg-gold-deep/10 px-3 py-1 font-subtitle text-xs text-onyx"
+                className="rounded-full bg-onyx/5 px-3 py-1 font-subtitle text-xs text-onyx"
               >
                 {d.split('-').reverse().join('/')} ✕
               </button>

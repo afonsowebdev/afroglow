@@ -65,7 +65,9 @@ export function ManualBookingSheet({
   const matches = useMemo(() => {
     const q = search.trim().toLowerCase()
     if (!q) return customers.slice(0, 5)
-    return customers.filter((c) => c.name.toLowerCase().includes(q) || c.phone.replace(/\s/g, '').includes(q.replace(/\s/g, ''))).slice(0, 5)
+    return customers
+      .filter((c) => c.name.toLowerCase().includes(q) || c.phone.replace(/\s/g, '').includes(q.replace(/\s/g, '')))
+      .slice(0, 5)
   }, [customers, search])
 
   const hasClient = mode === 'existing' ? Boolean(picked) : name.trim().length >= 2 && phone.trim().length >= 6
@@ -105,7 +107,7 @@ export function ManualBookingSheet({
       onSubmit={submit}
       onClose={onClose}
     >
-      <div className="flex rounded-full border border-gold/20 p-1">
+      <div className="flex rounded-full glass-chip p-1">
         {(
           [
             ['new', 'Novo cliente'],
@@ -117,7 +119,7 @@ export function ManualBookingSheet({
             type="button"
             onClick={() => setMode(id)}
             className={`flex-1 rounded-full py-2 font-subtitle text-sm transition-colors ${
-              mode === id ? 'bg-gold-deep text-[#ffffff]' : 'text-onyx/70'
+              mode === id ? 'glass-chip-on text-onyx' : 'text-onyx/70'
             }`}
           >
             {label}
@@ -150,7 +152,11 @@ export function ManualBookingSheet({
                 <p className="font-subtitle text-xs text-muted-dark">{picked.phone}</p>
               </div>
               {!presetCustomer && (
-                <button type="button" onClick={() => setPicked(null)} className="font-subtitle text-sm text-gold-deep underline">
+                <button
+                  type="button"
+                  onClick={() => setPicked(null)}
+                  className="font-subtitle text-sm text-gold-deep underline"
+                >
                   Mudar
                 </button>
               )}
@@ -164,13 +170,15 @@ export function ManualBookingSheet({
                 className={sheetFieldClass}
               />
               <div className="mt-2 flex flex-col gap-1">
-                {matches.length === 0 && <p className="px-1 py-2 font-subtitle text-sm text-muted-dark">Nenhum cliente encontrado.</p>}
+                {matches.length === 0 && (
+                  <p className="px-1 py-2 font-subtitle text-sm text-muted-dark">Nenhum cliente encontrado.</p>
+                )}
                 {matches.map((c) => (
                   <button
                     key={c.id}
                     type="button"
                     onClick={() => setPicked(c)}
-                    className="rounded-xl border border-gold/20 px-4 py-2.5 text-left hover:border-gold-deep"
+                    className="rounded-xl glass-chip px-4 py-2.5 text-left"
                   >
                     <span className="block font-subtitle text-sm font-semibold text-onyx">{c.name}</span>
                     <span className="block font-subtitle text-xs text-muted-dark">{c.phone}</span>

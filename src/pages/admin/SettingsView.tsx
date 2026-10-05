@@ -64,7 +64,10 @@ export function SettingsView() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-5 rounded-2xl border border-gold/20 bg-white p-5 sm:p-6">
+    <form
+      onSubmit={handleSubmit}
+      className="mt-6 flex flex-col gap-5 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5 sm:p-6"
+    >
       <div>
         <h2 className="font-subtitle text-xl text-onyx">Definições do negócio</h2>
         <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
@@ -141,7 +144,7 @@ export function SettingsView() {
                 type="button"
                 aria-label="Remover linha"
                 onClick={() => update({ openingHours: form.openingHours.filter((_, i) => i !== index) })}
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gold/30 text-muted-dark hover:text-red-700"
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl glass-chip text-muted-dark hover:text-red-700"
               >
                 <i className="bx bx-trash" aria-hidden="true" />
               </button>

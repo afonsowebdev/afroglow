@@ -222,3 +222,16 @@
     animation: none !important;
   }
 }
+
+/* Form fields in the app-style screens (customer app and admin): the same firm 2pt border as the customer app. */
+.app-neutral input:not([type='checkbox'], [type='radio'], [type='range'], [type='file']),
+.app-neutral textarea,
+.app-neutral select {
+  border-width: 2px;
+  border-color: color-mix(in srgb, var(--color-onyx) 30%, transparent);
+}
+.app-neutral input:not([type='checkbox'], [type='radio'], [type='range'], [type='file']):focus-visible,
+.app-neutral textarea:focus-visible,
+.app-neutral select:focus-visible {
+  border-color: var(--color-onyx);
+}

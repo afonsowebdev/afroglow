@@ -1,25 +1,41 @@
 export type MoreTarget = 'servicos' | 'testemunhos' | 'estatisticas' | 'definicoes' | 'seguranca' | 'portfolio'
 
 const ITEMS: Array<{ id: MoreTarget; label: string; hint: string; icon: string }> = [
-  { id: 'portfolio', label: 'Portfólio', hint: 'Fotos e vídeos do trabalho, na app dos clientes', icon: 'bx bx-images' },
+  {
+    id: 'portfolio',
+    label: 'Portfólio',
+    hint: 'Fotos e vídeos do trabalho, na app dos clientes',
+    icon: 'bx bx-images',
+  },
   { id: 'servicos', label: 'Serviços', hint: 'Modelos, duração e preços', icon: 'bx bx-cut' },
   { id: 'testemunhos', label: 'Testemunhos', hint: 'Aprovar ou recusar', icon: 'bx bx-message-rounded-dots' },
   { id: 'estatisticas', label: 'Estatísticas', hint: 'Receita, sessões e clientes', icon: 'bx bx-bar-chart-alt-2' },
-  { id: 'definicoes', label: 'Definições do negócio', hint: 'WhatsApp, morada, horário, cancelamento', icon: 'bx bx-store' },
+  {
+    id: 'definicoes',
+    label: 'Definições do negócio',
+    hint: 'WhatsApp, morada, horário, cancelamento',
+    icon: 'bx bx-store',
+  },
   { id: 'seguranca', label: 'Segurança', hint: 'Alterar a password', icon: 'bx bx-lock-alt' },
 ]
 
-export function MoreView({ onOpen, badges }: { onOpen: (id: MoreTarget) => void; badges: Partial<Record<MoreTarget, number>> }) {
+export function MoreView({
+  onOpen,
+  badges,
+}: {
+  onOpen: (id: MoreTarget) => void
+  badges: Partial<Record<MoreTarget, number>>
+}) {
   return (
-    <div className="mt-6 divide-y divide-gold/15 overflow-hidden rounded-2xl border border-gold/20 bg-white shadow-sm shadow-black/5">
+    <div className="mt-6 divide-y divide-onyx/10 overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white">
       {ITEMS.map((item) => (
         <button
           key={item.id}
           type="button"
           onClick={() => onOpen(item.id)}
-          className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-gold-deep/5"
+          className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-onyx/5"
         >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 text-xl text-gold-deep">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-xl text-gold-deep">
             <i className={item.icon} aria-hidden="true" />
           </span>
           <span className="min-w-0 flex-1">

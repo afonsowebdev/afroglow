@@ -70,7 +70,7 @@ export function ServicePhotos({
       </div>
       <div className="grid grid-cols-3 gap-2">
         {images.map((image, index) => (
-          <div key={image.id} className="relative aspect-square overflow-hidden rounded-xl border border-gold/30">
+          <div key={image.id} className="relative aspect-square overflow-hidden rounded-xl glass-chip">
             <img src={serviceImageUrl(serviceId, image.id)} alt="" className="h-full w-full object-cover" />
             {index === 0 ? (
               <span className="absolute left-1 top-1 rounded-full bg-gold-deep px-2 py-0.5 font-subtitle text-[10px] text-[#ffffff]">

@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react'
+import { useLocation } from 'react-router-dom'
 import { fieldBorder, isCustomerApp } from '@/lib/app-mode'
 import { useEffect, type FormEvent, type ReactNode } from 'react'
 
@@ -48,6 +49,9 @@ export function Sheet({
   onSubmit: () => void
   onClose: () => void
 }) {
+  // The customer app and the admin share the glass-button look; the website keeps its own.
+  const { pathname } = useLocation()
+  const appStyle = isCustomerApp || pathname.startsWith('/admin')
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
@@ -108,7 +112,7 @@ export function Sheet({
                 onClick={onClose}
                 disabled={busy}
                 className={`rounded-full py-3 font-subtitle text-sm text-onyx transition-colors disabled:opacity-50 ${
-                  isCustomerApp ? 'glass-chip' : 'border border-gold/30 hover:border-gold-deep'
+                  appStyle ? 'glass-chip' : 'border border-gold/30 hover:border-gold-deep'
                 }`}
               >
                 {hideSubmit ? 'Fechar' : 'Cancelar'}
@@ -118,7 +122,7 @@ export function Sheet({
                   type="submit"
                   disabled={busy || submitDisabled}
                   className={`rounded-full py-3 font-subtitle text-sm transition-opacity hover:opacity-90 disabled:opacity-40 ${
-                    isCustomerApp
+                    appStyle
                       ? `glass-chip-on ${destructive ? 'text-red-700' : 'text-onyx'}`
                       : `text-[#ffffff] ${destructive ? 'bg-red-700' : 'bg-gold-deep'}`
                   }`}

@@ -288,7 +288,7 @@ export function CustomersView({
                 ['Total', formatPrice(selected.spentCents)],
                 ['Cliente desde', formatDate(selected.createdAt)],
               ].map(([label, value]) => (
-                <div key={label} className="rounded-xl bg-gold-deep/5 px-2 py-3">
+                <div key={label} className="rounded-xl bg-onyx/5 px-2 py-3">
                   <p className="font-logo text-sm leading-tight text-onyx">{value}</p>
                   <p className="mt-1 font-subtitle text-[10px] uppercase tracking-wide text-muted-dark">{label}</p>
                 </div>
@@ -300,7 +300,7 @@ export function CustomersView({
                 href={customerWhatsappUrl(selected.phone, `Olá ${selected.name}! `)}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center justify-center gap-2 rounded-full border border-gold/30 py-2.5 font-subtitle text-sm text-onyx hover:border-gold-deep"
+                className="flex items-center justify-center gap-2 rounded-full glass-chip py-2.5 font-subtitle text-sm text-onyx"
               >
                 <i className="bx bxl-whatsapp text-lg" aria-hidden="true" /> WhatsApp
               </a>
@@ -311,7 +311,7 @@ export function CustomersView({
                   setSelected(null)
                   onNewBooking(customer)
                 }}
-                className="flex items-center justify-center gap-2 rounded-full border border-gold/30 py-2.5 font-subtitle text-sm text-onyx hover:border-gold-deep"
+                className="flex items-center justify-center gap-2 rounded-full glass-chip py-2.5 font-subtitle text-sm text-onyx"
               >
                 <i className="bx bx-calendar-plus text-lg" aria-hidden="true" /> Nova marcação
               </button>
@@ -334,7 +334,7 @@ export function CustomersView({
               {detail && detail.bookings.length === 0 && (
                 <p className="font-subtitle text-sm text-muted-dark">Sem marcações.</p>
               )}
-              <div className="flex flex-col divide-y divide-gold/15">
+              <div className="flex flex-col divide-y divide-onyx/10">
                 {detail?.bookings.map((b) => (
                   <div key={b.id} className="flex items-center justify-between gap-3 py-2.5">
                     <div className="min-w-0">
