@@ -236,3 +236,16 @@
 .app-neutral select:focus-visible {
   border-color: var(--color-onyx);
 }
+
+/* iPhone date and time fields have a wide built-in width and spill over their neighbours: let them shrink to the cell. */
+.app-neutral input[type='date'],
+.app-neutral input[type='time'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+}
+.app-neutral label {
+  min-width: 0;
+}

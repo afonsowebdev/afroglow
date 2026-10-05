@@ -178,23 +178,23 @@ export function GenerateSlotsSheet({
       </Group>
 
       <Group title="Horas">
-        <div className="grid grid-cols-2 gap-3">
-          <label className="block">
+        <div className="grid grid-cols-2 gap-2.5">
+          <label className="block min-w-0">
             <span className={miniLabel}>Primeira hora</span>
             <input
               type="time"
               value={pattern.from}
               onChange={(e) => setPattern({ ...pattern, from: e.target.value })}
-              className={`${sheetFieldClass} h-12`}
+              className={`${sheetFieldClass} h-11 w-full min-w-0 appearance-none px-3 text-sm`}
             />
           </label>
-          <label className="block">
+          <label className="block min-w-0">
             <span className={miniLabel}>Até às</span>
             <input
               type="time"
               value={pattern.to}
               onChange={(e) => setPattern({ ...pattern, to: e.target.value })}
-              className={`${sheetFieldClass} h-12`}
+              className={`${sheetFieldClass} h-11 w-full min-w-0 appearance-none px-3 text-sm`}
             />
           </label>
         </div>
@@ -231,7 +231,7 @@ export function GenerateSlotsSheet({
             value={offInput}
             onChange={(e) => setOffInput(e.target.value)}
             aria-label="Dia a saltar"
-            className={`${sheetFieldClass} h-12 min-w-0 flex-1`}
+            className={`${sheetFieldClass} h-11 w-full min-w-0 appearance-none px-3 text-sm min-w-0 flex-1`}
           />
           <button
             type="button"
@@ -240,7 +240,7 @@ export function GenerateSlotsSheet({
               setDaysOff((list) => [...list, offInput].sort())
               setOffInput('')
             }}
-            className="glass-chip h-12 shrink-0 rounded-xl px-4 font-subtitle text-sm text-onyx disabled:opacity-40"
+            className="glass-chip h-11 shrink-0 rounded-xl px-3 font-subtitle text-sm text-onyx disabled:opacity-40"
           >
             Adicionar
           </button>
