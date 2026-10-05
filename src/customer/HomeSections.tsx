@@ -55,16 +55,19 @@ export function Greeting() {
       <div className="mt-5">
         <div className="flex items-baseline justify-between">
           <h2 className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">
-            Próximos horários livres
+            Horários disponíveis
           </h2>
           <Link to="/marcar" className="font-subtitle text-xs font-medium text-onyx underline underline-offset-4">
             Ver todos
           </Link>
         </div>
+        <p className="mt-1 font-subtitle text-xs font-light text-muted-dark">
+          Ainda livres, sem marcação. Toca num para o reservares.
+        </p>
         {slots === null ? (
           <div className="-mx-5 mt-3 flex gap-2.5 px-5">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="h-[72px] w-24 shrink-0 animate-pulse rounded-2xl bg-onyx/5" />
+              <div key={i} className="h-[88px] w-24 shrink-0 animate-pulse rounded-2xl bg-onyx/5" />
             ))}
           </div>
         ) : upcoming.length === 0 ? (
@@ -78,13 +81,16 @@ export function Greeting() {
                   key={slot.id}
                   to={`/marcar?slot=${slot.id}`}
                   onClick={() => void tap()}
-                  className="glass-chip flex h-[72px] w-24 shrink-0 flex-col items-center justify-center rounded-2xl"
+                  className="glass-chip flex h-[88px] w-24 shrink-0 flex-col items-center justify-center rounded-2xl"
                 >
                   <span className="font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
                     {parts.weekday.slice(0, 3)} {parts.day} {parts.month}
                   </span>
                   <span className="mt-0.5 font-subtitle text-xl font-semibold leading-none text-onyx">
                     {timeLabel(slot.startsAt)}
+                  </span>
+                  <span className="mt-1.5 flex items-center gap-1 font-subtitle text-[10px] font-medium text-emerald-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" aria-hidden="true" /> Livre
                   </span>
                 </Link>
               )
