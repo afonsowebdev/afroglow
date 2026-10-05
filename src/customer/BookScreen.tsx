@@ -18,7 +18,7 @@ import { SlotPicker } from './SlotPicker'
 const STEPS = ['Modelo', 'Data', 'Confirmar'] as const
 
 const fieldClass =
-  'w-full rounded-xl border border-onyx/20 bg-white px-4 py-3.5 font-subtitle text-onyx outline-none focus-visible:border-onyx'
+  'w-full rounded-xl border-2 border-onyx/30 bg-white px-4 py-3.5 font-subtitle text-onyx outline-none focus-visible:border-onyx'
 
 /** Bottom action button: slides up from the bottom edge only once there is something to continue with. */
 function Cta({ label, busy, onClick }: { label: string; busy?: boolean; onClick: () => void }) {
@@ -405,7 +405,7 @@ export default function BookScreen() {
                           <i className="bx bx-user text-lg text-muted-dark" aria-hidden="true" />
                           {customer.name}
                         </p>
-                        <label className="mt-3 flex items-center gap-2 rounded-xl border border-onyx/20 px-3 focus-within:border-onyx">
+                        <label className="mt-3 flex items-center gap-2 rounded-xl border-2 border-onyx/30 px-3 focus-within:border-onyx">
                           <i className="bx bx-phone text-lg text-muted-dark" aria-hidden="true" />
                           <input
                             type="tel"

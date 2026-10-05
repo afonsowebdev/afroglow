@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { MotionButton } from '@/components/ui/motion-button'
 import { api, ApiError } from '@/lib/api'
 import { downloadBookingIcs } from '@/lib/calendar'
+import { fieldBorder } from '@/lib/app-mode'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { usePageTitle } from '@/lib/page-title'
 import { useBusinessInfo } from '@/lib/site-config'
@@ -270,7 +271,7 @@ export function TestimonialForm() {
         rows={4}
         maxLength={600}
         placeholder="Conta-nos como foi a tua experiência..."
-        className="rounded-xl border border-gold/30 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-gold-deep"
+        className={`rounded-xl ${fieldBorder} bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300`}
       />
       {error && <p className="font-subtitle text-sm text-red-700">{error}</p>}
       <div>

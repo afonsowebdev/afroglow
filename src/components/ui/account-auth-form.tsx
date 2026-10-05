@@ -3,12 +3,11 @@ import { AnimatePresence, motion } from 'motion/react'
 import { ForgotPasswordSheet } from '@/components/ui/forgot-password-sheet'
 import { ActionButton } from '@/components/ui/action-button'
 import { MotionButton } from '@/components/ui/motion-button'
-import { isCustomerApp } from '@/lib/app-mode'
+import { fieldBorder, isCustomerApp } from '@/lib/app-mode'
 import { ApiError } from '@/lib/api'
 import { useCustomerAuth } from '@/lib/customer-auth'
 
-const inputClasses =
-  'rounded-xl border border-gold/30 bg-white px-4 py-2.5 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-gold-deep'
+const inputClasses = `rounded-xl ${fieldBorder} bg-white px-4 py-2.5 font-subtitle text-onyx outline-none transition-colors duration-300`
 
 const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$/
 

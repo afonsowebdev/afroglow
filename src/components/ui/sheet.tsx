@@ -1,11 +1,10 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { isCustomerApp } from '@/lib/app-mode'
+import { fieldBorder, isCustomerApp } from '@/lib/app-mode'
 import { useEffect, type FormEvent, type ReactNode } from 'react'
 
 const fieldLabel = 'mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark'
 
-export const sheetFieldClass =
-  'w-full rounded-xl border border-gold/30 bg-white px-3 py-2.5 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/30 focus-visible:border-gold-deep'
+export const sheetFieldClass = `w-full rounded-xl ${fieldBorder} bg-white px-3 py-2.5 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/30`
 
 export function SheetField({ label, children }: { label: string; children: ReactNode }) {
   return (
