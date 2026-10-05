@@ -160,8 +160,10 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
         <video
           key={slot}
           ref={videoRefs[slot]}
-          src={sources[slot]}
+          src={videos.length === 1 && slot === 1 ? undefined : sources[slot]}
           muted
+          // A single clip just loops; with several, the crossfade hands over to the next one.
+          loop={videos.length === 1}
           playsInline
           poster={slot === 0 ? VIDEO_BASE + POSTER_BY_TONE[tone] : undefined}
           preload={slot === 0 || firstPlaying ? 'auto' : 'none'}
