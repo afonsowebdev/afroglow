@@ -6,7 +6,7 @@ import type { BookingStatus } from '@/lib/types'
  * single dark action. Shared so every screen looks like the "next session" panel on the home screen.
  */
 
-export const panelClass = 'rounded-2xl border border-onyx/15 bg-white p-5'
+export const panelClass = 'rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5'
 export const labelClass = 'font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-muted-dark'
 
 const DOT: Record<BookingStatus, { color: string; label: string }> = {

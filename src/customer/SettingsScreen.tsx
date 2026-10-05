@@ -80,7 +80,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="mb-2.5 px-2 font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-muted-dark">
         {title}
       </h2>
-      <div className="divide-y divide-onyx/10 overflow-hidden rounded-2xl border border-onyx/15 bg-white">
+      <div className="divide-y divide-onyx/20 overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white">
         {children}
       </div>
     </section>
@@ -201,7 +201,7 @@ export default function SettingsScreen() {
 
       <div className="mx-auto max-w-2xl px-5">
         {notice && (
-          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-onyx/15 bg-white p-4">
+          <div className="mt-6 flex items-start gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
             <i className="bx bx-check-circle mt-0.5 text-xl text-gold-ink" aria-hidden="true" />
             <p className="flex-1 font-subtitle text-sm text-onyx">{notice}</p>
             <button

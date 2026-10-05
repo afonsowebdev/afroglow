@@ -27,7 +27,7 @@ export function WelcomeCard() {
 
   if (loading) return <div className="h-40 animate-pulse rounded-2xl bg-onyx/5" />
 
-  const panel = 'rounded-2xl border border-onyx/15 bg-white p-5'
+  const panel = 'rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5'
   const label = 'font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-muted-dark'
 
   // Plain panel with one clear action, used when there is no upcoming session to show.
@@ -199,7 +199,7 @@ export function StepsRow() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.6 }}
             transition={{ delay: index * 0.08 }}
-            className="relative rounded-2xl border border-onyx/15 bg-white px-3 pb-4 pt-6 text-center"
+            className="relative rounded-2xl border-[1.5px] border-onyx/25 bg-white px-3 pb-4 pt-6 text-center"
           >
             <span className="absolute -top-3 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full bg-gold-deep font-subtitle text-xs font-semibold text-[#ffffff]">
               {index + 1}
@@ -234,7 +234,7 @@ export function WorkGrid() {
           href={instagramDmUrl()}
           target="_blank"
           rel="noreferrer"
-          className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-onyx/15 bg-white text-center font-subtitle text-sm font-medium text-onyx"
+          className="flex flex-col items-center justify-center gap-2 rounded-2xl border-[1.5px] border-onyx/25 bg-white text-center font-subtitle text-sm font-medium text-onyx"
         >
           <i className="bx bxl-instagram text-2xl text-gold-ink" aria-hidden="true" />
           Mais no Instagram
@@ -254,7 +254,7 @@ export function ReviewsRow({ reviews }: { reviews: Array<{ id: string; quote: st
         {reviews.map((review) => (
           <figure
             key={review.id}
-            className="flex w-[82%] max-w-xs shrink-0 snap-center flex-col rounded-2xl border border-onyx/15 bg-white p-5"
+            className="flex w-[82%] max-w-xs shrink-0 snap-center flex-col rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5"
           >
             <i className="bx bxs-quote-alt-left text-3xl text-gold-ink/60" aria-hidden="true" />
             <blockquote className="mt-2 line-clamp-6 flex-1 font-subtitle text-sm font-light leading-relaxed text-onyx">
@@ -283,7 +283,7 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
           href={instagramDmUrl()}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-3 rounded-2xl border border-onyx/15 bg-white p-4"
+          className="flex items-center gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4"
         >
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#c9626b]/15 text-2xl text-[#b04a54]">
             <i className="bx bxl-instagram" aria-hidden="true" />
@@ -295,7 +295,7 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
             href={whatsappUrl}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-3 rounded-2xl border border-onyx/15 bg-white p-4"
+            className="flex items-center gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4"
           >
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#5f9a76]/15 text-2xl text-[#3f7a58]">
               <i className="bx bxl-whatsapp" aria-hidden="true" />

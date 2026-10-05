@@ -119,7 +119,7 @@ export default function ProfileScreen() {
       </header>
 
       <div className="mx-auto max-w-2xl px-5">
-        <div className="relative z-10 -mt-10 flex divide-x divide-onyx/10 rounded-2xl border border-onyx/15 bg-white py-5 shadow-md shadow-black/10">
+        <div className="relative z-10 -mt-10 flex divide-x divide-onyx/20 rounded-2xl border-[1.5px] border-onyx/25 bg-white py-5 shadow-md shadow-black/10">
           <Stat value={bookings ? String(data.done.length) : '–'} label="Sessões" />
           <Stat value={nextParts ? `${nextParts.day} ${nextParts.month}` : '–'} label="Próxima" />
           <Stat value={bookings ? formatPrice(data.spent).replace(/,00/, '') : '–'} label="Investido" />

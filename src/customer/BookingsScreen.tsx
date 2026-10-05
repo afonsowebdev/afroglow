@@ -295,7 +295,7 @@ export default function BookingsScreen() {
       >
         {selected && mode === 'details' && (
           <>
-            <div className="rounded-2xl border border-onyx/15 p-4">
+            <div className="rounded-2xl border-[1.5px] border-onyx/25 p-4">
               <div className="flex items-center justify-between">
                 <StatusDot status={selected.status} />
                 <span className="font-subtitle text-xl font-semibold tracking-tight text-onyx">
