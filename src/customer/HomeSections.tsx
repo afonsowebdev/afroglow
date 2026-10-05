@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { motion } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CalendarCheck, CalendarPlus, UserRound } from 'lucide-react'
 import { ActionButton } from '@/components/ui/action-button'
@@ -8,7 +8,7 @@ import { api } from '@/lib/api'
 import { tap } from '@/lib/haptics'
 import { serviceImageUrls } from '@/lib/service-images'
 import { useCustomerAuth } from '@/lib/customer-auth'
-import { instagramDmUrl } from '@/lib/site-config'
+import { instagramDmUrl, siteConfig } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service } from '@/lib/types'
 import { useBookingAlerts } from './booking-alerts'
 import { ServicePreview } from './ServicePreview'
@@ -448,30 +448,120 @@ export function StepsRow() {
 
 /** Photo mosaic of the studio's work. */
 export function WorkGrid() {
-  const tall = new Set([0, 3])
+  const [index, setIndex] = useState(0)
+  const [viewer, setViewer] = useState<number | null>(null)
+  const viewerStrip = useRef<HTMLDivElement>(null)
+  const [viewerIndex, setViewerIndex] = useState(0)
+
+  // Open the full-screen viewer already scrolled to the tapped photo.
+  useEffect(() => {
+    if (viewer === null) return
+    setViewerIndex(viewer)
+    requestAnimationFrame(() => {
+      const el = viewerStrip.current
+      if (el) el.scrollTo({ left: viewer * el.clientWidth })
+    })
+  }, [viewer])
+
   return (
     <section className="pt-12">
-      <SectionTitle title="O nosso trabalho" />
-      <div className="mx-auto mt-5 grid max-w-2xl auto-rows-[9.5rem] grid-flow-dense grid-cols-2 gap-2 px-5">
-        {PHOTOS.map((photo, index) => (
-          <img
+      <div className="mx-auto flex max-w-2xl items-end justify-between px-5">
+        <div>
+          <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Portfólio</p>
+          <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">O nosso trabalho</h2>
+        </div>
+        <p className="pb-1 font-subtitle text-sm tabular-nums text-muted-dark">
+          <span className="font-semibold text-onyx">{String(index + 1).padStart(2, '0')}</span> /{' '}
+          {String(PHOTOS.length).padStart(2, '0')}
+        </p>
+      </div>
+      <p className="mx-auto mt-2 max-w-2xl px-5 font-subtitle text-sm font-light text-muted-dark">
+        Desliza e toca numa foto para a ver em ecrã inteiro.
+      </p>
+
+      <div
+        className={`${strip} mt-5`}
+        onScroll={(e) => {
+          const el = e.currentTarget
+          const card = el.firstElementChild as HTMLElement | null
+          if (card)
+            setIndex(Math.min(PHOTOS.length - 1, Math.max(0, Math.round(el.scrollLeft / (card.offsetWidth + 12)))))
+        }}
+      >
+        {PHOTOS.map((photo, i) => (
+          <button
             key={photo.src}
-            src={photo.src}
-            alt={photo.alt}
-            loading="lazy"
-            className={`h-full w-full rounded-3xl object-cover ${tall.has(index) ? 'row-span-2' : ''}`}
-          />
+            type="button"
+            aria-label={`Ver foto ${i + 1} em ecrã inteiro`}
+            onClick={() => {
+              void tap()
+              setViewer(i)
+            }}
+            className="relative h-[23rem] w-[72%] max-w-[17rem] shrink-0 snap-center overflow-hidden rounded-[2rem]"
+          >
+            <img src={photo.src} alt={photo.alt} loading="lazy" className="h-full w-full object-cover" />
+            <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-[#ffffff] backdrop-blur-md">
+              <i className="bx bx-expand-alt" aria-hidden="true" />
+            </span>
+          </button>
         ))}
         <a
           href={instagramDmUrl()}
           target="_blank"
           rel="noreferrer"
-          className="flex flex-col items-center justify-center gap-2 rounded-2xl border-[1.5px] border-onyx/25 bg-white text-center font-subtitle text-sm font-medium text-onyx"
+          className="flex h-[23rem] w-[60%] max-w-[14rem] shrink-0 snap-center flex-col items-center justify-center gap-3 rounded-[2rem] border-[1.5px] border-onyx/25 bg-white text-center"
         >
-          <i className="bx bxl-instagram text-2xl text-gold-ink" aria-hidden="true" />
-          Mais no Instagram
+          <i className="bx bxl-instagram text-5xl text-onyx" aria-hidden="true" />
+          <span className="font-subtitle text-base font-semibold text-onyx">Mais no Instagram</span>
+          <span className="font-subtitle text-sm text-muted-dark">@{siteConfig.instagramHandle}</span>
         </a>
       </div>
+
+      <div className="mt-4 flex justify-center gap-1.5" aria-hidden="true">
+        {PHOTOS.map((photo, i) => (
+          <span
+            key={photo.src}
+            className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? 'w-6 bg-onyx' : 'w-1.5 bg-onyx/25'}`}
+          />
+        ))}
+      </div>
+
+      <AnimatePresence>
+        {viewer !== null && (
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Foto em ecrã inteiro"
+            className="fixed inset-0 z-[80] bg-black"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div
+              ref={viewerStrip}
+              onScroll={(e) => setViewerIndex(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}
+              className="flex h-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {PHOTOS.map((photo) => (
+                <div key={photo.src} className="flex h-full w-full shrink-0 snap-center items-center justify-center">
+                  <img src={photo.src} alt={photo.alt} className="max-h-full max-w-full object-contain" />
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              aria-label="Fechar"
+              onClick={() => setViewer(null)}
+              className="absolute right-4 top-[calc(1rem+env(safe-area-inset-top))] flex h-10 w-10 items-center justify-center rounded-full bg-[#ffffff]/20 text-2xl text-[#ffffff] backdrop-blur-md"
+            >
+              <i className="bx bx-x" aria-hidden="true" />
+            </button>
+            <p className="absolute inset-x-0 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] text-center font-subtitle text-sm text-[#ffffff]/80">
+              {viewerIndex + 1} / {PHOTOS.length}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   )
 }
