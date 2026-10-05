@@ -33,11 +33,15 @@ const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
 
 // Trial clips for the customer iPhone app (filmed by the studio). Remove this list and the override in the
 // component to go back to the usual playlists.
-const APP_TRIAL_CLIPS: Clip[] = [1, 2, 3].map((n) => ({
+const APP_TRIAL_CLIPS: Clip[] = [1, 2].map((n) => ({
   sd: `/videos/hero-test-${n}-app.mp4`,
   hd: `/videos/hero-test-${n}-app.mp4`,
   app: `/videos/hero-test-${n}-app.mp4`,
 }))
+
+// Where a trial clip is framed in the tall phone screen (the clip is 16:9, so only a slice shows).
+const FOCUS_BY_CLIP: Record<string, string> = { 'hero-test-2-app.mp4': '30% 50%' }
+const focusFor = (src: string) => FOCUS_BY_CLIP[src.split('/').pop()?.split('?')[0] ?? ''] ?? '50% 50%'
 
 // Smallest file that still looks sharp on the visitor's screen: 720p on phones and
 // when data saving is on, 4K only on large/high-density screens, 1080p otherwise.
@@ -185,6 +189,7 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
           }}
           className="absolute inset-0 h-full w-full object-cover"
           style={{
+            objectPosition: focusFor(sources[slot]),
             opacity: active === slot ? 1 : 0,
             transition: `opacity ${CROSSFADE_SECONDS}s ease-in-out`,
           }}
