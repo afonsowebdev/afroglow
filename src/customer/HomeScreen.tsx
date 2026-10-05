@@ -22,7 +22,9 @@ export default function HomeScreen() {
   const { theme } = useTheme()
   const dark = theme === 'dark'
   const [services, setServices] = useState<Service[] | null>(null)
-  const [testimonials, setTestimonials] = useState<Array<{ id: string; quote: string; name: string }>>([])
+  const [testimonials, setTestimonials] = useState<Array<{ id: string; quote: string; name: string; date?: string }>>(
+    [],
+  )
 
   useEffect(() => {
     api
@@ -37,6 +39,7 @@ export default function HomeScreen() {
             id: t.id,
             quote: t.content,
             name: t.customer.name,
+            date: t.createdAt,
           })),
         ),
       )
