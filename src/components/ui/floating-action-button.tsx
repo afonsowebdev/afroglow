@@ -178,7 +178,8 @@ export function FloatingActionMenu({
         style={{ pointerEvents: hidden ? 'none' : 'auto' }}
         aria-hidden={hidden || undefined}
       >
-        <div className="absolute bottom-full right-0 mb-3 flex flex-col-reverse items-end gap-2.5">
+        {/* The column itself never takes taps (it would cover the page above the button); each item does when open. */}
+        <div className="pointer-events-none absolute bottom-full right-0 mb-3 flex flex-col-reverse items-end gap-2.5">
           {actions.map(({ Icon, iconClass, label, onClick, href }, index) => {
             const glyph = Icon ? (
               <Icon size={20} className="text-onyx" />
