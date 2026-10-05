@@ -47,7 +47,7 @@ export function Greeting() {
     news = {
       text: `${thisWeek.length} ${thisWeek.length === 1 ? 'horário livre' : 'horários livres'} esta semana, em ${days} ${days === 1 ? 'dia' : 'dias'}`,
       to: '/marcar',
-      cta: 'Marcar',
+      cta: 'Ver datas',
     }
   } else if (slots) {
     news = { text: 'Sem horários livres esta semana', to: '/marcar', cta: 'Ver datas' }
@@ -123,12 +123,33 @@ export function WelcomeCard() {
     .sort((a, b) => a.slot.startsAt.localeCompare(b.slot.startsAt))[0]
 
   if (!next) {
-    return invite(
-      `Olá, ${customer.name.split(' ')[0]}`,
-      'Sem sessões marcadas',
-      'Escolhe o modelo e o horário em poucos passos.',
-      '/marcar',
-      'Marcar sessão',
+    // No upcoming session: the greeting strip above already says how to book, so this card offers something else.
+    const last = (bookings ?? [])
+      .filter((b) => b.status === 'ACCEPTED' && new Date(b.slot.startsAt) < new Date())
+      .sort((a, b) => b.slot.startsAt.localeCompare(a.slot.startsAt))[0]
+    if (last) {
+      const weeks = Math.max(1, Math.round((Date.now() - new Date(last.slot.startsAt).getTime()) / (7 * 86_400_000)))
+      return invite(
+        'A tua última sessão',
+        last.service.name,
+        `Há ${weeks} ${weeks === 1 ? 'semana' : 'semanas'}. Queres o mesmo penteado outra vez?`,
+        `/marcar?service=${last.serviceId}`,
+        'Repetir este penteado',
+      )
+    }
+    return (
+      <div className={panel}>
+        <p className={label}>Para ti</p>
+        <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">Descobre os penteados</p>
+        <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
+          Vê as fotos de cada modelo antes de escolheres.
+        </p>
+        <ActionButton
+          label="Ver os penteados"
+          className="mt-5"
+          onClick={() => document.getElementById('servicos')?.scrollIntoView({ behavior: 'smooth' })}
+        />
+      </div>
     )
   }
 
@@ -206,7 +227,7 @@ export function QuickActions({ whatsappUrl }: { whatsappUrl?: string }) {
 /** Services as swipeable photo cards. */
 export function ServiceCarousel({ services }: { services: Service[] | null }) {
   return (
-    <section className="pt-12">
+    <section id="servicos" className="scroll-mt-6 pt-12">
       <SectionTitle title="Os nossos serviços" hint="Desliza e escolhe o teu modelo." />
       <div className={`${strip} mt-5`}>
         {services === null &&
