@@ -3,7 +3,7 @@ import { requireAdmin } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
 import { createServiceSchema, serviceImageSchema, updateServiceSchema } from '../lib/validation.js'
 
-const MAX_IMAGES_PER_SERVICE = 10
+const MAX_IMAGES_PER_SERVICE = 5
 
 export const servicesRouter = Router()
 

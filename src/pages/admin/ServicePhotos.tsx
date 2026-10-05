@@ -3,6 +3,7 @@ import { api, ApiError } from '@/lib/api'
 import { serviceImageUrl } from '@/lib/service-images'
 
 const MAX_SIDE = 1600
+const PHOTOS_PER_PACKAGE = 5
 
 /** Shrinks a phone photo (often 4-8 MB) to a ~300 KB JPEG before it is uploaded. */
 async function shrink(file: File): Promise<string> {
@@ -47,7 +48,7 @@ export function ServicePhotos({
   async function addFiles(files: FileList | null) {
     if (!files || files.length === 0) return
     await run('A enviar fotos...', async () => {
-      for (const file of Array.from(files)) {
+      for (const file of Array.from(files).slice(0, Math.max(0, PHOTOS_PER_PACKAGE - images.length))) {
         const data = await shrink(file)
         await api.post(`/admin/services/${serviceId}/images`, { contentType: 'image/jpeg', data })
       }
@@ -55,11 +56,18 @@ export function ServicePhotos({
     if (input.current) input.current.value = ''
   }
 
+  const free = PHOTOS_PER_PACKAGE - images.length
+
   return (
     <div>
-      <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-        Fotos <span className="normal-case tracking-normal text-muted-dark/70">· a primeira é a capa</span>
-      </span>
+      <div className="mb-1.5 flex items-baseline justify-between">
+        <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+          Fotos <span className="normal-case tracking-normal text-muted-dark/70">· a primeira é a capa</span>
+        </span>
+        <span className="font-subtitle text-xs font-medium text-onyx">
+          {images.length}/{PHOTOS_PER_PACKAGE}
+        </span>
+      </div>
       <div className="grid grid-cols-3 gap-2">
         {images.map((image, index) => (
           <div key={image.id} className="relative aspect-square overflow-hidden rounded-xl border border-gold/30">
@@ -91,17 +99,18 @@ export function ServicePhotos({
             </button>
           </div>
         ))}
-        {images.length < 10 && (
+        {Array.from({ length: free }, (_, i) => (
           <button
+            key={`free-${i}`}
             type="button"
             disabled={busy !== null}
             onClick={() => input.current?.click()}
             className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-gold/50 text-muted-dark disabled:opacity-50"
           >
             <i className="bx bx-image-add text-2xl" aria-hidden="true" />
-            <span className="font-subtitle text-[11px]">Adicionar</span>
+            <span className="font-subtitle text-[11px]">Foto {images.length + i + 1}</span>
           </button>
-        )}
+        ))}
       </div>
       <input
         ref={input}
@@ -113,6 +122,9 @@ export function ServicePhotos({
       />
       {busy && <p className="mt-2 font-subtitle text-xs text-muted-dark">{busy}</p>}
       {error && <p className="mt-2 font-subtitle text-xs text-red-700">{error}</p>}
+      {free === 0 && (
+        <p className="mt-2 font-subtitle text-xs text-muted-dark">Pacote completo. Remove uma foto para trocar.</p>
+      )}
     </div>
   )
 }
