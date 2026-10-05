@@ -31,6 +31,14 @@ const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
   app: `/videos/hero-light-${n}-app.mp4?v=1`,
 }))
 
+// Trial clips for the customer iPhone app (filmed by the studio). Remove this list and the override in the
+// component to go back to the usual playlists.
+const APP_TRIAL_CLIPS: Clip[] = [1, 2, 3].map((n) => ({
+  sd: `/videos/hero-test-${n}-app.mp4`,
+  hd: `/videos/hero-test-${n}-app.mp4`,
+  app: `/videos/hero-test-${n}-app.mp4`,
+}))
+
 // Smallest file that still looks sharp on the visitor's screen: 720p on phones and
 // when data saving is on, 4K only on large/high-density screens, 1080p otherwise.
 function pickRendition(clip: Clip) {
@@ -82,8 +90,12 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
   const [firstPlaying, setFirstPlaying] = useState(false)
   // Resolved once per mount; the Hero remounts this component when the theme changes.
   const [videos] = useState(() => {
-    const clips = tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
-    return clips.map((clip) => VIDEO_BASE + pickRendition(clip))
+    const clips = import.meta.env.MODE === 'customer' ? APP_TRIAL_CLIPS : tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
+    // The trial clips travel inside the app; the usual ones are streamed from the website.
+    return clips.map((clip) => {
+      const src = pickRendition(clip)
+      return (src.includes('hero-test-') ? '' : VIDEO_BASE) + src
+    })
   })
   const [sources, setSources] = useState([videos[0], videos[1 % videos.length]])
 
