@@ -38,21 +38,26 @@ export function useAutoHideNav(enabled: boolean, routeKey: string) {
       setAutoHidden(false)
       return
     }
-    let last = window.scrollY
-    const onScroll = () => {
-      const y = window.scrollY
+    // Reads the scroll position every frame instead of relying on scroll events, which the iPhone's web view
+    // delivers late (or only at the end) while the page is still gliding.
+    const read = () => window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0
+    let last = read()
+    let frame = 0
+    const tick = () => {
+      const y = read()
       const atTop = y < 40
       const atEnd = window.innerHeight + y >= document.documentElement.scrollHeight - 80
       const delta = y - last
       if (atTop || atEnd) setAutoHidden(false)
       else if (delta > 8) setAutoHidden(true)
       else if (delta < -8) setAutoHidden(false)
-      if (Math.abs(delta) > 8) last = y
+      if (Math.abs(delta) > 8 || atTop) last = y
+      frame = requestAnimationFrame(tick)
     }
     setAutoHidden(false)
-    window.addEventListener('scroll', onScroll, { passive: true })
+    frame = requestAnimationFrame(tick)
     return () => {
-      window.removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(frame)
       setAutoHidden(false)
     }
   }, [enabled, routeKey, setAutoHidden])
