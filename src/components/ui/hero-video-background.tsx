@@ -31,17 +31,12 @@ const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
   app: `/videos/hero-light-${n}-app.mp4?v=1`,
 }))
 
-// Trial clips for the customer iPhone app (filmed by the studio). Remove this list and the override in the
-// component to go back to the usual playlists.
-const APP_TRIAL_CLIPS: Clip[] = [1].map((n) => ({
-  sd: `/videos/hero-test-${n}-app.mp4`,
-  hd: `/videos/hero-test-${n}-app.mp4`,
-  app: `/videos/hero-test-${n}-app.mp4`,
+// The customer iPhone app plays just these two clips, in a loop. They travel inside the app (see build:customer).
+const APP_CLIPS: Clip[] = [3, 5].map((n) => ({
+  sd: `/videos/hero-light-${n}-app.mp4?v=1`,
+  hd: `/videos/hero-light-${n}-app.mp4?v=1`,
+  app: `/videos/hero-light-${n}-app.mp4?v=1`,
 }))
-
-// Where a trial clip is framed in the tall phone screen (the clip is 16:9, so only a slice shows).
-const FOCUS_BY_CLIP: Record<string, string> = { 'hero-test-2-app.mp4': '30% 50%' }
-const focusFor = (src: string) => FOCUS_BY_CLIP[src.split('/').pop()?.split('?')[0] ?? ''] ?? '50% 50%'
 
 // Smallest file that still looks sharp on the visitor's screen: 720p on phones and
 // when data saving is on, 4K only on large/high-density screens, 1080p otherwise.
@@ -94,12 +89,9 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
   const [firstPlaying, setFirstPlaying] = useState(false)
   // Resolved once per mount; the Hero remounts this component when the theme changes.
   const [videos] = useState(() => {
-    const clips = import.meta.env.MODE === 'customer' ? APP_TRIAL_CLIPS : tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
-    // The trial clips travel inside the app; the usual ones are streamed from the website.
-    return clips.map((clip) => {
-      const src = pickRendition(clip)
-      return (src.includes('hero-test-') ? '' : VIDEO_BASE) + src
-    })
+    const clips = import.meta.env.MODE === 'customer' ? APP_CLIPS : tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
+    // The app's two clips travel inside the app; the website's are served from its own origin.
+    return clips.map((clip) => (import.meta.env.MODE === 'customer' ? '' : VIDEO_BASE) + pickRendition(clip))
   })
   const [sources, setSources] = useState([videos[0], videos[1 % videos.length]])
 
@@ -190,7 +182,6 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
           }}
           className="absolute inset-0 h-full w-full object-cover"
           style={{
-            objectPosition: focusFor(sources[slot]),
             opacity: active === slot ? 1 : 0,
             transition: `opacity ${CROSSFADE_SECONDS}s ease-in-out`,
           }}

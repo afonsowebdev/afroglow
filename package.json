@@ -12,7 +12,7 @@
     "build:ios": "npm run build && npx cap sync ios",
     "sync:ios": "npx cap sync ios",
     "open:ios": "npx cap open ios",
-    "build:customer": "tsc -b && vite build --mode customer --outDir dist-customer --emptyOutDir && find dist-customer/videos -type f ! -name 'hero-test-*' -delete",
+    "build:customer": "tsc -b && vite build --mode customer --outDir dist-customer --emptyOutDir && find dist-customer/videos -type f ! -name 'hero-light-[35]-app.mp4' -delete",
     "sync:customer": "npm run build:customer && cd apps/customer && npx cap sync ios",
     "open:customer": "cd apps/customer && npx cap open ios"
   },
