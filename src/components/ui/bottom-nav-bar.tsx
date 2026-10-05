@@ -12,8 +12,6 @@ export interface BottomNavItem<T extends string = string> {
   dot?: boolean
   /** A photo shown instead of the icon (e.g. the customer's profile picture). */
   image?: string | null
-  /** Keep the label visible even when the item is not the active one. */
-  alwaysLabel?: boolean
 }
 
 interface BottomNavBarProps<T extends string> {
@@ -109,9 +107,9 @@ export function BottomNavBar<T extends string>({
             <motion.span
               initial={false}
               animate={{
-                width: isActive || item.alwaysLabel ? 'auto' : 0,
-                opacity: isActive || item.alwaysLabel ? 1 : 0,
-                marginLeft: isActive || item.alwaysLabel ? 8 : 0,
+                width: isActive ? 'auto' : 0,
+                opacity: isActive ? 1 : 0,
+                marginLeft: isActive ? 8 : 0,
               }}
               transition={{
                 width: { type: 'spring', stiffness: 350, damping: 32 },

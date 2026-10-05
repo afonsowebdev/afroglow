@@ -227,8 +227,8 @@ function CustomerShell() {
               label,
               icon,
               dot: id === 'marcacoes' && unseen.size > 0,
-              // The account tab always says "Conta", with the customer's photo in place of the icon when there is one.
-              ...(id === 'conta' && customer ? { image: avatar, alwaysLabel: true } : {}),
+              // The customer's photo stands in for the account icon when there is one.
+              ...(id === 'conta' && customer ? { image: avatar } : {}),
             }))}
           />
         </div>
