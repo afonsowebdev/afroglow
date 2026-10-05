@@ -88,8 +88,10 @@ export default function HomeScreen() {
           transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
           aria-hidden="true"
         >
-          <span className="font-body text-[0.65rem] uppercase tracking-[0.3em] text-onyx/70">Descobre</span>
-          <i className="bx bx-chevron-down -mt-0.5 text-2xl text-onyx/70" />
+          <span className="font-body text-[0.65rem] uppercase tracking-[0.3em] text-[#ffffff] [text-shadow:0_1px_8px_rgba(0,0,0,0.45)]">
+            Descobre
+          </span>
+          <i className="bx bx-chevron-down -mt-0.5 text-2xl text-[#ffffff] [text-shadow:0_1px_8px_rgba(0,0,0,0.45)]" />
         </motion.div>
       </section>
 
