@@ -96,14 +96,6 @@ type NavTab = 'pedidos' | 'agenda' | 'disponibilidade' | 'clientes' | 'mais'
 type AdminTab = NavTab | MoreTarget
 
 const MORE_TARGETS: MoreTarget[] = ['servicos', 'portfolio', 'testemunhos', 'estatisticas', 'definicoes', 'seguranca']
-const MORE_TITLE: Record<MoreTarget, string> = {
-  servicos: 'Serviços',
-  portfolio: 'Portfólio',
-  testemunhos: 'Testemunhos',
-  estatisticas: 'Estatísticas',
-  definicoes: 'Definições do negócio',
-  seguranca: 'Segurança',
-}
 
 const TABS: Array<{ id: NavTab; label: string; icon: string }> = [
   { id: 'pedidos', label: 'Pedidos', icon: 'bx bx-bell' },
@@ -111,6 +103,21 @@ const TABS: Array<{ id: NavTab; label: string; icon: string }> = [
   { id: 'disponibilidade', label: 'Horários', icon: 'bx bx-time-five' },
   { id: 'clientes', label: 'Clientes', icon: 'bx bx-user' },
 ]
+
+// Every page has its own title and one line saying what it is for.
+const PAGE: Record<AdminTab, { title: string; hint: string }> = {
+  pedidos: { title: 'Pedidos', hint: 'Marcações à espera da tua resposta.' },
+  agenda: { title: 'Agenda', hint: 'As sessões do mês.' },
+  disponibilidade: { title: 'Horários', hint: 'Abre e fecha os horários para marcar.' },
+  clientes: { title: 'Clientes', hint: 'Quem já marcou contigo.' },
+  mais: { title: 'Mais', hint: 'Outras opções do painel.' },
+  servicos: { title: 'Serviços', hint: 'Modelos, duração e preços.' },
+  portfolio: { title: 'Portfólio', hint: 'As fotos do trabalho na app dos clientes.' },
+  testemunhos: { title: 'Testemunhos', hint: 'Aprovar ou recusar o que os clientes escrevem.' },
+  estatisticas: { title: 'Estatísticas', hint: 'Receita, sessões e clientes.' },
+  definicoes: { title: 'Definições do negócio', hint: 'Contactos, morada, horário e cancelamento.' },
+  seguranca: { title: 'Segurança', hint: 'Alterar a password do admin.' },
+}
 
 function dayHeading(iso: string) {
   const key = dateKey(iso)
@@ -1703,11 +1710,6 @@ export default function AdminDashboardPage() {
       </div>
 
       <main className="mx-auto max-w-4xl px-5 pb-36 pt-[calc(7rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(8rem+env(safe-area-inset-top))]">
-        <h1 className="font-subtitle text-[32px] font-semibold leading-none tracking-tight text-onyx">
-          Painel de Admin
-        </h1>
-        <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">{adminEmail}</p>
-
         {error && <p className="mt-6 font-subtitle text-sm text-red-700">{error}</p>}
 
         <motion.div
@@ -1716,13 +1718,10 @@ export default function AdminDashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22, ease: 'easeOut' }}
         >
-          {MORE_TARGETS.includes(tab as MoreTarget) && (
-            <div className="mt-6">
-              <span className="font-subtitle text-2xl font-semibold tracking-tight text-onyx">
-                {MORE_TITLE[tab as MoreTarget]}
-              </span>
-            </div>
-          )}
+          <h1 className="font-subtitle text-[32px] font-semibold leading-none tracking-tight text-onyx">
+            {PAGE[tab].title}
+          </h1>
+          <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">{PAGE[tab].hint}</p>
 
           {(tab === 'agenda' || tab === 'disponibilidade') && (
             <div className="mt-6 flex items-center justify-center gap-4 rounded-full border-[1.5px] border-onyx/25 bg-white px-4 py-2 sm:justify-start">

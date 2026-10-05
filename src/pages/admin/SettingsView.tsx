@@ -69,8 +69,7 @@ export function SettingsView() {
       className="mt-6 flex flex-col gap-5 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5 sm:p-6"
     >
       <div>
-        <h2 className="font-subtitle text-xl text-onyx">Definições do negócio</h2>
-        <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
+        <p className="font-subtitle text-sm font-light text-muted-dark">
           Aparecem no site e na app dos clientes. O que ficar vazio não é mostrado.
         </p>
       </div>
