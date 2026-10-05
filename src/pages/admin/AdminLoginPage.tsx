@@ -41,7 +41,7 @@ export default function AdminLoginPage() {
         onSubmit={handleSubmit}
         className="relative z-10 w-full max-w-sm rounded-3xl border-[1.5px] border-onyx/25 bg-white/95 p-8 backdrop-blur-sm"
       >
-        <h1 className="font-logo text-2xl text-onyx">Área de Admin</h1>
+        <h1 className="font-subtitle text-2xl font-semibold tracking-tight text-onyx">Área de Admin</h1>
         <div className="mt-6 flex flex-col gap-4">
           <label className="flex flex-col gap-1.5">
             <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Email</span>

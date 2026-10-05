@@ -588,7 +588,9 @@ function ServiceDialog({
                 <i className={`bx ${isNew ? 'bx-plus' : 'bx-pencil'}`} aria-hidden="true" />
               </span>
               <div>
-                <h2 className="font-logo text-xl text-onyx">{isNew ? 'Novo modelo' : 'Editar modelo'}</h2>
+                <h2 className="font-subtitle text-xl font-semibold tracking-tight text-onyx">
+                  {isNew ? 'Novo modelo' : 'Editar modelo'}
+                </h2>
                 <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
                   {isNew ? 'Aparece no site assim que guardares.' : 'As alterações aparecem logo no site.'}
                 </p>
@@ -751,7 +753,9 @@ function DeleteServiceDialog({
                 <i className="bx bx-trash" aria-hidden="true" />
               </span>
               <div>
-                <h2 className="font-logo text-xl text-onyx">Eliminar {service.name}?</h2>
+                <h2 className="font-subtitle text-xl font-semibold tracking-tight text-onyx">
+                  Eliminar {service.name}?
+                </h2>
                 <p className="mt-1 font-subtitle text-sm text-muted-dark">
                   O modelo deixa de aparecer no site e as clientes já não o podem escolher.
                 </p>
@@ -1699,8 +1703,10 @@ export default function AdminDashboardPage() {
       </div>
 
       <main className="mx-auto max-w-4xl px-5 pb-36 pt-[calc(7rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(8rem+env(safe-area-inset-top))]">
-        <h1 className="font-logo text-4xl text-onyx sm:text-5xl">Painel de Admin</h1>
-        <p className="mt-4 font-subtitle text-lg font-light text-muted-dark">{adminEmail}</p>
+        <h1 className="font-subtitle text-[32px] font-semibold leading-none tracking-tight text-onyx">
+          Painel de Admin
+        </h1>
+        <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">{adminEmail}</p>
 
         {error && <p className="mt-6 font-subtitle text-sm text-red-700">{error}</p>}
 
@@ -1712,7 +1718,9 @@ export default function AdminDashboardPage() {
         >
           {MORE_TARGETS.includes(tab as MoreTarget) && (
             <div className="mt-6">
-              <span className="font-logo text-2xl text-onyx">{MORE_TITLE[tab as MoreTarget]}</span>
+              <span className="font-subtitle text-2xl font-semibold tracking-tight text-onyx">
+                {MORE_TITLE[tab as MoreTarget]}
+              </span>
             </div>
           )}
 
@@ -1801,7 +1809,9 @@ export default function AdminDashboardPage() {
                     <article key={service.id} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
-                          <h3 className="font-logo text-lg text-onyx">{service.name}</h3>
+                          <h3 className="font-subtitle text-lg font-semibold tracking-tight text-onyx">
+                            {service.name}
+                          </h3>
                           <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-onyx/5 px-2.5 py-1 font-subtitle text-[11px] text-gold-deep">
                             <i className="bx bx-time-five text-sm" aria-hidden="true" />
                             {service.durationLabel}
@@ -1935,7 +1945,7 @@ export default function AdminDashboardPage() {
                   onSubmit={handleCreateSlots}
                   className="mt-6 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5"
                 >
-                  <h3 className="font-logo text-lg text-onyx">Criar horários</h3>
+                  <h3 className="font-subtitle text-lg font-semibold tracking-tight text-onyx">Criar horários</h3>
                   <p className="mt-1 font-subtitle text-sm text-muted-dark">
                     Escolhe o dia e toca nas horas que queres abrir.
                   </p>
