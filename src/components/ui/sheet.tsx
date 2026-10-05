@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react'
+import { isCustomerApp } from '@/lib/app-mode'
 import { useEffect, type FormEvent, type ReactNode } from 'react'
 
 const fieldLabel = 'mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark'
@@ -107,7 +108,9 @@ export function Sheet({
                 type="button"
                 onClick={onClose}
                 disabled={busy}
-                className="rounded-full border border-gold/30 py-3 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep disabled:opacity-50"
+                className={`rounded-full py-3 font-subtitle text-sm text-onyx transition-colors disabled:opacity-50 ${
+                  isCustomerApp ? 'glass-chip' : 'border border-gold/30 hover:border-gold-deep'
+                }`}
               >
                 {hideSubmit ? 'Fechar' : 'Cancelar'}
               </button>
@@ -115,8 +118,10 @@ export function Sheet({
                 <button
                   type="submit"
                   disabled={busy || submitDisabled}
-                  className={`rounded-full py-3 font-subtitle text-sm text-[#ffffff] transition-opacity hover:opacity-90 disabled:opacity-40 ${
-                    destructive ? 'bg-red-700' : 'bg-gold-deep'
+                  className={`rounded-full py-3 font-subtitle text-sm transition-opacity hover:opacity-90 disabled:opacity-40 ${
+                    isCustomerApp
+                      ? `glass-chip-on ${destructive ? 'text-red-700' : 'text-onyx'}`
+                      : `text-[#ffffff] ${destructive ? 'bg-red-700' : 'bg-gold-deep'}`
                   }`}
                 >
                   {busy ? 'A processar...' : submitLabel}

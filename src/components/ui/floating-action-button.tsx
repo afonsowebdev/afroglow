@@ -60,15 +60,12 @@ export function AnimatedSocialIcons({ icons, className, iconSize = 22, onToggle 
               type="button"
               aria-label={active ? 'Fechar atalhos' : 'Abrir atalhos'}
               aria-expanded={active}
-              className={cn(
-                buttonSize,
-                'flex items-center justify-center rounded-full bg-gold-deep shadow-lg shadow-gold-deep/30 transition-colors hover:bg-gold-deep/90',
-              )}
+              className={cn(buttonSize, 'liquid-glass flex items-center justify-center rounded-full transition-colors')}
               onClick={toggle}
               animate={{ rotate: active ? 45 : 0 }}
               transition={{ type: 'tween', ease: 'easeInOut', duration: 0.5 }}
             >
-              <Plus size={iconSize} strokeWidth={3} className="text-[#ffffff]" />
+              <Plus size={iconSize} strokeWidth={3} className="text-onyx" />
             </motion.button>
           </div>
         </motion.div>
@@ -79,11 +76,7 @@ export function AnimatedSocialIcons({ icons, className, iconSize = 22, onToggle 
           ) : (
             <i className={cn(iconClass, iconClasses)} style={{ fontSize: iconSize + 2 }} aria-hidden="true" />
           )
-          const circle = cn(
-            buttonSize,
-            'flex items-center justify-center rounded-full border border-gold/30 bg-white shadow-lg hover:shadow-xl',
-            itemClassName,
-          )
+          const circle = cn(buttonSize, 'glass-chip flex items-center justify-center rounded-full', itemClassName)
           const interactive = active ? 'auto' : 'none'
           return (
             <div
@@ -192,8 +185,7 @@ export function FloatingActionMenu({
             ) : (
               <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 22 }} aria-hidden="true" />
             )
-            const circle =
-              'flex size-12 items-center justify-center rounded-full border border-onyx/10 bg-white shadow-lg shadow-black/15'
+            const circle = 'glass-chip flex size-12 items-center justify-center rounded-full'
             const run = () => {
               onClick?.()
               close()
@@ -213,7 +205,7 @@ export function FloatingActionMenu({
                 }}
                 transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4, delay: open ? index * 0.05 : 0 }}
               >
-                <span className="whitespace-nowrap rounded-full bg-white px-3.5 py-1.5 font-subtitle text-xs font-medium text-onyx shadow-lg shadow-black/15">
+                <span className="glass-chip whitespace-nowrap rounded-full px-3.5 py-1.5 font-subtitle text-xs font-medium text-onyx">
                   {label}
                 </span>
                 {href ? (

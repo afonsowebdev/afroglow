@@ -176,7 +176,7 @@ export default function BookingsScreen() {
       <div className="mx-auto max-w-md">
         <h1 className="font-subtitle font-semibold tracking-tight text-4xl text-onyx">As minhas marcações</h1>
 
-        <div className="mt-6 flex rounded-full border border-gold/25 bg-white p-1">
+        <div className="glass-chip mt-6 flex rounded-full p-1">
           {(
             [
               ['next', 'Próximas', next.length],
@@ -195,11 +195,11 @@ export default function BookingsScreen() {
               {tab === id && (
                 <motion.span
                   layoutId="bookings-tab"
-                  className="absolute inset-0 rounded-full bg-brand"
+                  className="glass-chip-on absolute inset-0 rounded-full"
                   transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                 />
               )}
-              <span className={`relative ${tab === id ? 'text-brand-ink' : 'text-onyx/70'}`}>
+              <span className={`relative ${tab === id ? 'text-onyx' : 'text-onyx/60'}`}>
                 {label} {count > 0 && <span className="opacity-70">· {count}</span>}
               </span>
             </button>

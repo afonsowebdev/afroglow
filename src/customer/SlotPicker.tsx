@@ -72,34 +72,28 @@ export function SlotPicker({
                 void tap()
                 setActiveDay(key)
               }}
-              className={`relative flex h-[96px] w-[68px] shrink-0 flex-col items-center justify-center rounded-3xl border-2 transition-colors ${
-                active ? 'border-brand' : 'border-gold/30 bg-white'
-              }`}
+              className="glass-chip relative flex h-[96px] w-[68px] shrink-0 flex-col items-center justify-center rounded-3xl"
             >
               {active && (
                 <motion.span
                   layoutId="slot-day"
-                  className="absolute -inset-0.5 rounded-3xl bg-brand"
+                  className="glass-chip-on absolute inset-0 rounded-3xl"
                   transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                 />
               )}
               <span
                 className={`relative font-subtitle text-xs font-medium uppercase tracking-wide ${
-                  active ? 'text-brand-ink' : 'text-muted-dark'
+                  active ? 'text-onyx' : 'text-muted-dark'
                 }`}
               >
                 {relative ?? parts.weekday.slice(0, 3)}
               </span>
-              <span
-                className={`relative mt-0.5 font-subtitle text-[28px] font-semibold leading-none ${
-                  active ? 'text-brand-ink' : 'text-onyx'
-                }`}
-              >
+              <span className={`relative mt-0.5 font-subtitle text-[28px] font-semibold leading-none ${'text-onyx'}`}>
                 {parts.day}
               </span>
               <span
                 className={`relative mt-1.5 rounded-full px-2 py-0.5 font-subtitle text-[10px] font-medium ${
-                  active ? 'bg-black/10 text-brand-ink' : 'bg-gold-deep/10 text-gold-ink'
+                  active ? 'bg-onyx/10 text-onyx' : 'bg-onyx/5 text-muted-dark'
                 }`}
               >
                 {daySlots.length} {daySlots.length === 1 ? 'vaga' : 'vagas'}
@@ -123,10 +117,8 @@ export function SlotPicker({
                   void tap()
                   onChange(value === slot.id ? null : slot.id)
                 }}
-                className={`rounded-2xl border-2 py-3.5 font-subtitle text-base font-medium transition-colors ${
-                  value === slot.id
-                    ? 'border-brand bg-brand text-brand-ink shadow-md shadow-brand/25'
-                    : 'border-gold/30 bg-white text-onyx'
+                className={`rounded-2xl py-3.5 font-subtitle text-base font-medium text-onyx transition-shadow ${
+                  value === slot.id ? 'glass-chip-on' : 'glass-chip'
                 }`}
               >
                 {timeLabel(slot.startsAt)}

@@ -284,13 +284,13 @@ export function AccountAuthForm({
                 {mode === value && (
                   <motion.span
                     layoutId="auth-tab-pill"
-                    className="absolute inset-0 rounded-full bg-gold-deep shadow-md shadow-gold-deep/30"
+                    className={`absolute inset-0 rounded-full ${isCustomerApp ? 'glass-chip-on' : 'bg-gold-deep shadow-md shadow-gold-deep/30'}`}
                     transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                   />
                 )}
                 <span
                   className={`relative transition-colors duration-300 ${
-                    mode === value ? 'text-cream' : 'text-onyx/60 hover:text-onyx'
+                    mode === value ? (isCustomerApp ? 'text-onyx' : 'text-cream') : 'text-onyx/60 hover:text-onyx'
                   }`}
                 >
                   {text}

@@ -63,7 +63,7 @@ export function ServicePreview({
               type="button"
               aria-label="Fechar"
               onClick={onClose}
-              className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-xl text-[#ffffff] backdrop-blur-md"
+              className="glass-chip absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full text-xl text-onyx"
             >
               <i className="bx bx-x" aria-hidden="true" />
             </button>

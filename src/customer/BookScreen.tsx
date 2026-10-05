@@ -175,7 +175,7 @@ export default function BookScreen() {
                 setError(null)
                 setStep(step - 1)
               }}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/30 text-xl text-onyx"
+              className="glass-chip flex h-10 w-10 items-center justify-center rounded-full text-xl text-onyx"
             >
               <i className="bx bx-chevron-left" aria-hidden="true" />
             </button>
@@ -245,7 +245,7 @@ export default function BookScreen() {
                         <div
                           key={s.id}
                           className={`relative overflow-hidden rounded-2xl border bg-white transition-colors ${
-                            chosen ? 'border-brand ring-2 ring-brand' : 'border-onyx/15'
+                            chosen ? 'border-onyx ring-1 ring-onyx' : 'border-onyx/15'
                           }`}
                         >
                           {/* Tapping the card opens the photos; the circle picks the model directly. */}
@@ -303,12 +303,8 @@ export default function BookScreen() {
                               void tap()
                               setServiceId(chosen ? null : s.id)
                             }}
-                            className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border-2 backdrop-blur-md ${
-                              chosen
-                                ? 'border-brand bg-brand text-brand-ink'
-                                : photos.length > 0
-                                  ? 'border-white/90 bg-black/30 text-transparent'
-                                  : 'border-onyx/30 bg-white text-transparent'
+                            className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full ${
+                              chosen ? 'glass-chip-on text-onyx' : 'glass-chip text-transparent'
                             }`}
                           >
                             <i className="bx bx-check text-xl" aria-hidden="true" />

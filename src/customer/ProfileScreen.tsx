@@ -129,10 +129,10 @@ function NotificationsRow() {
           aria-checked={on}
           aria-label="Notificações"
           onClick={() => void toggle()}
-          className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${on ? 'bg-brand' : 'bg-onyx/20'}`}
+          className={`relative h-7 w-12 shrink-0 rounded-full ${on ? 'glass-chip-on' : 'glass-chip'}`}
         >
           <span
-            className={`absolute top-0.5 h-6 w-6 rounded-full bg-[#ffffff] shadow transition-all ${on ? 'left-[22px]' : 'left-0.5'}`}
+            className={`absolute top-0.5 h-6 w-6 rounded-full shadow transition-all ${on ? 'left-[22px] bg-onyx' : 'left-0.5 bg-onyx/40'}`}
           />
         </button>
       </div>
@@ -154,7 +154,7 @@ function QuickAction({
 }) {
   const inner = (
     <>
-      <span className="flex h-14 w-14 items-center justify-center rounded-full border border-onyx/15 bg-white text-2xl text-onyx">
+      <span className="glass-chip flex h-14 w-14 items-center justify-center rounded-full text-2xl text-onyx">
         <i className={icon} aria-hidden="true" />
       </span>
       <span className="mt-2 font-subtitle text-xs text-onyx">{label}</span>
