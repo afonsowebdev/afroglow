@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { ActionButton } from '@/components/ui/action-button'
 import { Sheet } from '@/components/ui/sheet'
@@ -42,6 +42,7 @@ export default function ProfileScreen() {
   const { customer } = useCustomerAuth()
   const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [testimonialOpen, setTestimonialOpen] = useState(false)
+  const [tab, setTab] = useState<'resumo' | 'historico' | 'testemunho'>('resumo')
   const [photo, setPhoto] = useState<string | null>(null)
   const [photoBusy, setPhotoBusy] = useState(false)
   const [photoError, setPhotoError] = useState<string | null>(null)
@@ -223,66 +224,129 @@ export default function ProfileScreen() {
           <Stat value={bookings ? formatPrice(data.spent).replace(/,00/, '') : '–'} label="Investido" />
         </div>
 
-        <section className="mt-8">
-          <h2 className={`${labelClass} mb-3 px-1`}>Próxima sessão</h2>
-          {next ? (
+        <div className="glass-chip mt-6 flex rounded-full p-1" role="tablist">
+          {(
+            [
+              ['resumo', 'Resumo'],
+              ['historico', 'Histórico'],
+              ['testemunho', 'Testemunho'],
+            ] as const
+          ).map(([id, label]) => (
             <button
+              key={id}
               type="button"
-              onClick={() => navigate('/marcacoes')}
-              className={`${panelClass} block w-full text-left`}
+              role="tab"
+              aria-selected={tab === id}
+              onClick={() => {
+                void tap()
+                setTab(id)
+              }}
+              className="relative flex-1 rounded-full py-2.5 font-subtitle text-sm"
             >
-              <div className="flex items-center justify-between">
-                <p className="font-subtitle text-xl font-semibold tracking-tight text-onyx">{next.service.name}</p>
-                <StatusDot status={next.status} />
-              </div>
-              <Facts columns="2fr 1fr">
-                <Fact label="Data">{longDay(next.slot.startsAt)}</Fact>
-                <Fact label="Hora">{timeLabel(next.slot.startsAt)}</Fact>
-              </Facts>
+              {tab === id && (
+                <motion.span
+                  layoutId="profile-tab"
+                  className="glass-chip-on absolute inset-0 rounded-full"
+                  transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                />
+              )}
+              <span className={`relative ${tab === id ? 'font-medium text-onyx' : 'text-muted-dark'}`}>{label}</span>
             </button>
-          ) : (
-            <div className={panelClass}>
-              <p className="font-subtitle text-base text-onyx">Sem sessões marcadas.</p>
-              <ActionButton label="Marcar sessão" className="mt-4" onClick={() => navigate('/marcar')} />
-            </div>
-          )}
-        </section>
+          ))}
+        </div>
 
-        <section className="mt-8">
-          <h2 className={`${labelClass} mb-3 px-1`}>Histórico</h2>
-          {data.done.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-onyx/20 px-5 py-6 text-center font-subtitle text-sm text-muted-dark">
-              As tuas sessões concluídas aparecem aqui.
-            </p>
-          ) : (
-            <ol className="relative ml-2 border-l border-onyx/15">
-              {data.done.slice(0, 4).map((b) => {
-                const parts = dayParts(b.slot.startsAt)
-                return (
-                  <li key={b.id} className="relative pb-6 pl-6 last:pb-0">
-                    <span
-                      className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-onyx"
-                      aria-hidden="true"
-                    />
-                    <p className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                      {parts.day} {parts.month}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={tab}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+          >
+            {tab === 'resumo' && (
+              <>
+                <section className="mt-8">
+                  <h2 className={`${labelClass} mb-3 px-1`}>Próxima sessão</h2>
+                  {next ? (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/marcacoes')}
+                      className={`${panelClass} block w-full text-left`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="font-subtitle text-xl font-semibold tracking-tight text-onyx">
+                          {next.service.name}
+                        </p>
+                        <StatusDot status={next.status} />
+                      </div>
+                      <Facts columns="2fr 1fr">
+                        <Fact label="Data">{longDay(next.slot.startsAt)}</Fact>
+                        <Fact label="Hora">{timeLabel(next.slot.startsAt)}</Fact>
+                      </Facts>
+                    </button>
+                  ) : (
+                    <div className={panelClass}>
+                      <p className="font-subtitle text-base text-onyx">Sem sessões marcadas.</p>
+                      <ActionButton label="Marcar sessão" className="mt-4" onClick={() => navigate('/marcar')} />
+                    </div>
+                  )}
+                </section>
+              </>
+            )}
+            {tab === 'historico' && (
+              <>
+                <section className="mt-8">
+                  <h2 className={`${labelClass} mb-3 px-1`}>Histórico</h2>
+                  {data.done.length === 0 ? (
+                    <p className="rounded-2xl border border-dashed border-onyx/20 px-5 py-6 text-center font-subtitle text-sm text-muted-dark">
+                      As tuas sessões concluídas aparecem aqui.
                     </p>
-                    <p className="mt-0.5 font-subtitle text-base font-semibold text-onyx">{b.service.name}</p>
-                  </li>
-                )
-              })}
-            </ol>
-          )}
-        </section>
-
-        <section className={`${panelClass} mt-8`}>
-          <p className={labelClass}>Testemunho</p>
-          <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">Conta como foi</p>
-          <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
-            Depois de aprovado, aparece na página principal com o teu nome.
-          </p>
-          <ActionButton label="Escrever testemunho" className="mt-4" onClick={() => setTestimonialOpen(true)} />
-        </section>
+                  ) : (
+                    <ol className="relative ml-2 border-l border-onyx/15">
+                      {data.done.map((b) => {
+                        const parts = dayParts(b.slot.startsAt)
+                        return (
+                          <li key={b.id} className="relative pb-6 pl-6 last:pb-0">
+                            <span
+                              className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-onyx"
+                              aria-hidden="true"
+                            />
+                            <p className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+                              {parts.day} {parts.month}
+                            </p>
+                            <p className="mt-0.5 font-subtitle text-base font-semibold text-onyx">{b.service.name}</p>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                void tap()
+                                navigate(`/marcar?service=${b.serviceId}`)
+                              }}
+                              className="mt-1 font-subtitle text-xs text-muted-dark underline underline-offset-4"
+                            >
+                              Marcar de novo
+                            </button>
+                          </li>
+                        )
+                      })}
+                    </ol>
+                  )}
+                </section>
+              </>
+            )}
+            {tab === 'testemunho' && (
+              <>
+                <section className={`${panelClass} mt-8`}>
+                  <p className={labelClass}>Testemunho</p>
+                  <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">Conta como foi</p>
+                  <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
+                    Depois de aprovado, aparece na página principal com o teu nome.
+                  </p>
+                  <ActionButton label="Escrever testemunho" className="mt-4" onClick={() => setTestimonialOpen(true)} />
+                </section>
+              </>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       <Sheet
