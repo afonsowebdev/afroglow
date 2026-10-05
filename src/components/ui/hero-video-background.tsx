@@ -31,7 +31,7 @@ const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
   app: `/videos/hero-light-${n}-app.mp4?v=1`,
 }))
 
-// The customer iPhone app plays one pre-edited file: hero-light-3 and hero-light-5 joined with the dissolves baked
+// The customer iPhone app plays one pre-edited file: hero-light-3 alone, its end sliding into its start
 // in, ending on the frame it starts with, so the native loop shows no seam. It travels inside the app.
 const APP_CLIPS: Clip[] = [
   { sd: '/videos/hero-app-loop.mp4', hd: '/videos/hero-app-loop.mp4', app: '/videos/hero-app-loop.mp4' },
