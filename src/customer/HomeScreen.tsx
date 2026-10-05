@@ -56,15 +56,19 @@ export default function HomeScreen() {
       >
         {/* Just the video: no tint on top of it. */}
         <HeroVideoBackground key={dark ? 'dark' : 'light'} tone={dark ? 'dark' : 'light'} tint={false} />
-        {/* Bottom edge: frosted blur that melts into the page instead of a straight cut. */}
+        {/* Bottom edge: a frosted blur that melts into a soft wave, so the hero never ends on a straight line. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[8%] backdrop-blur-xl [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_80%)] [mask-image:linear-gradient(to_bottom,transparent,black_80%)]"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[12%] backdrop-blur-xl [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_70%)] [mask-image:linear-gradient(to_bottom,transparent,black_70%)]"
         />
-        <div
+        <svg
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] h-[8%] bg-gradient-to-b from-white/0 via-white/40 to-white"
-        />
+          viewBox="0 0 390 60"
+          preserveAspectRatio="none"
+          className="pointer-events-none absolute inset-x-0 -bottom-px z-[6] h-14 w-full fill-white"
+        >
+          <path d="M0 34 C50 8 120 4 190 26 S320 58 390 20 L390 60 L0 60 Z" />
+        </svg>
         <div className="relative z-10 flex max-w-md flex-col items-center">
           <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-[#ffffff] [text-shadow:0_1px_12px_rgba(0,0,0,0.6)]">
             AFROGLOW · Portugal
