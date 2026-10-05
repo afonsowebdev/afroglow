@@ -258,8 +258,36 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
   const navigate = useNavigate()
   const [previewId, setPreviewId] = useState<string | null>(null)
   const [index, setIndex] = useState(0)
+  const [swiped, setSwiped] = useState(false)
+  const track = useRef<HTMLDivElement>(null)
   const preview = services?.find((s) => s.id === previewId) ?? null
   const total = services?.length ?? 0
+
+  // Once, when the carousel comes into view, nudge it sideways to show that it can be dragged.
+  useEffect(() => {
+    const el = track.current
+    if (!el || total < 2) return
+    let timers: number[] = []
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return
+        observer.disconnect()
+        el.style.scrollSnapType = 'none'
+        el.scrollTo({ left: 56, behavior: 'smooth' })
+        timers = [
+          window.setTimeout(() => el.scrollTo({ left: 0, behavior: 'smooth' }), 650),
+          window.setTimeout(() => (el.style.scrollSnapType = ''), 1300),
+        ]
+      },
+      { threshold: 0.7 },
+    )
+    observer.observe(el)
+    return () => {
+      observer.disconnect()
+      timers.forEach(clearTimeout)
+      el.style.scrollSnapType = ''
+    }
+  }, [total])
 
   return (
     <section id="servicos" className="scroll-mt-6 pt-12">
@@ -280,77 +308,80 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
       </p>
 
       <div
-        className={`${strip} mt-5`}
+        ref={track}
+        className="mt-5 flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         onScroll={(e) => {
           const el = e.currentTarget
-          const card = el.firstElementChild as HTMLElement | null
-          if (card) setIndex(Math.min(total - 1, Math.max(0, Math.round(el.scrollLeft / (card.offsetWidth + 12)))))
+          const i = Math.min(total - 1, Math.max(0, Math.round(el.scrollLeft / el.clientWidth)))
+          setIndex(i)
+          if (i > 0) setSwiped(true)
         }}
       >
         {services === null &&
-          [0, 1].map((i) => (
-            <div key={i} className="h-[26rem] w-[80%] shrink-0 animate-pulse rounded-[2rem] bg-gold/10" />
+          [0].map((i) => (
+            <div key={i} className="w-full shrink-0 px-5">
+              <div className="mx-auto h-[26rem] max-w-sm animate-pulse rounded-[2rem] bg-gold/10" />
+            </div>
           ))}
         {services?.map((service, i) => {
           const photos = serviceImageUrls(service)
           return (
-            <div
-              key={service.id}
-              className="relative h-[26rem] w-[80%] max-w-xs shrink-0 snap-center overflow-hidden rounded-[2rem] bg-[#1c1c1e]"
-            >
-              {/* The photo opens the gallery with more pictures. */}
-              <button
-                type="button"
-                aria-label={`Ver fotos de ${service.name}`}
-                onClick={() => {
-                  void tap()
-                  setPreviewId(service.id)
-                }}
-                className="absolute inset-0 block h-full w-full"
-              >
-                <img
-                  src={photos[0] ?? PHOTOS[i % PHOTOS.length].src}
-                  alt=""
-                  loading="lazy"
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-                <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
-              </button>
+            <div key={service.id} className="w-full shrink-0 snap-center snap-always px-5">
+              <div className="relative mx-auto h-[26rem] max-w-sm overflow-hidden rounded-[2rem] bg-[#1c1c1e]">
+                {/* The photo opens the gallery with more pictures. */}
+                <button
+                  type="button"
+                  aria-label={`Ver fotos de ${service.name}`}
+                  onClick={() => {
+                    void tap()
+                    setPreviewId(service.id)
+                  }}
+                  className="absolute inset-0 block h-full w-full"
+                >
+                  <img
+                    src={photos[0] ?? PHOTOS[i % PHOTOS.length].src}
+                    alt=""
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
+                </button>
 
-              <span className="pointer-events-none absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
-                <i className="bx bx-time-five text-sm" aria-hidden="true" />
-                {service.durationLabel}
-              </span>
-              {photos.length > 1 && (
-                <span className="pointer-events-none absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
-                  <i className="bx bx-images text-sm" aria-hidden="true" />
-                  {photos.length} fotos
+                <span className="pointer-events-none absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
+                  <i className="bx bx-time-five text-sm" aria-hidden="true" />
+                  {service.durationLabel}
                 </span>
-              )}
-
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 text-[#ffffff]">
-                <p className="truncate font-subtitle text-2xl font-semibold tracking-tight">{service.name}</p>
-                {service.description && (
-                  <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light text-[#ffffff]/80">
-                    {service.description}
-                  </p>
+                {photos.length > 1 && (
+                  <span className="pointer-events-none absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
+                    <i className="bx bx-images text-sm" aria-hidden="true" />
+                    {photos.length} fotos
+                  </span>
                 )}
-                <div className="mt-4 flex items-center justify-between gap-3">
-                  <p className="font-subtitle text-xl font-semibold text-[#e0c36e]">
-                    {formatPrice(service.priceCents)}
-                  </p>
-                  {/* The arrow goes straight to booking this model. */}
-                  <Link
-                    to={`/marcar?service=${service.id}`}
-                    aria-label={`Marcar ${service.name}`}
-                    onClick={() => void tap('medium')}
-                    className="pointer-events-auto flex h-11 items-center gap-2 rounded-full bg-[#ffffff]/25 pe-1.5 ps-4 font-subtitle text-sm font-medium text-[#ffffff] backdrop-blur-md"
-                  >
-                    Marcar
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ffffff]/30 text-xl">
-                      <i className="bx bx-right-arrow-alt" aria-hidden="true" />
-                    </span>
-                  </Link>
+
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 text-[#ffffff]">
+                  <p className="truncate font-subtitle text-2xl font-semibold tracking-tight">{service.name}</p>
+                  {service.description && (
+                    <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light text-[#ffffff]/80">
+                      {service.description}
+                    </p>
+                  )}
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <p className="font-subtitle text-xl font-semibold text-[#e0c36e]">
+                      {formatPrice(service.priceCents)}
+                    </p>
+                    {/* The arrow goes straight to booking this model. */}
+                    <Link
+                      to={`/marcar?service=${service.id}`}
+                      aria-label={`Marcar ${service.name}`}
+                      onClick={() => void tap('medium')}
+                      className="pointer-events-auto flex h-11 items-center gap-2 rounded-full bg-[#ffffff]/25 pe-1.5 ps-4 font-subtitle text-sm font-medium text-[#ffffff] backdrop-blur-md"
+                    >
+                      Marcar
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ffffff]/30 text-xl">
+                        <i className="bx bx-right-arrow-alt" aria-hidden="true" />
+                      </span>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -359,7 +390,24 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
       </div>
 
       {total > 1 && (
-        <div className="mt-4 flex justify-center gap-1.5" aria-hidden="true">
+        <div className="mx-auto mt-4 flex max-w-sm items-center justify-between px-5 text-onyx">
+          <i
+            className={`bx bx-chevron-left text-2xl transition-opacity ${index > 0 ? 'opacity-70' : 'opacity-0'}`}
+            aria-hidden="true"
+          />
+          <p className="font-subtitle text-xs text-muted-dark">
+            {swiped ? `${index + 1} de ${total}` : 'Desliza para o lado para ver mais pacotes'}
+          </p>
+          <motion.i
+            className={`bx bx-chevron-right text-2xl ${index < total - 1 ? '' : 'opacity-0'}`}
+            animate={swiped ? { x: 0 } : { x: [0, 6, 0] }}
+            transition={swiped ? undefined : { duration: 1.2, repeat: Infinity }}
+            aria-hidden="true"
+          />
+        </div>
+      )}
+      {total > 1 && (
+        <div className="mt-3 flex justify-center gap-1.5" aria-hidden="true">
           {services?.map((service, i) => (
             <span
               key={service.id}
