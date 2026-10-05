@@ -144,7 +144,7 @@ export function GenerateSlotsSheet({
               type="button"
               aria-pressed={pattern.days.includes(day.id)}
               onClick={() => toggleDay(day.id)}
-              className={`rounded-full border px-3.5 py-2 font-subtitle text-sm transition-colors ${
+              className={`rounded-full px-3.5 py-2 font-subtitle text-sm transition-colors ${
                 pattern.days.includes(day.id) ? 'glass-chip-on text-onyx' : 'glass-chip text-onyx'
               }`}
             >

@@ -105,7 +105,7 @@ export function ServicePhotos({
             type="button"
             disabled={busy !== null}
             onClick={() => input.current?.click()}
-            className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-gold/50 text-muted-dark disabled:opacity-50"
+            className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-onyx/25 text-muted-dark disabled:opacity-50"
           >
             <i className="bx bx-image-add text-2xl" aria-hidden="true" />
             <span className="font-subtitle text-[11px]">Foto {images.length + i + 1}</span>

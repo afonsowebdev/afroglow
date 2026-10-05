@@ -182,7 +182,9 @@ function AgendaView({
         {stats.map((stat) => (
           <div key={stat.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
             <i className={`${stat.icon} text-lg text-gold-deep`} aria-hidden="true" />
-            <p className="mt-2 font-logo text-xl leading-none text-onyx">{stat.value}</p>
+            <p className="mt-2 font-subtitle font-semibold lining-nums tracking-tight text-lg leading-none text-onyx">
+              {stat.value}
+            </p>
             <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{stat.label}</p>
           </div>
         ))}
@@ -192,7 +194,7 @@ function AgendaView({
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Pesquisar cliente, telemóvel ou modelo"
+          placeholder="Pesquisar cliente ou modelo"
           aria-label="Pesquisar na agenda"
           className="min-w-0 flex-1 rounded-full border border-gold/30 bg-white px-5 py-3 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/40 focus-visible:border-gold-deep"
         />
@@ -254,7 +256,9 @@ function AgendaView({
             return (
               <section key={dateKey(dayBookings[0].slot.startsAt)} className="mt-7">
                 <div className="flex items-baseline gap-3">
-                  <h3 className="font-logo text-lg text-onyx">{heading.title}</h3>
+                  <h3 className="font-subtitle font-semibold lining-nums tracking-tight text-lg text-onyx">
+                    {heading.title}
+                  </h3>
                   {heading.sub && <span className="font-subtitle text-xs text-muted-dark">{heading.sub}</span>}
                 </div>
                 <div className="mt-3 flex flex-col gap-3">
@@ -264,7 +268,7 @@ function AgendaView({
                       className="flex overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white"
                     >
                       <div className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-onyx/10 bg-onyx/5 py-4">
-                        <span className="font-logo text-xl leading-none text-onyx">
+                        <span className="font-subtitle text-xl font-semibold lining-nums leading-none tracking-tight text-onyx">
                           {dateParts(booking.slot.startsAt).time}
                         </span>
                       </div>
@@ -330,7 +334,9 @@ function AgendaView({
               return (
                 <div key={booking.id} className="flex items-center gap-4 px-4 py-3.5">
                   <div className="w-12 shrink-0 text-center">
-                    <p className="font-logo text-lg leading-none text-onyx">{day}</p>
+                    <p className="font-subtitle font-semibold lining-nums tracking-tight text-lg leading-none text-onyx">
+                      {day}
+                    </p>
                     <p className="mt-1 font-subtitle text-[10px] uppercase text-muted-dark">{month}</p>
                   </div>
                   <div className="min-w-0 flex-1">
@@ -419,7 +425,9 @@ function ClearMonthDialog({
                 <i className="bx bx-trash" aria-hidden="true" />
               </span>
               <div>
-                <h2 className="font-logo text-xl text-onyx">Limpar {monthLabel}</h2>
+                <h2 className="font-subtitle font-semibold lining-nums tracking-tight text-xl text-onyx">
+                  Limpar {monthLabel}
+                </h2>
                 <p className="mt-1 font-subtitle text-sm text-muted-dark">
                   Apaga os horários e as marcações deste mês. Esta ação é permanente.
                 </p>
@@ -432,7 +440,9 @@ function ClearMonthDialog({
                 { label: 'Marcações a apagar', value: summary?.bookingCount },
               ].map((item) => (
                 <div key={item.label} className="rounded-2xl border border-red-700/20 bg-red-700/5 p-4">
-                  <p className="font-logo text-2xl leading-none text-red-700">{item.value ?? '…'}</p>
+                  <p className="font-subtitle font-semibold lining-nums tracking-tight text-2xl leading-none text-red-700">
+                    {item.value ?? '…'}
+                  </p>
                   <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
                     {item.label}
                   </p>
@@ -881,7 +891,9 @@ function TestimonialsView({
       <div className="mt-4 grid grid-cols-3 gap-3">
         {tabs.map((tab) => (
           <div key={tab.id} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
-            <p className="font-logo text-2xl leading-none text-onyx">{lists[tab.id].length}</p>
+            <p className="font-subtitle font-semibold lining-nums tracking-tight text-2xl leading-none text-onyx">
+              {lists[tab.id].length}
+            </p>
             <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{tab.label}</p>
           </div>
         ))}
@@ -1024,7 +1036,9 @@ function PendingCard({
     >
       <div className="flex">
         <div className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-onyx/10 bg-onyx/5 py-4">
-          <span className="font-logo text-2xl leading-none text-onyx">{day}</span>
+          <span className="font-subtitle font-semibold lining-nums tracking-tight text-2xl leading-none text-onyx">
+            {day}
+          </span>
           <span className="mt-1 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{month}</span>
           <span className="mt-2 font-subtitle text-xs font-semibold text-onyx">{time}</span>
         </div>
@@ -1036,7 +1050,7 @@ function PendingCard({
               <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
                 {booking.service.name} · {formatPrice(booking.service.priceCents)}
               </p>
-              <p className="mt-0.5 font-subtitle text-xs capitalize text-muted-dark">{weekday}</p>
+              <p className="mt-0.5 font-subtitle text-xs first-letter:uppercase text-muted-dark">{weekday}</p>
             </div>
             <a
               href={customerWhatsappUrl(
@@ -1167,7 +1181,9 @@ function PendingView({
           { label: 'Valor em espera', value: formatPrice(totalCents) },
         ].map((stat) => (
           <div key={stat.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
-            <p className="font-logo text-xl leading-none text-onyx">{stat.value}</p>
+            <p className="font-subtitle font-semibold lining-nums tracking-tight text-lg leading-none text-onyx">
+              {stat.value}
+            </p>
             <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{stat.label}</p>
           </div>
         ))}
@@ -1688,470 +1704,482 @@ export default function AdminDashboardPage() {
 
         {error && <p className="mt-6 font-subtitle text-sm text-red-700">{error}</p>}
 
-        {MORE_TARGETS.includes(tab as MoreTarget) && (
-          <button
-            type="button"
-            onClick={() => setTab('mais')}
-            className="mt-6 inline-flex items-center gap-1 font-subtitle text-sm text-gold-deep"
-          >
-            <i className="bx bx-chevron-left text-lg" aria-hidden="true" /> Mais
-            <span className="ml-2 font-logo text-xl text-onyx">{MORE_TITLE[tab as MoreTarget]}</span>
-          </button>
-        )}
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.22, ease: 'easeOut' }}
+        >
+          {MORE_TARGETS.includes(tab as MoreTarget) && (
+            <div className="mt-6">
+              <span className="font-logo text-2xl text-onyx">{MORE_TITLE[tab as MoreTarget]}</span>
+            </div>
+          )}
 
-        {(tab === 'agenda' || tab === 'disponibilidade') && (
-          <div className="mt-6 flex items-center justify-center gap-4 rounded-full border-[1.5px] border-onyx/25 bg-white px-4 py-2 sm:justify-start">
-            <button
-              type="button"
-              aria-label="Mês anterior"
-              onClick={() => shiftMonth(-1)}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-dark transition-colors hover:bg-white hover:text-gold-deep"
-            >
-              <i className="bx bx-chevron-left" aria-hidden="true" />
-            </button>
-            <span className="font-logo text-sm text-onyx">{formatMonthLabel(viewMonth)}</span>
-            <button
-              type="button"
-              aria-label="Mês seguinte"
-              onClick={() => shiftMonth(1)}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-dark transition-colors hover:bg-white hover:text-gold-deep"
-            >
-              <i className="bx bx-chevron-right" aria-hidden="true" />
-            </button>
-          </div>
-        )}
-
-        {tab === 'agenda' && (
-          <AgendaView
-            pendingCount={pendingBookings.length}
-            confirmedCount={monthConfirmedCount}
-            revenueCents={monthRevenueCents}
-            upcoming={upcomingConfirmed}
-            history={history}
-            busyId={busyId}
-            onCancel={(id) => handleBookingDecision(id, 'cancel')}
-            onNew={() => {
-              setManualCustomer(null)
-              setManualOpen(true)
-            }}
-          />
-        )}
-
-        <div key={tab}>
-          {tab === 'servicos' && (
-            <section className="mt-6">
-              {serviceNotice && (
-                <div className="mb-4 flex items-start gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
-                  <i className="bx bx-check-circle mt-0.5 text-xl text-gold-deep" aria-hidden="true" />
-                  <p className="flex-1 font-subtitle text-sm text-onyx">{serviceNotice}</p>
-                  <button
-                    type="button"
-                    onClick={() => setServiceNotice(null)}
-                    aria-label="Fechar aviso"
-                    className="text-lg text-muted-dark"
-                  >
-                    <i className="bx bx-x" aria-hidden="true" />
-                  </button>
-                </div>
-              )}
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: 'Modelos', value: String(services.length) },
-                  {
-                    label: 'Desde',
-                    value: services.length ? formatPrice(Math.min(...services.map((x) => x.priceCents))) : '—',
-                  },
-                  {
-                    label: 'Até',
-                    value: services.length ? formatPrice(Math.max(...services.map((x) => x.priceCents))) : '—',
-                  },
-                ].map((stat) => (
-                  <div key={stat.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
-                    <p className="font-logo text-xl leading-none text-onyx">{stat.value}</p>
-                    <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
-                      {stat.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 flex flex-col gap-3">
-                {services.map((service) => (
-                  <article key={service.id} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <h3 className="font-logo text-lg text-onyx">{service.name}</h3>
-                        <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-onyx/5 px-2.5 py-1 font-subtitle text-[11px] text-gold-deep">
-                          <i className="bx bx-time-five text-sm" aria-hidden="true" />
-                          {service.durationLabel}
-                        </span>
-                      </div>
-                      <p className="shrink-0 font-logo text-2xl leading-none text-onyx">
-                        {formatPrice(service.priceCents)}
-                      </p>
-                    </div>
-                    <p className="mt-3 line-clamp-2 font-subtitle text-sm text-muted-dark">{service.description}</p>
-                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-onyx/10 pt-3">
-                      <button
-                        type="button"
-                        onClick={() => openDeleteService(service)}
-                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 font-subtitle text-sm text-muted-dark transition-colors hover:bg-red-700/10 hover:text-red-700"
-                      >
-                        <i className="bx bx-trash text-base" aria-hidden="true" />
-                        Eliminar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => openEditService(service)}
-                        className="inline-flex items-center gap-1.5 rounded-full glass-chip px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:text-gold-deep"
-                      >
-                        <i className="bx bx-pencil text-base" aria-hidden="true" />
-                        Editar
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-
-              <motion.button
+          {(tab === 'agenda' || tab === 'disponibilidade') && (
+            <div className="mt-6 flex items-center justify-center gap-4 rounded-full border-[1.5px] border-onyx/25 bg-white px-4 py-2 sm:justify-start">
+              <button
                 type="button"
-                onClick={openNewService}
-                whileTap={{ scale: 0.98 }}
-                className="group mt-4 flex w-full items-center gap-4 rounded-2xl border-[1.5px] border-onyx/25 bg-onyx/5 p-4 text-left transition-colors duration-300 hover:border-gold-deep hover:bg-onyx/5"
+                aria-label="Mês anterior"
+                onClick={() => shiftMonth(-1)}
+                className="glass-chip flex size-9 items-center justify-center rounded-full text-onyx"
               >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-deep text-2xl text-[#ffffff] shadow-md shadow-gold-deep/30 transition-transform duration-300 group-hover:rotate-90">
-                  <i className="bx bx-plus" aria-hidden="true" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block font-subtitle text-base font-semibold text-onyx">Adicionar modelo</span>
-                  <span className="block font-subtitle text-xs text-muted-dark">
-                    Cria uma nova trança no catálogo do site
-                  </span>
-                </span>
-                <i
-                  className="bx bx-chevron-right text-2xl text-gold-deep transition-transform duration-300 group-hover:translate-x-0.5"
-                  aria-hidden="true"
-                />
-              </motion.button>
-
-              <DeleteServiceDialog
-                service={deleteTarget}
-                usage={deleteUsage}
-                busy={deletingService}
-                error={deleteError}
-                onConfirm={confirmDeleteService}
-                onClose={closeDeleteService}
-              />
-
-              <ServiceDialog
-                form={serviceForm}
-                busy={savingService}
-                error={serviceError}
-                images={services.find((s) => s.id === serviceForm?.id)?.images ?? []}
-                onImagesChanged={() => void loadDashboard({ silent: true })}
-                onChange={setServiceForm}
-                onSave={saveService}
-                onClose={closeServiceDialog}
-              />
-            </section>
+                <i className="bx bx-chevron-left" aria-hidden="true" />
+              </button>
+              <span className="font-subtitle font-semibold lining-nums tracking-tight text-sm text-onyx">
+                {formatMonthLabel(viewMonth)}
+              </span>
+              <button
+                type="button"
+                aria-label="Mês seguinte"
+                onClick={() => shiftMonth(1)}
+                className="glass-chip flex size-9 items-center justify-center rounded-full text-onyx"
+              >
+                <i className="bx bx-chevron-right" aria-hidden="true" />
+              </button>
+            </div>
           )}
 
-          {tab === 'disponibilidade' && (
-            <section className="mt-4">
-              {scheduleNotice && (
-                <p className="mb-4 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4 font-subtitle text-sm text-onyx">
-                  {scheduleNotice}
-                </p>
-              )}
-              <div className="mb-4 grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setGenerateOpen(true)}
-                  className="flex items-center justify-center gap-2 glass-chip rounded-full px-4 py-3 font-subtitle text-sm text-onyx transition-opacity hover:opacity-90"
-                >
-                  <i className="bx bx-calendar-week text-lg" aria-hidden="true" /> Horário semanal
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setBlockOpen(true)}
-                  className="flex items-center justify-center gap-2 glass-chip rounded-full px-4 py-3 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep"
-                >
-                  <i className="bx bx-calendar-x text-lg" aria-hidden="true" /> Fechar um dia
-                </button>
-              </div>
-              {clearResult && (
-                <div className="mb-4 flex items-start gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
-                  <i className="bx bx-check-circle mt-0.5 text-xl text-gold-deep" aria-hidden="true" />
-                  <p className="flex-1 font-subtitle text-sm text-onyx">{clearResult}</p>
-                  <button
-                    type="button"
-                    onClick={() => setClearResult(null)}
-                    aria-label="Fechar aviso"
-                    className="text-lg text-muted-dark"
-                  >
-                    <i className="bx bx-x" aria-hidden="true" />
-                  </button>
-                </div>
-              )}
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: 'Disponíveis', value: monthSlots.filter((slot) => slot.status === 'OPEN').length },
-                  { label: 'Pendentes', value: monthSlots.filter((slot) => slot.status === 'PENDING').length },
-                  { label: 'Reservadas', value: monthSlots.filter((slot) => slot.status === 'BOOKED').length },
-                ].map((stat) => (
-                  <div key={stat.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
-                    <p className="font-logo text-2xl leading-none text-onyx">{stat.value}</p>
-                    <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
-                      {stat.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <form
-                onSubmit={handleCreateSlots}
-                className="mt-6 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5"
-              >
-                <h3 className="font-logo text-lg text-onyx">Criar horários</h3>
-                <p className="mt-1 font-subtitle text-sm text-muted-dark">
-                  Escolhe o dia e toca nas horas que queres abrir.
-                </p>
-
-                <div className="mt-4">
-                  <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                    Dia
-                  </span>
-                  <DatePicker value={newDate} onChange={setNewDate} />
-                </div>
-
-                <div className="mt-5">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Horas</span>
-                    <div className="flex items-center gap-1">
-                      {[
-                        { label: 'Manhã', times: SLOT_TIMES.filter((t) => t >= '09:00' && t <= '12:30') },
-                        { label: 'Tarde', times: SLOT_TIMES.filter((t) => t >= '14:00' && t <= '18:00') },
-                      ].map((preset) => (
-                        <button
-                          key={preset.label}
-                          type="button"
-                          onClick={() =>
-                            setBatchTimes(
-                              [...new Set([...batchTimes, ...preset.times.filter((t) => !takenTimes.has(t))])].sort(),
-                            )
-                          }
-                          className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-onyx/5 hover:text-onyx"
-                        >
-                          {preset.label}
-                        </button>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => setBatchTimes([])}
-                        disabled={batchTimes.length === 0}
-                        className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-onyx/5 hover:text-onyx disabled:opacity-30"
-                      >
-                        Limpar
-                      </button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-                    {SLOT_TIMES.map((time) => {
-                      const taken = takenTimes.has(time)
-                      const selected = batchTimes.includes(time)
-                      return (
-                        <button
-                          key={time}
-                          type="button"
-                          disabled={taken || !newDate}
-                          onClick={() =>
-                            setBatchTimes(
-                              selected ? batchTimes.filter((t) => t !== time) : [...batchTimes, time].sort(),
-                            )
-                          }
-                          title={taken ? 'Já existe uma vaga a esta hora' : undefined}
-                          className={`rounded-full border py-2 font-subtitle text-sm transition-colors ${
-                            selected
-                              ? 'glass-chip-on text-onyx'
-                              : taken
-                                ? 'glass-chip text-onyx/30 line-through'
-                                : 'glass-chip text-onyx'
-                          } disabled:cursor-not-allowed`}
-                        >
-                          {time}
-                        </button>
-                      )
-                    })}
-                  </div>
-                  {!newDate && (
-                    <p className="mt-2 font-subtitle text-xs text-muted-dark">
-                      Escolhe primeiro o dia para ativar as horas.
-                    </p>
-                  )}
-                </div>
-
-                <div className="mt-5 flex items-center justify-between gap-3 border-t border-onyx/10 pt-4">
-                  <span className="font-subtitle text-sm text-muted-dark">
-                    {batchTimes.length === 0
-                      ? 'Nenhuma hora selecionada'
-                      : `${batchTimes.length} ${batchTimes.length === 1 ? 'hora selecionada' : 'horas selecionadas'}`}
-                  </span>
-                  <MotionButton
-                    label={
-                      addingSlot
-                        ? 'A criar...'
-                        : batchTimes.length > 1
-                          ? `Criar ${batchTimes.length} vagas`
-                          : 'Criar vaga'
-                    }
-                    size="sm"
-                    type="submit"
-                    disabled={addingSlot || !newDate || batchTimes.length === 0}
-                  />
-                </div>
-              </form>
-
-              {slotsByDate.length === 0 ? (
-                <div className="mt-12 flex flex-col items-center text-center">
-                  <i className="bx bx-time-five text-5xl text-gold-deep/40" aria-hidden="true" />
-                  <p className="mt-3 font-subtitle text-base text-onyx">Sem horários neste mês</p>
-                  <p className="mt-1 font-subtitle text-sm text-muted-dark">
-                    Cria vagas acima para as clientes poderem marcar.
-                  </p>
-                </div>
-              ) : (
-                slotsByDate.map(([key, daySlots]) => {
-                  const heading = dayHeading(daySlots[0].startsAt)
-                  const past = key < dateKey(new Date().toISOString())
-                  return (
-                    <div key={key} className={`mt-7 ${past ? 'opacity-55' : ''}`}>
-                      <div className="flex items-baseline gap-3">
-                        <h3 className="font-logo text-lg text-onyx">{heading.title}</h3>
-                        {heading.sub && <span className="font-subtitle text-xs text-muted-dark">{heading.sub}</span>}
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {daySlots.map((slot) => (
-                          <div
-                            key={slot.id}
-                            className={`flex items-center gap-2 rounded-full border py-1.5 pl-4 ${
-                              slot.status === 'OPEN' ? 'pr-2' : 'pr-4'
-                            } font-subtitle text-sm ${
-                              slot.status === 'BOOKED'
-                                ? 'border-onyx bg-onyx text-white'
-                                : slot.status === 'PENDING'
-                                  ? 'glass-chip-on text-onyx'
-                                  : 'glass-chip text-onyx'
-                            }`}
-                          >
-                            <span className="font-semibold">{dateParts(slot.startsAt).time}</span>
-                            <span
-                              className={`text-[11px] uppercase tracking-wide ${
-                                slot.status === 'BOOKED' ? 'text-white/70' : 'text-muted-dark'
-                              }`}
-                            >
-                              {SLOT_STATUS_LABEL[slot.status]}
-                            </span>
-                            {slot.status === 'OPEN' && (
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteSlot(slot.id)}
-                                disabled={busyId === slot.id}
-                                aria-label="Remover vaga"
-                                className="flex h-6 w-6 items-center justify-center rounded-full text-muted-dark transition-colors hover:bg-red-700/10 hover:text-red-700"
-                              >
-                                <i className="bx bx-x text-lg" aria-hidden="true" />
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })
-              )}
-
-              <div className="mt-12">
-                <div className="flex items-center gap-3">
-                  <span className="h-px flex-1 bg-gold/25" />
-                  <span className="flex items-center gap-1.5 font-subtitle text-[11px] uppercase tracking-[0.18em] text-muted-dark">
-                    <i className="bx bx-error text-sm text-red-700" aria-hidden="true" />
-                    Zona de perigo
-                  </span>
-                  <span className="h-px flex-1 bg-gold/25" />
-                </div>
-
-                <div className="relative mt-4 overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
-                  <span className="absolute inset-y-0 left-0 w-1 bg-red-700" aria-hidden="true" />
-                  <div className="pl-2">
-                    <p className="font-logo text-lg text-onyx">Limpar {formatMonthLabel(viewMonth)}</p>
-                    <p className="mt-1 font-subtitle text-sm text-muted-dark">
-                      Apaga todas as vagas e marcações deste mês, incluindo as já aceites. Não pode ser desfeito.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={openClearPanel}
-                      className="mt-4 inline-flex items-center gap-2 rounded-full border border-red-700/40 px-5 py-2.5 font-subtitle text-sm font-semibold text-red-700 transition-colors hover:bg-red-700 hover:text-[#ffffff]"
-                    >
-                      <i className="bx bx-trash text-base" aria-hidden="true" />
-                      Limpar mês
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <ClearMonthDialog
-                open={clearingOpen}
-                monthLabel={formatMonthLabel(viewMonth)}
-                summary={clearSummary}
-                password={clearPassword}
-                onPasswordChange={setClearPassword}
-                acknowledged={clearAck}
-                onAcknowledgedChange={setClearAck}
-                busy={clearBusy}
-                error={clearError}
-                onConfirm={handleClearMonth}
-                onClose={closeClearPanel}
-              />
-            </section>
-          )}
-
-          {tab === 'pedidos' && (
-            <PendingView
-              bookings={pendingBookings}
+          {tab === 'agenda' && (
+            <AgendaView
+              pendingCount={pendingBookings.length}
+              confirmedCount={monthConfirmedCount}
+              revenueCents={monthRevenueCents}
+              upcoming={upcomingConfirmed}
+              history={history}
               busyId={busyId}
-              onDecision={(id, decision, reason) => handleBookingDecision(id, decision, reason)}
-            />
-          )}
-
-          {tab === 'clientes' && (
-            <CustomersView
-              refreshKey={bookings.map((b) => b.id + b.status).join()}
-              onNewBooking={(customer) => {
-                setManualCustomer(customer)
+              onCancel={(id) => handleBookingDecision(id, 'cancel')}
+              onNew={() => {
+                setManualCustomer(null)
                 setManualOpen(true)
               }}
             />
           )}
 
-          {tab === 'mais' && (
-            <MoreView
-              onOpen={(id) => {
-                setTab(id)
-                window.scrollTo({ top: 0 })
-              }}
-              badges={{ testemunhos: pendingTestimonials.length }}
-            />
-          )}
+          <div key={tab}>
+            {tab === 'servicos' && (
+              <section className="mt-6">
+                {serviceNotice && (
+                  <div className="mb-4 flex items-start gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
+                    <i className="bx bx-check-circle mt-0.5 text-xl text-gold-deep" aria-hidden="true" />
+                    <p className="flex-1 font-subtitle text-sm text-onyx">{serviceNotice}</p>
+                    <button
+                      type="button"
+                      onClick={() => setServiceNotice(null)}
+                      aria-label="Fechar aviso"
+                      className="text-lg text-muted-dark"
+                    >
+                      <i className="bx bx-x" aria-hidden="true" />
+                    </button>
+                  </div>
+                )}
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: 'Modelos', value: String(services.length) },
+                    {
+                      label: 'Desde',
+                      value: services.length ? formatPrice(Math.min(...services.map((x) => x.priceCents))) : '—',
+                    },
+                    {
+                      label: 'Até',
+                      value: services.length ? formatPrice(Math.max(...services.map((x) => x.priceCents))) : '—',
+                    },
+                  ].map((stat) => (
+                    <div key={stat.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
+                      <p className="font-subtitle font-semibold lining-nums tracking-tight text-lg leading-none text-onyx">
+                        {stat.value}
+                      </p>
+                      <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
+                        {stat.label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
 
-          {tab === 'estatisticas' && <StatsView />}
-          {tab === 'portfolio' && <PortfolioView />}
-          {tab === 'seguranca' && <SecurityView />}
-          {tab === 'definicoes' && <SettingsView />}
+                <div className="mt-6 flex flex-col gap-3">
+                  {services.map((service) => (
+                    <article key={service.id} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <h3 className="font-logo text-lg text-onyx">{service.name}</h3>
+                          <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-onyx/5 px-2.5 py-1 font-subtitle text-[11px] text-gold-deep">
+                            <i className="bx bx-time-five text-sm" aria-hidden="true" />
+                            {service.durationLabel}
+                          </span>
+                        </div>
+                        <p className="shrink-0 font-subtitle font-semibold lining-nums tracking-tight text-2xl leading-none text-onyx">
+                          {formatPrice(service.priceCents)}
+                        </p>
+                      </div>
+                      <p className="mt-3 line-clamp-2 font-subtitle text-sm text-muted-dark">{service.description}</p>
+                      <div className="mt-4 flex items-center justify-between gap-3 border-t border-onyx/10 pt-3">
+                        <button
+                          type="button"
+                          onClick={() => openDeleteService(service)}
+                          className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 font-subtitle text-sm text-muted-dark transition-colors hover:bg-red-700/10 hover:text-red-700"
+                        >
+                          <i className="bx bx-trash text-base" aria-hidden="true" />
+                          Eliminar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openEditService(service)}
+                          className="inline-flex items-center gap-1.5 rounded-full glass-chip px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:text-gold-deep"
+                        >
+                          <i className="bx bx-pencil text-base" aria-hidden="true" />
+                          Editar
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
 
-          {tab === 'testemunhos' && (
-            <TestimonialsView testimonials={testimonials} busyId={busyId} onDecision={handleTestimonialDecision} />
-          )}
-        </div>
+                <motion.button
+                  type="button"
+                  onClick={openNewService}
+                  whileTap={{ scale: 0.98 }}
+                  className="group mt-4 flex w-full items-center gap-4 rounded-2xl border-[1.5px] border-onyx/25 bg-onyx/5 p-4 text-left transition-colors duration-300 hover:border-gold-deep hover:bg-onyx/5"
+                >
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-2xl text-gold-ink transition-transform duration-300 group-hover:rotate-90">
+                    <i className="bx bx-plus" aria-hidden="true" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-subtitle text-base font-semibold text-onyx">Adicionar modelo</span>
+                    <span className="block font-subtitle text-xs text-muted-dark">
+                      Cria uma nova trança no catálogo do site
+                    </span>
+                  </span>
+                  <i
+                    className="bx bx-chevron-right text-2xl text-gold-deep transition-transform duration-300 group-hover:translate-x-0.5"
+                    aria-hidden="true"
+                  />
+                </motion.button>
+
+                <DeleteServiceDialog
+                  service={deleteTarget}
+                  usage={deleteUsage}
+                  busy={deletingService}
+                  error={deleteError}
+                  onConfirm={confirmDeleteService}
+                  onClose={closeDeleteService}
+                />
+
+                <ServiceDialog
+                  form={serviceForm}
+                  busy={savingService}
+                  error={serviceError}
+                  images={services.find((s) => s.id === serviceForm?.id)?.images ?? []}
+                  onImagesChanged={() => void loadDashboard({ silent: true })}
+                  onChange={setServiceForm}
+                  onSave={saveService}
+                  onClose={closeServiceDialog}
+                />
+              </section>
+            )}
+
+            {tab === 'disponibilidade' && (
+              <section className="mt-4">
+                {scheduleNotice && (
+                  <p className="mb-4 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4 font-subtitle text-sm text-onyx">
+                    {scheduleNotice}
+                  </p>
+                )}
+                <div className="mb-4 grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setGenerateOpen(true)}
+                    className="flex items-center justify-center gap-2 glass-chip rounded-full px-4 py-3 font-subtitle text-sm text-onyx transition-opacity hover:opacity-90"
+                  >
+                    <i className="bx bx-calendar-week text-lg" aria-hidden="true" /> Horário semanal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBlockOpen(true)}
+                    className="flex items-center justify-center gap-2 glass-chip rounded-full px-4 py-3 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep"
+                  >
+                    <i className="bx bx-calendar-x text-lg" aria-hidden="true" /> Fechar um dia
+                  </button>
+                </div>
+                {clearResult && (
+                  <div className="mb-4 flex items-start gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
+                    <i className="bx bx-check-circle mt-0.5 text-xl text-gold-deep" aria-hidden="true" />
+                    <p className="flex-1 font-subtitle text-sm text-onyx">{clearResult}</p>
+                    <button
+                      type="button"
+                      onClick={() => setClearResult(null)}
+                      aria-label="Fechar aviso"
+                      className="text-lg text-muted-dark"
+                    >
+                      <i className="bx bx-x" aria-hidden="true" />
+                    </button>
+                  </div>
+                )}
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: 'Disponíveis', value: monthSlots.filter((slot) => slot.status === 'OPEN').length },
+                    { label: 'Pendentes', value: monthSlots.filter((slot) => slot.status === 'PENDING').length },
+                    { label: 'Reservadas', value: monthSlots.filter((slot) => slot.status === 'BOOKED').length },
+                  ].map((stat) => (
+                    <div key={stat.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
+                      <p className="font-subtitle font-semibold lining-nums tracking-tight text-xl leading-none text-onyx">
+                        {stat.value}
+                      </p>
+                      <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
+                        {stat.label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <form
+                  onSubmit={handleCreateSlots}
+                  className="mt-6 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5"
+                >
+                  <h3 className="font-logo text-lg text-onyx">Criar horários</h3>
+                  <p className="mt-1 font-subtitle text-sm text-muted-dark">
+                    Escolhe o dia e toca nas horas que queres abrir.
+                  </p>
+
+                  <div className="mt-4">
+                    <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+                      Dia
+                    </span>
+                    <DatePicker value={newDate} onChange={setNewDate} />
+                  </div>
+
+                  <div className="mt-5">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Horas</span>
+                      <div className="flex items-center gap-1">
+                        {[
+                          { label: 'Manhã', times: SLOT_TIMES.filter((t) => t >= '09:00' && t <= '12:30') },
+                          { label: 'Tarde', times: SLOT_TIMES.filter((t) => t >= '14:00' && t <= '18:00') },
+                        ].map((preset) => (
+                          <button
+                            key={preset.label}
+                            type="button"
+                            onClick={() =>
+                              setBatchTimes(
+                                [...new Set([...batchTimes, ...preset.times.filter((t) => !takenTimes.has(t))])].sort(),
+                              )
+                            }
+                            className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-onyx/5 hover:text-onyx"
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setBatchTimes([])}
+                          disabled={batchTimes.length === 0}
+                          className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-onyx/5 hover:text-onyx disabled:opacity-30"
+                        >
+                          Limpar
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                      {SLOT_TIMES.map((time) => {
+                        const taken = takenTimes.has(time)
+                        const selected = batchTimes.includes(time)
+                        return (
+                          <button
+                            key={time}
+                            type="button"
+                            disabled={taken || !newDate}
+                            onClick={() =>
+                              setBatchTimes(
+                                selected ? batchTimes.filter((t) => t !== time) : [...batchTimes, time].sort(),
+                              )
+                            }
+                            title={taken ? 'Já existe uma vaga a esta hora' : undefined}
+                            className={`rounded-full border py-2 font-subtitle text-sm transition-colors ${
+                              selected
+                                ? 'glass-chip-on text-onyx'
+                                : taken
+                                  ? 'glass-chip text-onyx/30 line-through'
+                                  : 'glass-chip text-onyx'
+                            } disabled:cursor-not-allowed`}
+                          >
+                            {time}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {!newDate && (
+                      <p className="mt-2 font-subtitle text-xs text-muted-dark">
+                        Escolhe primeiro o dia para ativar as horas.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-between gap-3 border-t border-onyx/10 pt-4">
+                    <span className="font-subtitle text-sm text-muted-dark">
+                      {batchTimes.length === 0
+                        ? 'Nenhuma hora selecionada'
+                        : `${batchTimes.length} ${batchTimes.length === 1 ? 'hora selecionada' : 'horas selecionadas'}`}
+                    </span>
+                    <MotionButton
+                      label={
+                        addingSlot
+                          ? 'A criar...'
+                          : batchTimes.length > 1
+                            ? `Criar ${batchTimes.length} vagas`
+                            : 'Criar vaga'
+                      }
+                      size="sm"
+                      type="submit"
+                      disabled={addingSlot || !newDate || batchTimes.length === 0}
+                    />
+                  </div>
+                </form>
+
+                {slotsByDate.length === 0 ? (
+                  <div className="mt-12 flex flex-col items-center text-center">
+                    <i className="bx bx-time-five text-5xl text-gold-deep/40" aria-hidden="true" />
+                    <p className="mt-3 font-subtitle text-base text-onyx">Sem horários neste mês</p>
+                    <p className="mt-1 font-subtitle text-sm text-muted-dark">
+                      Cria vagas acima para as clientes poderem marcar.
+                    </p>
+                  </div>
+                ) : (
+                  slotsByDate.map(([key, daySlots]) => {
+                    const heading = dayHeading(daySlots[0].startsAt)
+                    const past = key < dateKey(new Date().toISOString())
+                    return (
+                      <div key={key} className={`mt-7 ${past ? 'opacity-55' : ''}`}>
+                        <div className="flex items-baseline gap-3">
+                          <h3 className="font-subtitle font-semibold lining-nums tracking-tight text-lg text-onyx">
+                            {heading.title}
+                          </h3>
+                          {heading.sub && <span className="font-subtitle text-xs text-muted-dark">{heading.sub}</span>}
+                        </div>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {daySlots.map((slot) => (
+                            <div
+                              key={slot.id}
+                              className={`flex items-center gap-2 rounded-full border py-1.5 pl-4 ${
+                                slot.status === 'OPEN' ? 'pr-2' : 'pr-4'
+                              } font-subtitle text-sm ${
+                                slot.status === 'BOOKED'
+                                  ? 'border-onyx bg-onyx text-white'
+                                  : slot.status === 'PENDING'
+                                    ? 'glass-chip-on text-onyx'
+                                    : 'glass-chip text-onyx'
+                              }`}
+                            >
+                              <span className="font-semibold">{dateParts(slot.startsAt).time}</span>
+                              <span
+                                className={`text-[11px] uppercase tracking-wide ${
+                                  slot.status === 'BOOKED' ? 'text-white/70' : 'text-muted-dark'
+                                }`}
+                              >
+                                {SLOT_STATUS_LABEL[slot.status]}
+                              </span>
+                              {slot.status === 'OPEN' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteSlot(slot.id)}
+                                  disabled={busyId === slot.id}
+                                  aria-label="Remover vaga"
+                                  className="flex h-6 w-6 items-center justify-center rounded-full text-muted-dark transition-colors hover:bg-red-700/10 hover:text-red-700"
+                                >
+                                  <i className="bx bx-x text-lg" aria-hidden="true" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+
+                <div className="mt-12">
+                  <div className="flex items-center gap-3">
+                    <span className="h-px flex-1 bg-gold/25" />
+                    <span className="flex items-center gap-1.5 font-subtitle text-[11px] uppercase tracking-[0.18em] text-muted-dark">
+                      <i className="bx bx-error text-sm text-red-700" aria-hidden="true" />
+                      Zona de perigo
+                    </span>
+                    <span className="h-px flex-1 bg-gold/25" />
+                  </div>
+
+                  <div className="relative mt-4 overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
+                    <span className="absolute inset-y-0 left-0 w-1 bg-red-700" aria-hidden="true" />
+                    <div className="pl-2">
+                      <p className="font-subtitle font-semibold lining-nums tracking-tight text-lg text-onyx">
+                        Limpar {formatMonthLabel(viewMonth)}
+                      </p>
+                      <p className="mt-1 font-subtitle text-sm text-muted-dark">
+                        Apaga todas as vagas e marcações deste mês, incluindo as já aceites. Não pode ser desfeito.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={openClearPanel}
+                        className="mt-4 inline-flex items-center gap-2 rounded-full border border-red-700/40 px-5 py-2.5 font-subtitle text-sm font-semibold text-red-700 transition-colors hover:bg-red-700 hover:text-[#ffffff]"
+                      >
+                        <i className="bx bx-trash text-base" aria-hidden="true" />
+                        Limpar mês
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <ClearMonthDialog
+                  open={clearingOpen}
+                  monthLabel={formatMonthLabel(viewMonth)}
+                  summary={clearSummary}
+                  password={clearPassword}
+                  onPasswordChange={setClearPassword}
+                  acknowledged={clearAck}
+                  onAcknowledgedChange={setClearAck}
+                  busy={clearBusy}
+                  error={clearError}
+                  onConfirm={handleClearMonth}
+                  onClose={closeClearPanel}
+                />
+              </section>
+            )}
+
+            {tab === 'pedidos' && (
+              <PendingView
+                bookings={pendingBookings}
+                busyId={busyId}
+                onDecision={(id, decision, reason) => handleBookingDecision(id, decision, reason)}
+              />
+            )}
+
+            {tab === 'clientes' && (
+              <CustomersView
+                refreshKey={bookings.map((b) => b.id + b.status).join()}
+                onNewBooking={(customer) => {
+                  setManualCustomer(customer)
+                  setManualOpen(true)
+                }}
+              />
+            )}
+
+            {tab === 'mais' && (
+              <MoreView
+                onOpen={(id) => {
+                  setTab(id)
+                  window.scrollTo({ top: 0 })
+                }}
+                badges={{ testemunhos: pendingTestimonials.length }}
+              />
+            )}
+
+            {tab === 'estatisticas' && <StatsView />}
+            {tab === 'portfolio' && <PortfolioView />}
+            {tab === 'seguranca' && <SecurityView />}
+            {tab === 'definicoes' && <SettingsView />}
+
+            {tab === 'testemunhos' && (
+              <TestimonialsView testimonials={testimonials} busyId={busyId} onDecision={handleTestimonialDecision} />
+            )}
+          </div>
+        </motion.div>
       </main>
 
       <ManualBookingSheet

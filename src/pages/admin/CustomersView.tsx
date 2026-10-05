@@ -289,7 +289,9 @@ export function CustomersView({
                 ['Cliente desde', formatDate(selected.createdAt)],
               ].map(([label, value]) => (
                 <div key={label} className="rounded-xl bg-onyx/5 px-2 py-3">
-                  <p className="font-logo text-sm leading-tight text-onyx">{value}</p>
+                  <p className="font-subtitle font-semibold lining-nums tracking-tight text-sm leading-tight text-onyx">
+                    {value}
+                  </p>
                   <p className="mt-1 font-subtitle text-[10px] uppercase tracking-wide text-muted-dark">{label}</p>
                 </div>
               ))}

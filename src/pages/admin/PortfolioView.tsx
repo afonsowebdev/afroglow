@@ -149,7 +149,7 @@ export function PortfolioView() {
         {items?.map((item, index) => (
           <div
             key={item.id}
-            className="relative aspect-[3/4] overflow-hidden rounded-xl border border-gold/30 bg-black/5"
+            className="relative aspect-[3/4] overflow-hidden rounded-xl border-[1.5px] border-onyx/25 bg-black/5"
           >
             {item.kind === 'IMAGE' ? (
               <img src={fileUrl(item.id)} alt="" loading="lazy" className="h-full w-full object-cover" />

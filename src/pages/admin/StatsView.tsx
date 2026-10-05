@@ -37,7 +37,9 @@ export function StatsView() {
         {cards.map((card) => (
           <div key={card.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
             <i className={`${card.icon} text-lg text-gold-deep`} aria-hidden="true" />
-            <p className="mt-2 font-logo text-xl leading-none text-onyx">{card.value}</p>
+            <p className="mt-2 font-subtitle font-semibold lining-nums tracking-tight text-xl leading-none text-onyx">
+              {card.value}
+            </p>
             <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{card.label}</p>
           </div>
         ))}
