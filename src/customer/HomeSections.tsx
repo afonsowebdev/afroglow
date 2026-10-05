@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { CalendarCheck, CalendarPlus, UserRound } from 'lucide-react'
 import { ActionButton } from '@/components/ui/action-button'
 import { AnimatedSocialIcons, type ActionIcon } from '@/components/ui/floating-action-button'
-import { api } from '@/lib/api'
+import { api, assetUrl } from '@/lib/api'
 import { tap } from '@/lib/haptics'
 import { serviceImageUrls } from '@/lib/service-images'
 import { useCustomerAuth } from '@/lib/customer-auth'
@@ -447,13 +447,61 @@ export function StepsRow() {
 }
 
 /** Photo mosaic of the studio's work. */
+interface WorkItem {
+  key: string
+  kind: 'IMAGE' | 'VIDEO'
+  src: string
+  alt: string
+}
+
+const SAMPLE_WORK: WorkItem[] = PHOTOS.map((p) => ({ key: p.src, kind: 'IMAGE', src: p.src, alt: p.alt }))
+
+/** Plays a muted looping video only while it is on screen. */
+function AutoVideo({ src, className }: { src: string; className?: string }) {
+  const ref = useRef<HTMLVideoElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) void el.play().catch(() => {})
+        else el.pause()
+      },
+      { threshold: 0.6 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+  return <video ref={ref} src={src} muted loop playsInline preload="metadata" className={className} />
+}
+
 export function WorkGrid() {
+  const [items, setItems] = useState<WorkItem[]>(SAMPLE_WORK)
   const [index, setIndex] = useState(0)
   const [viewer, setViewer] = useState<number | null>(null)
   const viewerStrip = useRef<HTMLDivElement>(null)
   const [viewerIndex, setViewerIndex] = useState(0)
 
-  // Open the full-screen viewer already scrolled to the tapped photo.
+  // The studio's own photos and videos (managed in the admin app); the sample photos show until it adds some.
+  useEffect(() => {
+    api
+      .get<Array<{ id: string; kind: 'IMAGE' | 'VIDEO' }>>('/portfolio')
+      .then((list) => {
+        if (list.length > 0) {
+          setItems(
+            list.map((item) => ({
+              key: item.id,
+              kind: item.kind,
+              src: assetUrl(`/portfolio/${item.id}/file`),
+              alt: item.kind === 'VIDEO' ? 'Vídeo do nosso trabalho' : 'Foto do nosso trabalho',
+            })),
+          )
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  // Open the full-screen viewer already scrolled to the tapped item.
   useEffect(() => {
     if (viewer === null) return
     setViewerIndex(viewer)
@@ -462,6 +510,8 @@ export function WorkGrid() {
       if (el) el.scrollTo({ left: viewer * el.clientWidth })
     })
   }, [viewer])
+
+  const total = items.length
 
   return (
     <section className="pt-12">
@@ -472,11 +522,11 @@ export function WorkGrid() {
         </div>
         <p className="pb-1 font-subtitle text-sm tabular-nums text-muted-dark">
           <span className="font-semibold text-onyx">{String(index + 1).padStart(2, '0')}</span> /{' '}
-          {String(PHOTOS.length).padStart(2, '0')}
+          {String(total).padStart(2, '0')}
         </p>
       </div>
       <p className="mx-auto mt-2 max-w-2xl px-5 font-subtitle text-sm font-light text-muted-dark">
-        Desliza e toca numa foto para a ver em ecrã inteiro.
+        Desliza e toca para ver em ecrã inteiro.
       </p>
 
       <div
@@ -484,24 +534,27 @@ export function WorkGrid() {
         onScroll={(e) => {
           const el = e.currentTarget
           const card = el.firstElementChild as HTMLElement | null
-          if (card)
-            setIndex(Math.min(PHOTOS.length - 1, Math.max(0, Math.round(el.scrollLeft / (card.offsetWidth + 12)))))
+          if (card) setIndex(Math.min(total - 1, Math.max(0, Math.round(el.scrollLeft / (card.offsetWidth + 12)))))
         }}
       >
-        {PHOTOS.map((photo, i) => (
+        {items.map((item, i) => (
           <button
-            key={photo.src}
+            key={item.key}
             type="button"
-            aria-label={`Ver foto ${i + 1} em ecrã inteiro`}
+            aria-label={`Ver ${item.kind === 'VIDEO' ? 'vídeo' : 'foto'} ${i + 1} em ecrã inteiro`}
             onClick={() => {
               void tap()
               setViewer(i)
             }}
-            className="relative h-[23rem] w-[72%] max-w-[17rem] shrink-0 snap-center overflow-hidden rounded-[2rem]"
+            className="relative h-[23rem] w-[72%] max-w-[17rem] shrink-0 snap-center overflow-hidden rounded-[2rem] bg-black/5"
           >
-            <img src={photo.src} alt={photo.alt} loading="lazy" className="h-full w-full object-cover" />
+            {item.kind === 'VIDEO' ? (
+              <AutoVideo src={item.src} className="h-full w-full object-cover" />
+            ) : (
+              <img src={item.src} alt={item.alt} loading="lazy" className="h-full w-full object-cover" />
+            )}
             <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-[#ffffff] backdrop-blur-md">
-              <i className="bx bx-expand-alt" aria-hidden="true" />
+              <i className={item.kind === 'VIDEO' ? 'bx bx-play' : 'bx bx-expand-alt'} aria-hidden="true" />
             </span>
           </button>
         ))}
@@ -517,21 +570,30 @@ export function WorkGrid() {
         </a>
       </div>
 
-      <div className="mt-4 flex justify-center gap-1.5" aria-hidden="true">
-        {PHOTOS.map((photo, i) => (
-          <span
-            key={photo.src}
-            className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? 'w-6 bg-onyx' : 'w-1.5 bg-onyx/25'}`}
+      {total <= 12 ? (
+        <div className="mt-4 flex justify-center gap-1.5" aria-hidden="true">
+          {items.map((item, i) => (
+            <span
+              key={item.key}
+              className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? 'w-6 bg-onyx' : 'w-1.5 bg-onyx/25'}`}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="mx-auto mt-4 h-1 w-24 overflow-hidden rounded-full bg-onyx/15" aria-hidden="true">
+          <div
+            className="h-full rounded-full bg-onyx transition-all"
+            style={{ width: `${((index + 1) / total) * 100}%` }}
           />
-        ))}
-      </div>
+        </div>
+      )}
 
       <AnimatePresence>
         {viewer !== null && (
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label="Foto em ecrã inteiro"
+            aria-label="Em ecrã inteiro"
             className="fixed inset-0 z-[80] bg-black"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -542,9 +604,23 @@ export function WorkGrid() {
               onScroll={(e) => setViewerIndex(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}
               className="flex h-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              {PHOTOS.map((photo) => (
-                <div key={photo.src} className="flex h-full w-full shrink-0 snap-center items-center justify-center">
-                  <img src={photo.src} alt={photo.alt} className="max-h-full max-w-full object-contain" />
+              {items.map((item, i) => (
+                <div key={item.key} className="flex h-full w-full shrink-0 snap-center items-center justify-center">
+                  {item.kind === 'VIDEO' ? (
+                    // Only the video on screen is mounted with its source, so one plays at a time.
+                    Math.abs(i - viewerIndex) <= 1 ? (
+                      <video
+                        src={item.src}
+                        controls
+                        playsInline
+                        autoPlay={i === viewerIndex}
+                        loop
+                        className="max-h-full max-w-full"
+                      />
+                    ) : null
+                  ) : (
+                    <img src={item.src} alt={item.alt} className="max-h-full max-w-full object-contain" />
+                  )}
                 </div>
               ))}
             </div>
@@ -556,8 +632,8 @@ export function WorkGrid() {
             >
               <i className="bx bx-x" aria-hidden="true" />
             </button>
-            <p className="absolute inset-x-0 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] text-center font-subtitle text-sm text-[#ffffff]/80">
-              {viewerIndex + 1} / {PHOTOS.length}
+            <p className="pointer-events-none absolute inset-x-0 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] text-center font-subtitle text-sm text-[#ffffff]/80">
+              {viewerIndex + 1} / {total}
             </p>
           </motion.div>
         )}

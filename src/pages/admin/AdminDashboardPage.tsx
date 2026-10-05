@@ -11,6 +11,7 @@ import type { AdminCustomer } from '@/pages/admin/admin-types'
 import { ManualBookingSheet } from '@/pages/admin/ManualBookingSheet'
 import { MoreView, type MoreTarget } from '@/pages/admin/MoreView'
 import { BlockDaySheet, GenerateSlotsSheet } from '@/pages/admin/ScheduleTools'
+import { PortfolioView } from '@/pages/admin/PortfolioView'
 import { SecurityView } from '@/pages/admin/SecurityView'
 import { ServicePhotos } from '@/pages/admin/ServicePhotos'
 import { SettingsView } from '@/pages/admin/SettingsView'
@@ -92,9 +93,10 @@ const HISTORY_STATUS_LABEL: Record<Booking['status'], string> = {
 type NavTab = 'pedidos' | 'agenda' | 'disponibilidade' | 'clientes' | 'mais'
 type AdminTab = NavTab | MoreTarget
 
-const MORE_TARGETS: MoreTarget[] = ['servicos', 'testemunhos', 'estatisticas', 'definicoes', 'seguranca']
+const MORE_TARGETS: MoreTarget[] = ['servicos', 'portfolio', 'testemunhos', 'estatisticas', 'definicoes', 'seguranca']
 const MORE_TITLE: Record<MoreTarget, string> = {
   servicos: 'Serviços',
+  portfolio: 'Portfólio',
   testemunhos: 'Testemunhos',
   estatisticas: 'Estatísticas',
   definicoes: 'Definições do negócio',
@@ -2124,6 +2126,7 @@ export default function AdminDashboardPage() {
           )}
 
           {tab === 'estatisticas' && <StatsView />}
+          {tab === 'portfolio' && <PortfolioView />}
           {tab === 'seguranca' && <SecurityView />}
           {tab === 'definicoes' && <SettingsView />}
 

@@ -80,6 +80,28 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return (await res.json()) as T
 }
 
+/** Uploads a raw file (photo / video) as the request body. */
+export async function uploadFile<T>(path: string, file: Blob, contentType: string): Promise<T> {
+  const token = tokenFor(path)
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': contentType, ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: file,
+  })
+  if (!res.ok) {
+    let message = `Erro ${res.status}`
+    try {
+      const body = (await res.json()) as { error?: string }
+      if (body.error) message = body.error
+    } catch {
+      // no JSON body
+    }
+    throw new ApiError(message, res.status)
+  }
+  return (await res.json()) as T
+}
+
 export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body?: unknown) =>

@@ -151,3 +151,21 @@ model ServiceImage {
 
   @@index([serviceId, position])
 }
+
+enum PortfolioKind {
+  IMAGE
+  VIDEO
+}
+
+// Photos and short videos of the studio's work, managed by the admin and shown in the customer app.
+// Stored in the database; position 0 is shown first.
+model PortfolioItem {
+  id          String        @id @default(cuid())
+  kind        PortfolioKind
+  contentType String
+  data        Bytes
+  position    Int           @default(0)
+  createdAt   DateTime      @default(now())
+
+  @@index([position])
+}

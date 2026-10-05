@@ -1,6 +1,7 @@
-export type MoreTarget = 'servicos' | 'testemunhos' | 'estatisticas' | 'definicoes' | 'seguranca'
+export type MoreTarget = 'servicos' | 'testemunhos' | 'estatisticas' | 'definicoes' | 'seguranca' | 'portfolio'
 
 const ITEMS: Array<{ id: MoreTarget; label: string; hint: string; icon: string }> = [
+  { id: 'portfolio', label: 'Portfólio', hint: 'Fotos e vídeos do trabalho, na app dos clientes', icon: 'bx bx-images' },
   { id: 'servicos', label: 'Serviços', hint: 'Modelos, duração e preços', icon: 'bx bx-cut' },
   { id: 'testemunhos', label: 'Testemunhos', hint: 'Aprovar ou recusar', icon: 'bx bx-message-rounded-dots' },
   { id: 'estatisticas', label: 'Estatísticas', hint: 'Receita, sessões e clientes', icon: 'bx bx-bar-chart-alt-2' },
