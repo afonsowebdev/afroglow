@@ -110,7 +110,6 @@ const TABS: Array<{ id: NavTab; label: string; icon: string }> = [
   { id: 'agenda', label: 'Agenda', icon: 'bx bx-calendar-check' },
   { id: 'disponibilidade', label: 'Horários', icon: 'bx bx-time-five' },
   { id: 'clientes', label: 'Clientes', icon: 'bx bx-user' },
-  { id: 'mais', label: 'Mais', icon: 'bx bx-dots-horizontal-rounded' },
 ]
 
 function dayHeading(iso: string) {
@@ -2199,7 +2198,6 @@ export default function AdminDashboardPage() {
         <div className="pointer-events-auto min-w-0">
           <BottomNavBar
             glass
-            compact
             value={(MORE_TARGETS.includes(tab as MoreTarget) ? 'mais' : tab) as NavTab}
             onChange={(id) => {
               setTab(id)
@@ -2209,11 +2207,11 @@ export default function AdminDashboardPage() {
               id,
               label,
               icon,
-              badge: id === 'pedidos' ? pendingBookings.length : id === 'mais' ? pendingTestimonials.length : 0,
+              badge: id === 'pedidos' ? pendingBookings.length : 0,
             }))}
           />
         </div>
-        <FloatingActionMenu actions={menuActions} />
+        <FloatingActionMenu actions={menuActions} dot={pendingTestimonials.length > 0} />
       </div>
     </div>
   )

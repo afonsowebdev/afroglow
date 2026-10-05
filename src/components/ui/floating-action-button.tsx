@@ -154,8 +154,11 @@ export function FloatingActionMenu({
   actions,
   hidden = false,
   tone = 'onLight',
+  dot = false,
 }: {
   actions: MenuAction[]
+  /** A red dot on the button: something in the list needs attention. */
+  dot?: boolean
   hidden?: boolean
   tone?: 'onLight' | 'onDark'
 }) {
@@ -255,6 +258,13 @@ export function FloatingActionMenu({
         >
           <Plus size={24} strokeWidth={2.6} />
         </motion.button>
+        {dot && !open ? (
+          <span
+            className="pointer-events-none absolute right-0 top-0 size-3.5 rounded-full bg-red-600 ring-2 ring-white"
+            role="status"
+            aria-label="Há itens por rever"
+          />
+        ) : null}
       </motion.div>
     </>
   )
