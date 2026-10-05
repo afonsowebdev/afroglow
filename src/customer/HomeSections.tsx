@@ -627,7 +627,7 @@ export function WorkGrid() {
             className="mx-auto flex aspect-[4/5] w-full max-w-md flex-col items-center justify-center gap-3 rounded-[2rem] border-[1.5px] border-onyx/25 bg-white text-center"
           >
             <i className="bx bxl-instagram text-5xl text-onyx" aria-hidden="true" />
-            <span className="font-subtitle text-base font-semibold text-onyx">Mais no Instagram</span>
+            <span className="font-subtitle text-base font-semibold text-onyx">Vídeos no Instagram</span>
             <span className="font-subtitle text-sm text-muted-dark">@{siteConfig.instagramHandle}</span>
           </a>
         </div>
@@ -707,7 +707,7 @@ export function WorkGrid() {
   )
 }
 
-type Review = { id: string; quote: string; name: string; date?: string }
+type Review = { id: string; quote: string; name: string; date?: string; photo?: number }
 
 const MONTHS_PT = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
@@ -734,9 +734,18 @@ function ReviewCard({ review }: { review: Review }) {
           </button>
         )}
         <figcaption className="mt-5 flex items-center gap-3 border-t border-onyx/10 pt-4">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-onyx font-subtitle text-base font-semibold text-[#ffffff] dark:bg-gold-deep">
-            {review.name.trim().charAt(0).toUpperCase()}
-          </span>
+          {review.photo ? (
+            <img
+              src={assetUrl(`/testimonials/${review.id}/photo?v=${review.photo}`)}
+              alt=""
+              loading="lazy"
+              className="h-12 w-12 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-onyx font-subtitle text-base font-semibold text-[#ffffff] dark:bg-gold-deep">
+              {review.name.trim().charAt(0).toUpperCase()}
+            </span>
+          )}
           <span className="min-w-0">
             <span className="block truncate font-subtitle text-sm font-semibold text-onyx">{review.name}</span>
             <span className="block font-subtitle text-xs text-muted-dark">

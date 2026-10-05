@@ -164,8 +164,8 @@ function BookingCard({ booking, onChanged }: { booking: Booking; onChanged: () =
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="font-subtitle text-base text-onyx">
-            <span className="font-medium">{booking.service.name}</span> · {formatDateHeading(booking.slot.startsAt)}{' '}
-            às {formatTime(booking.slot.startsAt)}
+            <span className="font-medium">{booking.service.name}</span> · {formatDateHeading(booking.slot.startsAt)} às{' '}
+            {formatTime(booking.slot.startsAt)}
           </p>
           <p className="mt-1 font-logo text-lg text-gold-ink">{formatPrice(booking.service.priceCents)}</p>
         </div>
@@ -223,11 +223,7 @@ function BookingCard({ booking, onChanged }: { booking: Booking; onChanged: () =
       )}
 
       {rescheduling && (
-        <ReschedulePicker
-          bookingId={booking.id}
-          onDone={onChanged}
-          onCancel={() => setRescheduling(false)}
-        />
+        <ReschedulePicker bookingId={booking.id} onDone={onChanged} onCancel={() => setRescheduling(false)} />
       )}
     </div>
   )
@@ -238,6 +234,16 @@ export function TestimonialForm() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
+  const [hasPhoto, setHasPhoto] = useState(false)
+  const [showPhoto, setShowPhoto] = useState(true)
+
+  // Offer to show the profile photo only when there is one.
+  useEffect(() => {
+    api
+      .get<{ dataUrl: string | null }>('/account/avatar')
+      .then((data) => setHasPhoto(!!data.dataUrl))
+      .catch(() => {})
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -245,7 +251,7 @@ export function TestimonialForm() {
     setSubmitting(true)
     setError(null)
     try {
-      await api.post('/account/testimonials', { content: content.trim() })
+      await api.post('/account/testimonials', { content: content.trim(), showPhoto: hasPhoto && showPhoto })
       setSent(true)
       setContent('')
     } catch (err) {
@@ -273,6 +279,26 @@ export function TestimonialForm() {
         placeholder="Conta-nos como foi a tua experiência..."
         className={`rounded-xl ${fieldBorder} bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300`}
       />
+      {hasPhoto ? (
+        <label className="flex items-start gap-3 font-subtitle text-sm text-onyx">
+          <input
+            type="checkbox"
+            checked={showPhoto}
+            onChange={(e) => setShowPhoto(e.target.checked)}
+            className="mt-0.5 size-5 shrink-0 accent-[#c9a84c]"
+          />
+          <span>
+            Mostrar a minha foto de perfil junto ao testemunho
+            <span className="block text-xs text-muted-dark">
+              Só aparece depois de aprovado. Podes retirá-la quando quiseres.
+            </span>
+          </span>
+        </label>
+      ) : (
+        <p className="font-subtitle text-xs text-muted-dark">
+          Queres que a tua foto apareça no testemunho? Adiciona-a primeiro ao teu perfil.
+        </p>
+      )}
       {error && <p className="font-subtitle text-sm text-red-700">{error}</p>}
       <div>
         <MotionButton
@@ -338,22 +364,22 @@ export default function AccountPage({
       </motion.span>
 
       {!embedded && (
-      <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          <Link to="/" className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
-            <span className="font-logo text-2xl leading-none tracking-wide text-gold-ink">AFROGLOW</span>
-          </Link>
+        <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+            <Link to="/" className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
+              <span className="font-logo text-2xl leading-none tracking-wide text-gold-ink">AFROGLOW</span>
+            </Link>
 
-          <button
-            type="button"
-            onClick={() => void logout().then(() => navigate('/'))}
-            className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-ink sm:px-6 ${pillClasses}`}
-          >
-            <span>Terminar sessão</span>
-            <i className="bx bx-log-out text-xl" aria-hidden="true" />
-          </button>
+            <button
+              type="button"
+              onClick={() => void logout().then(() => navigate('/'))}
+              className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-ink sm:px-6 ${pillClasses}`}
+            >
+              <span>Terminar sessão</span>
+              <i className="bx bx-log-out text-xl" aria-hidden="true" />
+            </button>
+          </div>
         </div>
-      </div>
       )}
 
       <main

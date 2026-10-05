@@ -7,7 +7,6 @@ interface Item {
 }
 
 const MAX_SIDE = 1800
-const MAX_VIDEO_MB = 8
 
 /** Shrinks a phone photo to a ~400 KB JPEG before it is uploaded. */
 async function shrink(file: File): Promise<Blob> {
@@ -69,15 +68,7 @@ export function PortfolioView() {
     for (const file of list) {
       setBusy(`A enviar ${done + 1} de ${list.length}...`)
       try {
-        if (file.type.startsWith('video/')) {
-          if (file.size > MAX_VIDEO_MB * 1024 * 1024) {
-            problems.push(`"${file.name}" tem mais de ${MAX_VIDEO_MB} MB.`)
-            continue
-          }
-          await upload(file, file.type === 'video/quicktime' ? 'video/quicktime' : 'video/mp4')
-        } else {
-          await upload(await shrink(file), 'image/jpeg')
-        }
+        await upload(await shrink(file), 'image/jpeg')
         done += 1
       } catch (err) {
         problems.push(err instanceof ApiError ? err.message : `Falhou o envio de "${file.name}".`)
@@ -113,12 +104,15 @@ export function PortfolioView() {
     <section className="mt-6">
       <div className="rounded-2xl border border-gold/20 bg-white p-5">
         <p className="font-subtitle text-sm text-onyx">
-          As fotos e os vídeos que adicionares aparecem no <strong>portfólio da app dos clientes</strong>, pela ordem em
-          que estão aqui. Podes juntar quantos quiseres (até 60 fotos e 12 vídeos curtos).
+          As fotos que adicionares aparecem no <strong>portfólio da app dos clientes</strong>, pela ordem em que estão
+          aqui. Podes juntar quantas quiseres (até 60). Os vídeos ficam no Instagram: a app mostra um cartão no fim do
+          portfólio que leva lá.
         </p>
         <p className="mt-2 font-subtitle text-xs text-muted-dark">
-          Vídeos: MP4 ou MOV até {MAX_VIDEO_MB} MB (cerca de 5 a 8 segundos). Para vídeos maiores, corta-os antes na
-          galeria do iPhone. {photos} fotos · {videos} vídeos.
+          {photos} {photos === 1 ? 'foto' : 'fotos'}
+          {videos > 0 &&
+            ` · ${videos} ${videos === 1 ? 'vídeo antigo (podes apagá-lo)' : 'vídeos antigos (podes apagá-los)'}`}
+          .
         </p>
         <button
           type="button"
@@ -127,12 +121,12 @@ export function PortfolioView() {
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-gold-deep py-3 font-subtitle text-sm text-[#ffffff] disabled:opacity-50"
         >
           <i className="bx bx-plus text-lg" aria-hidden="true" />
-          {busy ?? 'Adicionar fotos e vídeos'}
+          {busy ?? 'Adicionar fotos'}
         </button>
         <input
           ref={input}
           type="file"
-          accept="image/*,video/mp4,video/quicktime"
+          accept="image/*"
           multiple
           className="hidden"
           onChange={(e) => void addFiles(e.target.files)}

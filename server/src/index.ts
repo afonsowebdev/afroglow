@@ -54,6 +54,7 @@ app.use(
 // Photo uploads are base64 in JSON and need a bigger body limit than everything else.
 app.use('/api/admin/services/:id/images', express.json({ limit: '8mb' }))
 app.use('/api/admin/portfolio', express.json({ limit: '13mb' }))
+app.use('/api/account/avatar', express.json({ limit: '600kb' }))
 app.use(express.json())
 app.use(cookieParser())
 

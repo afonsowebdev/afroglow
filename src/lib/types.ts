@@ -40,6 +40,7 @@ export interface Customer {
   name: string
   email: string
   phone: string
+  hasAvatar?: boolean
 }
 
 export type TestimonialStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
@@ -50,6 +51,8 @@ export interface Testimonial {
   status: TestimonialStatus
   createdAt: string
   customer: { name: string }
+  /** Public list: a version number when the author chose to show a photo. Admin list: whether they did. */
+  photo?: number | boolean | null
 }
 
 export function formatPrice(cents: number) {

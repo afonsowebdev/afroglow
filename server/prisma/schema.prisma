@@ -64,6 +64,11 @@ model Customer {
   passwordHash String
   // Private notes the business keeps about this client (never shown to the client).
   adminNotes   String        @default("")
+  // Optional profile photo (a small square JPEG the app prepares); shown in testimonials only when the
+  // customer opts in on that testimonial.
+  avatar        Bytes?
+  avatarType    String?
+  avatarUpdatedAt DateTime?
   pushTokens   CustomerPushToken[]
   createdAt    DateTime      @default(now())
   bookings     Booking[]
@@ -110,6 +115,8 @@ model Testimonial {
   customerId String
   customer   Customer          @relation(fields: [customerId], references: [id])
   content    String
+  // The customer agreed to show their profile photo next to this testimonial.
+  showPhoto  Boolean           @default(false)
   status     TestimonialStatus @default(PENDING)
   createdAt  DateTime          @default(now())
 }

@@ -70,7 +70,58 @@ accountRouter.get('/me', requireCustomer, async (req, res) => {
     res.status(401).json({ error: 'Não autenticado.' })
     return
   }
-  res.json({ id: customer.id, name: customer.name, email: customer.email, phone: customer.phone })
+  res.json({
+    id: customer.id,
+    name: customer.name,
+    email: customer.email,
+    phone: customer.phone,
+    hasAvatar: !!customer.avatar,
+  })
+})
+
+// The customer's own profile photo as a data URL (the app can't send its login header with an <img> request).
+accountRouter.get('/avatar', requireCustomer, async (req, res) => {
+  const customer = await prisma.customer.findUnique({
+    where: { id: req.customerId },
+    select: { avatar: true, avatarType: true },
+  })
+  if (!customer?.avatar || !customer.avatarType) {
+    res.json({ dataUrl: null })
+    return
+  }
+  res.json({ dataUrl: `data:${customer.avatarType};base64,${Buffer.from(customer.avatar).toString('base64')}` })
+})
+
+// Upload: JSON { contentType, data } with a small image in base64 (the app resizes it to a square first).
+accountRouter.put('/avatar', requireCustomer, async (req, res) => {
+  const contentType = String(req.body?.contentType ?? '')
+  const encoded = req.body?.data
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(contentType) || typeof encoded !== 'string') {
+    res.status(400).json({ error: 'Foto inválida.' })
+    return
+  }
+  const bytes = Buffer.from(encoded, 'base64')
+  if (bytes.length < 100 || bytes.length > 300 * 1024) {
+    res.status(413).json({ error: 'Foto demasiado grande.' })
+    return
+  }
+  await prisma.customer.update({
+    where: { id: req.customerId },
+    data: {
+      avatar: bytes as unknown as Uint8Array<ArrayBuffer>,
+      avatarType: contentType,
+      avatarUpdatedAt: new Date(),
+    },
+  })
+  res.json({ ok: true })
+})
+
+accountRouter.delete('/avatar', requireCustomer, async (req, res) => {
+  await prisma.customer.update({
+    where: { id: req.customerId },
+    data: { avatar: null, avatarType: null, avatarUpdatedAt: null },
+  })
+  res.status(204).end()
 })
 
 // Keeps people from using the reset flow to spam an inbox or to guess codes.
@@ -337,8 +388,14 @@ accountRouter.post('/testimonials', requireCustomer, async (req, res) => {
   }
 
   try {
+    // Showing the photo only makes sense when the customer has one.
+    const owner = await prisma.customer.findUnique({ where: { id: req.customerId }, select: { avatarType: true } })
     const testimonial = await prisma.testimonial.create({
-      data: { customerId: req.customerId!, content: parsed.data.content },
+      data: {
+        customerId: req.customerId!,
+        content: parsed.data.content,
+        showPhoto: !!parsed.data.showPhoto && !!owner?.avatarType,
+      },
     })
     res.status(201).json(testimonial)
   } catch (error) {

@@ -827,6 +827,25 @@ function timeAgo(iso: string) {
   return label.charAt(0).toUpperCase() + label.slice(1)
 }
 
+/** The author's photo when they chose to show it (fetched with the admin's login), otherwise their initial. */
+function AuthorAvatar({ testimonial }: { testimonial: Testimonial }) {
+  const [src, setSrc] = useState<string | null>(null)
+  useEffect(() => {
+    if (testimonial.photo !== true) return
+    api
+      .get<{ dataUrl: string | null }>(`/admin/testimonials/${testimonial.id}/photo`)
+      .then((data) => setSrc(data.dataUrl))
+      .catch(() => {})
+  }, [testimonial.id, testimonial.photo])
+  return src ? (
+    <img src={src} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
+  ) : (
+    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 font-logo text-lg text-gold-deep">
+      {testimonial.customer.name.trim().charAt(0).toUpperCase() || '?'}
+    </span>
+  )
+}
+
 function TestimonialsView({
   testimonials,
   busyId,
@@ -903,14 +922,15 @@ function TestimonialsView({
               className="rounded-2xl border border-gold/20 bg-white p-5 shadow-sm shadow-black/5"
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 font-logo text-lg text-gold-deep">
-                  {testimonial.customer.name.trim().charAt(0).toUpperCase() || '?'}
-                </span>
+                <AuthorAvatar testimonial={testimonial} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-subtitle text-base font-semibold text-onyx">
                     {testimonial.customer.name}
                   </p>
-                  <p className="font-subtitle text-xs text-muted-dark">{timeAgo(testimonial.createdAt)}</p>
+                  <p className="font-subtitle text-xs text-muted-dark">
+                    {timeAgo(testimonial.createdAt)}
+                    {testimonial.photo === true && ' · quer mostrar a foto'}
+                  </p>
                 </div>
                 {view !== 'PENDING' && (
                   <span
@@ -1242,7 +1262,9 @@ export default function AdminDashboardPage() {
   const [adminEmail, setAdminEmail] = useState<string | null>(null)
   const [tab, setTab] = useState<AdminTab>(() => {
     const fromHash = window.location.hash.slice(1)
-    return TABS.some((t) => t.id === fromHash) || MORE_TARGETS.includes(fromHash as MoreTarget) ? (fromHash as AdminTab) : 'pedidos'
+    return TABS.some((t) => t.id === fromHash) || MORE_TARGETS.includes(fromHash as MoreTarget)
+      ? (fromHash as AdminTab)
+      : 'pedidos'
   })
   const [scrolled, setScrolled] = useState(false)
 

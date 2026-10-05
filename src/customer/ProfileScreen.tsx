@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { ActionButton } from '@/components/ui/action-button'
 import { Sheet } from '@/components/ui/sheet'
-import { api } from '@/lib/api'
+import { api, ApiError } from '@/lib/api'
+import { shrinkAvatar } from '@/lib/avatar'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { tap } from '@/lib/haptics'
 import { formatPrice, type Booking } from '@/lib/types'
@@ -41,6 +42,46 @@ export default function ProfileScreen() {
   const { customer } = useCustomerAuth()
   const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [testimonialOpen, setTestimonialOpen] = useState(false)
+  const [photo, setPhoto] = useState<string | null>(null)
+  const [photoBusy, setPhotoBusy] = useState(false)
+  const [photoError, setPhotoError] = useState<string | null>(null)
+  const photoInput = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    api
+      .get<{ dataUrl: string | null }>('/account/avatar')
+      .then((data) => setPhoto(data.dataUrl))
+      .catch(() => {})
+  }, [])
+
+  async function changePhoto(file: File | undefined) {
+    if (!file) return
+    setPhotoBusy(true)
+    setPhotoError(null)
+    try {
+      const data = await shrinkAvatar(file)
+      await api.put('/account/avatar', { contentType: 'image/jpeg', data })
+      setPhoto(`data:image/jpeg;base64,${data}`)
+    } catch (err) {
+      setPhotoError(err instanceof ApiError ? err.message : 'Não foi possível guardar a foto.')
+    } finally {
+      setPhotoBusy(false)
+      if (photoInput.current) photoInput.current.value = ''
+    }
+  }
+
+  async function removePhoto() {
+    setPhotoBusy(true)
+    setPhotoError(null)
+    try {
+      await api.delete('/account/avatar')
+      setPhoto(null)
+    } catch {
+      setPhotoError('Não foi possível remover a foto.')
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
 
   useEffect(() => {
     api
@@ -111,9 +152,31 @@ export default function ProfileScreen() {
           {/* two fine rings around the monogram */}
           <span className="absolute inset-0 rounded-full border border-gold-ink/30" aria-hidden="true" />
           <span className="absolute inset-[7px] rounded-full border border-gold-ink/60" aria-hidden="true" />
-          <span className="absolute inset-[14px] flex items-center justify-center rounded-full bg-white font-logo text-6xl text-gold-ink shadow-[0_8px_24px_rgba(201,168,76,0.25)]">
-            {initial}
+          <button
+            type="button"
+            aria-label="Alterar foto de perfil"
+            disabled={photoBusy}
+            onClick={() => {
+              void tap()
+              photoInput.current?.click()
+            }}
+            className="absolute inset-[14px] flex items-center justify-center overflow-hidden rounded-full bg-white font-logo text-6xl text-gold-ink shadow-[0_8px_24px_rgba(201,168,76,0.25)]"
+          >
+            {photo ? <img src={photo} alt="" className="h-full w-full object-cover" /> : initial}
+          </button>
+          <span
+            aria-hidden="true"
+            className="glass-chip pointer-events-none absolute bottom-1 right-1 flex h-9 w-9 items-center justify-center rounded-full text-lg text-onyx"
+          >
+            <i className={photoBusy ? 'bx bx-loader-alt animate-spin' : 'bx bx-camera'} />
           </span>
+          <input
+            ref={photoInput}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => void changePhoto(e.target.files?.[0])}
+          />
         </motion.div>
 
         <h1 className="relative mt-6 truncate font-subtitle text-[28px] font-light tracking-tight text-onyx">
@@ -127,6 +190,30 @@ export default function ProfileScreen() {
         <p className="relative mt-3 font-subtitle text-xs uppercase tracking-[0.22em] text-muted-dark">
           {sinceLabel ? `Cliente desde ${sinceLabel}` : 'Cliente AFROGLOW'}
         </p>
+        <p className="relative mt-3 font-subtitle text-xs text-muted-dark">
+          <button
+            type="button"
+            disabled={photoBusy}
+            onClick={() => photoInput.current?.click()}
+            className="underline underline-offset-4"
+          >
+            {photo ? 'Alterar foto' : 'Adicionar foto'}
+          </button>
+          {photo && (
+            <>
+              {' · '}
+              <button
+                type="button"
+                disabled={photoBusy}
+                onClick={() => void removePhoto()}
+                className="underline underline-offset-4"
+              >
+                Remover
+              </button>
+            </>
+          )}
+        </p>
+        {photoError && <p className="relative mt-2 font-subtitle text-xs text-red-700">{photoError}</p>}
       </header>
 
       <div className="mx-auto max-w-2xl px-5">
