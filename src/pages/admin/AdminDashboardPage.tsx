@@ -1299,6 +1299,23 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState<string | null>(null)
 
   const [newDate, setNewDate] = useState('')
+  // The "Criar horários" card can be folded away; the choice is remembered on this phone.
+  const [createOpen, setCreateOpen] = useState(() => {
+    try {
+      return localStorage.getItem('afroglow-admin-create-open') === '1'
+    } catch {
+      return false
+    }
+  })
+  const toggleCreate = () =>
+    setCreateOpen((open) => {
+      try {
+        localStorage.setItem('afroglow-admin-create-open', open ? '0' : '1')
+      } catch {
+        /* just not remembered */
+      }
+      return !open
+    })
   const [batchTimes, setBatchTimes] = useState<string[]>([])
   const [addingSlot, setAddingSlot] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -1897,14 +1914,14 @@ export default function AdminDashboardPage() {
                   <button
                     type="button"
                     onClick={() => setGenerateOpen(true)}
-                    className="flex items-center justify-center gap-2 glass-chip rounded-full px-4 py-3 font-subtitle text-sm text-onyx transition-opacity hover:opacity-90"
+                    className="flex items-center justify-center gap-2 whitespace-nowrap glass-chip rounded-full px-3 py-3 font-subtitle text-[13px] text-onyx transition-opacity hover:opacity-90"
                   >
                     <i className="bx bx-calendar-week text-lg" aria-hidden="true" /> Horário semanal
                   </button>
                   <button
                     type="button"
                     onClick={() => setBlockOpen(true)}
-                    className="flex items-center justify-center gap-2 glass-chip rounded-full px-4 py-3 font-subtitle text-sm text-onyx transition-colors hover:border-gold-deep"
+                    className="flex items-center justify-center gap-2 whitespace-nowrap glass-chip rounded-full px-3 py-3 font-subtitle text-[13px] text-onyx"
                   >
                     <i className="bx bx-calendar-x text-lg" aria-hidden="true" /> Fechar um dia
                   </button>
@@ -1944,103 +1961,135 @@ export default function AdminDashboardPage() {
                   onSubmit={handleCreateSlots}
                   className="mt-6 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5"
                 >
-                  <h3 className="font-subtitle text-lg font-semibold tracking-tight text-onyx">Criar horários</h3>
-                  <p className="mt-1 font-subtitle text-sm text-muted-dark">
-                    Escolhe o dia e toca nas horas que queres abrir.
-                  </p>
-
-                  <div className="mt-4">
-                    <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                      Dia
+                  <button
+                    type="button"
+                    onClick={toggleCreate}
+                    aria-expanded={createOpen}
+                    className="flex w-full items-center justify-between gap-3 text-left"
+                  >
+                    <span>
+                      <span className="block font-subtitle text-lg font-semibold tracking-tight text-onyx">
+                        Criar horários
+                      </span>
+                      <span className="mt-1 block font-subtitle text-sm text-muted-dark">
+                        {createOpen ? 'Escolhe o dia e toca nas horas que queres abrir.' : 'Toca para abrir.'}
+                      </span>
                     </span>
-                    <DatePicker value={newDate} onChange={setNewDate} />
-                  </div>
+                    <span className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-xl text-onyx">
+                      <i
+                        className={`bx bx-chevron-down transition-transform duration-300 ${createOpen ? 'rotate-180' : ''}`}
+                        aria-hidden="true"
+                      />
+                    </span>
+                  </button>
 
-                  <div className="mt-5">
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Horas</span>
-                      <div className="flex items-center gap-1">
-                        {[
-                          { label: 'Manhã', times: SLOT_TIMES.filter((t) => t >= '09:00' && t <= '12:30') },
-                          { label: 'Tarde', times: SLOT_TIMES.filter((t) => t >= '14:00' && t <= '18:00') },
-                        ].map((preset) => (
-                          <button
-                            key={preset.label}
-                            type="button"
-                            onClick={() =>
-                              setBatchTimes(
-                                [...new Set([...batchTimes, ...preset.times.filter((t) => !takenTimes.has(t))])].sort(),
+                  <AnimatePresence initial={false}>
+                    {createOpen && (
+                      <motion.div
+                        key="create-body"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: 'easeInOut' }}
+                        className="overflow-hidden"
+                      >
+                        <div className="mt-4">
+                          <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+                            Dia
+                          </span>
+                          <DatePicker value={newDate} onChange={setNewDate} />
+                        </div>
+
+                        <div className="mt-5">
+                          <div className="mb-2 flex items-center justify-between">
+                            <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Horas</span>
+                            <div className="flex items-center gap-1">
+                              {[
+                                { label: 'Manhã', times: SLOT_TIMES.filter((t) => t >= '09:00' && t <= '12:30') },
+                                { label: 'Tarde', times: SLOT_TIMES.filter((t) => t >= '14:00' && t <= '18:00') },
+                              ].map((preset) => (
+                                <button
+                                  key={preset.label}
+                                  type="button"
+                                  onClick={() =>
+                                    setBatchTimes(
+                                      [
+                                        ...new Set([...batchTimes, ...preset.times.filter((t) => !takenTimes.has(t))]),
+                                      ].sort(),
+                                    )
+                                  }
+                                  className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-onyx/5 hover:text-onyx"
+                                >
+                                  {preset.label}
+                                </button>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() => setBatchTimes([])}
+                                disabled={batchTimes.length === 0}
+                                className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-onyx/5 hover:text-onyx disabled:opacity-30"
+                              >
+                                Limpar
+                              </button>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                            {SLOT_TIMES.map((time) => {
+                              const taken = takenTimes.has(time)
+                              const selected = batchTimes.includes(time)
+                              return (
+                                <button
+                                  key={time}
+                                  type="button"
+                                  disabled={taken || !newDate}
+                                  onClick={() =>
+                                    setBatchTimes(
+                                      selected ? batchTimes.filter((t) => t !== time) : [...batchTimes, time].sort(),
+                                    )
+                                  }
+                                  title={taken ? 'Já existe uma vaga a esta hora' : undefined}
+                                  className={`rounded-full border py-2 font-subtitle text-sm transition-colors ${
+                                    selected
+                                      ? 'glass-chip-on text-onyx'
+                                      : taken
+                                        ? 'glass-chip text-onyx/30 line-through'
+                                        : 'glass-chip text-onyx'
+                                  } disabled:cursor-not-allowed`}
+                                >
+                                  {time}
+                                </button>
                               )
+                            })}
+                          </div>
+                          {!newDate && (
+                            <p className="mt-2 font-subtitle text-xs text-muted-dark">
+                              Escolhe primeiro o dia para ativar as horas.
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="mt-5 flex items-center justify-between gap-3 border-t border-onyx/10 pt-4">
+                          <span className="font-subtitle text-sm text-muted-dark">
+                            {batchTimes.length === 0
+                              ? 'Nenhuma hora selecionada'
+                              : `${batchTimes.length} ${batchTimes.length === 1 ? 'hora selecionada' : 'horas selecionadas'}`}
+                          </span>
+                          <MotionButton
+                            label={
+                              addingSlot
+                                ? 'A criar...'
+                                : batchTimes.length > 1
+                                  ? `Criar ${batchTimes.length} vagas`
+                                  : 'Criar vaga'
                             }
-                            className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-onyx/5 hover:text-onyx"
-                          >
-                            {preset.label}
-                          </button>
-                        ))}
-                        <button
-                          type="button"
-                          onClick={() => setBatchTimes([])}
-                          disabled={batchTimes.length === 0}
-                          className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-onyx/5 hover:text-onyx disabled:opacity-30"
-                        >
-                          Limpar
-                        </button>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-                      {SLOT_TIMES.map((time) => {
-                        const taken = takenTimes.has(time)
-                        const selected = batchTimes.includes(time)
-                        return (
-                          <button
-                            key={time}
-                            type="button"
-                            disabled={taken || !newDate}
-                            onClick={() =>
-                              setBatchTimes(
-                                selected ? batchTimes.filter((t) => t !== time) : [...batchTimes, time].sort(),
-                              )
-                            }
-                            title={taken ? 'Já existe uma vaga a esta hora' : undefined}
-                            className={`rounded-full border py-2 font-subtitle text-sm transition-colors ${
-                              selected
-                                ? 'glass-chip-on text-onyx'
-                                : taken
-                                  ? 'glass-chip text-onyx/30 line-through'
-                                  : 'glass-chip text-onyx'
-                            } disabled:cursor-not-allowed`}
-                          >
-                            {time}
-                          </button>
-                        )
-                      })}
-                    </div>
-                    {!newDate && (
-                      <p className="mt-2 font-subtitle text-xs text-muted-dark">
-                        Escolhe primeiro o dia para ativar as horas.
-                      </p>
+                            size="sm"
+                            type="submit"
+                            disabled={addingSlot || !newDate || batchTimes.length === 0}
+                          />
+                        </div>
+                      </motion.div>
                     )}
-                  </div>
-
-                  <div className="mt-5 flex items-center justify-between gap-3 border-t border-onyx/10 pt-4">
-                    <span className="font-subtitle text-sm text-muted-dark">
-                      {batchTimes.length === 0
-                        ? 'Nenhuma hora selecionada'
-                        : `${batchTimes.length} ${batchTimes.length === 1 ? 'hora selecionada' : 'horas selecionadas'}`}
-                    </span>
-                    <MotionButton
-                      label={
-                        addingSlot
-                          ? 'A criar...'
-                          : batchTimes.length > 1
-                            ? `Criar ${batchTimes.length} vagas`
-                            : 'Criar vaga'
-                      }
-                      size="sm"
-                      type="submit"
-                      disabled={addingSlot || !newDate || batchTimes.length === 0}
-                    />
-                  </div>
+                  </AnimatePresence>
                 </form>
 
                 {slotsByDate.length === 0 ? (
@@ -2067,11 +2116,11 @@ export default function AdminDashboardPage() {
                           {daySlots.map((slot) => (
                             <div
                               key={slot.id}
-                              className={`flex items-center gap-2 rounded-full border py-1.5 pl-4 ${
+                              className={`flex items-center gap-2 rounded-full py-1.5 pl-4 ${
                                 slot.status === 'OPEN' ? 'pr-2' : 'pr-4'
                               } font-subtitle text-sm ${
                                 slot.status === 'BOOKED'
-                                  ? 'border-onyx bg-onyx text-white'
+                                  ? 'bg-onyx text-white'
                                   : slot.status === 'PENDING'
                                     ? 'glass-chip-on text-onyx'
                                     : 'glass-chip text-onyx'
