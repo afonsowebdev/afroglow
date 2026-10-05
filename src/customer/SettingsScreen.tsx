@@ -5,8 +5,6 @@ import { useNavigate } from 'react-router-dom'
 import { ApiError } from '@/lib/api'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { disableCustomerPush, enableCustomerPush, pushSupported, pushWanted } from '@/lib/customer-push'
-import { tap } from '@/lib/haptics'
-import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
 import { siteConfig } from '@/lib/site-config'
 
 const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$/
@@ -137,41 +135,6 @@ function NotificationsRow() {
   )
 }
 
-/** Navigation row: with it on, the menu slides away while scrolling down, on every screen. */
-function HideNavRow() {
-  const on = useHideNavOnScrollSetting()
-  return (
-    <div className="px-4 py-3">
-      <div className="flex items-center gap-3.5">
-        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${TONES.ink}`}>
-          <i className="bx bx-dock-bottom" aria-hidden="true" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block font-subtitle text-[15px] text-onyx">Ocultar o menu ao descer</span>
-          <span className="block font-subtitle text-xs text-muted-dark">
-            O menu desaparece ao descer a página e volta quando subires
-          </span>
-        </span>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={on}
-          aria-label="Ocultar o menu ao descer"
-          onClick={() => {
-            void tap()
-            setHideNavOnScroll(!on)
-          }}
-          className={`relative h-7 w-12 shrink-0 rounded-full ${on ? 'glass-chip-on' : 'glass-chip'}`}
-        >
-          <span
-            className={`absolute top-0.5 h-6 w-6 rounded-full shadow transition-all ${on ? 'left-[22px] bg-onyx' : 'left-0.5 bg-onyx/40'}`}
-          />
-        </button>
-      </div>
-    </div>
-  )
-}
-
 export default function SettingsScreen() {
   const navigate = useNavigate()
   const { customer, updateProfile, changePassword, deleteAccount, logout } = useCustomerAuth()
@@ -258,10 +221,11 @@ export default function SettingsScreen() {
           <Item icon="bx bx-key" tone="plum" label="Alterar password" onClick={() => open('password')} />
         </Section>
 
-        <Section title="Preferências">
-          {pushSupported() && <NotificationsRow />}
-          <HideNavRow />
-        </Section>
+        {pushSupported() && (
+          <Section title="Preferências">
+            <NotificationsRow />
+          </Section>
+        )}
 
         <Section title="Ajuda e informação">
           <Item icon="bx bx-envelope" tone="sky" label={siteConfig.email} href={`mailto:${siteConfig.email}`} />
