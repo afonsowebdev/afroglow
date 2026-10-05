@@ -59,7 +59,7 @@ const POSTER_BY_TONE = {
 } as const
 
 // Normal playback speed (1 = real time). Lower it for a calmer, slow-motion feel.
-const PLAYBACK_RATE = 1
+const PLAYBACK_RATE = import.meta.env.MODE === 'customer' ? 0.6 : 1
 
 // The next clip starts this long before the current one ends, and the two
 // crossfade over the same window, so playback is continuous: no frozen last
@@ -177,7 +177,7 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
           onTimeUpdate={(e) => {
             const video = e.currentTarget
             if (slot !== activeRef.current || !video.duration) return
-            if (video.duration - video.currentTime <= CROSSFADE_SECONDS) crossfade()
+            if (video.duration - video.currentTime <= CROSSFADE_SECONDS * PLAYBACK_RATE) crossfade()
           }}
           // Safety net: if the clip is too short or timeupdate was throttled.
           onEnded={() => {
