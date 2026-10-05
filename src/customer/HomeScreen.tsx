@@ -7,6 +7,7 @@ import {
   ServiceCarousel,
   StepsRow,
   WelcomeCard,
+  Greeting,
   WorkGrid,
 } from './HomeSections'
 import { useEffect, useState } from 'react'
@@ -97,7 +98,10 @@ export default function HomeScreen() {
 
       <section className="relative z-10 bg-white px-5 pt-10">
         <div className="mx-auto max-w-2xl">
-          <WelcomeCard />
+          <Greeting />
+          <div className="mt-6">
+            <WelcomeCard />
+          </div>
           <QuickActions
             whatsappUrl={
               whatsapp.enabled ? whatsapp.url('Olá! Gostaria de saber mais sobre os vossos serviços.') : undefined

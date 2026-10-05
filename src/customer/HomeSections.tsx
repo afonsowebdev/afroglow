@@ -9,8 +9,76 @@ import { tap } from '@/lib/haptics'
 import { serviceImageUrls } from '@/lib/service-images'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { instagramDmUrl } from '@/lib/site-config'
-import { formatPrice, type Booking, type Service } from '@/lib/types'
-import { longDay, timeLabel } from './dates'
+import { formatPrice, type AvailabilitySlot, type Booking, type Service } from '@/lib/types'
+import { useBookingAlerts } from './booking-alerts'
+import { dayKey, longDay, timeLabel } from './dates'
+
+/** Time-of-day greeting plus one line of what matters right now (a decision to look at, or free slots). */
+export function Greeting() {
+  const { customer } = useCustomerAuth()
+  const { unseen } = useBookingAlerts()
+  const [slots, setSlots] = useState<AvailabilitySlot[] | null>(null)
+
+  useEffect(() => {
+    api
+      .get<AvailabilitySlot[]>('/availability')
+      .then(setSlots)
+      .catch(() => setSlots([]))
+  }, [])
+
+  const hour = Number(
+    new Date().toLocaleTimeString('pt-PT', { timeZone: 'Europe/Lisbon', hour: '2-digit', hour12: false }),
+  )
+  const hello = hour < 6 ? 'Boa noite' : hour < 13 ? 'Bom dia' : hour < 20 ? 'Boa tarde' : 'Boa noite'
+  const first = customer?.name.split(' ')[0]
+
+  const weekEnd = Date.now() + 7 * 86_400_000
+  const thisWeek = (slots ?? []).filter((s) => new Date(s.startsAt).getTime() < weekEnd)
+  const days = new Set(thisWeek.map((s) => dayKey(s.startsAt))).size
+
+  let news: { text: string; to: string; cta: string } | null = null
+  if (unseen.size > 0) {
+    news = {
+      text: unseen.size === 1 ? 'Tens uma resposta à tua marcação' : `Tens ${unseen.size} respostas às tuas marcações`,
+      to: '/marcacoes',
+      cta: 'Ver',
+    }
+  } else if (slots && thisWeek.length > 0) {
+    news = {
+      text: `${thisWeek.length} ${thisWeek.length === 1 ? 'horário livre' : 'horários livres'} esta semana, em ${days} ${days === 1 ? 'dia' : 'dias'}`,
+      to: '/marcar',
+      cta: 'Marcar',
+    }
+  } else if (slots) {
+    news = { text: 'Sem horários livres esta semana', to: '/marcar', cta: 'Ver datas' }
+  }
+
+  return (
+    <div>
+      <h1 className="font-subtitle text-3xl font-semibold tracking-tight text-onyx">
+        {hello}
+        {first ? `, ${first}` : ''}
+      </h1>
+      {news && (
+        <Link
+          to={news.to}
+          className="mt-3 flex items-center justify-between gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white px-4 py-3"
+        >
+          <span className="flex items-center gap-2.5 font-subtitle text-sm text-onyx">
+            <span
+              className={`h-2 w-2 shrink-0 rounded-full ${unseen.size > 0 ? 'bg-red-600' : 'bg-emerald-600'}`}
+              aria-hidden="true"
+            />
+            {news.text}
+          </span>
+          <span className="flex shrink-0 items-center gap-1 font-subtitle text-sm font-medium text-onyx">
+            {news.cta} <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+          </span>
+        </Link>
+      )}
+    </div>
+  )
+}
 
 /** Greeting card: the next session when there is one, otherwise a nudge to book or sign in. */
 export function WelcomeCard() {
