@@ -21,7 +21,8 @@ import BookingsScreen from './BookingsScreen'
 import BookScreen from './BookScreen'
 import HomeScreen from './HomeScreen'
 import { BookingAlertsProvider, useBookingAlerts } from './booking-alerts'
-import { NavVisibilityProvider, useNavHidden } from './nav-visibility'
+import { useHideNavOnScrollSetting } from '@/lib/nav-prefs'
+import { NavVisibilityProvider, useAutoHideNav, useNavHidden } from './nav-visibility'
 import ProfileScreen from './ProfileScreen'
 import SettingsScreen from './SettingsScreen'
 
@@ -96,6 +97,8 @@ function CustomerShell() {
   }, [navigate])
 
   const tab = tabFor(location.pathname)
+  const hideOnScroll = useHideNavOnScrollSetting()
+  useAutoHideNav(hideOnScroll, location.pathname)
 
   // White icons while the hero (video) is behind the bar, dark once white pages scroll under it.
   const [overHero, setOverHero] = useState(location.pathname === '/')
