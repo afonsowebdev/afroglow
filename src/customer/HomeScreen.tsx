@@ -1,4 +1,3 @@
-import Faq from '@/components/sections/Faq'
 import Location from '@/components/sections/Location'
 import { ContactTiles, ReviewsRow, ServiceCarousel, StepsRow, WelcomeCard, Greeting, WorkGrid } from './HomeSections'
 import { useEffect, useState } from 'react'
@@ -102,7 +101,6 @@ export default function HomeScreen() {
       <ReviewsRow reviews={testimonials} />
 
       <div>
-        <Faq app />
         <Location app />
       </div>
 
