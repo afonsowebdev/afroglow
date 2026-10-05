@@ -89,6 +89,32 @@ function CustomerShell() {
 
   const tab = tabFor(location.pathname)
 
+  // White icons while the hero (video) is behind the bar, dark once white pages scroll under it.
+  const [overHero, setOverHero] = useState(location.pathname === '/')
+  useEffect(() => {
+    const update = () => {
+      const hero = document.querySelector('[data-hero]')
+      const barCentre = window.innerHeight - 60
+      setOverHero(location.pathname === '/' && !!hero && hero.getBoundingClientRect().bottom > barCentre)
+    }
+    update()
+    let frame = 0
+    const recheck = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(update)
+    }
+    const observer = new MutationObserver(recheck)
+    observer.observe(document.body, { childList: true, subtree: true })
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      cancelAnimationFrame(frame)
+      observer.disconnect()
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [location.pathname])
+
   const theme = useTheme()
   const { enabled: whatsappOn, url: whatsappUrl } = useWhatsapp()
   const [notificationsOn, setNotificationsOn] = useState(pushWanted())
@@ -176,7 +202,7 @@ function CustomerShell() {
           <BottomNavBar
             glass
             hidden={navHidden}
-            tone="onLight"
+            tone={overHero ? 'onDark' : 'onLight'}
             value={tab}
             onChange={(id) => {
               const target = TABS.find((t) => t.id === id)
@@ -187,7 +213,7 @@ function CustomerShell() {
             items={TABS.map(({ id, label, icon }) => ({ id, label, icon, dot: id === 'marcacoes' && unseen.size > 0 }))}
           />
         </div>
-        <FloatingActionMenu actions={menuActions} hidden={navHidden} tone="onLight" />
+        <FloatingActionMenu actions={menuActions} hidden={navHidden} tone={overHero ? 'onDark' : 'onLight'} />
       </div>
     </div>
   )

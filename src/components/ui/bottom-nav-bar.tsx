@@ -70,9 +70,9 @@ export function BottomNavBar<T extends string>({
               'relative flex h-10 min-w-[44px] items-center justify-center rounded-full px-3 font-subtitle transition-colors duration-200 focus:outline-none',
               glass
                 ? isActive
-                  ? `liquid-glass-bubble ${onDark ? 'text-[#ffffff]' : 'text-onyx'}`
+                  ? `liquid-glass-bubble ${onDark ? 'text-[#ffffff] [filter:drop-shadow(0_1px_3px_rgba(0,0,0,0.5))]' : 'text-onyx'}`
                   : onDark
-                    ? 'text-[#ffffff]/80'
+                    ? 'text-[#ffffff] [filter:drop-shadow(0_1px_3px_rgba(0,0,0,0.5))]'
                     : 'text-onyx'
                 : isActive
                   ? 'bg-[rgba(255,255,255,0.5)] text-onyx shadow-sm shadow-black/5 dark:bg-[rgba(255,255,255,0.14)]'

@@ -237,7 +237,7 @@ export function FloatingActionMenu({
           transition={{ type: 'tween', ease: 'easeInOut', duration: 0.5 }}
           className={cn(
             'liquid-glass flex size-14 items-center justify-center rounded-full',
-            tone === 'onDark' ? 'text-[#ffffff]' : 'text-onyx',
+            tone === 'onDark' ? 'text-[#ffffff] [filter:drop-shadow(0_1px_3px_rgba(0,0,0,0.5))]' : 'text-onyx',
           )}
         >
           <Plus size={24} strokeWidth={2.6} />
