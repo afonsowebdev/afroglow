@@ -61,14 +61,26 @@ export default function HomeScreen() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[12%] backdrop-blur-xl [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_70%)] [mask-image:linear-gradient(to_bottom,transparent,black_70%)]"
         />
-        <svg
+        {/* Two layers of waves drifting slowly in opposite directions. */}
+        <div
           aria-hidden="true"
-          viewBox="0 0 390 60"
-          preserveAspectRatio="none"
-          className="pointer-events-none absolute inset-x-0 -bottom-px z-[6] h-14 w-full fill-white"
+          className="pointer-events-none absolute inset-x-0 -bottom-px z-[6] h-16 overflow-hidden"
         >
-          <path d="M0 34 C50 8 120 4 190 26 S320 58 390 20 L390 60 L0 60 Z" />
-        </svg>
+          {[
+            { fill: 'fill-white/50', style: 'wave-drift 15s linear infinite reverse', top: 'top-0' },
+            { fill: 'fill-white', style: 'wave-drift 9s linear infinite', top: 'top-3' },
+          ].map((wave) => (
+            <svg
+              key={wave.fill}
+              viewBox="0 0 780 60"
+              preserveAspectRatio="none"
+              className={`absolute ${wave.top} left-0 h-[calc(100%-0.75rem)] w-[200%] ${wave.fill}`}
+              style={{ animation: wave.style }}
+            >
+              <path d="M0 30 C65 6 130 6 195 30 S325 54 390 30 C455 6 520 6 585 30 S715 54 780 30 L780 60 L0 60 Z" />
+            </svg>
+          ))}
+        </div>
         <div className="relative z-10 flex max-w-md flex-col items-center">
           <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-[#ffffff] [text-shadow:0_1px_12px_rgba(0,0,0,0.6)]">
             AFROGLOW · Portugal

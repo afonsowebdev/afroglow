@@ -210,3 +210,15 @@
     inset 0 0 0 2px rgba(240, 230, 214, 0.95),
     0 1px 4px rgba(0, 0, 0, 0.3);
 }
+
+/* Slow horizontal drift of the waves at the bottom of the app's hero (one period = half the element's width). */
+@keyframes wave-drift {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [style*='wave-drift'] {
+    animation: none !important;
+  }
+}
