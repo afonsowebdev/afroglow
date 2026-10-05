@@ -1,7 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { LogOut, Moon, Sun } from 'lucide-react'
+import { BarChart3, Images, Lock, LogOut, MessageSquareText, Moon, Scissors, Store, Sun } from 'lucide-react'
 import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import { DatePicker } from '@/components/ui/date-picker'
@@ -1649,7 +1649,18 @@ export default function AdminDashboardPage() {
     scrolled ? 'shadow-xl shadow-black/15' : ''
   }`
 
+  // The same entries as the "Mais" tab, one tap away from any screen, plus theme and sign out.
+  const open = (id: MoreTarget) => () => {
+    setTab(id)
+    window.scrollTo({ top: 0 })
+  }
   const menuActions: MenuAction[] = [
+    { Icon: MessageSquareText, label: 'Testemunhos', badge: pendingTestimonials.length, onClick: open('testemunhos') },
+    { Icon: Scissors, label: 'Serviços', onClick: open('servicos') },
+    { Icon: Images, label: 'Portfólio', onClick: open('portfolio') },
+    { Icon: BarChart3, label: 'Estatísticas', onClick: open('estatisticas') },
+    { Icon: Store, label: 'Definições do negócio', onClick: open('definicoes') },
+    { Icon: Lock, label: 'Segurança', onClick: open('seguranca') },
     {
       Icon: theme.theme === 'dark' ? Sun : Moon,
       label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',

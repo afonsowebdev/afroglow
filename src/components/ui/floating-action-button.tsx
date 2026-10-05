@@ -139,6 +139,8 @@ export interface MenuAction {
   /** Icon-font class for brand logos lucide doesn't ship (e.g. WhatsApp). */
   iconClass?: string
   label: string
+  /** A small red count on the label (e.g. items waiting for a decision). */
+  badge?: number
   onClick?: () => void
   /** External link (opens in a new tab). */
   href?: string
@@ -180,7 +182,7 @@ export function FloatingActionMenu({
       >
         {/* The column itself never takes taps (it would cover the page above the button); each item does when open. */}
         <div className="pointer-events-none absolute bottom-full right-0 mb-3 flex flex-col-reverse items-end gap-2.5">
-          {actions.map(({ Icon, iconClass, label, onClick, href }, index) => {
+          {actions.map(({ Icon, iconClass, label, badge, onClick, href }, index) => {
             const glyph = Icon ? (
               <Icon size={20} className="text-onyx" />
             ) : (
@@ -207,8 +209,13 @@ export function FloatingActionMenu({
                 }}
                 transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4, delay: open ? index * 0.05 : 0 }}
               >
-                <span className="whitespace-nowrap rounded-full border border-onyx/10 bg-white px-3.5 py-1.5 font-subtitle text-xs font-medium text-onyx shadow-md shadow-black/10">
+                <span className="flex items-center gap-2 whitespace-nowrap rounded-full border border-onyx/10 bg-white px-3.5 py-1.5 font-subtitle text-xs font-medium text-onyx shadow-md shadow-black/10">
                   {label}
+                  {badge ? (
+                    <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none text-[#ffffff]">
+                      {badge}
+                    </span>
+                  ) : null}
                 </span>
                 {href ? (
                   <a
