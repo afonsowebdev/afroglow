@@ -22,6 +22,7 @@ import HomeScreen from './HomeScreen'
 import { BookingAlertsProvider, useBookingAlerts } from './booking-alerts'
 import { NavVisibilityProvider, useNavHidden } from './nav-visibility'
 import ProfileScreen from './ProfileScreen'
+import SettingsScreen from './SettingsScreen'
 
 type TabId = 'inicio' | 'marcar' | 'marcacoes' | 'conta'
 
@@ -45,7 +46,8 @@ const TABS: Array<{ id: TabId; label: string; icon: string; path: string }> = [
 function tabFor(pathname: string): TabId {
   if (pathname.startsWith('/marcar')) return 'marcar'
   if (pathname.startsWith('/marcacoes')) return 'marcacoes'
-  if (pathname.startsWith('/conta') || pathname.startsWith('/entrar')) return 'conta'
+  if (pathname.startsWith('/conta') || pathname.startsWith('/definicoes') || pathname.startsWith('/entrar'))
+    return 'conta'
   return 'inicio'
 }
 
@@ -97,7 +99,7 @@ function CustomerShell() {
       label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
       onClick: theme.toggleTheme,
     },
-    { Icon: Settings, label: 'Definições', onClick: () => navigate('/conta') },
+    { Icon: Settings, label: 'Definições', onClick: () => navigate('/definicoes') },
     ...(pushSupported()
       ? [
           {
@@ -151,6 +153,14 @@ function CustomerShell() {
               element={
                 <RequireAccount>
                   <ProfileScreen />
+                </RequireAccount>
+              }
+            />
+            <Route
+              path="/definicoes"
+              element={
+                <RequireAccount>
+                  <SettingsScreen />
                 </RequireAccount>
               }
             />
