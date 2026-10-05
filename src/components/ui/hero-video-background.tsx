@@ -59,7 +59,7 @@ const POSTER_BY_TONE = {
 } as const
 
 // Normal playback speed (1 = real time). Lower it for a calmer, slow-motion feel.
-const PLAYBACK_RATE = import.meta.env.MODE === 'customer' ? 0.6 : 1
+const PLAYBACK_RATE = import.meta.env.MODE === 'customer' ? 0.8 : 1
 
 // The next clip starts this long before the current one ends, and the two
 // crossfade over the same window, so playback is continuous: no frozen last
