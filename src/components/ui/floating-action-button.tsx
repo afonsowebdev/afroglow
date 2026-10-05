@@ -235,9 +235,11 @@ export function FloatingActionMenu({
           onClick={() => setOpen((current) => !current)}
           animate={{ rotate: open ? 45 : 0 }}
           transition={{ type: 'tween', ease: 'easeInOut', duration: 0.5 }}
+          // Only the thin rim, no shadow under the button.
+          style={{ boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 0 0 0.5px rgba(0, 0, 0, 0.1)' }}
           className={cn(
-            'liquid-glass flex size-14 items-center justify-center rounded-full',
-            tone === 'onDark' ? 'text-[#ffffff] [filter:drop-shadow(0_1px_3px_rgba(0,0,0,0.5))]' : 'text-onyx',
+            'liquid-glass flex size-14 items-center justify-center rounded-full transition-colors duration-500 ease-in-out',
+            tone === 'onDark' ? 'text-[#ffffff]' : 'text-onyx',
           )}
         >
           <Plus size={24} strokeWidth={2.6} />
