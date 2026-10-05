@@ -155,8 +155,14 @@ export function FloatingActionMenu({
   hidden = false,
   tone = 'onLight',
   dot = false,
+  direction = 'up',
+  compact = false,
 }: {
   actions: MenuAction[]
+  /** Which way the options open: upward from a bottom button (apps) or downward from a header button (website). */
+  direction?: 'up' | 'down'
+  /** The small round button used in the website header instead of the big glass one. */
+  compact?: boolean
   /** A red dot on the button: something in the list needs attention. */
   dot?: boolean
   hidden?: boolean
@@ -184,7 +190,12 @@ export function FloatingActionMenu({
         aria-hidden={hidden || undefined}
       >
         {/* The column itself never takes taps (it would cover the page above the button); each item does when open. */}
-        <div className="pointer-events-none absolute bottom-full right-0 mb-3 flex flex-col-reverse items-end gap-2.5">
+        <div
+          className={cn(
+            'pointer-events-none absolute right-0 flex items-end gap-2.5',
+            direction === 'up' ? 'bottom-full mb-3 flex-col-reverse' : 'top-full mt-3 flex-col',
+          )}
+        >
           {actions.map(({ Icon, iconClass, label, badge, onClick, href }, index) => {
             const glyph = Icon ? (
               <Icon size={20} className="text-onyx" />
@@ -205,7 +216,7 @@ export function FloatingActionMenu({
                 initial={false}
                 animate={{
                   opacity: open ? 1 : 0,
-                  y: open ? 0 : 24,
+                  y: open ? 0 : direction === 'up' ? 24 : -24,
                   filter: open ? 'blur(0px)' : 'blur(2px)',
                   scale: open ? 1 : 0.9,
                   rotate: open ? 0 : 20,
@@ -249,14 +260,22 @@ export function FloatingActionMenu({
           onClick={() => setOpen((current) => !current)}
           animate={{ rotate: open ? 45 : 0 }}
           transition={{ type: 'tween', ease: 'easeInOut', duration: 0.5 }}
-          // Only the thin rim, no shadow under the button.
-          style={{ boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 0 0 0.5px rgba(0, 0, 0, 0.1)' }}
-          className={cn(
-            'liquid-glass flex size-14 items-center justify-center rounded-full transition-colors duration-500 ease-in-out',
-            tone === 'onDark' ? 'text-[#ffffff]' : 'text-onyx',
-          )}
+          // Apps: only the thin rim, no shadow under the button.
+          style={
+            compact
+              ? undefined
+              : { boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 0 0 0.5px rgba(0, 0, 0, 0.1)' }
+          }
+          className={
+            compact
+              ? 'flex size-9 items-center justify-center rounded-full border border-onyx/20 text-onyx/60 transition-colors duration-300 hover:text-onyx'
+              : cn(
+                  'liquid-glass flex size-14 items-center justify-center rounded-full transition-colors duration-500 ease-in-out',
+                  tone === 'onDark' ? 'text-[#ffffff]' : 'text-onyx',
+                )
+          }
         >
-          <Plus size={24} strokeWidth={2.6} />
+          <Plus size={compact ? 18 : 24} strokeWidth={2.6} />
         </motion.button>
         {dot && !open ? (
           <span

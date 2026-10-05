@@ -1,9 +1,12 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { MotionButton } from '@/components/ui/motion-button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { CalendarPlus, LogOut, Moon, Sparkles, Sun } from 'lucide-react'
+import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import { useCustomerAuth } from '@/lib/customer-auth'
+import { useTheme } from '@/lib/theme'
 import { instagramDmUrl, useWhatsapp } from '@/lib/site-config'
 
 const NAV_LINKS = [
@@ -45,6 +48,24 @@ function SocialIcons({ className }: { className?: string }) {
       ))}
     </div>
   )
+}
+
+/** The "+" of the apps, as a dropdown under the header button: theme, booking, the CEO page and sign out. */
+function OptionsMenu() {
+  const navigate = useNavigate()
+  const { theme, toggleTheme } = useTheme()
+  const { customer, logout } = useCustomerAuth()
+  const actions: MenuAction[] = [
+    {
+      Icon: theme === 'dark' ? Sun : Moon,
+      label: theme === 'dark' ? 'Tema claro' : 'Tema escuro',
+      onClick: toggleTheme,
+    },
+    { Icon: CalendarPlus, label: 'Agendar', onClick: () => navigate('/agendar') },
+    { Icon: Sparkles, label: 'Conhecer a CEO', onClick: () => navigate('/ceo') },
+    ...(customer ? [{ Icon: LogOut, label: 'Terminar sessão', onClick: () => void logout() }] : []),
+  ]
+  return <FloatingActionMenu actions={actions} direction="down" compact />
 }
 
 function BookButton({ size, onClick }: { size?: 'default' | 'sm'; onClick?: () => void }) {
@@ -159,7 +180,9 @@ export default function Navbar() {
           <div className="hidden items-center gap-3 md:flex">
             <div className={`flex items-center gap-2 p-2 sm:p-2.5 ${pillBg}`}>
               <SocialIcons className="flex items-center gap-2" />
-              <ThemeToggle />
+              <OptionsMenu />
+            </div>
+            <div className={`p-2 sm:p-2.5 ${pillBg}`}>
               <AccountButton loggedIn={!!customer} />
             </div>
           </div>
