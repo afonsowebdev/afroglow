@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { Bell, BellOff, Moon, PanelBottomClose, PanelBottomOpen, Settings, Sun } from 'lucide-react'
+import { Bell, BellOff, LogOut, Moon, PanelBottomClose, PanelBottomOpen, Settings, Sun } from 'lucide-react'
 import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import AccountAuthPage from '@/pages/AccountAuthPage'
@@ -76,7 +76,7 @@ function CustomerShell() {
   const { unseen } = useBookingAlerts()
   const location = useLocation()
   const navigate = useNavigate()
-  const { customer } = useCustomerAuth()
+  const { customer, logout } = useCustomerAuth()
   const avatar = useAvatar()
 
   // The profile photo also marks the Conta tab; fetched once per sign-in.
@@ -169,6 +169,17 @@ function CustomerShell() {
             iconClass: 'bx bxl-whatsapp',
             label: 'WhatsApp',
             href: whatsappUrl('Olá! Gostaria de saber mais sobre os vossos serviços.'),
+          },
+        ]
+      : []),
+    ...(customer
+      ? [
+          {
+            Icon: LogOut,
+            label: 'Terminar sessão',
+            onClick: () => {
+              void logout().then(() => navigate('/'))
+            },
           },
         ]
       : []),
