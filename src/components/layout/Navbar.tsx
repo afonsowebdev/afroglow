@@ -86,9 +86,10 @@ export default function Navbar() {
     }
   }, [open])
 
+  // Highlights the link of the section on screen. The sections load lazily after the first paint, so they are
+  // picked up as they appear instead of only once when the bar mounts.
   useEffect(() => {
-    const sections = SECTION_IDS.map((id) => document.getElementById(id)).filter((el): el is HTMLElement => el !== null)
-
+    const observed = new Set<string>()
     const observer = new IntersectionObserver(
       (entries) => {
         const mostVisible = entries
@@ -101,8 +102,24 @@ export default function Navbar() {
       { rootMargin: '-40% 0px -40% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] },
     )
 
-    for (const section of sections) observer.observe(section)
-    return () => observer.disconnect()
+    const scan = () => {
+      for (const id of SECTION_IDS) {
+        const el = document.getElementById(id)
+        if (el && !observed.has(id)) {
+          observed.add(id)
+          observer.observe(el)
+        }
+      }
+      if (observed.size === SECTION_IDS.length) mutations.disconnect()
+    }
+    const mutations = new MutationObserver(scan)
+    mutations.observe(document.body, { childList: true, subtree: true })
+    scan()
+
+    return () => {
+      mutations.disconnect()
+      observer.disconnect()
+    }
   }, [])
 
   const pillBg = `rounded-full bg-white shadow-lg shadow-black/10 transition-shadow duration-500 ${
