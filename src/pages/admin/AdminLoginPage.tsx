@@ -66,7 +66,12 @@ export default function AdminLoginPage() {
         </div>
         {error && <p className="mt-4 font-subtitle text-sm text-red-700">{error}</p>}
         <div className="mt-6 flex justify-center">
-          <MotionButton label={loading ? 'A entrar...' : 'Entrar'} disabled={loading} type="submit" className="w-full" />
+          <MotionButton
+            label={loading ? 'A entrar...' : 'Entrar'}
+            disabled={loading}
+            type="submit"
+            className="w-full justify-between"
+          />
         </div>
       </form>
     </div>

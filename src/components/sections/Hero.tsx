@@ -22,7 +22,7 @@ export default function Hero() {
           Tranças afro feitas com cuidado, técnica e identidade.
         </p>
         <div className="mt-8">
-          <MotionButton label="Ver Serviços" href="#servicos" className="bg-white/60 backdrop-blur-sm" />
+          <MotionButton label="Ver Serviços" href="#servicos" onMedia />
         </div>
       </div>
 
