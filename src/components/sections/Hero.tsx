@@ -13,10 +13,10 @@ export default function Hero() {
 
       <div className="relative z-10 flex max-w-3xl flex-col items-center px-6 text-center">
         <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-gold">AFROGLOW · Portugal</span>
-        <h1 className="font-logo text-[10vw] leading-[1.05] text-[#f5efdf] [text-shadow:0_2px_24px_rgba(0,0,0,0.45)] sm:text-[7vw] md:text-[6vw]">
-          Arte que parte
+        <h1 className="font-logo text-[8.4vw] leading-[1.05] text-[#f5efdf] [text-shadow:0_2px_24px_rgba(0,0,0,0.45)] sm:text-[7vw] md:text-[6vw]">
+          Cada penteado,
           <br />
-          do teu cabelo.
+          uma obra de arte.
         </h1>
         <p className="mt-6 max-w-md font-subtitle text-base font-light text-[#f5efdf] [text-shadow:0_1px_14px_rgba(0,0,0,0.5)] sm:text-lg md:text-[1.15vw]">
           Tranças afro feitas com cuidado, técnica e identidade.

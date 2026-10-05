@@ -86,10 +86,10 @@ export default function HomeScreen() {
           <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-[#ffffff] [text-shadow:0_1px_12px_rgba(0,0,0,0.6)]">
             AFROGLOW · Portugal
           </span>
-          <h1 className="font-logo text-[10vw] leading-[1.05] text-[#ffffff] [text-shadow:0_2px_28px_rgba(0,0,0,0.6)] sm:text-6xl">
-            Arte que parte
+          <h1 className="font-logo text-[8.4vw] leading-[1.05] text-[#ffffff] [text-shadow:0_2px_28px_rgba(0,0,0,0.6)] sm:text-6xl">
+            Cada penteado,
             <br />
-            do teu cabelo.
+            uma obra de arte.
           </h1>
           <p className="mt-5 font-subtitle text-base font-light text-[#ffffff] [text-shadow:0_1px_16px_rgba(0,0,0,0.65)]">
             Tranças afro feitas com cuidado, técnica e identidade.
