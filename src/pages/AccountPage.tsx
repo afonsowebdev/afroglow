@@ -2,11 +2,12 @@ import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { Capacitor } from '@capacitor/core'
 import { Link, useNavigate } from 'react-router-dom'
+import { ActionButton } from '@/components/ui/action-button'
 import { Button } from '@/components/ui/button'
 import { MotionButton } from '@/components/ui/motion-button'
 import { api, ApiError } from '@/lib/api'
 import { downloadBookingIcs } from '@/lib/calendar'
-import { fieldBorder } from '@/lib/app-mode'
+import { fieldBorder, isCustomerApp } from '@/lib/app-mode'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { usePageTitle } from '@/lib/page-title'
 import { useBusinessInfo } from '@/lib/site-config'
@@ -245,8 +246,7 @@ export function TestimonialForm() {
       .catch(() => {})
   }, [])
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSubmit() {
     if (content.trim().length < 10 || submitting) return
     setSubmitting(true)
     setError(null)
@@ -270,7 +270,9 @@ export function TestimonialForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+    // Not a <form>: in the app this sits inside the sheet's own form, and a form inside a form is submitted by the
+    // browser itself (a page reload) instead of reaching our handler.
+    <div className="flex flex-col gap-3">
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
@@ -301,14 +303,23 @@ export function TestimonialForm() {
       )}
       {error && <p className="font-subtitle text-sm text-red-700">{error}</p>}
       <div>
-        <MotionButton
-          label={submitting ? 'A enviar...' : 'Enviar testemunho'}
-          size="sm"
-          type="submit"
-          disabled={content.trim().length < 10 || submitting}
-        />
+        {isCustomerApp ? (
+          <ActionButton
+            label={submitting ? 'A enviar...' : 'Enviar testemunho'}
+            disabled={content.trim().length < 10 || submitting}
+            onClick={() => void handleSubmit()}
+          />
+        ) : (
+          <MotionButton
+            label={submitting ? 'A enviar...' : 'Enviar testemunho'}
+            size="sm"
+            type="button"
+            disabled={content.trim().length < 10 || submitting}
+            onClick={() => void handleSubmit()}
+          />
+        )}
       </div>
-    </form>
+    </div>
   )
 }
 
