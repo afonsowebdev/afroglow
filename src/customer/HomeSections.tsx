@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { CalendarCheck, CalendarPlus, UserRound } from 'lucide-react'
 import { ActionButton } from '@/components/ui/action-button'
 import { AnimatedSocialIcons, type ActionIcon } from '@/components/ui/floating-action-button'
@@ -11,6 +11,7 @@ import { useCustomerAuth } from '@/lib/customer-auth'
 import { instagramDmUrl } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service } from '@/lib/types'
 import { useBookingAlerts } from './booking-alerts'
+import { ServicePreview } from './ServicePreview'
 import { dayParts, longDay, timeLabel } from './dates'
 
 /** Time-of-day greeting plus one line of what matters right now (a decision to look at, or free slots). */
@@ -254,45 +255,88 @@ export function QuickActions({ whatsappUrl }: { whatsappUrl?: string }) {
 
 /** Services as swipeable photo cards. */
 export function ServiceCarousel({ services }: { services: Service[] | null }) {
+  const navigate = useNavigate()
+  const [previewId, setPreviewId] = useState<string | null>(null)
+  const preview = services?.find((s) => s.id === previewId) ?? null
+
   return (
     <section id="servicos" className="scroll-mt-6 pt-12">
-      <SectionTitle title="Os nossos serviços" hint="Desliza e escolhe o teu modelo." />
+      <SectionTitle title="Os nossos serviços" hint="Toca na foto para ver mais. A seta leva-te a marcar." />
       <div className={`${strip} mt-5`}>
         {services === null &&
           [0, 1].map((i) => <div key={i} className="h-80 w-[78%] shrink-0 animate-pulse rounded-[2rem] bg-gold/10" />)}
-        {services?.map((service, index) => (
-          <Link
-            key={service.id}
-            to={`/marcar?preview=${service.id}`}
-            className="relative h-80 w-[78%] max-w-xs shrink-0 snap-center overflow-hidden rounded-[2rem] bg-[#1c1c1e]"
-          >
-            <img
-              src={serviceImageUrls(service)[0] ?? PHOTOS[index % PHOTOS.length].src}
-              alt=""
-              loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-            <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
-              <i className="bx bx-time-five text-sm" aria-hidden="true" />
-              {service.durationLabel}
-            </span>
-            <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5 text-[#ffffff]">
-              <span className="min-w-0">
-                <span className="block truncate font-subtitle text-xl font-semibold tracking-tight">
-                  {service.name}
+        {services?.map((service, index) => {
+          const photos = serviceImageUrls(service)
+          return (
+            <div
+              key={service.id}
+              className="relative h-80 w-[78%] max-w-xs shrink-0 snap-center overflow-hidden rounded-[2rem] bg-[#1c1c1e]"
+            >
+              {/* The photo opens the gallery with more pictures. */}
+              <button
+                type="button"
+                aria-label={`Ver fotos de ${service.name}`}
+                onClick={() => {
+                  void tap()
+                  setPreviewId(service.id)
+                }}
+                className="absolute inset-0 block h-full w-full"
+              >
+                <img
+                  src={photos[0] ?? PHOTOS[index % PHOTOS.length].src}
+                  alt=""
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+              </button>
+
+              <span className="pointer-events-none absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
+                <i className="bx bx-time-five text-sm" aria-hidden="true" />
+                {service.durationLabel}
+              </span>
+              {photos.length > 1 && (
+                <span className="pointer-events-none absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
+                  <i className="bx bx-images text-sm" aria-hidden="true" />
+                  {photos.length}
                 </span>
-                <span className="mt-0.5 block font-subtitle text-base text-[#e0c36e]">
-                  {formatPrice(service.priceCents)}
+              )}
+
+              <span className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5 text-[#ffffff]">
+                <span className="min-w-0">
+                  <span className="block truncate font-subtitle text-xl font-semibold tracking-tight">
+                    {service.name}
+                  </span>
+                  <span className="mt-0.5 block font-subtitle text-base text-[#e0c36e]">
+                    {formatPrice(service.priceCents)}
+                  </span>
                 </span>
               </span>
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black/40 text-xl backdrop-blur-md">
+
+              {/* The arrow goes straight to booking this model. */}
+              <Link
+                to={`/marcar?service=${service.id}`}
+                aria-label={`Marcar ${service.name}`}
+                onClick={() => void tap('medium')}
+                className="absolute bottom-5 right-5 flex h-11 w-11 items-center justify-center rounded-full bg-[#ffffff]/25 text-2xl text-[#ffffff] backdrop-blur-md"
+              >
                 <i className="bx bx-right-arrow-alt" aria-hidden="true" />
-              </span>
-            </span>
-          </Link>
-        ))}
+              </Link>
+            </div>
+          )
+        })}
       </div>
+
+      <ServicePreview
+        service={preview}
+        chosen={false}
+        onClose={() => setPreviewId(null)}
+        onChoose={() => {
+          const id = previewId
+          setPreviewId(null)
+          if (id) navigate(`/marcar?service=${id}`)
+        }}
+      />
     </section>
   )
 }
