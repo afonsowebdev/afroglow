@@ -46,12 +46,12 @@ export function useAutoHideNav(enabled: boolean, routeKey: string) {
     const tick = () => {
       const y = read()
       const atTop = y < 40
-      const atEnd = window.innerHeight + y >= document.documentElement.scrollHeight - 80
+      const atEnd = window.innerHeight + y >= document.documentElement.scrollHeight - 24
       const delta = y - last
       if (atTop || atEnd) setAutoHidden(false)
-      else if (delta > 8) setAutoHidden(true)
-      else if (delta < -8) setAutoHidden(false)
-      if (Math.abs(delta) > 8 || atTop) last = y
+      else if (delta > 6) setAutoHidden(true)
+      else if (delta < -6) setAutoHidden(false)
+      if (Math.abs(delta) > 6 || atTop) last = y
       frame = requestAnimationFrame(tick)
     }
     setAutoHidden(false)
