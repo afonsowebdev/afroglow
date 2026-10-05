@@ -58,7 +58,8 @@ const POSTER_BY_TONE = {
 } as const
 
 // Normal playback speed (1 = real time). Lower it for a calmer, slow-motion feel.
-const PLAYBACK_RATE = import.meta.env.MODE === 'customer' ? 0.8 : 1
+// The app's light-theme loop is played a little slower, for a calmer feel; everything else at normal speed.
+const playbackRateFor = (tone: 'dark' | 'light') => (import.meta.env.MODE === 'customer' && tone === 'light' ? 0.8 : 1)
 
 // The next clip starts this long before the current one ends, and the two
 // crossfade over the same window, so playback is continuous: no frozen last
@@ -89,9 +90,11 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
   const [firstPlaying, setFirstPlaying] = useState(false)
   // Resolved once per mount; the Hero remounts this component when the theme changes.
   const [videos] = useState(() => {
-    const clips = import.meta.env.MODE === 'customer' ? APP_CLIPS : tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
-    // The app's two clips travel inside the app; the website's are served from its own origin.
-    return clips.map((clip) => (import.meta.env.MODE === 'customer' ? '' : VIDEO_BASE) + pickRendition(clip))
+    // In the app, the light theme plays the edited loop that travels inside it; the dark theme plays the HD
+    // playlist, streamed from the website like on the site itself.
+    const bundled = import.meta.env.MODE === 'customer' && tone === 'light'
+    const clips = bundled ? APP_CLIPS : tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
+    return clips.map((clip) => (bundled ? '' : VIDEO_BASE) + pickRendition(clip))
   })
   const [sources, setSources] = useState([videos[0], videos[1 % videos.length]])
 
@@ -101,7 +104,7 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
 
   const play = (video: HTMLVideoElement | null) => {
     if (!video) return
-    video.playbackRate = PLAYBACK_RATE
+    video.playbackRate = playbackRateFor(tone)
     video.play().catch(() => {
       // Autoplay refused (e.g. data-saver): the poster colour simply stays.
     })
@@ -175,7 +178,7 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
           onTimeUpdate={(e) => {
             const video = e.currentTarget
             if (slot !== activeRef.current || !video.duration) return
-            if (video.duration - video.currentTime <= CROSSFADE_SECONDS * PLAYBACK_RATE) crossfade()
+            if (video.duration - video.currentTime <= CROSSFADE_SECONDS * playbackRateFor(tone)) crossfade()
           }}
           // Safety net: if the clip is too short or timeupdate was throttled.
           onEnded={() => {
