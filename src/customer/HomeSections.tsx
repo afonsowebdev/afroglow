@@ -11,7 +11,7 @@ import { useCustomerAuth } from '@/lib/customer-auth'
 import { instagramDmUrl } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service } from '@/lib/types'
 import { useBookingAlerts } from './booking-alerts'
-import { dayKey, longDay, timeLabel } from './dates'
+import { longDay, timeLabel } from './dates'
 
 /** Time-of-day greeting plus one line of what matters right now (a decision to look at, or free slots). */
 export function Greeting() {
@@ -34,7 +34,6 @@ export function Greeting() {
 
   const weekEnd = Date.now() + 7 * 86_400_000
   const thisWeek = (slots ?? []).filter((s) => new Date(s.startsAt).getTime() < weekEnd)
-  const days = new Set(thisWeek.map((s) => dayKey(s.startsAt))).size
 
   let news: { text: string; to: string; cta: string } | null = null
   if (unseen.size > 0) {
@@ -45,7 +44,7 @@ export function Greeting() {
     }
   } else if (slots && thisWeek.length > 0) {
     news = {
-      text: `${thisWeek.length} ${thisWeek.length === 1 ? 'horário livre' : 'horários livres'} esta semana, em ${days} ${days === 1 ? 'dia' : 'dias'}`,
+      text: `${thisWeek.length} ${thisWeek.length === 1 ? 'horário livre' : 'horários livres'} esta semana.`,
       to: '/marcar',
       cta: 'Ver datas',
     }
@@ -60,19 +59,14 @@ export function Greeting() {
         {first ? `, ${first}` : ''}
       </h1>
       {news && (
-        <Link
-          to={news.to}
-          className="mt-3 flex items-center justify-between gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white px-4 py-3"
-        >
-          <span className="flex items-center gap-2.5 font-subtitle text-sm text-onyx">
-            <span
-              className={`h-2 w-2 shrink-0 rounded-full ${unseen.size > 0 ? 'bg-red-600' : 'bg-emerald-600'}`}
-              aria-hidden="true"
-            />
-            {news.text}
-          </span>
-          <span className="flex shrink-0 items-center gap-1 font-subtitle text-sm font-medium text-onyx">
-            {news.cta} <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+        <Link to={news.to} className="mt-2 flex flex-wrap items-center gap-x-2 font-subtitle text-sm text-muted-dark">
+          <span
+            className={`h-2 w-2 shrink-0 rounded-full ${unseen.size > 0 ? 'bg-red-600' : 'bg-emerald-600'}`}
+            aria-hidden="true"
+          />
+          <span>{news.text}</span>
+          <span className="flex items-center gap-0.5 font-medium text-onyx underline underline-offset-4">
+            {news.cta}
           </span>
         </Link>
       )}
