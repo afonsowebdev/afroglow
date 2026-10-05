@@ -157,13 +157,8 @@ export default function ProfileScreen() {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-          className="relative mx-auto mt-8 h-44 w-36"
+          className="relative mx-auto mt-8 h-32 w-32"
         >
-          {/* An arched portrait frame: a fine gold outline offset behind the photo. */}
-          <span
-            className="absolute inset-0 translate-x-2 translate-y-2 rounded-t-full rounded-b-[2rem] border border-gold-ink/50"
-            aria-hidden="true"
-          />
           <button
             type="button"
             aria-label="Alterar foto de perfil"
@@ -172,13 +167,13 @@ export default function ProfileScreen() {
               void tap()
               photoInput.current?.click()
             }}
-            className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-t-full rounded-b-[2rem] bg-gradient-to-b from-cream to-white font-logo text-7xl text-gold-ink shadow-[0_14px_32px_rgba(201,168,76,0.3)]"
+            className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-b from-cream to-white font-logo text-6xl text-gold-ink shadow-[0_16px_36px_rgba(26,16,8,0.18)]"
           >
             {photo ? <img src={photo} alt="" className="h-full w-full object-cover" /> : initial}
           </button>
           <span
             aria-hidden="true"
-            className="glass-chip pointer-events-none absolute -bottom-1 -right-1 flex h-10 w-10 items-center justify-center rounded-full text-lg text-onyx"
+            className="glass-chip pointer-events-none absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full text-lg text-onyx"
           >
             <i className={photoBusy ? 'bx bx-loader-alt animate-spin' : 'bx bx-camera'} />
           </span>
@@ -191,40 +186,35 @@ export default function ProfileScreen() {
           />
         </motion.div>
 
-        <h1 className="relative mt-6 truncate font-subtitle text-[28px] font-light tracking-tight text-onyx">
+        <h1 className="relative mt-6 truncate font-subtitle text-[26px] font-medium tracking-tight text-onyx">
           {customer.name}
         </h1>
-        <div className="relative mx-auto mt-3 flex items-center justify-center gap-3" aria-hidden="true">
-          <span className="h-px w-8 bg-gold-ink/40" />
-          <i className="bx bxs-diamond text-[10px] text-gold-ink" />
-          <span className="h-px w-8 bg-gold-ink/40" />
-        </div>
-        <p className="relative mt-3 font-subtitle text-xs uppercase tracking-[0.22em] text-muted-dark">
+        <p className="glass-chip relative mx-auto mt-3 inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-subtitle text-xs text-muted-dark">
+          <span className="size-1.5 rounded-full bg-gold-ink" aria-hidden="true" />
           {sinceLabel ? `Cliente desde ${sinceLabel}` : 'Cliente AFROGLOW'}
         </p>
-        <p className="relative mt-3 font-subtitle text-xs text-muted-dark">
+        <div className="relative mt-4 flex items-center justify-center gap-2">
           <button
             type="button"
             disabled={photoBusy}
             onClick={() => photoInput.current?.click()}
-            className="underline underline-offset-4"
+            className="glass-chip flex items-center gap-1.5 rounded-full px-4 py-2 font-subtitle text-xs text-onyx"
           >
+            <i className="bx bx-camera text-base" aria-hidden="true" />
             {photo ? 'Alterar foto' : 'Adicionar foto'}
           </button>
           {photo && (
-            <>
-              {' · '}
-              <button
-                type="button"
-                disabled={photoBusy}
-                onClick={() => void removePhoto()}
-                className="underline underline-offset-4"
-              >
-                Remover
-              </button>
-            </>
+            <button
+              type="button"
+              aria-label="Remover foto"
+              disabled={photoBusy}
+              onClick={() => void removePhoto()}
+              className="glass-chip flex size-8 items-center justify-center rounded-full text-base text-onyx"
+            >
+              <i className="bx bx-trash" aria-hidden="true" />
+            </button>
           )}
-        </p>
+        </div>
         {photoError && <p className="relative mt-2 font-subtitle text-xs text-red-700">{photoError}</p>}
       </header>
 
