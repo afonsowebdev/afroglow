@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { api, ApiError, assetUrl, uploadFile } from '@/lib/api'
+import { api, ApiError, assetUrl } from '@/lib/api'
 
 interface Item {
   id: string
@@ -7,7 +7,7 @@ interface Item {
 }
 
 const MAX_SIDE = 1800
-const MAX_VIDEO_MB = 40
+const MAX_VIDEO_MB = 8
 
 /** Shrinks a phone photo to a ~400 KB JPEG before it is uploaded. */
 async function shrink(file: File): Promise<Blob> {
@@ -22,6 +22,22 @@ async function shrink(file: File): Promise<Blob> {
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('shrink failed'))), 'image/jpeg', 0.84),
   )
 }
+
+/** The file as base64 (sent inside JSON, which the iPhone app's network layer handles reliably). */
+function toBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = String(reader.result)
+      resolve(result.slice(result.indexOf(',') + 1))
+    }
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(blob)
+  })
+}
+
+const upload = async (blob: Blob, contentType: string) =>
+  api.post('/admin/portfolio', { contentType, data: await toBase64(blob) })
 
 const fileUrl = (id: string) => assetUrl(`/portfolio/${id}/file`)
 
@@ -58,9 +74,9 @@ export function PortfolioView() {
             problems.push(`"${file.name}" tem mais de ${MAX_VIDEO_MB} MB.`)
             continue
           }
-          await uploadFile('/admin/portfolio', file, file.type === 'video/quicktime' ? 'video/quicktime' : 'video/mp4')
+          await upload(file, file.type === 'video/quicktime' ? 'video/quicktime' : 'video/mp4')
         } else {
-          await uploadFile('/admin/portfolio', await shrink(file), 'image/jpeg')
+          await upload(await shrink(file), 'image/jpeg')
         }
         done += 1
       } catch (err) {
@@ -98,10 +114,10 @@ export function PortfolioView() {
       <div className="rounded-2xl border border-gold/20 bg-white p-5">
         <p className="font-subtitle text-sm text-onyx">
           As fotos e os vídeos que adicionares aparecem no <strong>portfólio da app dos clientes</strong>, pela ordem em
-          que estão aqui. Podes juntar quantos quiseres (até 60 fotos e 12 vídeos).
+          que estão aqui. Podes juntar quantos quiseres (até 60 fotos e 12 vídeos curtos).
         </p>
         <p className="mt-2 font-subtitle text-xs text-muted-dark">
-          Vídeos: MP4 ou MOV até {MAX_VIDEO_MB} MB (cerca de 30 segundos). Para vídeos maiores, corta-os antes na
+          Vídeos: MP4 ou MOV até {MAX_VIDEO_MB} MB (cerca de 5 a 8 segundos). Para vídeos maiores, corta-os antes na
           galeria do iPhone. {photos} fotos · {videos} vídeos.
         </p>
         <button

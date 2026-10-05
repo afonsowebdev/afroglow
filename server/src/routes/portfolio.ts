@@ -1,10 +1,10 @@
-import express, { Router } from 'express'
+import { Router } from 'express'
 import { requireAdmin } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
 
 const MAX_IMAGES = 60
 const MAX_VIDEOS = 12
-const MAX_VIDEO_BYTES = 40 * 1024 * 1024
+const MAX_VIDEO_BYTES = 8 * 1024 * 1024
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -29,7 +29,8 @@ portfolioRouter.get('/:id/file', async (req, res) => {
     res.status(404).end()
     return
   }
-  const data = Buffer.from(item.data)
+  // No copy: a view over the bytes Prisma already loaded (the server has little memory).
+  const data = Buffer.from(item.data.buffer, item.data.byteOffset, item.data.byteLength)
   res.set({
     'Content-Type': item.contentType,
     'Accept-Ranges': 'bytes',
@@ -55,39 +56,39 @@ portfolioRouter.get('/:id/file', async (req, res) => {
 export const adminPortfolioRouter = Router()
 adminPortfolioRouter.use(requireAdmin)
 
-// Upload: the raw file as the request body (Content-Type tells photo from video).
-adminPortfolioRouter.post(
-  '/',
-  express.raw({ type: [...IMAGE_TYPES, ...VIDEO_TYPES], limit: `${Math.ceil(MAX_VIDEO_BYTES / 1024 / 1024)}mb` }),
-  async (req, res) => {
-    const contentType = String(req.headers['content-type'] ?? '').split(';')[0]
-    const isVideo = VIDEO_TYPES.includes(contentType)
-    const isImage = IMAGE_TYPES.includes(contentType)
-    const body = req.body as Buffer
-    if ((!isVideo && !isImage) || !Buffer.isBuffer(body) || body.length === 0) {
-      res.status(400).json({ error: 'Ficheiro inválido (foto JPEG/PNG/WebP ou vídeo MP4/MOV).' })
-      return
-    }
-    if (isImage && body.length > MAX_IMAGE_BYTES) {
-      res.status(413).json({ error: 'Foto demasiado grande.' })
-      return
-    }
-    const kind = isVideo ? 'VIDEO' : 'IMAGE'
-    const count = await prisma.portfolioItem.count({ where: { kind } })
-    if (count >= (isVideo ? MAX_VIDEOS : MAX_IMAGES)) {
-      res.status(400).json({
-        error: isVideo ? `Máximo de ${MAX_VIDEOS} vídeos.` : `Máximo de ${MAX_IMAGES} fotos.`,
-      })
-      return
-    }
-    const last = await prisma.portfolioItem.findFirst({ orderBy: { position: 'desc' }, select: { position: true } })
-    const item = await prisma.portfolioItem.create({
-      data: { kind, contentType, data: new Uint8Array(body), position: (last?.position ?? -1) + 1 },
-      select: { id: true, kind: true },
-    })
-    res.status(201).json(item)
-  },
-)
+// Upload: JSON { contentType, data } with the file in base64 (the iPhone app's network layer can't send raw files).
+adminPortfolioRouter.post('/', async (req, res) => {
+  const contentType = String(req.body?.contentType ?? '')
+  const encoded = req.body?.data
+  const isVideo = VIDEO_TYPES.includes(contentType)
+  const isImage = IMAGE_TYPES.includes(contentType)
+  if ((!isVideo && !isImage) || typeof encoded !== 'string' || encoded.length < 16) {
+    res.status(400).json({ error: 'Ficheiro inválido (foto JPEG/PNG/WebP ou vídeo MP4/MOV).' })
+    return
+  }
+  const body = Buffer.from(encoded, 'base64')
+  req.body = undefined
+  if (isImage && body.length > MAX_IMAGE_BYTES) {
+    res.status(413).json({ error: 'Foto demasiado grande.' })
+    return
+  }
+  if (isVideo && body.length > MAX_VIDEO_BYTES) {
+    res.status(413).json({ error: `Vídeo demasiado grande (máximo ${MAX_VIDEO_BYTES / 1024 / 1024} MB).` })
+    return
+  }
+  const kind = isVideo ? 'VIDEO' : 'IMAGE'
+  const count = await prisma.portfolioItem.count({ where: { kind } })
+  if (count >= (isVideo ? MAX_VIDEOS : MAX_IMAGES)) {
+    res.status(400).json({ error: isVideo ? `Máximo de ${MAX_VIDEOS} vídeos.` : `Máximo de ${MAX_IMAGES} fotos.` })
+    return
+  }
+  const last = await prisma.portfolioItem.findFirst({ orderBy: { position: 'desc' }, select: { position: true } })
+  const item = await prisma.portfolioItem.create({
+    data: { kind, contentType, data: body as unknown as Uint8Array<ArrayBuffer>, position: (last?.position ?? -1) + 1 },
+    select: { id: true, kind: true },
+  })
+  res.status(201).json(item)
+})
 
 adminPortfolioRouter.delete('/:id', async (req, res) => {
   await prisma.portfolioItem.deleteMany({ where: { id: req.params.id } })
