@@ -33,7 +33,7 @@ const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
 
 // Trial clips for the customer iPhone app (filmed by the studio). Remove this list and the override in the
 // component to go back to the usual playlists.
-const APP_TRIAL_CLIPS: Clip[] = [1, 2].map((n) => ({
+const APP_TRIAL_CLIPS: Clip[] = [1].map((n) => ({
   sd: `/videos/hero-test-${n}-app.mp4`,
   hd: `/videos/hero-test-${n}-app.mp4`,
   app: `/videos/hero-test-${n}-app.mp4`,
