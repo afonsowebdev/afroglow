@@ -10,6 +10,10 @@ export interface BottomNavItem<T extends string = string> {
   badge?: number
   /** A plain red dot (something new here) instead of a count. */
   dot?: boolean
+  /** A photo shown instead of the icon (e.g. the customer's profile picture). */
+  image?: string | null
+  /** Keep the label visible even when the item is not the active one. */
+  alwaysLabel?: boolean
 }
 
 interface BottomNavBarProps<T extends string> {
@@ -80,7 +84,15 @@ export function BottomNavBar<T extends string>({
             )}
           >
             <span className="relative text-[22px] leading-none">
-              <i className={item.icon} aria-hidden="true" />
+              {item.image ? (
+                <img
+                  src={item.image}
+                  alt=""
+                  className="size-[26px] rounded-full object-cover ring-[1.5px] ring-current"
+                />
+              ) : (
+                <i className={item.icon} aria-hidden="true" />
+              )}
               {item.dot && !item.badge ? (
                 <span
                   className="absolute -right-1 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-[rgba(255,255,255,0.9)]"
@@ -97,9 +109,9 @@ export function BottomNavBar<T extends string>({
             <motion.span
               initial={false}
               animate={{
-                width: isActive ? 'auto' : 0,
-                opacity: isActive ? 1 : 0,
-                marginLeft: isActive ? 8 : 0,
+                width: isActive || item.alwaysLabel ? 'auto' : 0,
+                opacity: isActive || item.alwaysLabel ? 1 : 0,
+                marginLeft: isActive || item.alwaysLabel ? 8 : 0,
               }}
               transition={{
                 width: { type: 'spring', stiffness: 350, damping: 32 },

@@ -5,12 +5,20 @@ import { ActionButton } from '@/components/ui/action-button'
 import { Sheet } from '@/components/ui/sheet'
 import { api, ApiError } from '@/lib/api'
 import { shrinkAvatar } from '@/lib/avatar'
+import { setAvatar, useAvatar } from '@/lib/avatar-store'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { tap } from '@/lib/haptics'
 import { formatPrice, type Booking } from '@/lib/types'
 import { TestimonialForm } from '@/pages/AccountPage'
 import { dayParts, longDay, timeLabel } from './dates'
 import { Fact, Facts, labelClass, panelClass, StatusDot } from './panel'
+
+type TabId = 'resumo' | 'historico' | 'testemunho'
+const TABS: Array<{ id: TabId; label: string }> = [
+  { id: 'resumo', label: 'Resumo' },
+  { id: 'historico', label: 'Histórico' },
+  { id: 'testemunho', label: 'Testemunho' },
+]
 
 const MONTHS = [
   'janeiro',
@@ -42,18 +50,19 @@ export default function ProfileScreen() {
   const { customer } = useCustomerAuth()
   const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [testimonialOpen, setTestimonialOpen] = useState(false)
-  const [tab, setTab] = useState<'resumo' | 'historico' | 'testemunho'>('resumo')
-  const [photo, setPhoto] = useState<string | null>(null)
+  const [tab, setTab] = useState<TabId>('resumo')
+  const [direction, setDirection] = useState(1)
+
+  const goTo = (id: TabId) => {
+    if (id === tab) return
+    void tap()
+    setDirection(TABS.findIndex((t) => t.id === id) > TABS.findIndex((t) => t.id === tab) ? 1 : -1)
+    setTab(id)
+  }
+  const photo = useAvatar()
   const [photoBusy, setPhotoBusy] = useState(false)
   const [photoError, setPhotoError] = useState<string | null>(null)
   const photoInput = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    api
-      .get<{ dataUrl: string | null }>('/account/avatar')
-      .then((data) => setPhoto(data.dataUrl))
-      .catch(() => {})
-  }, [])
 
   async function changePhoto(file: File | undefined) {
     if (!file) return
@@ -62,7 +71,7 @@ export default function ProfileScreen() {
     try {
       const data = await shrinkAvatar(file)
       await api.put('/account/avatar', { contentType: 'image/jpeg', data })
-      setPhoto(`data:image/jpeg;base64,${data}`)
+      setAvatar(`data:image/jpeg;base64,${data}`)
     } catch (err) {
       setPhotoError(err instanceof ApiError ? err.message : 'Não foi possível guardar a foto.')
     } finally {
@@ -76,7 +85,7 @@ export default function ProfileScreen() {
     setPhotoError(null)
     try {
       await api.delete('/account/avatar')
-      setPhoto(null)
+      setAvatar(null)
     } catch {
       setPhotoError('Não foi possível remover a foto.')
     } finally {
@@ -148,11 +157,13 @@ export default function ProfileScreen() {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-          className="relative mx-auto mt-8 h-32 w-32"
+          className="relative mx-auto mt-8 h-44 w-36"
         >
-          {/* two fine rings around the monogram */}
-          <span className="absolute inset-0 rounded-full border border-gold-ink/30" aria-hidden="true" />
-          <span className="absolute inset-[7px] rounded-full border border-gold-ink/60" aria-hidden="true" />
+          {/* An arched portrait frame: a fine gold outline offset behind the photo. */}
+          <span
+            className="absolute inset-0 translate-x-2 translate-y-2 rounded-t-full rounded-b-[2rem] border border-gold-ink/50"
+            aria-hidden="true"
+          />
           <button
             type="button"
             aria-label="Alterar foto de perfil"
@@ -161,13 +172,13 @@ export default function ProfileScreen() {
               void tap()
               photoInput.current?.click()
             }}
-            className="absolute inset-[14px] flex items-center justify-center overflow-hidden rounded-full bg-white font-logo text-6xl text-gold-ink shadow-[0_8px_24px_rgba(201,168,76,0.25)]"
+            className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-t-full rounded-b-[2rem] bg-gradient-to-b from-cream to-white font-logo text-7xl text-gold-ink shadow-[0_14px_32px_rgba(201,168,76,0.3)]"
           >
             {photo ? <img src={photo} alt="" className="h-full w-full object-cover" /> : initial}
           </button>
           <span
             aria-hidden="true"
-            className="glass-chip pointer-events-none absolute bottom-1 right-1 flex h-9 w-9 items-center justify-center rounded-full text-lg text-onyx"
+            className="glass-chip pointer-events-none absolute -bottom-1 -right-1 flex h-10 w-10 items-center justify-center rounded-full text-lg text-onyx"
           >
             <i className={photoBusy ? 'bx bx-loader-alt animate-spin' : 'bx bx-camera'} />
           </span>
@@ -224,44 +235,50 @@ export default function ProfileScreen() {
           <Stat value={bookings ? formatPrice(data.spent).replace(/,00/, '') : '–'} label="Investido" />
         </div>
 
-        <div className="glass-chip mt-6 flex rounded-full p-1" role="tablist">
-          {(
-            [
-              ['resumo', 'Resumo'],
-              ['historico', 'Histórico'],
-              ['testemunho', 'Testemunho'],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={tab === id}
-              onClick={() => {
-                void tap()
-                setTab(id)
-              }}
-              className="relative flex-1 rounded-full py-2.5 font-subtitle text-sm"
-            >
-              {tab === id && (
-                <motion.span
-                  layoutId="profile-tab"
-                  className="glass-chip-on absolute inset-0 rounded-full"
-                  transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                />
-              )}
-              <span className={`relative ${tab === id ? 'font-medium text-onyx' : 'text-muted-dark'}`}>{label}</span>
-            </button>
-          ))}
+        {/* Stays at the top while the page scrolls, so the three views are always one tap away. */}
+        <div className="sticky top-[env(safe-area-inset-top)] z-20 -mx-5 mt-4 bg-white/75 px-5 py-3 backdrop-blur-xl">
+          <div className="flex gap-2" role="tablist">
+            {TABS.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={tab === id}
+                onClick={() => goTo(id)}
+                className="glass-chip relative flex-1 rounded-full py-2.5 font-subtitle text-sm"
+              >
+                {tab === id && (
+                  <motion.span
+                    layoutId="profile-tab"
+                    className="glass-chip-on absolute inset-0 rounded-full"
+                    transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                  />
+                )}
+                <span className={`relative ${tab === id ? 'font-medium text-onyx' : 'text-muted-dark'}`}>{label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode="wait" initial={false} custom={direction}>
           <motion.div
             key={tab}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
+            custom={direction}
+            initial={{ opacity: 0, x: direction * 28 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: direction * -28 }}
+            transition={{ duration: 0.2 }}
+            // Swipe sideways to move to the next or previous view.
+            drag="x"
+            dragDirectionLock
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.18}
+            onDragEnd={(_, info) => {
+              const at = TABS.findIndex((t) => t.id === tab)
+              if (info.offset.x < -70 && at < TABS.length - 1) goTo(TABS[at + 1].id)
+              else if (info.offset.x > 70 && at > 0) goTo(TABS[at - 1].id)
+            }}
+            className="min-h-[50vh]"
           >
             {tab === 'resumo' && (
               <>

@@ -5,6 +5,7 @@ import { Bell, BellOff, Moon, Settings, Sun } from 'lucide-react'
 import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import AccountAuthPage from '@/pages/AccountAuthPage'
+import { clearAvatar, loadAvatar, useAvatar } from '@/lib/avatar-store'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import {
   disableCustomerPush,
@@ -74,6 +75,13 @@ function CustomerShell() {
   const location = useLocation()
   const navigate = useNavigate()
   const { customer } = useCustomerAuth()
+  const avatar = useAvatar()
+
+  // The profile photo also marks the Conta tab; fetched once per sign-in.
+  useEffect(() => {
+    if (customer) void loadAvatar()
+    else clearAvatar()
+  }, [customer?.id])
 
   // Signed in: make sure this iPhone is registered for booking notifications (asks permission once).
   useEffect(() => {
@@ -214,7 +222,14 @@ function CustomerShell() {
               if (target) navigate(target.path)
               window.scrollTo({ top: 0 })
             }}
-            items={TABS.map(({ id, label, icon }) => ({ id, label, icon, dot: id === 'marcacoes' && unseen.size > 0 }))}
+            items={TABS.map(({ id, label, icon }) => ({
+              id,
+              label,
+              icon,
+              dot: id === 'marcacoes' && unseen.size > 0,
+              // The account tab always says "Conta", with the customer's photo in place of the icon when there is one.
+              ...(id === 'conta' && customer ? { image: avatar, alwaysLabel: true } : {}),
+            }))}
           />
         </div>
         <FloatingActionMenu actions={menuActions} hidden={navHidden} tone={overHero ? 'onDark' : 'onLight'} />
