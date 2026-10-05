@@ -31,7 +31,7 @@ const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
   app: `/videos/hero-light-${n}-app.mp4?v=1`,
 }))
 
-// The customer iPhone app plays one pre-edited file: hero-light-3, hero-light-4 and the studio clip IMG_1108 cut at the moments where the
+// The customer iPhone app plays one pre-edited file: hero-light-3 and hero-light-4 cut at the moments where the
 // two poses match best, with a soft sliding wipe between them (also at the loop point, so the native loop shows
 // no seam). It travels inside the app.
 const APP_CLIPS: Clip[] = [
