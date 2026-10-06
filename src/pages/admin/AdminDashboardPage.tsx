@@ -105,121 +105,6 @@ const TABS: Array<{ id: NavTab; label: string; icon: string }> = [
   { id: 'clientes', label: 'Clientes', icon: 'bx bx-user' },
 ]
 
-/** One folding row per day: tap a day to open its times as tiles. Free times can be removed with their ×. */
-function SlotsAccordion({
-  slotsByDate,
-  busyId,
-  onDelete,
-}: {
-  slotsByDate: Array<[string, AvailabilitySlot[]]>
-  busyId: string | null
-  onDelete: (id: string) => void
-}) {
-  const todayKey = dateKey(new Date().toISOString())
-  const firstUseful = slotsByDate.find(([key]) => key >= todayKey)?.[0] ?? slotsByDate[0]?.[0]
-  const [open, setOpen] = useState<Set<string>>(() => new Set(firstUseful ? [firstUseful] : []))
-
-  const toggle = (key: string) =>
-    setOpen((current) => {
-      const next = new Set(current)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
-
-  return (
-    <div className="mt-4 flex flex-col gap-3">
-      {slotsByDate.map(([key, daySlots]) => {
-        const heading = dayHeading(daySlots[0].startsAt)
-        const parts = dateParts(daySlots[0].startsAt)
-        const free = daySlots.filter((slot) => slot.status === 'OPEN').length
-        const taken = daySlots.length - free
-        const isOpen = open.has(key)
-        const past = key < todayKey
-        return (
-          <section
-            key={key}
-            className={`overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white ${past ? 'opacity-55' : ''}`}
-          >
-            <button
-              type="button"
-              aria-expanded={isOpen}
-              onClick={() => toggle(key)}
-              className="flex w-full items-center gap-3 px-4 py-3.5 text-left"
-            >
-              <span className="min-w-0 flex-1">
-                <span className="block font-subtitle text-base font-semibold tracking-tight text-onyx first-letter:uppercase">
-                  {heading.sub ? `${heading.title} · ${parts.day} ${parts.month}` : heading.title}
-                </span>
-                <span className="mt-0.5 block font-subtitle text-xs text-muted-dark">
-                  <span className={free > 0 ? 'font-medium text-emerald-700' : ''}>
-                    {free} {free === 1 ? 'livre' : 'livres'}
-                  </span>
-                  {' · '}
-                  {taken} {taken === 1 ? 'reservada' : 'reservadas'}
-                </span>
-              </span>
-              <i
-                className={`bx bx-chevron-down text-2xl text-muted-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
-                aria-hidden="true"
-              />
-            </button>
-
-            <AnimatePresence initial={false}>
-              {isOpen && (
-                <motion.div
-                  key="times"
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.22, ease: 'easeInOut' }}
-                  className="overflow-hidden"
-                >
-                  <div className="grid grid-cols-3 gap-2 border-t border-onyx/10 px-4 pb-4 pt-3">
-                    {daySlots.map((slot) => {
-                      const time = dateParts(slot.startsAt).time
-                      if (slot.status !== 'OPEN') {
-                        return (
-                          <div
-                            key={slot.id}
-                            className="flex h-12 flex-col items-center justify-center rounded-xl bg-onyx/10"
-                          >
-                            <span className="font-subtitle text-sm font-semibold lining-nums text-onyx/60">{time}</span>
-                            <span className="font-subtitle text-[10px] uppercase tracking-wide text-muted-dark">
-                              {SLOT_STATUS_LABEL[slot.status]}
-                            </span>
-                          </div>
-                        )
-                      }
-                      return (
-                        <div
-                          key={slot.id}
-                          className="glass-chip flex h-12 items-center justify-between rounded-xl pl-3 pr-1"
-                        >
-                          <span className="font-subtitle text-sm font-semibold lining-nums text-onyx">{time}</span>
-                          <button
-                            type="button"
-                            onClick={() => onDelete(slot.id)}
-                            disabled={busyId === slot.id}
-                            aria-label={`Remover a vaga das ${time}`}
-                            className="flex size-9 items-center justify-center rounded-full text-lg text-muted-dark active:bg-red-700/10 active:text-red-700 disabled:opacity-40"
-                          >
-                            <i className="bx bx-x" aria-hidden="true" />
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </section>
-        )
-      })}
-    </div>
-  )
-}
-
 // Every page has its own title and one line saying what it is for.
 const PAGE: Record<AdminTab, { title: string; hint: string }> = {
   pedidos: { title: 'Pedidos', hint: 'Marcações à espera da tua resposta.' },
@@ -2192,7 +2077,66 @@ export default function AdminDashboardPage() {
                     </p>
                   </div>
                 ) : (
-                  <SlotsAccordion slotsByDate={slotsByDate} busyId={busyId} onDelete={handleDeleteSlot} />
+                  slotsByDate.map(([key, daySlots]) => {
+                    const heading = dayHeading(daySlots[0].startsAt)
+                    const first = dateParts(daySlots[0].startsAt)
+                    const past = key < dateKey(new Date().toISOString())
+                    return (
+                      <div
+                        key={key}
+                        className={`mt-4 flex overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white ${past ? 'opacity-55' : ''}`}
+                      >
+                        <div className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-onyx/10 bg-onyx/5 py-4 text-center">
+                          <span className="font-subtitle text-[11px] font-medium uppercase tracking-wide text-muted-dark first-letter:uppercase">
+                            {first.weekday.slice(0, 3)}
+                          </span>
+                          <span className="font-subtitle text-2xl font-semibold lining-nums leading-none tracking-tight text-onyx">
+                            {first.day}
+                          </span>
+                          <span className="mt-0.5 font-subtitle text-[11px] uppercase text-muted-dark">
+                            {first.month}
+                          </span>
+                          {heading.sub && (
+                            <span className="mt-2 rounded-full bg-onyx/10 px-2 py-0.5 font-subtitle text-[10px] font-medium text-onyx">
+                              {heading.title}
+                            </span>
+                          )}
+                        </div>
+                        <ul className="min-w-0 flex-1 divide-y divide-onyx/10">
+                          {daySlots.map((slot) => {
+                            const dot =
+                              slot.status === 'BOOKED'
+                                ? 'bg-onyx'
+                                : slot.status === 'PENDING'
+                                  ? 'bg-amber-500'
+                                  : 'bg-emerald-600'
+                            return (
+                              <li key={slot.id} className="flex h-12 items-center gap-3 px-4">
+                                <span className="w-12 font-subtitle text-base font-semibold lining-nums tracking-tight text-onyx">
+                                  {dateParts(slot.startsAt).time}
+                                </span>
+                                <span className="flex flex-1 items-center gap-2 font-subtitle text-sm text-muted-dark">
+                                  <span className={`size-2 rounded-full ${dot}`} aria-hidden="true" />
+                                  {SLOT_STATUS_LABEL[slot.status]}
+                                </span>
+                                {slot.status === 'OPEN' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteSlot(slot.id)}
+                                    disabled={busyId === slot.id}
+                                    aria-label="Remover vaga"
+                                    className="flex size-8 items-center justify-center rounded-full text-lg text-muted-dark active:bg-red-700/10 active:text-red-700 disabled:opacity-40"
+                                  >
+                                    <i className="bx bx-trash" aria-hidden="true" />
+                                  </button>
+                                )}
+                              </li>
+                            )
+                          })}
+                        </ul>
+                      </div>
+                    )
+                  })
                 )}
 
                 <div className="mt-12">

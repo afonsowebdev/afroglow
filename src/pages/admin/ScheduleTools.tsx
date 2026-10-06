@@ -13,21 +13,45 @@ const WEEKDAYS = [
   { id: 0, label: 'Dom' },
 ]
 
+/** What is open on one weekday: the morning time, the afternoon time, both or neither (closed). */
+interface DayShifts {
+  am: boolean
+  pm: boolean
+}
+
 interface Pattern {
-  days: number[]
-  from: string
-  to: string
-  everyMinutes: number
+  week: Record<number, DayShifts>
+  /** The two times of the day: one client in the morning, one in the afternoon. */
+  amTime: string
+  pmTime: string
   weeks: number
 }
 
-const STORAGE_KEY = 'afroglow-admin-schedule-pattern'
-const DEFAULT_PATTERN: Pattern = { days: [2, 3, 4, 5, 6], from: '09:00', to: '18:00', everyMinutes: 120, weeks: 4 }
+const STORAGE_KEY = 'afroglow-admin-schedule-week'
+// The studio's usual week: Monday, Tuesday and Friday closed; Wednesday and Saturday morning and afternoon;
+// Thursday morning only; Sunday afternoon only.
+const DEFAULT_PATTERN: Pattern = {
+  week: {
+    1: { am: false, pm: false },
+    2: { am: false, pm: false },
+    3: { am: true, pm: true },
+    4: { am: true, pm: false },
+    5: { am: false, pm: false },
+    6: { am: true, pm: true },
+    0: { am: false, pm: true },
+  },
+  amTime: '08:00',
+  pmTime: '14:00',
+  weeks: 4,
+}
 
 function loadPattern(): Pattern {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return { ...DEFAULT_PATTERN, ...(JSON.parse(raw) as Partial<Pattern>) }
+    if (raw) {
+      const saved = JSON.parse(raw) as Partial<Pattern>
+      return { ...DEFAULT_PATTERN, ...saved, week: { ...DEFAULT_PATTERN.week, ...saved.week } }
+    }
   } catch {
     // ignore: fall back to the default
   }
@@ -48,14 +72,16 @@ function dateValue(date: Date) {
 /** Every start time the pattern produces from today on, minus the days off. */
 function buildTimes(pattern: Pattern, daysOff: string[]) {
   const times: Date[] = []
-  const start = toMinutes(pattern.from)
-  const end = toMinutes(pattern.to)
-  if (!(pattern.everyMinutes >= 30) || end <= start) return times
   const now = new Date()
   for (let offset = 0; offset < pattern.weeks * 7; offset++) {
     const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset)
-    if (!pattern.days.includes(day.getDay()) || daysOff.includes(dateValue(day))) continue
-    for (let minutes = start; minutes < end; minutes += pattern.everyMinutes) {
+    if (daysOff.includes(dateValue(day))) continue
+    const shifts = pattern.week[day.getDay()]
+    if (!shifts) continue
+    const wanted = [shifts.am ? pattern.amTime : null, shifts.pm ? pattern.pmTime : null]
+    for (const time of wanted) {
+      if (!time) continue
+      const minutes = toMinutes(time)
       const at = new Date(day.getFullYear(), day.getMonth(), day.getDate(), Math.floor(minutes / 60), minutes % 60)
       if (at.getTime() > now.getTime()) times.push(at)
     }
@@ -143,14 +169,14 @@ export function GenerateSlotsSheet({
     }
   }
 
-  const toggleDay = (id: number) =>
-    setPattern((p) => ({ ...p, days: p.days.includes(id) ? p.days.filter((d) => d !== id) : [...p.days, id] }))
+  const toggleShift = (day: number, shift: 'am' | 'pm') =>
+    setPattern((p) => ({ ...p, week: { ...p.week, [day]: { ...p.week[day], [shift]: !p.week[day]?.[shift] } } }))
 
   return (
     <Sheet
       open={open}
       title="Horário semanal"
-      description="Abre vários dias de uma vez. Os horários que já existem não são tocados."
+      description="Abre as semanas seguintes com a tua rotina. Os horários que já existem não são tocados."
       icon="bx bx-calendar-week"
       busy={busy}
       error={error}
@@ -159,57 +185,60 @@ export function GenerateSlotsSheet({
       onSubmit={submit}
       onClose={onClose}
     >
-      <Group title="Dias da semana">
-        <div className="grid grid-cols-7 gap-1.5">
-          {WEEKDAYS.map((day) => (
-            <button
-              key={day.id}
-              type="button"
-              aria-pressed={pattern.days.includes(day.id)}
-              onClick={() => toggleDay(day.id)}
-              className={`h-11 rounded-full font-subtitle text-xs ${
-                pattern.days.includes(day.id) ? 'glass-chip-on font-semibold text-onyx' : 'glass-chip text-onyx'
-              }`}
-            >
-              {day.label}
-            </button>
-          ))}
-        </div>
-      </Group>
-
-      <Group title="Horas">
+      <Group title="Horas do dia">
         <div className="grid grid-cols-2 gap-2.5">
           <label className="block min-w-0">
-            <span className={miniLabel}>Primeira hora</span>
+            <span className={miniLabel}>Manhã</span>
             <input
               type="time"
-              value={pattern.from}
-              onChange={(e) => setPattern({ ...pattern, from: e.target.value })}
+              value={pattern.amTime}
+              onChange={(e) => setPattern({ ...pattern, amTime: e.target.value })}
               className={`${sheetFieldClass} h-11 w-full min-w-0 appearance-none px-3 text-sm`}
             />
           </label>
           <label className="block min-w-0">
-            <span className={miniLabel}>Até às</span>
+            <span className={miniLabel}>Tarde</span>
             <input
               type="time"
-              value={pattern.to}
-              onChange={(e) => setPattern({ ...pattern, to: e.target.value })}
+              value={pattern.pmTime}
+              onChange={(e) => setPattern({ ...pattern, pmTime: e.target.value })}
               className={`${sheetFieldClass} h-11 w-full min-w-0 appearance-none px-3 text-sm`}
             />
           </label>
         </div>
+        <p className="mt-2 font-subtitle text-xs text-muted-dark">Um cliente em cada hora.</p>
+      </Group>
 
-        <span className={`${miniLabel} mt-4`}>Uma vaga a cada</span>
-        <div className="grid grid-cols-6 gap-1.5">
-          {[60, 90, 120, 180, 240, 360].map((m) => (
-            <Option
-              key={m}
-              active={pattern.everyMinutes === m}
-              onClick={() => setPattern({ ...pattern, everyMinutes: m })}
-              label={m % 60 === 0 ? `${m / 60}h` : `${Math.floor(m / 60)}h${m % 60}`}
-            />
-          ))}
-        </div>
+      <Group title="A tua semana">
+        <ul className="divide-y divide-onyx/10">
+          {WEEKDAYS.map((day) => {
+            const shifts = pattern.week[day.id] ?? { am: false, pm: false }
+            const closed = !shifts.am && !shifts.pm
+            return (
+              <li key={day.id} className="flex items-center gap-3 py-2.5">
+                <span className="w-10 font-subtitle text-sm font-semibold text-onyx">{day.label}</span>
+                <span className="flex-1 font-subtitle text-xs text-muted-dark">
+                  {closed
+                    ? 'Fechado'
+                    : [shifts.am && pattern.amTime, shifts.pm && pattern.pmTime].filter(Boolean).join(' · ')}
+                </span>
+                {(['am', 'pm'] as const).map((shift) => (
+                  <button
+                    key={shift}
+                    type="button"
+                    aria-pressed={shifts[shift]}
+                    onClick={() => toggleShift(day.id, shift)}
+                    className={`h-10 w-[4.5rem] rounded-full font-subtitle text-xs ${
+                      shifts[shift] ? 'glass-chip-on font-semibold text-onyx' : 'glass-chip text-onyx/50'
+                    }`}
+                  >
+                    {shift === 'am' ? 'Manhã' : 'Tarde'}
+                  </button>
+                ))}
+              </li>
+            )
+          })}
+        </ul>
 
         <span className={`${miniLabel} mt-4`}>Para as próximas (semanas)</span>
         <div className="grid grid-cols-6 gap-1.5">
