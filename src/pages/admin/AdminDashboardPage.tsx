@@ -2080,49 +2080,65 @@ export default function AdminDashboardPage() {
                   slotsByDate.map(([key, daySlots]) => {
                     const heading = dayHeading(daySlots[0].startsAt)
                     const past = key < dateKey(new Date().toISOString())
+                    const freeCount = daySlots.filter((slot) => slot.status === 'OPEN').length
+                    const takenCount = daySlots.length - freeCount
                     return (
                       <div key={key} className={`mt-7 ${past ? 'opacity-55' : ''}`}>
-                        <div className="flex items-baseline gap-3">
-                          <h3 className="font-subtitle font-semibold lining-nums tracking-tight text-lg text-onyx">
-                            {heading.title}
-                          </h3>
-                          {heading.sub && <span className="font-subtitle text-xs text-muted-dark">{heading.sub}</span>}
+                        <div className="flex items-baseline justify-between gap-3">
+                          <div className="flex items-baseline gap-3">
+                            <h3 className="font-subtitle text-lg font-semibold lining-nums tracking-tight text-onyx">
+                              {heading.title}
+                            </h3>
+                            {heading.sub && (
+                              <span className="font-subtitle text-xs text-muted-dark">{heading.sub}</span>
+                            )}
+                          </div>
+                          <span className="shrink-0 font-subtitle text-xs text-muted-dark">
+                            <span className="font-medium text-emerald-700">
+                              {freeCount} livre{freeCount === 1 ? '' : 's'}
+                            </span>
+                            {takenCount > 0 && (
+                              <>
+                                {' · '}
+                                <span className="font-medium text-red-700">
+                                  {takenCount} ocupado{takenCount === 1 ? '' : 's'}
+                                </span>
+                              </>
+                            )}
+                          </span>
                         </div>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {daySlots.map((slot) => (
-                            <div
-                              key={slot.id}
-                              className={`flex items-center gap-2 rounded-full py-1.5 pl-4 ${
-                                slot.status === 'OPEN' ? 'pr-2' : 'pr-4'
-                              } font-subtitle text-sm ${
-                                slot.status === 'BOOKED'
-                                  ? 'bg-onyx text-white'
-                                  : slot.status === 'PENDING'
-                                    ? 'glass-chip-on text-onyx'
-                                    : 'glass-chip text-onyx'
-                              }`}
-                            >
-                              <span className="font-semibold">{dateParts(slot.startsAt).time}</span>
-                              <span
-                                className={`text-[11px] uppercase tracking-wide ${
-                                  slot.status === 'BOOKED' ? 'text-white/70' : 'text-muted-dark'
-                                }`}
+                        <div className="mt-3 grid grid-cols-2 gap-2">
+                          {daySlots.map((slot) => {
+                            const free = slot.status === 'OPEN'
+                            return (
+                              <div
+                                key={slot.id}
+                                className="glass-chip flex h-12 items-center gap-2.5 rounded-2xl pl-4 pr-1.5 font-subtitle"
                               >
-                                {SLOT_STATUS_LABEL[slot.status]}
-                              </span>
-                              {slot.status === 'OPEN' && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteSlot(slot.id)}
-                                  disabled={busyId === slot.id}
-                                  aria-label="Remover vaga"
-                                  className="flex h-6 w-6 items-center justify-center rounded-full text-muted-dark transition-colors hover:bg-red-700/10 hover:text-red-700"
-                                >
-                                  <i className="bx bx-x text-lg" aria-hidden="true" />
-                                </button>
-                              )}
-                            </div>
-                          ))}
+                                <span
+                                  className={`size-2.5 shrink-0 rounded-full ${free ? 'bg-emerald-500' : 'bg-red-600'}`}
+                                  aria-hidden="true"
+                                />
+                                <span className="text-base font-semibold lining-nums tracking-tight text-onyx">
+                                  {dateParts(slot.startsAt).time}
+                                </span>
+                                <span className="min-w-0 flex-1 truncate text-[11px] uppercase tracking-wide text-muted-dark">
+                                  {free ? 'Livre' : SLOT_STATUS_LABEL[slot.status]}
+                                </span>
+                                {free && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteSlot(slot.id)}
+                                    disabled={busyId === slot.id}
+                                    aria-label={`Remover a vaga das ${dateParts(slot.startsAt).time}`}
+                                    className="flex size-9 shrink-0 items-center justify-center rounded-full text-xl text-muted-dark active:bg-red-700/10 active:text-red-700 disabled:opacity-40"
+                                  >
+                                    <i className="bx bx-x" aria-hidden="true" />
+                                  </button>
+                                )}
+                              </div>
+                            )
+                          })}
                         </div>
                       </div>
                     )
