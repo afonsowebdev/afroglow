@@ -105,6 +105,134 @@ const TABS: Array<{ id: NavTab; label: string; icon: string }> = [
   { id: 'clientes', label: 'Clientes', icon: 'bx bx-user' },
 ]
 
+/**
+ * The month's times as a table: one row per day, one column per time of day. Each cell is free (green dot, with an ×
+ * to remove it), taken (red dot) or empty (that day has no time there). Past days fold away.
+ */
+function SlotsTable({
+  slotsByDate,
+  busyId,
+  onDelete,
+}: {
+  slotsByDate: Array<[string, AvailabilitySlot[]]>
+  busyId: string | null
+  onDelete: (id: string) => void
+}) {
+  const [showPast, setShowPast] = useState(false)
+  const todayKey = dateKey(new Date().toISOString())
+  const columns = [
+    ...new Set(slotsByDate.flatMap(([, list]) => list.map((slot) => dateParts(slot.startsAt).time))),
+  ].sort()
+  const past = slotsByDate.filter(([key]) => key < todayKey)
+  const rows = slotsByDate.filter(([key]) => key >= todayKey || showPast)
+  const template = { gridTemplateColumns: `3.75rem repeat(${columns.length}, minmax(6.75rem, 1fr))` }
+
+  return (
+    <div className="mt-4 overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white">
+      {past.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowPast((v) => !v)}
+          aria-expanded={showPast}
+          className="flex w-full items-center justify-between border-b border-onyx/10 px-4 py-3 font-subtitle text-sm text-onyx"
+        >
+          {showPast ? 'Esconder dias passados' : `Ver dias passados (${past.length})`}
+          <i
+            className={`bx bx-chevron-down text-xl transition-transform ${showPast ? 'rotate-180' : ''}`}
+            aria-hidden="true"
+          />
+        </button>
+      )}
+
+      <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="min-w-fit">
+          <div className="grid items-center gap-2 border-b border-onyx/10 bg-onyx/5 px-3 py-2.5" style={template}>
+            <span className="font-subtitle text-[10px] font-medium uppercase tracking-wide text-muted-dark">Dia</span>
+            {columns.map((time) => (
+              <span
+                key={time}
+                className="text-center font-subtitle text-sm font-semibold lining-nums tracking-tight text-onyx"
+              >
+                {time}
+              </span>
+            ))}
+          </div>
+
+          {rows.length === 0 && (
+            <p className="px-4 py-6 text-center font-subtitle text-sm text-muted-dark">Sem dias a mostrar.</p>
+          )}
+          {rows.map(([key, list]) => {
+            const parts = dateParts(list[0].startsAt)
+            const isToday = key === todayKey
+            return (
+              <div
+                key={key}
+                className={`grid items-center gap-2 border-b border-onyx/10 px-3 py-2 last:border-b-0 ${
+                  key < todayKey ? 'opacity-55' : ''
+                }`}
+                style={template}
+              >
+                <span className="flex flex-col leading-tight">
+                  <span className="font-subtitle text-[10px] font-medium uppercase tracking-wide text-muted-dark">
+                    {parts.weekday.slice(0, 3)}
+                  </span>
+                  <span
+                    className={`font-subtitle text-base font-semibold lining-nums tracking-tight ${isToday ? 'text-gold-ink' : 'text-onyx'}`}
+                  >
+                    {parts.day}
+                    <span className="ml-1 text-[10px] font-medium uppercase text-muted-dark">{parts.month}</span>
+                  </span>
+                </span>
+                {columns.map((time) => {
+                  const slot = list.find((item) => dateParts(item.startsAt).time === time)
+                  if (!slot) {
+                    return (
+                      <span key={time} className="text-center font-subtitle text-sm text-onyx/25">
+                        –
+                      </span>
+                    )
+                  }
+                  if (slot.status !== 'OPEN') {
+                    return (
+                      <span
+                        key={time}
+                        className="flex h-11 items-center gap-2 rounded-xl bg-onyx/5 px-3 font-subtitle text-xs text-muted-dark"
+                      >
+                        <span className="size-2.5 shrink-0 rounded-full bg-red-600" aria-hidden="true" />
+                        {SLOT_STATUS_LABEL[slot.status]}
+                      </span>
+                    )
+                  }
+                  return (
+                    <span
+                      key={time}
+                      className="glass-chip flex h-11 items-center justify-between gap-1 rounded-xl pl-3 pr-1 font-subtitle text-xs text-onyx"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="size-2.5 shrink-0 rounded-full bg-emerald-500" aria-hidden="true" />
+                        Livre
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onDelete(slot.id)}
+                        disabled={busyId === slot.id}
+                        aria-label={`Remover a vaga das ${time} de ${parts.day} de ${parts.month}`}
+                        className="flex size-8 items-center justify-center rounded-full text-lg text-muted-dark active:bg-red-700/10 active:text-red-700 disabled:opacity-40"
+                      >
+                        <i className="bx bx-x" aria-hidden="true" />
+                      </button>
+                    </span>
+                  )
+                })}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Every page has its own title and one line saying what it is for.
 const PAGE: Record<AdminTab, { title: string; hint: string }> = {
   pedidos: { title: 'Pedidos', hint: 'Marcações à espera da tua resposta.' },
@@ -2077,75 +2205,7 @@ export default function AdminDashboardPage() {
                     </p>
                   </div>
                 ) : (
-                  slotsByDate.map(([key, daySlots]) => {
-                    const heading = dayHeading(daySlots[0].startsAt)
-                    const past = key < dateKey(new Date().toISOString())
-                    const freeCount = daySlots.filter((slot) => slot.status === 'OPEN').length
-                    const takenCount = daySlots.length - freeCount
-                    return (
-                      <div
-                        key={key}
-                        className={`mt-4 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4 ${past ? 'opacity-55' : ''}`}
-                      >
-                        <div>
-                          <div className="flex flex-wrap items-baseline gap-x-3">
-                            <h3 className="font-subtitle text-lg font-semibold lining-nums tracking-tight text-onyx">
-                              {heading.title}
-                            </h3>
-                            {heading.sub && (
-                              <span className="font-subtitle text-xs text-muted-dark">{heading.sub}</span>
-                            )}
-                          </div>
-                          <span className="mt-1 block font-subtitle text-xs text-muted-dark">
-                            <span className="font-medium text-emerald-700">
-                              {freeCount} livre{freeCount === 1 ? '' : 's'}
-                            </span>
-                            {takenCount > 0 && (
-                              <>
-                                {' · '}
-                                <span className="font-medium text-red-700">
-                                  {takenCount} ocupado{takenCount === 1 ? '' : 's'}
-                                </span>
-                              </>
-                            )}
-                          </span>
-                        </div>
-                        <div className="mt-3 grid grid-cols-2 gap-2 border-t border-onyx/10 pt-3">
-                          {daySlots.map((slot) => {
-                            const free = slot.status === 'OPEN'
-                            return (
-                              <div
-                                key={slot.id}
-                                className="glass-chip flex h-12 items-center gap-2 rounded-2xl pl-3.5 pr-1 font-subtitle"
-                              >
-                                <span
-                                  className={`size-2.5 shrink-0 rounded-full ${free ? 'bg-emerald-500' : 'bg-red-600'}`}
-                                  aria-hidden="true"
-                                />
-                                <span className="text-base font-semibold lining-nums tracking-tight text-onyx">
-                                  {dateParts(slot.startsAt).time}
-                                </span>
-                                <span className="min-w-0 flex-1 truncate text-xs text-muted-dark">
-                                  {free ? '' : SLOT_STATUS_LABEL[slot.status]}
-                                </span>
-                                {free && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteSlot(slot.id)}
-                                    disabled={busyId === slot.id}
-                                    aria-label={`Remover a vaga das ${dateParts(slot.startsAt).time}`}
-                                    className="flex size-9 shrink-0 items-center justify-center rounded-full text-xl text-muted-dark active:bg-red-700/10 active:text-red-700 disabled:opacity-40"
-                                  >
-                                    <i className="bx bx-x" aria-hidden="true" />
-                                  </button>
-                                )}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    )
-                  })
+                  <SlotsTable slotsByDate={slotsByDate} busyId={busyId} onDelete={handleDeleteSlot} />
                 )}
 
                 <div className="mt-12">
