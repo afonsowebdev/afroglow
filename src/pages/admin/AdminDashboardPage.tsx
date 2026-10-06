@@ -2083,9 +2083,12 @@ export default function AdminDashboardPage() {
                     const freeCount = daySlots.filter((slot) => slot.status === 'OPEN').length
                     const takenCount = daySlots.length - freeCount
                     return (
-                      <div key={key} className={`mt-7 ${past ? 'opacity-55' : ''}`}>
-                        <div className="flex items-baseline justify-between gap-3">
-                          <div className="flex items-baseline gap-3">
+                      <div
+                        key={key}
+                        className={`mt-4 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4 ${past ? 'opacity-55' : ''}`}
+                      >
+                        <div>
+                          <div className="flex flex-wrap items-baseline gap-x-3">
                             <h3 className="font-subtitle text-lg font-semibold lining-nums tracking-tight text-onyx">
                               {heading.title}
                             </h3>
@@ -2093,7 +2096,7 @@ export default function AdminDashboardPage() {
                               <span className="font-subtitle text-xs text-muted-dark">{heading.sub}</span>
                             )}
                           </div>
-                          <span className="shrink-0 font-subtitle text-xs text-muted-dark">
+                          <span className="mt-1 block font-subtitle text-xs text-muted-dark">
                             <span className="font-medium text-emerald-700">
                               {freeCount} livre{freeCount === 1 ? '' : 's'}
                             </span>
@@ -2107,13 +2110,13 @@ export default function AdminDashboardPage() {
                             )}
                           </span>
                         </div>
-                        <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div className="mt-3 grid grid-cols-2 gap-2 border-t border-onyx/10 pt-3">
                           {daySlots.map((slot) => {
                             const free = slot.status === 'OPEN'
                             return (
                               <div
                                 key={slot.id}
-                                className="glass-chip flex h-12 items-center gap-2.5 rounded-2xl pl-4 pr-1.5 font-subtitle"
+                                className="glass-chip flex h-12 items-center gap-2 rounded-2xl pl-3.5 pr-1 font-subtitle"
                               >
                                 <span
                                   className={`size-2.5 shrink-0 rounded-full ${free ? 'bg-emerald-500' : 'bg-red-600'}`}
@@ -2122,8 +2125,8 @@ export default function AdminDashboardPage() {
                                 <span className="text-base font-semibold lining-nums tracking-tight text-onyx">
                                   {dateParts(slot.startsAt).time}
                                 </span>
-                                <span className="min-w-0 flex-1 truncate text-[11px] uppercase tracking-wide text-muted-dark">
-                                  {free ? 'Livre' : SLOT_STATUS_LABEL[slot.status]}
+                                <span className="min-w-0 flex-1 truncate text-xs text-muted-dark">
+                                  {free ? '' : SLOT_STATUS_LABEL[slot.status]}
                                 </span>
                                 {free && (
                                   <button
