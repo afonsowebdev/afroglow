@@ -78,7 +78,7 @@ export function TeamMemberCard({
           onPointerLeave={() => setPaused(false)}
           onClick={() => setCurrent((i) => (i + 1) % slideCount)}
           className={cn(
-            'relative h-[min(420px,26dvh)] w-full max-w-[360px] shrink-0 cursor-pointer overflow-hidden rounded-2xl bg-cream sm:h-[min(560px,55dvh)] sm:w-[380px]',
+            'relative h-[min(480px,28dvh)] w-[min(100%,calc(28dvh*0.8))] shrink-0 cursor-pointer overflow-hidden rounded-2xl bg-cream sm:h-[min(640px,56dvh)] sm:w-[460px]',
             isPositionRight && 'sm:order-1',
           )}
         >
@@ -124,7 +124,7 @@ export function TeamMemberCard({
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           className={cn(
-            'relative z-10 flex w-full flex-col items-center gap-5 sm:w-[calc(100%-390px)] sm:-left-8 sm:items-start sm:gap-[min(3.5rem,5dvh)]',
+            'relative z-10 flex w-full flex-col items-center gap-5 sm:w-[calc(100%-470px)] sm:-left-8 sm:items-start sm:gap-[min(3.5rem,5dvh)]',
             isPositionRight && 'sm:left-8 sm:items-end',
           )}
         >

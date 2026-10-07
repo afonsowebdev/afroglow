@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BrandMarquee } from '@/components/ui/brand-marquee'
-import { PhotoFade } from '@/components/ui/photo-fade'
+import { TeamMemberCard } from '@/components/ui/team-member-card'
 
 // The CEO's photos, in the order they appear. Put the files in public/images/ceo/ and list them here
 // (three or more, portrait photos work best). The placeholders below are replaced by simply listing the real ones.
 // Test photos (the hero models) until the real ones are listed.
 const CEO_PHOTOS: string[] = ['/images/hero/hero-1.jpg', '/images/hero/hero-2.jpg', '/images/hero/hero-3.jpg']
 const PLACEHOLDERS = ['/images/ceo/placeholder-1.jpg', '/images/ceo/placeholder-2.jpg', '/images/ceo/placeholder-3.jpg']
-const PHOTOS = CEO_PHOTOS.length ? CEO_PHOTOS : PLACEHOLDERS
-
 const DESCRIPTION =
   'Rute De Pina fundou a AFROGLOW para preservar e celebrar a arte das tranças afro. Com técnica apurada e um cuidado próximo com cada cliente, transformou a paixão por este ofício num espaço onde tradição e identidade se encontram.'
 
@@ -53,39 +51,15 @@ export default function CeoPage() {
           Quem lidera a AFROGLOW
         </h1>
 
-        <div className="mt-3 grid items-center gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-10">
-          <div className="flex h-[min(420px,34dvh)] justify-center sm:h-[min(620px,62dvh)]">
-            <PhotoFade photos={PHOTOS} alt="Rute De Pina" />
-          </div>
-
-          <div className="flex flex-col items-center gap-3 text-center sm:items-start sm:gap-4 sm:text-left">
-            <p className="font-subtitle text-xs font-medium uppercase tracking-[0.3em] text-muted-dark">
-              CEO &amp; Fundadora
-            </p>
-            <p className="font-logo text-3xl leading-[1.1] text-onyx sm:text-5xl">
-              Rute
-              <br />
-              De Pina
-            </p>
-            <div className="flex items-start gap-5 sm:gap-8">
-              <a
-                href="https://www.instagram.com/rute_pina_/"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Instagram de Rute De Pina"
-                className="group flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full border border-onyx/20 transition-all duration-300 hover:scale-110 hover:border-onyx hover:bg-onyx active:scale-95 sm:h-16 sm:w-16"
-              >
-                <i
-                  className="bx bx-right-arrow-alt text-xl text-onyx/60 transition-all duration-300 group-hover:-rotate-45 group-hover:text-cream sm:text-2xl"
-                  aria-hidden="true"
-                />
-              </a>
-              <p className="font-subtitle text-[13px] leading-[1.65] text-muted-dark sm:text-sm sm:leading-[1.8]">
-                {DESCRIPTION}
-              </p>
-            </div>
-          </div>
-        </div>
+        <TeamMemberCard
+          className="my-4 sm:my-6"
+          jobPosition="CEO & Fundadora"
+          firstName="Rute"
+          lastName="De Pina"
+          description={DESCRIPTION}
+          photos={CEO_PHOTOS.length ? CEO_PHOTOS : PLACEHOLDERS}
+          instagramUrl="https://www.instagram.com/rute_pina_/"
+        />
       </main>
     </div>
   )
