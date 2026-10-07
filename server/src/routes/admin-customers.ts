@@ -9,13 +9,23 @@ import { customerNotesSchema, deleteCustomersSchema } from '../lib/validation.js
 export const adminCustomersRouter = Router()
 adminCustomersRouter.use(requireAdmin)
 
-function present(customer: { id: string; name: string; email: string; phone: string; adminNotes: string; createdAt: Date }) {
+function present(customer: {
+  id: string
+  name: string
+  email: string
+  phone: string
+  adminNotes: string
+  reminderChannel: string
+  createdAt: Date
+}) {
   const placeholder = isPlaceholderEmail(customer.email)
   return {
     id: customer.id,
     name: customer.name,
     phone: customer.phone,
     adminNotes: customer.adminNotes,
+    // Clients added by hand have no real email, so their reminder always goes by text message.
+    reminderChannel: placeholder ? 'PHONE' : customer.reminderChannel,
     createdAt: customer.createdAt,
     // Clients added by hand have no real email / account.
     email: placeholder ? null : customer.email,

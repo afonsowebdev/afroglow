@@ -22,6 +22,7 @@ import {
   forgotPasswordSchema,
   loginSchema,
   rescheduleBookingSchema,
+  reminderChannelSchema,
   resetPasswordSchema,
   updateProfileSchema,
 } from '../lib/validation.js'
@@ -76,6 +77,7 @@ accountRouter.get('/me', requireCustomer, async (req, res) => {
     email: customer.email,
     phone: customer.phone,
     hasAvatar: !!customer.avatar,
+    reminderChannel: customer.reminderChannel,
   })
 })
 
@@ -259,6 +261,16 @@ accountRouter.post('/push-token', requireCustomer, async (req, res) => {
 })
 
 // Turning notifications off in the app (or logging out) forgets this device.
+accountRouter.patch('/reminder-channel', requireCustomer, async (req, res) => {
+  const parsed = reminderChannelSchema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Escolha inválida.' })
+    return
+  }
+  await prisma.customer.update({ where: { id: req.customerId }, data: { reminderChannel: parsed.data.channel } })
+  res.json({ channel: parsed.data.channel })
+})
+
 accountRouter.post('/push-token/seen', requireCustomer, async (req, res) => {
   await prisma.customerPushToken.updateMany({ where: { customerId: req.customerId! }, data: { badge: 0 } })
   res.status(204).end()

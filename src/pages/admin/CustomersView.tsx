@@ -357,6 +357,14 @@ export function CustomersView({
               ))}
             </div>
 
+            <p className="flex items-center gap-2 font-subtitle text-xs text-muted-dark">
+              <i
+                className={`bx ${selected.reminderChannel === 'PHONE' ? 'bx-message-detail' : 'bx-envelope'} text-base`}
+                aria-hidden="true"
+              />
+              Lembrete 48h antes: {selected.reminderChannel === 'PHONE' ? 'mensagem para o telemóvel' : 'email'}
+            </p>
+
             <div className="grid grid-cols-3 gap-2">
               <a
                 href={customerWhatsappUrl(selected.phone, `Olá ${selected.name}! `)}

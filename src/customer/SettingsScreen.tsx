@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { ActionButton } from '@/components/ui/action-button'
 import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
 import { useNavigate } from 'react-router-dom'
-import { ApiError } from '@/lib/api'
+import { api, ApiError } from '@/lib/api'
 import { useAvatar } from '@/lib/avatar-store'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { disableCustomerPush, enableCustomerPush, pushSupported, pushWanted } from '@/lib/customer-push'
@@ -67,6 +67,71 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         {children}
       </div>
     </section>
+  )
+}
+
+/** Where the reminder 48 hours before a session is sent besides the app notification: email or a text message. */
+function ReminderRow({ phone, email }: { phone: string; email: string }) {
+  const [channel, setChannel] = useState<'EMAIL' | 'PHONE' | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    api
+      .get<{ reminderChannel?: 'EMAIL' | 'PHONE' }>('/account/me')
+      .then((me) => setChannel(me.reminderChannel ?? 'EMAIL'))
+      .catch(() => setChannel('EMAIL'))
+  }, [])
+
+  async function choose(next: 'EMAIL' | 'PHONE') {
+    if (next === channel) return
+    const before = channel
+    setChannel(next)
+    setError(null)
+    try {
+      await api.patch('/account/reminder-channel', { channel: next })
+    } catch {
+      setChannel(before)
+      setError('Não foi possível guardar. Tenta novamente.')
+    }
+  }
+
+  return (
+    <div className="px-4 py-3">
+      <div className="flex items-center gap-3.5">
+        <i className="bx bx-bell-plus w-6 shrink-0 text-center text-[22px] text-muted-dark" aria-hidden="true" />
+        <span className="min-w-0 flex-1">
+          <span className="block font-subtitle text-[15px] text-onyx">Lembrete da sessão</span>
+          <span className="block font-subtitle text-xs text-muted-dark">Enviado 48 horas antes</span>
+        </span>
+      </div>
+      <div className="glass-chip mt-3 flex rounded-full p-1" role="tablist" aria-label="Lembrete da sessão">
+        {(
+          [
+            ['EMAIL', 'Email'],
+            ['PHONE', 'Telemóvel'],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={channel === id}
+            disabled={channel === null}
+            onClick={() => void choose(id)}
+            className={`flex-1 rounded-full py-2.5 font-subtitle text-sm text-onyx ${
+              channel === id ? 'glass-chip-on font-semibold' : 'opacity-70'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <p className="mt-2 font-subtitle text-xs text-muted-dark">
+        {channel === 'PHONE' ? `Uma mensagem para ${phone}.` : `Um email para ${email}.`} Recebes sempre a notificação
+        da app.
+      </p>
+      {error && <p className="mt-1 font-subtitle text-xs text-red-700">{error}</p>}
+    </div>
   )
 }
 
@@ -223,11 +288,10 @@ export default function SettingsScreen() {
           <Item icon="bx bx-key" label="Alterar password" onClick={() => open('password')} />
         </Section>
 
-        {pushSupported() && (
-          <Section title="Preferências">
-            <NotificationsRow />
-          </Section>
-        )}
+        <Section title="Preferências">
+          {pushSupported() && <NotificationsRow />}
+          <ReminderRow phone={customer.phone} email={customer.email} />
+        </Section>
 
         <Section title="Ajuda e informação">
           <Item icon="bx bx-envelope" label={siteConfig.email} href={`mailto:${siteConfig.email}`} />

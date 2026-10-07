@@ -66,6 +66,8 @@ model Customer {
   passwordHash String
   // Private notes the business keeps about this client (never shown to the client).
   adminNotes   String        @default("")
+  // How the 48 h reminder reaches this customer besides the app notification: 'EMAIL' or 'PHONE' (a text message).
+  reminderChannel String     @default("EMAIL")
   // Optional profile photo (a small square JPEG the app prepares); shown in testimonials only when the
   // customer opts in on that testimonial.
   avatar        Bytes?

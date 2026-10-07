@@ -8,6 +8,7 @@ export interface AdminCustomer {
   email: string | null
   hasAccount: boolean
   adminNotes: string
+  reminderChannel: 'EMAIL' | 'PHONE'
   createdAt: string
   bookingCount: number
   spentCents: number

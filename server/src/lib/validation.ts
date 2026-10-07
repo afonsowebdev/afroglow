@@ -85,6 +85,10 @@ export const updateProfileSchema = z.object({
   phone: z.string().trim().min(6).max(30),
 })
 
+export const reminderChannelSchema = z.object({
+  channel: z.enum(['EMAIL', 'PHONE']),
+})
+
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
   newPassword: strongPasswordSchema,
