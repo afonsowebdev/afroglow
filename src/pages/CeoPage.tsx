@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { motion, useReducedMotion } from 'motion/react'
 import { BrandMarquee } from '@/components/ui/brand-marquee'
 import { VerticalImageStack, type StackImage } from '@/components/ui/vertical-image-stack'
 
@@ -16,6 +17,7 @@ const DESCRIPTION =
   'Rute De Pina fundou a AFROGLOW para preservar e celebrar a arte das tranças afro. Com técnica apurada e um cuidado próximo com cada cliente, transformou a paixão por este ofício num espaço onde tradição e identidade se encontram.'
 
 export default function CeoPage() {
+  const reduce = useReducedMotion()
   const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -55,21 +57,31 @@ export default function CeoPage() {
           Quem lidera a AFROGLOW
         </h1>
 
-        <div className="mt-3 grid items-center gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-10">
-          <div className="h-[min(420px,37dvh)] sm:h-[min(680px,64dvh)]">
+        <div className="mt-3 grid items-center gap-3 sm:mt-6 sm:grid-cols-[1fr_1.1fr] sm:gap-10">
+          <div className="h-[min(420px,30dvh)] sm:h-[min(680px,64dvh)]">
             <VerticalImageStack images={PHOTO_ITEMS} />
           </div>
 
-          <div className="flex flex-col items-center gap-3 text-center sm:items-start sm:gap-4 sm:text-left">
-            <p className="font-subtitle text-xs font-medium uppercase tracking-[0.3em] text-muted-dark">
+          <motion.div
+            initial={reduce ? false : { opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="relative overflow-hidden rounded-3xl border-[1.5px] border-onyx/15 bg-white/60 p-4 shadow-xl shadow-black/10 backdrop-blur-md sm:p-7"
+          >
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-2 -top-8 select-none font-logo text-[9rem] leading-none text-gold-ink/15 sm:text-[12rem]"
+            >
+              &rdquo;
+            </span>
+            <span className="inline-flex rounded-full border-[1.5px] border-onyx/20 px-3.5 py-1.5 font-subtitle text-[10px] font-medium uppercase tracking-[0.25em] text-muted-dark sm:text-xs">
               CEO &amp; Fundadora
+            </span>
+            <p className="relative mt-3 font-logo text-3xl leading-[1.05] text-onyx sm:mt-4 sm:text-5xl">
+              Rute De Pina
             </p>
-            <p className="font-logo text-3xl leading-[1.1] text-onyx sm:text-5xl">
-              Rute
-              <br />
-              De Pina
-            </p>
-            <p className="font-subtitle text-[13px] leading-[1.65] text-muted-dark sm:text-sm sm:leading-[1.8]">
+            <span className="my-3 block h-px w-14 bg-gold-ink sm:my-4 sm:w-20" />
+            <p className="relative font-subtitle text-xs leading-[1.6] text-muted-dark sm:text-sm sm:leading-[1.7]">
               {DESCRIPTION}
             </p>
             <a
@@ -77,12 +89,12 @@ export default function CeoPage() {
               target="_blank"
               rel="noreferrer"
               aria-label="Instagram de Rute De Pina"
-              className="flex items-center gap-2 font-subtitle text-sm text-gold-ink transition-colors duration-300 hover:text-onyx"
+              className="relative mt-3 inline-flex items-center gap-2 rounded-full border-[1.5px] border-onyx/20 px-4 py-2 font-subtitle text-sm text-onyx transition-colors duration-300 hover:border-onyx sm:mt-5"
             >
               <i className="bx bxl-instagram text-xl" aria-hidden="true" />
               @rute_pina_
             </a>
-          </div>
+          </motion.div>
         </div>
       </main>
     </div>
