@@ -18,7 +18,7 @@ export default function CeoPage() {
   }`
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-white">
+    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-white">
       <BrandMarquee />
       <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
@@ -36,11 +36,16 @@ export default function CeoPage() {
         </div>
       </div>
 
-      <main className="relative z-10 mx-auto max-w-4xl px-5 pb-24 pt-[calc(8rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(10rem+env(safe-area-inset-top))]">
-        <span className="font-subtitle text-xs uppercase tracking-[0.3em] text-gold-ink">A nossa fundadora</span>
-        <h1 className="mt-4 font-logo text-4xl text-onyx sm:text-5xl">Quem lidera a AFROGLOW</h1>
+      <main className="relative z-10 mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-5 pb-8 pt-[calc(6.5rem+env(safe-area-inset-top))] sm:px-8">
+        <span className="block text-center font-subtitle text-xs uppercase tracking-[0.3em] text-gold-ink sm:text-left">
+          A nossa fundadora
+        </span>
+        <h1 className="mt-3 text-center font-logo text-3xl text-onyx sm:text-left sm:text-5xl">
+          Quem lidera a AFROGLOW
+        </h1>
 
         <TeamMemberCard
+          className="my-6 sm:my-8"
           jobPosition="CEO & Fundadora"
           firstName="Rute"
           lastName="De Pina"

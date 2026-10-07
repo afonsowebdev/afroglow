@@ -34,7 +34,11 @@ export function TeamMemberCard({
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       className={cn('relative my-16 flex flex-col justify-center', className)}
     >
-      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
         <p
           className={cn(
             'mb-4 text-center font-subtitle text-xs font-medium uppercase tracking-[0.3em] text-muted-dark sm:text-left',
@@ -45,7 +49,7 @@ export function TeamMemberCard({
         </p>
       </motion.div>
 
-      <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-center sm:justify-end sm:gap-0">
+      <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center sm:justify-end sm:gap-0">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -53,7 +57,7 @@ export function TeamMemberCard({
           role="img"
           aria-label={fullName}
           className={cn(
-            'relative h-[360px] w-full max-w-[320px] shrink-0 overflow-hidden rounded-2xl bg-cream sm:h-[480px] sm:w-[340px]',
+            'relative h-[min(360px,25dvh)] w-full max-w-[320px] shrink-0 overflow-hidden rounded-2xl bg-cream sm:h-[min(480px,52dvh)] sm:w-[340px]',
             isPositionRight && 'sm:order-1',
           )}
         >
@@ -68,7 +72,7 @@ export function TeamMemberCard({
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           className={cn(
-            'relative z-10 flex w-full flex-col items-center gap-10 sm:w-[calc(100%-350px)] sm:-left-8 sm:items-start sm:gap-14',
+            'relative z-10 flex w-full flex-col items-center gap-5 sm:w-[calc(100%-350px)] sm:-left-8 sm:items-start sm:gap-[min(3.5rem,5dvh)]',
             isPositionRight && 'sm:left-8 sm:items-end',
           )}
         >
