@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { BrandMarquee } from '@/components/ui/brand-marquee'
 import { TeamMemberCard } from '@/components/ui/team-member-card'
 
 export default function CeoPage() {
@@ -17,7 +18,8 @@ export default function CeoPage() {
   }`
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="relative min-h-screen overflow-hidden bg-white">
+      <BrandMarquee />
       <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link to="/" className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
@@ -34,7 +36,7 @@ export default function CeoPage() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-4xl px-5 pb-24 pt-[calc(8rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(10rem+env(safe-area-inset-top))]">
+      <main className="relative z-10 mx-auto max-w-4xl px-5 pb-24 pt-[calc(8rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(10rem+env(safe-area-inset-top))]">
         <span className="font-subtitle text-xs uppercase tracking-[0.3em] text-gold-ink">A nossa fundadora</span>
         <h1 className="mt-4 font-logo text-4xl text-onyx sm:text-5xl">Quem lidera a AFROGLOW</h1>
 

@@ -1,5 +1,6 @@
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
+import { BrandMarquee } from '@/components/ui/brand-marquee'
 
 const STATS = [
   { value: '2020', label: 'Ano de fundação' },
@@ -10,33 +11,7 @@ const STATS = [
 export default function About() {
   return (
     <section id="sobre" className="relative flex min-h-screen items-center overflow-hidden bg-white">
-      {/* Two rows of the brand name sliding in opposite directions behind the text: one right to left, one left to right. */}
-      <motion.div
-        aria-hidden="true"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-        className="pointer-events-none absolute inset-0 flex select-none flex-col justify-center gap-[6vw] overflow-hidden"
-      >
-        {(['marquee-left', 'marquee-right'] as const).map((direction) => (
-          <div
-            key={direction}
-            className="flex w-max whitespace-nowrap"
-            style={{ animation: `${direction} 80s linear infinite` }}
-          >
-            {[0, 1].map((copy) => (
-              <span key={copy} className="flex shrink-0">
-                {[0, 1, 2, 3].map((n) => (
-                  <span key={n} className="px-[3vw] font-logo text-[15vw] leading-none tracking-tight text-onyx/5">
-                    AFROGLOW
-                  </span>
-                ))}
-              </span>
-            ))}
-          </div>
-        ))}
-      </motion.div>
+      <BrandMarquee />
 
       <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center px-5 pt-28 pb-36 text-center sm:px-8 sm:pt-32 sm:pb-44">
         <motion.div
