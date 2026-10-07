@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { BarChart3, Images, Lock, LogOut, MessageSquareText, Moon, Scissors, Store, Sun } from 'lucide-react'
@@ -105,191 +105,158 @@ const TABS: Array<{ id: NavTab; label: string; icon: string }> = [
   { id: 'clientes', label: 'Clientes', icon: 'bx bx-user' },
 ]
 
-type SlotFilter = 'all' | 'free' | 'taken'
-
 /**
- * The month's times, one folding card per day, in the second version's layout (date column on the left, one row per
- * time). Green dot when the time is free, red when taken; a filter shows everything, only the free or only the taken.
+ * The month's times as a day view: a strip with every day of the month (a coloured bar tells at a glance whether the
+ * day has free times, is full or is closed), and the chosen day's times below as large tiles with the client's name.
  */
-function SlotsGroups({
+function SlotsDayView({
   slotsByDate,
+  bookings,
+  viewMonth,
   busyId,
   onDelete,
 }: {
   slotsByDate: Array<[string, AvailabilitySlot[]]>
+  bookings: Booking[]
+  viewMonth: { year: number; month: number }
   busyId: string | null
   onDelete: (id: string) => void
 }) {
+  const byKey = new Map(slotsByDate)
   const todayKey = dateKey(new Date().toISOString())
-  const firstUseful = slotsByDate.find(([key]) => key >= todayKey)?.[0] ?? slotsByDate[0]?.[0]
-  const [open, setOpen] = useState<Set<string>>(() => new Set(firstUseful ? [firstUseful] : []))
-  const [filter, setFilter] = useState<SlotFilter>('all')
+  const prefix = `${viewMonth.year}-${String(viewMonth.month).padStart(2, '0')}`
+  const daysInMonth = new Date(viewMonth.year, viewMonth.month, 0).getDate()
+  const pickDefault = () =>
+    (byKey.has(todayKey) ? todayKey : slotsByDate.find(([key]) => key >= todayKey)?.[0]) ?? slotsByDate[0]?.[0] ?? ''
+  const [selected, setSelected] = useState(pickDefault)
+  const chosen = useRef<HTMLButtonElement>(null)
 
-  const keep = (slot: AvailabilitySlot) =>
-    filter === 'all' || (filter === 'free' ? slot.status === 'OPEN' : slot.status !== 'OPEN')
-  const days = slotsByDate.filter(([, list]) => list.some(keep))
-  const allOpen = days.length > 0 && days.every(([key]) => open.has(key))
+  useEffect(() => {
+    if (!selected.startsWith(prefix) || !byKey.has(selected)) setSelected(pickDefault())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefix, slotsByDate])
 
-  const toggle = (key: string) =>
-    setOpen((current) => {
-      const next = new Set(current)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
+  useEffect(() => {
+    chosen.current?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+  }, [selected])
+
+  const clientOf = (slot: AvailabilitySlot) =>
+    bookings.find((b) => b.slot.id === slot.id && (b.status === 'PENDING' || b.status === 'ACCEPTED'))?.customerName
+
+  const list = byKey.get(selected) ?? []
+  const free = list.filter((slot) => slot.status === 'OPEN').length
+  const heading = list[0] ? dayHeading(list[0].startsAt) : null
+  const parts = list[0] ? dateParts(list[0].startsAt) : null
 
   return (
     <div className="mt-6">
-      <div className="flex items-center justify-between gap-3">
-        <div className="glass-chip flex flex-1 rounded-full p-1" role="tablist" aria-label="Filtrar horários">
-          {(
-            [
-              ['all', 'Todos'],
-              ['free', 'Livres'],
-              ['taken', 'Ocupados'],
-            ] as const
-          ).map(([id, label]) => (
+      <div
+        role="tablist"
+        aria-label="Dia"
+        className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:-mx-8 sm:px-8 [&::-webkit-scrollbar]:hidden"
+      >
+        {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
+          const key = `${prefix}-${String(day).padStart(2, '0')}`
+          const slots = byKey.get(key)
+          const open = slots?.filter((slot) => slot.status === 'OPEN').length ?? 0
+          const active = key === selected
+          const weekday = new Date(viewMonth.year, viewMonth.month - 1, day)
+            .toLocaleDateString('pt-PT', { weekday: 'long' })
+            .slice(0, 3)
+          const bar = !slots ? 'bg-onyx/10' : open > 0 ? 'bg-emerald-500' : 'bg-red-600'
+          return (
             <button
-              key={id}
+              key={key}
+              ref={active ? chosen : undefined}
               type="button"
               role="tab"
-              aria-selected={filter === id}
-              onClick={() => setFilter(id)}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 font-subtitle text-sm text-onyx ${
-                filter === id ? 'glass-chip-on font-semibold' : 'opacity-70'
-              }`}
+              aria-selected={active}
+              aria-label={`${day}, ${slots ? (open > 0 ? `${open} livres` : 'completo') : 'sem horários'}`}
+              onClick={() => setSelected(key)}
+              className={`flex h-[4.5rem] w-14 shrink-0 flex-col items-center justify-center rounded-2xl font-subtitle ${
+                active ? 'glass-chip-on' : 'glass-chip'
+              } ${slots || active ? 'text-onyx' : 'text-onyx/40'}`}
             >
-              {id !== 'all' && (
-                <span
-                  className={`size-2 rounded-full ${id === 'free' ? 'bg-emerald-500' : 'bg-red-600'}`}
-                  aria-hidden="true"
-                />
-              )}
-              {label}
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={() => setOpen(allOpen ? new Set() : new Set(days.map(([key]) => key)))}
-          className="shrink-0 px-1 font-subtitle text-xs font-medium text-onyx underline underline-offset-4"
-        >
-          {allOpen ? 'Fechar todos' : 'Abrir todos'}
-        </button>
-      </div>
-
-      {days.length === 0 && (
-        <p className="mt-8 text-center font-subtitle text-sm text-muted-dark">Nenhum horário com este filtro.</p>
-      )}
-
-      <div className="mt-5 flex flex-col gap-5">
-        {days.map(([key, list]) => {
-          const heading = dayHeading(list[0].startsAt)
-          const parts = dateParts(list[0].startsAt)
-          const free = list.filter((slot) => slot.status === 'OPEN').length
-          const taken = list.length - free
-          const isOpen = open.has(key)
-          return (
-            <section
-              key={key}
-              className={`flex overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white ${
-                key < todayKey ? 'opacity-55' : ''
-              }`}
-            >
-              <button
-                type="button"
-                aria-expanded={isOpen}
-                aria-label={`${parts.weekday} ${parts.day} ${parts.month}`}
-                onClick={() => toggle(key)}
-                className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-onyx/10 bg-onyx/5 py-4 text-center"
+              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-dark">{weekday}</span>
+              <span
+                className={`text-lg font-semibold lining-nums leading-tight tracking-tight ${key === todayKey ? 'text-gold-ink' : ''}`}
               >
-                <span className="font-subtitle text-[11px] font-medium uppercase tracking-wide text-muted-dark">
-                  {parts.weekday.slice(0, 3)}
-                </span>
-                <span
-                  className={`font-subtitle text-2xl font-semibold lining-nums leading-none tracking-tight ${
-                    key === todayKey ? 'text-gold-ink' : 'text-onyx'
-                  }`}
-                >
-                  {parts.day}
-                </span>
-                <span className="mt-0.5 font-subtitle text-[11px] uppercase text-muted-dark">{parts.month}</span>
-                {heading.sub && (
-                  <span className="mt-2 rounded-full bg-onyx/10 px-2 py-0.5 font-subtitle text-[10px] font-medium text-onyx">
-                    {heading.title}
-                  </span>
-                )}
-              </button>
-
-              <div className="min-w-0 flex-1">
-                <button
-                  type="button"
-                  aria-expanded={isOpen}
-                  onClick={() => toggle(key)}
-                  className="flex w-full items-center gap-3 px-4 py-4 text-left"
-                >
-                  <span className="flex flex-1 flex-col gap-1.5 font-subtitle text-sm text-onyx">
-                    <span className="flex items-center gap-2">
-                      <span className="size-2.5 rounded-full bg-emerald-500" aria-hidden="true" />
-                      {free} {free === 1 ? 'livre' : 'livres'}
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <span className="size-2.5 rounded-full bg-red-600" aria-hidden="true" />
-                      {taken} {taken === 1 ? 'ocupado' : 'ocupados'}
-                    </span>
-                  </span>
-                  <i
-                    className={`bx bx-chevron-down text-2xl text-muted-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
-                    aria-hidden="true"
-                  />
-                </button>
-
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.ul
-                      key="times"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.22, ease: 'easeInOut' }}
-                      className="divide-y divide-onyx/10 overflow-hidden border-t border-onyx/10"
-                    >
-                      {list.filter(keep).map((slot) => {
-                        const isFree = slot.status === 'OPEN'
-                        const time = dateParts(slot.startsAt).time
-                        return (
-                          <li key={slot.id} className="flex h-12 items-center gap-3 px-4">
-                            <span
-                              className={`size-2.5 shrink-0 rounded-full ${isFree ? 'bg-emerald-500' : 'bg-red-600'}`}
-                              aria-hidden="true"
-                            />
-                            <span className="w-12 font-subtitle text-base font-semibold lining-nums tracking-tight text-onyx">
-                              {time}
-                            </span>
-                            <span className="flex-1 truncate font-subtitle text-sm text-muted-dark">
-                              {isFree ? 'Livre' : SLOT_STATUS_LABEL[slot.status]}
-                            </span>
-                            {isFree && (
-                              <button
-                                type="button"
-                                onClick={() => onDelete(slot.id)}
-                                disabled={busyId === slot.id}
-                                aria-label={`Remover a vaga das ${time} de ${parts.day} de ${parts.month}`}
-                                className="flex size-8 items-center justify-center rounded-full text-lg text-muted-dark active:bg-red-700/10 active:text-red-700 disabled:opacity-40"
-                              >
-                                <i className="bx bx-trash" aria-hidden="true" />
-                              </button>
-                            )}
-                          </li>
-                        )
-                      })}
-                    </motion.ul>
-                  )}
-                </AnimatePresence>
-              </div>
-            </section>
+                {day}
+              </span>
+              <span className={`mt-1 h-1 w-6 rounded-full ${bar}`} aria-hidden="true" />
+            </button>
           )
         })}
+      </div>
+
+      <div className="mt-3 flex items-center justify-center gap-5 font-subtitle text-[11px] text-muted-dark">
+        <span className="flex items-center gap-1.5">
+          <span className="h-1 w-4 rounded-full bg-emerald-500" aria-hidden="true" /> Com horas livres
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-1 w-4 rounded-full bg-red-600" aria-hidden="true" /> Completo
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-1 w-4 rounded-full bg-onyx/10" aria-hidden="true" /> Fechado
+        </span>
+      </div>
+
+      <div className="mt-5 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
+        {list.length === 0 ? (
+          <div className="py-6 text-center">
+            <p className="font-subtitle text-base font-semibold text-onyx">Sem horários neste dia</p>
+            <p className="mt-1 font-subtitle text-sm text-muted-dark">Está fechado. Cria horários para o abrir.</p>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-baseline justify-between gap-3">
+              <h3 className="font-subtitle text-lg font-semibold tracking-tight text-onyx first-letter:uppercase">
+                {heading?.sub ? `${heading.title} · ${parts?.day} ${parts?.month}` : heading?.title}
+              </h3>
+              <span className="shrink-0 font-subtitle text-xs text-muted-dark">
+                {free} {free === 1 ? 'livre' : 'livres'} · {list.length - free}{' '}
+                {list.length - free === 1 ? 'ocupado' : 'ocupados'}
+              </span>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              {list.map((slot) => {
+                const isFree = slot.status === 'OPEN'
+                const time = dateParts(slot.startsAt).time
+                const who = clientOf(slot)
+                return (
+                  <div
+                    key={slot.id}
+                    className={`relative flex min-h-24 flex-col justify-between rounded-2xl p-3.5 ${
+                      isFree ? 'glass-chip' : 'bg-onyx/5'
+                    }`}
+                  >
+                    <span className="font-subtitle text-2xl font-semibold lining-nums leading-none tracking-tight text-onyx">
+                      {time}
+                    </span>
+                    <span className="mt-3 flex items-center gap-2 font-subtitle text-xs text-muted-dark">
+                      <span
+                        className={`size-2.5 shrink-0 rounded-full ${isFree ? 'bg-emerald-500' : 'bg-red-600'}`}
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">{isFree ? 'Livre' : (who ?? SLOT_STATUS_LABEL[slot.status])}</span>
+                    </span>
+                    {isFree && (
+                      <button
+                        type="button"
+                        onClick={() => onDelete(slot.id)}
+                        disabled={busyId === slot.id}
+                        aria-label={`Remover a vaga das ${time}`}
+                        className="absolute right-1.5 top-1.5 flex size-8 items-center justify-center rounded-full text-lg text-muted-dark active:bg-red-700/10 active:text-red-700 disabled:opacity-40"
+                      >
+                        <i className="bx bx-trash" aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
@@ -2267,7 +2234,13 @@ export default function AdminDashboardPage() {
                     </p>
                   </div>
                 ) : (
-                  <SlotsGroups slotsByDate={slotsByDate} busyId={busyId} onDelete={handleDeleteSlot} />
+                  <SlotsDayView
+                    slotsByDate={slotsByDate}
+                    bookings={bookings}
+                    viewMonth={viewMonth}
+                    busyId={busyId}
+                    onDelete={handleDeleteSlot}
+                  />
                 )}
 
                 <div className="mt-12">
