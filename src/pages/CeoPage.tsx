@@ -1,17 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BrandMarquee } from '@/components/ui/brand-marquee'
-import { VerticalImageStack, type StackImage } from '@/components/ui/vertical-image-stack'
+import { PhotoFade } from '@/components/ui/photo-fade'
 
-// The CEO's photos, in the order they appear in the stack. Put the files in public/images/ceo/ and list them here
+// The CEO's photos, in the order they appear. Put the files in public/images/ceo/ and list them here
 // (three or more, portrait photos work best). The placeholders below are replaced by simply listing the real ones.
 // Test photos (the hero models) until the real ones are listed.
 const CEO_PHOTOS: string[] = ['/images/hero/hero-1.jpg', '/images/hero/hero-2.jpg', '/images/hero/hero-3.jpg']
 const PLACEHOLDERS = ['/images/ceo/placeholder-1.jpg', '/images/ceo/placeholder-2.jpg', '/images/ceo/placeholder-3.jpg']
-const PHOTO_ITEMS: StackImage[] = (CEO_PHOTOS.length ? CEO_PHOTOS : PLACEHOLDERS).map((src, i) => ({
-  src,
-  alt: `Rute De Pina, foto ${i + 1}`,
-}))
+const PHOTOS = CEO_PHOTOS.length ? CEO_PHOTOS : PLACEHOLDERS
 
 const DESCRIPTION =
   'Rute De Pina fundou a AFROGLOW para preservar e celebrar a arte das tranças afro. Com técnica apurada e um cuidado próximo com cada cliente, transformou a paixão por este ofício num espaço onde tradição e identidade se encontram.'
@@ -57,8 +54,8 @@ export default function CeoPage() {
         </h1>
 
         <div className="mt-3 grid items-center gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-10">
-          <div className="h-[min(420px,37dvh)] sm:h-[min(680px,64dvh)]">
-            <VerticalImageStack images={PHOTO_ITEMS} />
+          <div className="flex h-[min(420px,34dvh)] justify-center sm:h-[min(620px,62dvh)]">
+            <PhotoFade photos={PHOTOS} alt="Rute De Pina" />
           </div>
 
           <div className="flex flex-col items-center gap-3 text-center sm:items-start sm:gap-4 sm:text-left">
