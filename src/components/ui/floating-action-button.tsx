@@ -230,11 +230,11 @@ export function FloatingActionMenu({
               >
                 <span
                   className={cn(
-                    'flex w-48 items-center justify-between gap-2 whitespace-nowrap rounded-full border border-onyx/10 bg-white px-4 py-2 text-left font-subtitle text-xs font-medium shadow-md shadow-black/10',
+                    'flex items-center gap-2 whitespace-nowrap rounded-full border border-onyx/10 bg-white px-3.5 py-1.5 font-subtitle text-xs font-medium shadow-md shadow-black/10',
                     danger ? 'text-red-700' : 'text-onyx',
                   )}
                 >
-                  <span className="truncate">{label}</span>
+                  {label}
                   {badge ? (
                     <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none text-[#ffffff]">
                       {badge}
