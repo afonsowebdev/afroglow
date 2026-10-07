@@ -1291,11 +1291,11 @@ function PendingCard({
   const [reason, setReason] = useState('')
   const { day, month, weekday, time } = dateParts(booking.slot.startsAt)
   const hoursUntil = (new Date(booking.slot.startsAt).getTime() - Date.now()) / 3_600_000
-  const badge =
+  const urgency =
     hoursUntil < 0
-      ? { label: 'Data passada', className: 'bg-red-700/10 text-red-700' }
+      ? { label: 'Data passada', dot: 'bg-red-600', text: 'text-red-700' }
       : hoursUntil < 24
-        ? { label: 'Urgente · menos de 24h', className: 'bg-gold-deep/15 text-gold-deep' }
+        ? { label: 'Urgente · menos de 24h', dot: 'bg-amber-500', text: 'text-amber-700' }
         : null
 
   return (
@@ -1306,103 +1306,116 @@ function PendingCard({
       exit={{ opacity: 0, x: -24 }}
       className="overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white"
     >
-      <div className="flex">
-        <div className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-onyx/10 bg-onyx/5 py-4">
-          <span className="font-subtitle font-semibold lining-nums tracking-tight text-2xl leading-none text-onyx">
-            {day}
+      <div className="p-4">
+        <div className="flex items-center gap-3">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-xl text-gold-ink">
+            {booking.customerName.trim().charAt(0).toUpperCase()}
           </span>
-          <span className="mt-1 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{month}</span>
-          <span className="mt-2 font-subtitle text-xs font-semibold text-onyx">{time}</span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-subtitle text-base font-semibold tracking-tight text-onyx">
+              {booking.customerName}
+            </p>
+            <p className="truncate font-subtitle text-xs text-muted-dark">
+              {booking.customerPhone} · Recebido {timeAgo(booking.createdAt).toLowerCase()}
+            </p>
+          </div>
+          <a
+            href={customerWhatsappUrl(
+              booking.customerPhone,
+              `Olá ${booking.customerName}! Sobre a tua marcação de ${booking.service.name}...`,
+            )}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`WhatsApp de ${booking.customerName}`}
+            className="glass-chip flex size-11 shrink-0 items-center justify-center rounded-full text-2xl text-onyx"
+          >
+            <i className="bx bxl-whatsapp" aria-hidden="true" />
+          </a>
         </div>
 
-        <div className="min-w-0 flex-1 p-4">
-          <div className="flex items-start justify-between gap-3">
+        <div className="mt-4 rounded-2xl bg-onyx/5 p-4">
+          <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate font-subtitle text-base font-semibold text-onyx">{booking.customerName}</p>
-              <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
-                {booking.service.name} · {formatPrice(booking.service.priceCents)}
+              <p className="font-subtitle text-[11px] font-medium uppercase tracking-wide text-muted-dark">Sessão</p>
+              <p className="mt-0.5 font-subtitle text-base font-semibold tracking-tight text-onyx first-letter:uppercase">
+                {weekday}, {day} {month}
               </p>
-              <p className="mt-0.5 font-subtitle text-xs first-letter:uppercase text-muted-dark">{weekday}</p>
             </div>
-            <a
-              href={customerWhatsappUrl(
-                booking.customerPhone,
-                `Olá ${booking.customerName}! Sobre a tua marcação de ${booking.service.name}...`,
-              )}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`WhatsApp de ${booking.customerName}`}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full glass-chip text-xl text-onyx transition-colors hover:text-gold-deep"
-            >
-              <i className="bx bxl-whatsapp" aria-hidden="true" />
-            </a>
-          </div>
-
-          {badge && (
-            <span className={`mt-2 inline-block rounded-full px-2.5 py-1 font-subtitle text-[11px] ${badge.className}`}>
-              {badge.label}
+            <span className="font-subtitle text-2xl font-semibold lining-nums leading-none tracking-tight text-onyx">
+              {time}
             </span>
-          )}
-
-          {booking.notes && (
-            <p className="mt-3 rounded-lg bg-onyx/5 px-3 py-2 font-subtitle text-xs italic text-muted-dark">
-              "{booking.notes}"
+          </div>
+          <div className="mt-3 flex items-center justify-between gap-3 border-t border-onyx/10 pt-3 font-subtitle text-sm">
+            <span className="min-w-0 truncate text-onyx">{booking.service.name}</span>
+            <span className="shrink-0 font-semibold lining-nums text-onyx">
+              {formatPrice(booking.service.priceCents)}
+            </span>
+          </div>
+          {urgency && (
+            <p className={`mt-3 flex items-center gap-2 font-subtitle text-xs font-medium ${urgency.text}`}>
+              <span className={`size-2 rounded-full ${urgency.dot}`} aria-hidden="true" />
+              {urgency.label}
             </p>
           )}
-
-          <p className="mt-3 font-subtitle text-xs text-muted-dark">
-            {booking.customerPhone} · Recebido {timeAgo(booking.createdAt).toLowerCase()}
-          </p>
         </div>
+
+        {booking.notes && (
+          <p className="mt-3 border-l-2 border-onyx/25 pl-3 font-subtitle text-sm italic text-muted-dark">
+            “{booking.notes}”
+          </p>
+        )}
       </div>
 
-      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-onyx/10 bg-gold-deep/[0.03] px-4 py-3">
+      <div className="border-t border-onyx/10 p-4">
         {confirmingReject ? (
-          <>
-            <span className="mr-auto font-subtitle text-sm text-onyx">Recusar este pedido?</span>
+          <div className="flex flex-col gap-3">
+            <p className="font-subtitle text-sm font-semibold text-onyx">Recusar este pedido?</p>
             <input
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               maxLength={300}
               placeholder="Motivo (opcional, vai no email ao cliente)"
               aria-label="Motivo da recusa"
-              className="w-full rounded-xl border border-gold/30 bg-white px-3 py-2 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/40 focus-visible:border-gold-deep"
+              className="w-full rounded-xl border bg-white px-3 py-2.5 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/40"
             />
-            <button
-              type="button"
-              onClick={() => setConfirmingReject(false)}
-              disabled={busy}
-              className="rounded-full glass-chip px-4 py-2 font-subtitle text-sm text-onyx disabled:opacity-50"
-            >
-              Voltar
-            </button>
-            <button
-              type="button"
-              onClick={() => onDecision(booking.id, 'reject', reason.trim() || undefined)}
-              disabled={busy}
-              className="rounded-full bg-red-700 px-4 py-2 font-subtitle text-sm text-[#ffffff] disabled:opacity-50"
-            >
-              {busy ? 'A recusar...' : 'Sim, recusar'}
-            </button>
-          </>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmingReject(false)}
+                disabled={busy}
+                className="glass-chip h-12 rounded-full font-subtitle text-sm text-onyx disabled:opacity-50"
+              >
+                Voltar
+              </button>
+              <button
+                type="button"
+                onClick={() => onDecision(booking.id, 'reject', reason.trim() || undefined)}
+                disabled={busy}
+                className="glass-chip-on h-12 rounded-full font-subtitle text-sm font-semibold text-red-700 disabled:opacity-50"
+              >
+                {busy ? 'A recusar...' : 'Sim, recusar'}
+              </button>
+            </div>
+          </div>
         ) : (
-          <>
-            <MotionButton
-              label="Recusar"
-              size="sm"
-              variant="secondary"
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
               disabled={busy}
               onClick={() => setConfirmingReject(true)}
-              icon={<i className="bx bx-x text-lg" aria-hidden="true" />}
-            />
-            <MotionButton
-              label={busy ? 'A aceitar...' : 'Aceitar'}
-              size="sm"
+              className="glass-chip flex h-12 items-center justify-center gap-2 rounded-full font-subtitle text-sm text-onyx disabled:opacity-50"
+            >
+              <i className="bx bx-x text-xl" aria-hidden="true" /> Recusar
+            </button>
+            <button
+              type="button"
               disabled={busy || hoursUntil < 0}
               onClick={() => onDecision(booking.id, 'accept')}
-              icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
-            />
-          </>
+              className="glass-chip-on flex h-12 items-center justify-center gap-2 rounded-full font-subtitle text-sm font-semibold text-onyx disabled:opacity-50"
+            >
+              <i className="bx bx-check text-xl" aria-hidden="true" /> {busy ? 'A aceitar...' : 'Aceitar'}
+            </button>
+          </div>
         )}
       </div>
     </motion.article>
@@ -1446,19 +1459,30 @@ function PendingView({
 
   return (
     <div>
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        {[
-          { label: 'Pendentes', value: String(bookings.length) },
-          { label: 'Nos próx. 7 dias', value: String(thisWeek) },
-          { label: 'Valor em espera', value: formatPrice(totalCents) },
-        ].map((stat) => (
-          <div key={stat.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
-            <p className="font-subtitle font-semibold lining-nums tracking-tight text-lg leading-none text-onyx">
-              {stat.value}
+      <div className="mt-4 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
+        <p className="font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">
+          À espera de resposta
+        </p>
+        <p className="mt-1 font-subtitle text-[40px] font-semibold lining-nums leading-none tracking-tight text-onyx">
+          {bookings.length}
+          <span className="ml-2 text-base font-medium text-muted-dark">
+            {bookings.length === 1 ? 'pedido' : 'pedidos'}
+          </span>
+        </p>
+        <div className="mt-4 grid grid-cols-2 divide-x divide-onyx/15 border-t border-onyx/10 pt-4">
+          <div className="pr-3">
+            <p className="font-subtitle text-lg font-semibold lining-nums leading-none tracking-tight text-onyx">
+              {thisWeek}
             </p>
-            <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{stat.label}</p>
+            <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">Nos próx. 7 dias</p>
           </div>
-        ))}
+          <div className="pl-4">
+            <p className="font-subtitle text-lg font-semibold lining-nums leading-none tracking-tight text-onyx">
+              {formatPrice(totalCents)}
+            </p>
+            <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">Valor em espera</p>
+          </div>
+        </div>
       </div>
 
       <div className="mt-6 flex glass-chip rounded-full p-1">
