@@ -23,7 +23,7 @@ export default function About() {
           <div
             key={direction}
             className="flex w-max whitespace-nowrap"
-            style={{ animation: `${direction} 40s linear infinite` }}
+            style={{ animation: `${direction} 80s linear infinite` }}
           >
             {[0, 1].map((copy) => (
               <span key={copy} className="flex shrink-0">
