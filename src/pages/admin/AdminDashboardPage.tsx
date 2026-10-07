@@ -1,7 +1,19 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { BarChart3, Images, Lock, LogOut, MessageSquareText, Moon, Scissors, Store, Sun } from 'lucide-react'
+import {
+  BarChart3,
+  Images,
+  Lock,
+  LogOut,
+  MessageSquareText,
+  Moon,
+  Scissors,
+  Store,
+  Sun,
+  PanelBottomClose,
+  PanelBottomOpen,
+} from 'lucide-react'
 import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import { DatePicker } from '@/components/ui/date-picker'
@@ -19,7 +31,9 @@ import { ServicePhotos } from '@/pages/admin/ServicePhotos'
 import { SettingsView } from '@/pages/admin/SettingsView'
 import { StatsView } from '@/pages/admin/StatsView'
 import { registerForPushNotifications } from '@/lib/push-notifications'
+import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
 import { useTheme } from '@/lib/theme'
+import { NavVisibilityProvider, useAutoHideNav, useNavForcedHidden, useNavHidden } from '@/customer/nav-visibility'
 import { customerWhatsappUrl } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service, type Testimonial } from '@/lib/types'
 
@@ -1564,9 +1578,21 @@ function PendingView({
   )
 }
 
+/** The admin panel; the provider lets the tab bar slide away on scroll, like in the customer app. */
 export default function AdminDashboardPage() {
+  return (
+    <NavVisibilityProvider>
+      <AdminDashboard />
+    </NavVisibilityProvider>
+  )
+}
+
+function AdminDashboard() {
   const navigate = useNavigate()
   const theme = useTheme()
+  const navHidden = useNavHidden()
+  const menuForcedHidden = useNavForcedHidden()
+  const hideOnScroll = useHideNavOnScrollSetting()
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [adminEmail, setAdminEmail] = useState<string | null>(null)
   const [tab, setTab] = useState<AdminTab>(() => {
@@ -1576,6 +1602,7 @@ export default function AdminDashboardPage() {
       : 'pedidos'
   })
   const [scrolled, setScrolled] = useState(false)
+  useAutoHideNav(hideOnScroll, tab)
 
   const [services, setServices] = useState<Service[]>([])
   const [slots, setSlots] = useState<AvailabilitySlot[]>([])
@@ -1979,6 +2006,11 @@ export default function AdminDashboardPage() {
     { Icon: BarChart3, label: 'Estatísticas', onClick: open('estatisticas') },
     { Icon: Store, label: 'Definições do negócio', onClick: open('definicoes') },
     { Icon: Lock, label: 'Segurança', onClick: open('seguranca') },
+    {
+      Icon: hideOnScroll ? PanelBottomOpen : PanelBottomClose,
+      label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
+      onClick: () => setHideNavOnScroll(!hideOnScroll),
+    },
     {
       Icon: theme.theme === 'dark' ? Sun : Moon,
       label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
@@ -2459,9 +2491,10 @@ export default function AdminDashboardPage() {
 
       {/* Tab bar with the round options button beside it, same as the customer app. */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center gap-2.5 px-3">
-        <div className="pointer-events-auto min-w-0">
+        <div className={`min-w-0 ${navHidden ? 'pointer-events-none' : 'pointer-events-auto'}`}>
           <BottomNavBar
             glass
+            hidden={navHidden}
             value={(MORE_TARGETS.includes(tab as MoreTarget) ? 'mais' : tab) as NavTab}
             onChange={(id) => {
               setTab(id)
@@ -2475,7 +2508,7 @@ export default function AdminDashboardPage() {
             }))}
           />
         </div>
-        <FloatingActionMenu actions={menuActions} dot={pendingTestimonials.length > 0} />
+        <FloatingActionMenu actions={menuActions} dot={pendingTestimonials.length > 0} hidden={menuForcedHidden} />
       </div>
     </div>
   )
