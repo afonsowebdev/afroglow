@@ -5,7 +5,8 @@ import { VerticalImageStack, type StackImage } from '@/components/ui/vertical-im
 
 // The CEO's photos, in the order they appear in the stack. Put the files in public/images/ceo/ and list them here
 // (three or more, portrait photos work best). The placeholders below are replaced by simply listing the real ones.
-const CEO_PHOTOS: string[] = []
+// Test photos (the hero models) until the real ones are listed.
+const CEO_PHOTOS: string[] = ['/images/hero/hero-1.jpg', '/images/hero/hero-2.jpg', '/images/hero/hero-3.jpg']
 const PLACEHOLDERS = ['/images/ceo/placeholder-1.jpg', '/images/ceo/placeholder-2.jpg', '/images/ceo/placeholder-3.jpg']
 const PHOTO_ITEMS: StackImage[] = (CEO_PHOTOS.length ? CEO_PHOTOS : PLACEHOLDERS).map((src, i) => ({
   src,
@@ -72,16 +73,6 @@ export default function CeoPage() {
             <p className="font-subtitle text-[13px] leading-[1.65] text-muted-dark sm:text-sm sm:leading-[1.8]">
               {DESCRIPTION}
             </p>
-            <a
-              href="https://www.instagram.com/rute_pina_/"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Instagram de Rute De Pina"
-              className="flex items-center gap-2 font-subtitle text-sm text-gold-ink transition-colors duration-300 hover:text-onyx"
-            >
-              <i className="bx bxl-instagram text-xl" aria-hidden="true" />
-              @rute_pina_
-            </a>
           </div>
         </div>
       </main>
