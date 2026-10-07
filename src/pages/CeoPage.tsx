@@ -56,7 +56,7 @@ export default function CeoPage() {
         </h1>
 
         <div className="mt-3 grid items-center gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-10">
-          <div className="h-[min(360px,32dvh)] sm:h-[min(600px,62dvh)]">
+          <div className="h-[min(420px,37dvh)] sm:h-[min(680px,64dvh)]">
             <VerticalImageStack images={PHOTO_ITEMS} />
           </div>
 

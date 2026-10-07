@@ -9,10 +9,10 @@ export interface StackImage {
 /** Where a card sits relative to the front one (in card heights, so it works at any size). */
 function cardStyle(diff: number) {
   if (diff === 0) return { y: '0%', scale: 1, opacity: 1, zIndex: 5, rotateX: 0 }
-  if (diff === -1) return { y: '-34%', scale: 0.82, opacity: 0.6, zIndex: 4, rotateX: 8 }
-  if (diff === -2) return { y: '-60%', scale: 0.7, opacity: 0.3, zIndex: 3, rotateX: 15 }
-  if (diff === 1) return { y: '34%', scale: 0.82, opacity: 0.6, zIndex: 4, rotateX: -8 }
-  if (diff === 2) return { y: '60%', scale: 0.7, opacity: 0.3, zIndex: 3, rotateX: -15 }
+  if (diff === -1) return { y: '-28%', scale: 0.82, opacity: 0.6, zIndex: 4, rotateX: 8 }
+  if (diff === -2) return { y: '-50%', scale: 0.7, opacity: 0.3, zIndex: 3, rotateX: 15 }
+  if (diff === 1) return { y: '28%', scale: 0.82, opacity: 0.6, zIndex: 4, rotateX: -8 }
+  if (diff === 2) return { y: '50%', scale: 0.7, opacity: 0.3, zIndex: 3, rotateX: -15 }
   return { y: diff > 0 ? '95%' : '-95%', scale: 0.6, opacity: 0, zIndex: 0, rotateX: diff > 0 ? -20 : 20 }
 }
 
@@ -85,7 +85,7 @@ export function VerticalImageStack({ images }: { images: StackImage[] }) {
           return (
             <motion.div
               key={image.src}
-              className="absolute inset-0 m-auto aspect-[2/3] h-[64%] cursor-grab active:cursor-grabbing"
+              className="absolute inset-0 m-auto aspect-[2/3] h-[76%] cursor-grab active:cursor-grabbing"
               animate={{ y: style.y, scale: style.scale, opacity: style.opacity, rotateX: style.rotateX }}
               transition={{ type: 'spring', stiffness: 300, damping: 30, mass: 1 }}
               drag={isCurrent ? 'y' : false}
