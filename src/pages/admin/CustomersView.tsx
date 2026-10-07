@@ -44,6 +44,7 @@ export function CustomersView({
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [sort, setSort] = useState<'recent' | 'sessions' | 'name'>('recent')
 
   const load = useCallback(async () => {
     try {
@@ -81,6 +82,14 @@ export function CustomersView({
         (c.email ?? '').toLowerCase().includes(q),
     )
   }, [customers, search])
+
+  const sorted = useMemo(() => {
+    const list = [...filtered]
+    if (sort === 'name') return list.sort((a, b) => a.name.localeCompare(b.name, 'pt'))
+    if (sort === 'sessions')
+      return list.sort((a, b) => b.bookingCount - a.bookingCount || a.name.localeCompare(b.name, 'pt'))
+    return list.sort((a, b) => (b.lastBookingAt ?? b.createdAt).localeCompare(a.lastBookingAt ?? a.createdAt))
+  }, [filtered, sort])
 
   const allPicked = filtered.length > 0 && filtered.every((c) => picked.has(c.id))
 
@@ -142,33 +151,35 @@ export function CustomersView({
 
   return (
     <section className="mt-6">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 divide-x divide-onyx/15 rounded-2xl border-[1.5px] border-onyx/25 bg-white py-4">
         {[
-          ['bx bx-user', customers ? String(customers.length) : '–', 'Clientes'],
-          ['bx bx-check-circle', customers ? String(totalSessions) : '–', 'Sessões'],
-          ['bx bx-wallet', customers ? formatPrice(totalSpent).replace(/,00/, '') : '–', 'Total'],
-        ].map(([icon, value, label]) => (
-          <div
-            key={label}
-            className="flex flex-col items-center rounded-2xl border-[1.5px] border-onyx/25 bg-white px-2 pb-3.5 pt-3.5 text-center"
-          >
-            <span className="flex size-8 items-center justify-center rounded-full bg-gold-ink/10 text-base text-gold-ink">
-              <i className={icon} aria-hidden="true" />
-            </span>
-            <p className="mt-2.5 font-subtitle text-lg font-semibold leading-none tracking-tight text-onyx">{value}</p>
+          [customers ? String(customers.length) : '–', 'Clientes'],
+          [customers ? String(totalSessions) : '–', 'Sessões'],
+          [customers ? formatPrice(totalSpent).replace(/,00/, '') : '–', 'Receita'],
+        ].map(([value, label]) => (
+          <div key={label} className="px-2 text-center">
+            <p className="font-subtitle text-xl font-semibold lining-nums leading-none tracking-tight text-onyx">
+              {value}
+            </p>
             <p className="mt-1.5 font-subtitle text-[10px] uppercase tracking-[0.14em] text-muted-dark">{label}</p>
           </div>
         ))}
       </div>
 
-      <div className="mt-5 flex items-center gap-2">
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Pesquisar por nome, telemóvel ou email"
-          aria-label="Pesquisar clientes"
-          className="min-w-0 flex-1 rounded-2xl border-2 border-onyx/30 bg-white px-4 py-3 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/40 focus-visible:border-onyx"
-        />
+      <div className="mt-4 flex items-center gap-2">
+        <div className="relative min-w-0 flex-1">
+          <i
+            className="bx bx-search pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg text-onyx/40"
+            aria-hidden="true"
+          />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Pesquisar cliente"
+            aria-label="Pesquisar clientes"
+            className="w-full rounded-2xl border-2 border-onyx/30 bg-white py-3 pl-11 pr-4 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/40 focus-visible:border-onyx"
+          />
+        </div>
         <button
           type="button"
           onClick={() => (selecting ? stopSelecting() : setSelecting(true))}
@@ -176,6 +187,29 @@ export function CustomersView({
         >
           {selecting ? 'Cancelar' : 'Selecionar'}
         </button>
+      </div>
+
+      <div className="mt-3 flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <span className="shrink-0 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">Ordenar</span>
+        {(
+          [
+            ['recent', 'Mais recentes'],
+            ['sessions', 'Mais sessões'],
+            ['name', 'A–Z'],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={sort === id}
+            onClick={() => setSort(id)}
+            className={`shrink-0 rounded-full px-3.5 py-2 font-subtitle text-xs text-onyx ${
+              sort === id ? 'glass-chip-on font-semibold' : 'glass-chip'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {selecting && (
@@ -223,44 +257,70 @@ export function CustomersView({
       )}
 
       <div className="mt-4 flex flex-col gap-3">
-        {filtered.map((customer) => {
+        {sorted.map((customer) => {
           const isPicked = picked.has(customer.id)
+          const fresh = Date.now() - new Date(customer.createdAt).getTime() < 14 * 86_400_000
+          const badge = !customer.hasAccount ? 'Sem conta' : fresh ? 'Nova' : customer.bookingCount >= 3 ? 'Fiel' : null
           return (
-            <button
+            <div
               key={customer.id}
-              type="button"
-              onClick={() => (selecting ? togglePick(customer.id) : setSelected(customer))}
-              className={`flex items-center gap-4 rounded-2xl border-[1.5px] bg-white p-4 text-left transition-colors ${
+              className={`flex items-stretch overflow-hidden rounded-2xl border-[1.5px] bg-white ${
                 isPicked ? 'border-onyx' : 'border-onyx/25'
               }`}
             >
-              {selecting && (
-                <i
-                  className={`bx ${isPicked ? 'bxs-check-square text-onyx' : 'bx-square text-onyx/40'} shrink-0 text-2xl`}
-                  aria-hidden="true"
-                />
+              <button
+                type="button"
+                onClick={() => (selecting ? togglePick(customer.id) : setSelected(customer))}
+                className="flex min-w-0 flex-1 items-center gap-3.5 p-4 text-left"
+              >
+                {selecting && (
+                  <i
+                    className={`bx ${isPicked ? 'bxs-check-square text-onyx' : 'bx-square text-onyx/40'} shrink-0 text-2xl`}
+                    aria-hidden="true"
+                  />
+                )}
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-xl text-gold-ink">
+                  {customer.name.trim().charAt(0).toUpperCase()}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-2">
+                    <span className="truncate font-subtitle text-base font-semibold tracking-tight text-onyx">
+                      {customer.name}
+                    </span>
+                    {badge && (
+                      <span className="shrink-0 rounded-full bg-onyx/10 px-2 py-0.5 font-subtitle text-[10px] font-medium text-onyx">
+                        {badge}
+                      </span>
+                    )}
+                  </span>
+                  <span className="mt-0.5 block truncate font-subtitle text-xs text-muted-dark">{customer.phone}</span>
+                  <span className="mt-1.5 flex items-center gap-3 font-subtitle text-xs text-onyx">
+                    <span className="font-semibold lining-nums">
+                      {customer.bookingCount} {customer.bookingCount === 1 ? 'sessão' : 'sessões'}
+                    </span>
+                    <span className="text-muted-dark lining-nums">
+                      {formatPrice(customer.spentCents).replace(/,00/, '')}
+                    </span>
+                  </span>
+                  <span className="mt-0.5 block font-subtitle text-[11px] text-muted-dark">
+                    {customer.lastBookingAt
+                      ? `Última marcação: ${formatDate(customer.lastBookingAt)}`
+                      : 'Ainda sem marcações'}
+                  </span>
+                </span>
+              </button>
+              {!selecting && (
+                <a
+                  href={customerWhatsappUrl(customer.phone, `Olá ${customer.name}! `)}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`WhatsApp de ${customer.name}`}
+                  className="flex w-14 shrink-0 items-center justify-center border-l border-onyx/10 bg-onyx/5 text-2xl text-onyx active:opacity-60"
+                >
+                  <i className="bx bxl-whatsapp" aria-hidden="true" />
+                </a>
               )}
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-xl text-gold-ink">
-                {customer.name.trim().charAt(0).toUpperCase()}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-subtitle text-base font-semibold tracking-tight text-onyx">
-                  {customer.name}
-                </span>
-                <span className="block truncate font-subtitle text-xs text-muted-dark">
-                  {customer.phone}
-                  {!customer.hasAccount && ' · sem conta'}
-                </span>
-              </span>
-              <span className="glass-chip shrink-0 rounded-full px-3 py-1.5 text-center">
-                <span className="block font-subtitle text-sm font-semibold leading-none text-onyx">
-                  {customer.bookingCount}
-                </span>
-                <span className="mt-0.5 block font-subtitle text-[9px] uppercase tracking-wide text-muted-dark">
-                  sessões
-                </span>
-              </span>
-            </button>
+            </div>
           )
         })}
       </div>
@@ -297,14 +357,22 @@ export function CustomersView({
               ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <a
                 href={customerWhatsappUrl(selected.phone, `Olá ${selected.name}! `)}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center justify-center gap-2 rounded-full glass-chip py-2.5 font-subtitle text-sm text-onyx"
+                className="glass-chip flex flex-col items-center gap-1 rounded-2xl py-3 font-subtitle text-xs text-onyx"
               >
-                <i className="bx bxl-whatsapp text-lg" aria-hidden="true" /> WhatsApp
+                <i className="bx bxl-whatsapp text-2xl" aria-hidden="true" />
+                WhatsApp
+              </a>
+              <a
+                href={`tel:${selected.phone.replace(/\s/g, '')}`}
+                className="glass-chip flex flex-col items-center gap-1 rounded-2xl py-3 font-subtitle text-xs text-onyx"
+              >
+                <i className="bx bx-phone text-2xl" aria-hidden="true" />
+                Ligar
               </a>
               <button
                 type="button"
@@ -313,9 +381,10 @@ export function CustomersView({
                   setSelected(null)
                   onNewBooking(customer)
                 }}
-                className="flex items-center justify-center gap-2 rounded-full glass-chip py-2.5 font-subtitle text-sm text-onyx"
+                className="glass-chip flex flex-col items-center gap-1 rounded-2xl py-3 font-subtitle text-xs text-onyx"
               >
-                <i className="bx bx-calendar-plus text-lg" aria-hidden="true" /> Nova marcação
+                <i className="bx bx-calendar-plus text-2xl" aria-hidden="true" />
+                Marcar
               </button>
             </div>
 
@@ -343,7 +412,19 @@ export function CustomersView({
                       <p className="truncate font-subtitle text-sm text-onyx">{b.service.name}</p>
                       <p className="font-subtitle text-xs text-muted-dark">{formatDateTime(b.slot.startsAt)}</p>
                     </div>
-                    <span className="shrink-0 font-subtitle text-xs text-muted-dark">{STATUS_LABEL[b.status]}</span>
+                    <span className={`flex shrink-0 items-center gap-1.5 font-subtitle text-xs text-muted-dark`}>
+                      <span
+                        className={`size-2 rounded-full ${
+                          b.status === 'ACCEPTED'
+                            ? 'bg-emerald-500'
+                            : b.status === 'PENDING'
+                              ? 'bg-amber-500'
+                              : 'bg-red-600'
+                        }`}
+                        aria-hidden="true"
+                      />
+                      {STATUS_LABEL[b.status]}
+                    </span>
                   </div>
                 ))}
               </div>
