@@ -9,7 +9,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        // The app uses scenes, so applicationDidBecomeActive is not called: listen for the notification instead.
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main
+        ) { _ in
+            AppDelegate.clearNotifications()
+        }
         return true
+    }
+
+    /// Opening the app counts as having seen the notifications: zero the number on the icon and remove the banners.
+    static func clearNotifications() {
+        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+        if #available(iOS 16.0, *) {
+            UNUserNotificationCenter.current().setBadgeCount(0)
+        } else {
+            UIApplication.shared.applicationIconBadgeNumber = 0
+        }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
