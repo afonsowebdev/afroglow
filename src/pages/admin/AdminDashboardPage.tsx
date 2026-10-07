@@ -108,8 +108,8 @@ const TABS: Array<{ id: NavTab; label: string; icon: string }> = [
 type SlotFilter = 'all' | 'free' | 'taken'
 
 /**
- * The month's times, one folding card per day. The pills are the first version's (time, state, ×) with a dot:
- * green when the time is free, red when it is taken. A filter shows everything, only the free times or only the taken.
+ * The month's times, one folding card per day, in the second version's layout (date column on the left, one row per
+ * time). Green dot when the time is free, red when taken; a filter shows everything, only the free or only the taken.
  */
 function SlotsGroups({
   slotsByDate,
@@ -192,64 +192,81 @@ function SlotsGroups({
           return (
             <section
               key={key}
-              className={`overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white ${
+              className={`flex overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white ${
                 key < todayKey ? 'opacity-55' : ''
               }`}
             >
               <button
                 type="button"
                 aria-expanded={isOpen}
+                aria-label={`${parts.weekday} ${parts.day} ${parts.month}`}
                 onClick={() => toggle(key)}
-                className="flex w-full items-center gap-3 px-4 py-4 text-left"
+                className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-onyx/10 bg-onyx/5 py-4 text-center"
               >
-                <span className="min-w-0 flex-1">
-                  <span className="block font-subtitle text-base font-semibold tracking-tight text-onyx first-letter:uppercase">
-                    {heading.sub ? `${heading.title} · ${parts.day} ${parts.month}` : heading.title}
+                <span className="font-subtitle text-[11px] font-medium uppercase tracking-wide text-muted-dark">
+                  {parts.weekday.slice(0, 3)}
+                </span>
+                <span
+                  className={`font-subtitle text-2xl font-semibold lining-nums leading-none tracking-tight ${
+                    key === todayKey ? 'text-gold-ink' : 'text-onyx'
+                  }`}
+                >
+                  {parts.day}
+                </span>
+                <span className="mt-0.5 font-subtitle text-[11px] uppercase text-muted-dark">{parts.month}</span>
+                {heading.sub && (
+                  <span className="mt-2 rounded-full bg-onyx/10 px-2 py-0.5 font-subtitle text-[10px] font-medium text-onyx">
+                    {heading.title}
                   </span>
-                  <span className="mt-1.5 flex items-center gap-4 font-subtitle text-xs text-muted-dark">
-                    <span className="flex items-center gap-1.5">
-                      <span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />
+                )}
+              </button>
+
+              <div className="min-w-0 flex-1">
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  onClick={() => toggle(key)}
+                  className="flex w-full items-center gap-3 px-4 py-4 text-left"
+                >
+                  <span className="flex flex-1 flex-col gap-1.5 font-subtitle text-sm text-onyx">
+                    <span className="flex items-center gap-2">
+                      <span className="size-2.5 rounded-full bg-emerald-500" aria-hidden="true" />
                       {free} {free === 1 ? 'livre' : 'livres'}
                     </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="size-2 rounded-full bg-red-600" aria-hidden="true" />
+                    <span className="flex items-center gap-2">
+                      <span className="size-2.5 rounded-full bg-red-600" aria-hidden="true" />
                       {taken} {taken === 1 ? 'ocupado' : 'ocupados'}
                     </span>
                   </span>
-                </span>
-                <i
-                  className={`bx bx-chevron-down text-2xl text-muted-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
-                  aria-hidden="true"
-                />
-              </button>
+                  <i
+                    className={`bx bx-chevron-down text-2xl text-muted-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+                    aria-hidden="true"
+                  />
+                </button>
 
-              <AnimatePresence initial={false}>
-                {isOpen && (
-                  <motion.div
-                    key="times"
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.22, ease: 'easeInOut' }}
-                    className="overflow-hidden"
-                  >
-                    <div className="flex flex-wrap gap-2.5 border-t border-onyx/10 px-4 pb-4 pt-4">
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.ul
+                      key="times"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.22, ease: 'easeInOut' }}
+                      className="divide-y divide-onyx/10 overflow-hidden border-t border-onyx/10"
+                    >
                       {list.filter(keep).map((slot) => {
                         const isFree = slot.status === 'OPEN'
                         const time = dateParts(slot.startsAt).time
                         return (
-                          <div
-                            key={slot.id}
-                            className={`glass-chip flex h-11 items-center gap-2 rounded-full pl-4 font-subtitle text-sm text-onyx ${
-                              isFree ? 'pr-1.5' : 'pr-4'
-                            }`}
-                          >
+                          <li key={slot.id} className="flex h-12 items-center gap-3 px-4">
                             <span
                               className={`size-2.5 shrink-0 rounded-full ${isFree ? 'bg-emerald-500' : 'bg-red-600'}`}
                               aria-hidden="true"
                             />
-                            <span className="font-semibold lining-nums tracking-tight">{time}</span>
-                            <span className="text-xs text-muted-dark">
+                            <span className="w-12 font-subtitle text-base font-semibold lining-nums tracking-tight text-onyx">
+                              {time}
+                            </span>
+                            <span className="flex-1 truncate font-subtitle text-sm text-muted-dark">
                               {isFree ? 'Livre' : SLOT_STATUS_LABEL[slot.status]}
                             </span>
                             {isFree && (
@@ -260,16 +277,16 @@ function SlotsGroups({
                                 aria-label={`Remover a vaga das ${time} de ${parts.day} de ${parts.month}`}
                                 className="flex size-8 items-center justify-center rounded-full text-lg text-muted-dark active:bg-red-700/10 active:text-red-700 disabled:opacity-40"
                               >
-                                <i className="bx bx-x" aria-hidden="true" />
+                                <i className="bx bx-trash" aria-hidden="true" />
                               </button>
                             )}
-                          </div>
+                          </li>
                         )
                       })}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    </motion.ul>
+                  )}
+                </AnimatePresence>
+              </div>
             </section>
           )
         })}
