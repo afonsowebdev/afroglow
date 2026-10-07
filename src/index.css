@@ -249,3 +249,27 @@
 .app-neutral label {
   min-width: 0;
 }
+
+/* About section: the brand name slides across the background, one row each way. Each row holds two identical halves,
+   so moving by half its width loops without a jump. */
+@keyframes marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [style*='marquee-'] {
+    animation: none !important;
+  }
+}
