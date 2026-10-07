@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom'
 import { BrandMarquee } from '@/components/ui/brand-marquee'
 import { TeamMemberCard } from '@/components/ui/team-member-card'
 
+// Example: ['/images/ceo/ceo-1.jpg', '/images/ceo/ceo-2.jpg', '/images/ceo/ceo-3.jpg']
+const CEO_PHOTOS: string[] = []
+
 export default function CeoPage() {
   const [scrolled, setScrolled] = useState(false)
 
@@ -50,6 +53,8 @@ export default function CeoPage() {
           firstName="Rute"
           lastName="De Pina"
           description="Rute De Pina fundou a AFROGLOW para preservar e celebrar a arte das tranças afro. Com técnica apurada e um cuidado próximo com cada cliente, transformou a paixão por este ofício num espaço onde tradição e identidade se encontram."
+          // Put the CEO's photos in public/images/ceo/ and list them here (three or more); they change by themselves.
+          photos={CEO_PHOTOS}
           instagramUrl="https://www.instagram.com/rute_pina_/"
         />
       </main>

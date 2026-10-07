@@ -1,4 +1,5 @@
-import { motion } from 'motion/react'
+import { useEffect, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { cn } from '@/lib/utils'
 
 interface TeamMemberCardProps {
@@ -8,8 +9,13 @@ interface TeamMemberCardProps {
   lastName?: string
   description?: string
   instagramUrl?: string
+  /** Portrait photos (URLs). They take turns with a soft cross-fade; with none, a placeholder is shown. */
+  photos?: string[]
   className?: string
 }
+
+const PLACEHOLDER_TINTS = ['from-[#f5efdf] to-[#cfc6b3]', 'from-[#efe3cc] to-[#c8b99a]', 'from-[#f1e8d8] to-[#bfae92]']
+const SLIDE_SECONDS = 4.5
 
 /**
  * Editorial-style team member card with an overlapping placeholder portrait,
@@ -22,10 +28,22 @@ export function TeamMemberCard({
   lastName = 'Apelido',
   description = '',
   instagramUrl,
+  photos = [],
   className,
 }: TeamMemberCardProps) {
   const fullName = `${firstName} ${lastName}`
   const isPositionRight = position === 'right'
+  const reduceMotion = useReducedMotion()
+  // With no photos yet, three placeholder slides show how the change will look.
+  const slideCount = Math.max(photos.length, 3)
+  const [current, setCurrent] = useState(0)
+  const [paused, setPaused] = useState(false)
+
+  useEffect(() => {
+    if (reduceMotion || paused || slideCount < 2) return
+    const timer = window.setInterval(() => setCurrent((i) => (i + 1) % slideCount), SLIDE_SECONDS * 1000)
+    return () => window.clearInterval(timer)
+  }, [reduceMotion, paused, slideCount])
 
   return (
     <motion.div
@@ -56,14 +74,48 @@ export function TeamMemberCard({
           transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
           role="img"
           aria-label={fullName}
+          onPointerEnter={() => setPaused(true)}
+          onPointerLeave={() => setPaused(false)}
+          onClick={() => setCurrent((i) => (i + 1) % slideCount)}
           className={cn(
-            'relative h-[min(360px,25dvh)] w-full max-w-[320px] shrink-0 overflow-hidden rounded-2xl bg-cream sm:h-[min(480px,52dvh)] sm:w-[340px]',
+            'relative h-[min(420px,26dvh)] w-full max-w-[360px] shrink-0 cursor-pointer overflow-hidden rounded-2xl bg-cream sm:h-[min(560px,55dvh)] sm:w-[380px]',
             isPositionRight && 'sm:order-1',
           )}
         >
-          <div className="pointer-events-none absolute inset-0 z-10 bg-linear-to-t from-onyx/20 via-transparent to-transparent" />
-          <div className="flex h-full w-full items-center justify-center">
-            <i className="bx bx-user text-8xl text-onyx/15" aria-hidden="true" />
+          <AnimatePresence initial={false}>
+            <motion.div
+              key={current}
+              initial={{ opacity: 0, scale: 1.08 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-0"
+            >
+              {photos[current] ? (
+                <img src={photos[current]} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <div
+                  className={cn(
+                    'flex h-full w-full items-center justify-center bg-linear-to-b',
+                    PLACEHOLDER_TINTS[current % PLACEHOLDER_TINTS.length],
+                  )}
+                >
+                  <i className="bx bx-user text-8xl text-onyx/15" aria-hidden="true" />
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+          <div className="pointer-events-none absolute inset-0 z-10 bg-linear-to-t from-onyx/25 via-transparent to-transparent" />
+          <div className="absolute inset-x-0 bottom-3 z-20 flex justify-center gap-1.5" aria-hidden="true">
+            {Array.from({ length: slideCount }, (_, i) => (
+              <span
+                key={i}
+                className={cn(
+                  'h-1.5 rounded-full transition-all duration-500',
+                  i === current ? 'w-6 bg-[#ffffff]' : 'w-1.5 bg-[#ffffff]/60',
+                )}
+              />
+            ))}
           </div>
         </motion.div>
 
@@ -72,7 +124,7 @@ export function TeamMemberCard({
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           className={cn(
-            'relative z-10 flex w-full flex-col items-center gap-5 sm:w-[calc(100%-350px)] sm:-left-8 sm:items-start sm:gap-[min(3.5rem,5dvh)]',
+            'relative z-10 flex w-full flex-col items-center gap-5 sm:w-[calc(100%-390px)] sm:-left-8 sm:items-start sm:gap-[min(3.5rem,5dvh)]',
             isPositionRight && 'sm:left-8 sm:items-end',
           )}
         >
