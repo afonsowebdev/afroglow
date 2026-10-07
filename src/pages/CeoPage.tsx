@@ -67,9 +67,23 @@ export default function CeoPage() {
               <br />
               De Pina
             </p>
-            <p className="font-subtitle text-[13px] leading-[1.65] text-muted-dark sm:text-sm sm:leading-[1.8]">
-              {DESCRIPTION}
-            </p>
+            <div className="flex items-start gap-5 sm:gap-8">
+              <a
+                href="https://www.instagram.com/rute_pina_/"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Instagram de Rute De Pina"
+                className="group flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full border border-onyx/20 transition-all duration-300 hover:scale-110 hover:border-onyx hover:bg-onyx active:scale-95 sm:h-16 sm:w-16"
+              >
+                <i
+                  className="bx bx-right-arrow-alt text-xl text-onyx/60 transition-all duration-300 group-hover:-rotate-45 group-hover:text-cream sm:text-2xl"
+                  aria-hidden="true"
+                />
+              </a>
+              <p className="font-subtitle text-[13px] leading-[1.65] text-muted-dark sm:text-sm sm:leading-[1.8]">
+                {DESCRIPTION}
+              </p>
+            </div>
           </div>
         </div>
       </main>
