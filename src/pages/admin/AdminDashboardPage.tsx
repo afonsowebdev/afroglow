@@ -105,6 +105,90 @@ const TABS: Array<{ id: NavTab; label: string; icon: string }> = [
   { id: 'clientes', label: 'Clientes', icon: 'bx bx-user' },
 ]
 
+/** Step 2 of "Criar horários": the times of the day in three groups, with one-tap presets. */
+function TimePicker({
+  enabled,
+  chosen,
+  taken,
+  onChange,
+}: {
+  enabled: boolean
+  chosen: string[]
+  taken: Set<string>
+  onChange: (times: string[]) => void
+}) {
+  const groups = [
+    { label: 'Manhã', times: SLOT_TIMES.filter((t) => t < '13:00') },
+    { label: 'Tarde', times: SLOT_TIMES.filter((t) => t >= '13:00' && t < '18:00') },
+    { label: 'Fim do dia', times: SLOT_TIMES.filter((t) => t >= '18:00') },
+  ]
+  const add = (times: string[]) => onChange([...new Set([...chosen, ...times.filter((t) => !taken.has(t))])].sort())
+  const presets = [
+    { label: 'Rotina 8h + 14h', run: () => onChange(['08:00', '14:00'].filter((t) => !taken.has(t))) },
+    { label: 'Manhã', run: () => add(groups[0].times) },
+    { label: 'Tarde', run: () => add(groups[1].times) },
+  ]
+
+  return (
+    <div className={enabled ? '' : 'opacity-50'}>
+      <div className="flex flex-wrap gap-2">
+        {presets.map((preset) => (
+          <button
+            key={preset.label}
+            type="button"
+            disabled={!enabled}
+            onClick={preset.run}
+            className="glass-chip rounded-full px-3.5 py-2 font-subtitle text-xs font-medium text-onyx disabled:cursor-not-allowed"
+          >
+            {preset.label}
+          </button>
+        ))}
+        <button
+          type="button"
+          disabled={!enabled || chosen.length === 0}
+          onClick={() => onChange([])}
+          className="rounded-full px-3 py-2 font-subtitle text-xs text-muted-dark underline underline-offset-4 disabled:opacity-40"
+        >
+          Limpar
+        </button>
+      </div>
+
+      {groups.map((group) => (
+        <div key={group.label} className="mt-4">
+          <p className="mb-2 font-subtitle text-[11px] font-medium uppercase tracking-wide text-muted-dark">
+            {group.label}
+          </p>
+          <div className="grid grid-cols-4 gap-2">
+            {group.times.map((time) => {
+              const isTaken = taken.has(time)
+              const on = chosen.includes(time)
+              return (
+                <button
+                  key={time}
+                  type="button"
+                  disabled={isTaken || !enabled}
+                  aria-pressed={on}
+                  onClick={() => onChange(on ? chosen.filter((t) => t !== time) : [...chosen, time].sort())}
+                  title={isTaken ? 'Já existe uma vaga a esta hora' : undefined}
+                  className={`h-11 rounded-xl font-subtitle text-sm lining-nums disabled:cursor-not-allowed ${
+                    on
+                      ? 'glass-chip-on font-semibold text-onyx'
+                      : isTaken
+                        ? 'text-onyx/30 line-through'
+                        : 'glass-chip text-onyx'
+                  } ${isTaken ? 'bg-onyx/5' : ''}`}
+                >
+                  {time}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 /**
  * The month's times as a day view: a strip with every day of the month (a coloured bar tells at a glance whether the
  * day has free times, is full or is closed), and the chosen day's times below as large tiles with the client's name.
@@ -148,8 +232,27 @@ function SlotsDayView({
   const heading = list[0] ? dayHeading(list[0].startsAt) : null
   const parts = list[0] ? dateParts(list[0].startsAt) : null
 
+  const monthName = new Date(viewMonth.year, viewMonth.month - 1, 1).toLocaleDateString('pt-PT', { month: 'long' })
+
   return (
     <div className="mt-6">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 font-subtitle text-base font-semibold tracking-tight text-onyx">
+          <i className="bx bx-calendar text-xl text-gold-ink" aria-hidden="true" />
+          <span className="first-letter:uppercase">
+            Calendário de {monthName} {viewMonth.year}
+          </span>
+        </h2>
+        {selected !== todayKey && byKey.has(todayKey) && (
+          <button
+            type="button"
+            onClick={() => setSelected(todayKey)}
+            className="shrink-0 font-subtitle text-xs font-medium text-onyx underline underline-offset-4"
+          >
+            Ir para hoje
+          </button>
+        )}
+      </div>
       <div
         role="tablist"
         aria-label="Dia"
@@ -2126,86 +2229,61 @@ export default function AdminDashboardPage() {
                         transition={{ duration: 0.25, ease: 'easeInOut' }}
                         className="overflow-hidden"
                       >
-                        <div className="mt-4">
-                          <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                            Dia
-                          </span>
+                        <div className="mt-4 rounded-2xl bg-onyx/5 p-4">
+                          <p className="mb-3 flex items-center gap-2 font-subtitle text-sm font-semibold text-onyx">
+                            <span className="flex size-6 items-center justify-center rounded-full bg-onyx text-xs text-white">
+                              1
+                            </span>
+                            Escolhe o dia
+                          </p>
                           <DatePicker value={newDate} onChange={setNewDate} />
-                        </div>
-
-                        <div className="mt-5">
-                          <div className="mb-2 flex items-center justify-between">
-                            <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Horas</span>
-                            <div className="flex items-center gap-1">
-                              {[
-                                { label: 'Manhã', times: SLOT_TIMES.filter((t) => t >= '09:00' && t <= '12:30') },
-                                { label: 'Tarde', times: SLOT_TIMES.filter((t) => t >= '14:00' && t <= '18:00') },
-                              ].map((preset) => (
-                                <button
-                                  key={preset.label}
-                                  type="button"
-                                  onClick={() =>
-                                    setBatchTimes(
-                                      [
-                                        ...new Set([...batchTimes, ...preset.times.filter((t) => !takenTimes.has(t))]),
-                                      ].sort(),
-                                    )
-                                  }
-                                  className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-onyx/5 hover:text-onyx"
-                                >
-                                  {preset.label}
-                                </button>
-                              ))}
-                              <button
-                                type="button"
-                                onClick={() => setBatchTimes([])}
-                                disabled={batchTimes.length === 0}
-                                className="rounded-full px-3 py-1 font-subtitle text-xs text-onyx/70 transition-colors hover:bg-onyx/5 hover:text-onyx disabled:opacity-30"
-                              >
-                                Limpar
-                              </button>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-                            {SLOT_TIMES.map((time) => {
-                              const taken = takenTimes.has(time)
-                              const selected = batchTimes.includes(time)
+                          <div className="mt-3 flex gap-2">
+                            {[
+                              ['Hoje', 0],
+                              ['Amanhã', 1],
+                            ].map(([label, offset]) => {
+                              const d = new Date()
+                              d.setDate(d.getDate() + Number(offset))
+                              const value = dateKey(d.toISOString())
                               return (
                                 <button
-                                  key={time}
+                                  key={label}
                                   type="button"
-                                  disabled={taken || !newDate}
-                                  onClick={() =>
-                                    setBatchTimes(
-                                      selected ? batchTimes.filter((t) => t !== time) : [...batchTimes, time].sort(),
-                                    )
-                                  }
-                                  title={taken ? 'Já existe uma vaga a esta hora' : undefined}
-                                  className={`rounded-full border py-2 font-subtitle text-sm transition-colors ${
-                                    selected
-                                      ? 'glass-chip-on text-onyx'
-                                      : taken
-                                        ? 'glass-chip text-onyx/30 line-through'
-                                        : 'glass-chip text-onyx'
-                                  } disabled:cursor-not-allowed`}
+                                  onClick={() => setNewDate(value)}
+                                  className={`rounded-full px-3.5 py-2 font-subtitle text-xs font-medium text-onyx ${
+                                    newDate === value ? 'glass-chip-on' : 'glass-chip'
+                                  }`}
                                 >
-                                  {time}
+                                  {label}
                                 </button>
                               )
                             })}
                           </div>
+                        </div>
+
+                        <div className="mt-3 rounded-2xl bg-onyx/5 p-4">
+                          <p className="mb-3 flex items-center gap-2 font-subtitle text-sm font-semibold text-onyx">
+                            <span className="flex size-6 items-center justify-center rounded-full bg-onyx text-xs text-white">
+                              2
+                            </span>
+                            Escolhe as horas
+                          </p>
+                          <TimePicker
+                            enabled={Boolean(newDate)}
+                            chosen={batchTimes}
+                            taken={takenTimes}
+                            onChange={setBatchTimes}
+                          />
                           {!newDate && (
-                            <p className="mt-2 font-subtitle text-xs text-muted-dark">
+                            <p className="mt-3 font-subtitle text-xs text-muted-dark">
                               Escolhe primeiro o dia para ativar as horas.
                             </p>
                           )}
                         </div>
 
                         <div className="mt-5 flex items-center justify-between gap-3 border-t border-onyx/10 pt-4">
-                          <span className="font-subtitle text-sm text-muted-dark">
-                            {batchTimes.length === 0
-                              ? 'Nenhuma hora selecionada'
-                              : `${batchTimes.length} ${batchTimes.length === 1 ? 'hora selecionada' : 'horas selecionadas'}`}
+                          <span className="min-w-0 font-subtitle text-sm text-muted-dark">
+                            {batchTimes.length === 0 ? 'Nenhuma hora selecionada' : batchTimes.join(' · ')}
                           </span>
                           <MotionButton
                             label={
