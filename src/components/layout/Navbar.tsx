@@ -63,7 +63,7 @@ function OptionsMenu() {
     },
     { Icon: CalendarPlus, label: 'Agendar', onClick: () => navigate('/agendar') },
     { Icon: Sparkles, label: 'Conhecer a CEO', onClick: () => navigate('/ceo') },
-    ...(customer ? [{ Icon: LogOut, label: 'Terminar sessão', onClick: () => void logout() }] : []),
+    ...(customer ? [{ Icon: LogOut, label: 'Terminar sessão', danger: true, onClick: () => void logout() }] : []),
   ]
   return <FloatingActionMenu actions={actions} direction="down" compact />
 }

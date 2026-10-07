@@ -189,6 +189,7 @@ function CustomerShell() {
           {
             Icon: LogOut,
             label: 'Terminar sessão',
+            danger: true,
             onClick: () => {
               void logout().then(() => navigate('/'))
             },

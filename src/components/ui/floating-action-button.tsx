@@ -139,6 +139,8 @@ export interface MenuAction {
   /** Icon-font class for brand logos lucide doesn't ship (e.g. WhatsApp). */
   iconClass?: string
   label: string
+  /** Sign-out style action: the name is shown in red. */
+  danger?: boolean
   /** A small red count on the label (e.g. items waiting for a decision). */
   badge?: number
   onClick?: () => void
@@ -170,6 +172,9 @@ export function FloatingActionMenu({
 }) {
   const [open, setOpen] = useState(false)
   const close = () => setOpen(false)
+  // A to Z, read from top to bottom. A column that opens upward is built from the bottom, so it is reversed.
+  const alphabetical = [...actions].sort((a, b) => a.label.localeCompare(b.label, 'pt'))
+  const ordered = direction === 'up' ? alphabetical.reverse() : alphabetical
 
   return (
     <>
@@ -196,7 +201,7 @@ export function FloatingActionMenu({
             direction === 'up' ? 'bottom-full mb-3 flex-col-reverse' : 'top-full mt-3 flex-col',
           )}
         >
-          {actions.map(({ Icon, iconClass, label, badge, onClick, href }, index) => {
+          {ordered.map(({ Icon, iconClass, label, danger, badge, onClick, href }, index) => {
             const glyph = Icon ? (
               <Icon size={20} className="text-onyx" />
             ) : (
@@ -223,8 +228,13 @@ export function FloatingActionMenu({
                 }}
                 transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4, delay: open ? index * 0.05 : 0 }}
               >
-                <span className="flex items-center gap-2 whitespace-nowrap rounded-full border border-onyx/10 bg-white px-3.5 py-1.5 font-subtitle text-xs font-medium text-onyx shadow-md shadow-black/10">
-                  {label}
+                <span
+                  className={cn(
+                    'flex w-48 items-center justify-between gap-2 whitespace-nowrap rounded-full border border-onyx/10 bg-white px-4 py-2 text-left font-subtitle text-xs font-medium shadow-md shadow-black/10',
+                    danger ? 'text-red-700' : 'text-onyx',
+                  )}
+                >
+                  <span className="truncate">{label}</span>
                   {badge ? (
                     <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none text-[#ffffff]">
                       {badge}

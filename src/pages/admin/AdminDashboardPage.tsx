@@ -2026,7 +2026,7 @@ function AdminDashboard() {
       label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
       onClick: theme.toggleTheme,
     },
-    { Icon: LogOut, label: 'Sair', onClick: () => void handleLogout() },
+    { Icon: LogOut, label: 'Sair', danger: true, onClick: () => void handleLogout() },
   ]
 
   if (checkingAuth) {
