@@ -21,6 +21,8 @@ model PushToken {
   adminId   String
   admin     Admin    @relation(fields: [adminId], references: [id])
   token     String   @unique
+  // Notifications sent to this iPhone that it has not opened yet: shown on the app icon, zeroed when the app opens.
+  badge     Int      @default(0)
   createdAt DateTime @default(now())
 }
 
@@ -140,6 +142,8 @@ model CustomerPushToken {
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   token      String   @unique
+  // Notifications sent to this iPhone that it has not opened yet (see PushToken.badge).
+  badge      Int      @default(0)
   createdAt  DateTime @default(now())
 
   @@index([customerId])

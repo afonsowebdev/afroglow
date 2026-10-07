@@ -87,15 +87,13 @@ async function sendToToken(
   body: string,
   topic: string = ADMIN_BUNDLE_ID,
   data: Record<string, string> = {},
+  badge = 1,
 ): Promise<{ token: string; status: number }> {
   const providerToken = getProviderToken()
   if (!providerToken) return { token: deviceToken, status: 0 }
 
-  // Only the admin app counts unread requests on its icon; customers get plain banners.
-  const aps =
-    topic === ADMIN_BUNDLE_ID
-      ? { alert: { title, body }, sound: 'default', badge: 1 }
-      : { alert: { title, body }, sound: 'default' }
+  // The number on the app icon: notifications this iPhone has received and not opened yet.
+  const aps = { alert: { title, body }, sound: 'default', badge }
   const payload = { aps, ...data }
   let result = await sendOnce(apnsHost, deviceToken, topic, providerToken, payload)
   // A token from the other environment (Xcode vs App Store build) is "BadDeviceToken" here: try the other host.
@@ -148,7 +146,10 @@ export async function sendBookingPushNotification(booking: { customerName: strin
     if (tokens.length === 0) return
 
     const results = await Promise.all(
-      tokens.map((t) => sendToToken(t.token, 'Nova marcação', `${booking.customerName} pediu ${booking.serviceName}`)),
+      tokens.map(async (t) => {
+        const { badge } = await prisma.pushToken.update({ where: { id: t.id }, data: { badge: { increment: 1 } } })
+        return sendToToken(t.token, 'Nova marcação', `${booking.customerName} pediu ${booking.serviceName}`, ADMIN_BUNDLE_ID, {}, badge)
+      }),
     )
 
     // 410 = device unregistered (app uninstalled, token expired) — Apple's
@@ -168,7 +169,12 @@ export async function sendCustomerPush(customerId: string, title: string, body: 
   try {
     const tokens = await prisma.customerPushToken.findMany({ where: { customerId } })
     if (tokens.length === 0) return
-    const results = await Promise.all(tokens.map((t) => sendToToken(t.token, title, body, CUSTOMER_BUNDLE_ID, data)))
+    const results = await Promise.all(
+      tokens.map(async (t) => {
+        const { badge } = await prisma.customerPushToken.update({ where: { id: t.id }, data: { badge: { increment: 1 } } })
+        return sendToToken(t.token, title, body, CUSTOMER_BUNDLE_ID, data, badge)
+      }),
+    )
     const dead = results.filter((r) => r.status === 410).map((r) => r.token)
     if (dead.length > 0) await prisma.customerPushToken.deleteMany({ where: { token: { in: dead } } })
   } catch (error) {

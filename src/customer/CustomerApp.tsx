@@ -5,6 +5,7 @@ import { Bell, BellOff, LogOut, Moon, PanelBottomClose, PanelBottomOpen, Setting
 import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import AccountAuthPage from '@/pages/AccountAuthPage'
+import { api } from '@/lib/api'
 import { clearAvatar, loadAvatar, useAvatar } from '@/lib/avatar-store'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import {
@@ -89,6 +90,17 @@ function CustomerShell() {
   useEffect(() => {
     if (customer && pushWanted()) void enableCustomerPush()
   }, [customer])
+
+  // Opening (or coming back to) the app means the notifications were seen: the server zeroes the number on the icon.
+  useEffect(() => {
+    if (!customer) return
+    const seen = () => {
+      if (document.visibilityState === 'visible') void api.post('/account/push-token/seen').catch(() => {})
+    }
+    seen()
+    document.addEventListener('visibilitychange', seen)
+    return () => document.removeEventListener('visibilitychange', seen)
+  }, [customer?.id])
 
   // Tapping a notification opens the bookings tab.
   useEffect(() => {

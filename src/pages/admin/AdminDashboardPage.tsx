@@ -1604,6 +1604,16 @@ function AdminDashboard() {
   const [scrolled, setScrolled] = useState(false)
   useAutoHideNav(hideOnScroll, tab)
 
+  // Opening (or coming back to) the app means the notifications were seen: the server zeroes the number on the icon.
+  useEffect(() => {
+    const seen = () => {
+      if (document.visibilityState === 'visible') void api.post('/admin/push-token/seen').catch(() => {})
+    }
+    seen()
+    document.addEventListener('visibilitychange', seen)
+    return () => document.removeEventListener('visibilitychange', seen)
+  }, [])
+
   const [services, setServices] = useState<Service[]>([])
   const [slots, setSlots] = useState<AvailabilitySlot[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])

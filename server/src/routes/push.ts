@@ -34,3 +34,9 @@ pushRouter.post('/', async (req, res) => {
     res.status(500).json({ error: 'Erro ao registar o token.' })
   }
 })
+
+// The app was opened: nothing is unread any more, so the number on its icon goes back to zero.
+pushRouter.post('/seen', async (req, res) => {
+  await prisma.pushToken.updateMany({ where: { adminId: req.adminId! }, data: { badge: 0 } })
+  res.status(204).end()
+})

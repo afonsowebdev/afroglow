@@ -259,6 +259,10 @@ accountRouter.post('/push-token', requireCustomer, async (req, res) => {
 })
 
 // Turning notifications off in the app (or logging out) forgets this device.
+accountRouter.post('/push-token/seen', requireCustomer, async (req, res) => {
+  await prisma.customerPushToken.updateMany({ where: { customerId: req.customerId! }, data: { badge: 0 } })
+  res.status(204).end()
+})
 accountRouter.delete('/push-token', requireCustomer, async (req, res) => {
   const parsed = customerPushTokenSchema.safeParse(req.body)
   if (parsed.success) {
