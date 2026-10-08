@@ -31,7 +31,7 @@ const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
 }))
 
 // The customer iPhone app plays one pre-edited file in portrait (the AFROGLOW models taking turns), the same in both
-// themes: each clip plays for a few seconds before a soft sliding wipe hands over to the next, also at the loop point,
+// themes: each clip plays for a few seconds before a soft dissolve hands over to the next, also at the loop point,
 // so the native loop shows no seam. It travels inside the app.
 const APP_CLIPS: Clip[] = [
   { sd: '/videos/hero-app-portrait.mp4', hd: '/videos/hero-app-portrait.mp4', app: '/videos/hero-app-portrait.mp4' },
@@ -57,7 +57,7 @@ const POSTER_BY_TONE = isApp
 
 // Normal playback speed (1 = real time). Lower it for a calmer, slow-motion feel.
 // The app's loop is played a little slower, for a calmer feel; the website at normal speed.
-const playbackRateFor = (_tone: 'dark' | 'light') => (isApp ? 0.8 : 1)
+const playbackRateFor = (_tone: 'dark' | 'light') => (isApp ? 0.7 : 1)
 
 // The next clip starts this long before the current one ends, and the two
 // crossfade over the same window, so playback is continuous: no frozen last
