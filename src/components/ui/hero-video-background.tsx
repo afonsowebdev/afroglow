@@ -30,15 +30,12 @@ const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
   app: `/videos/hero-light-${n}-app.mp4?v=1`,
 }))
 
-// The customer iPhone app plays one pre-edited file per theme in portrait (the AFROGLOW models taking turns):
-// each clip plays for a few seconds before a soft sliding wipe hands over to the next, also at the loop point, so the
-// native loop shows no seam. It travels inside the app.
-const appClip = (file: string): Clip[] => [{ sd: file, hd: file, app: file }]
-const APP_CLIPS_BY_TONE = {
-  dark: appClip('/videos/hero-app-portrait.mp4'),
-  // Light theme: three other takes of the models, same wipe and seamless loop.
-  light: appClip('/videos/hero-app-portrait-light.mp4'),
-} as const
+// The customer iPhone app plays one pre-edited file in portrait (the AFROGLOW models taking turns), the same in both
+// themes: each clip plays for a few seconds before a soft sliding wipe hands over to the next, also at the loop point,
+// so the native loop shows no seam. It travels inside the app.
+const APP_CLIPS: Clip[] = [
+  { sd: '/videos/hero-app-portrait.mp4', hd: '/videos/hero-app-portrait.mp4', app: '/videos/hero-app-portrait.mp4' },
+]
 
 // Smallest file that still looks sharp on the visitor's screen: 720p on phones and
 // when data saving is on, 4K only on large/high-density screens, 1080p otherwise.
@@ -92,7 +89,7 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
   // Resolved once per mount; the Hero remounts this component when the theme changes.
   const [videos] = useState(() => {
     // In the app each theme plays its own edited loop, which travels inside it (no download, starts at once).
-    const clips = isApp ? APP_CLIPS_BY_TONE[tone] : tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
+    const clips = isApp ? APP_CLIPS : tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
     return clips.map((clip) => pickRendition(clip))
   })
   const [sources, setSources] = useState([videos[0], videos[1 % videos.length]])
