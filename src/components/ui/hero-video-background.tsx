@@ -187,7 +187,7 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
             opacity: active === slot ? 1 : 0,
             // In the app the portrait video is zoomed in and lifted, so the model's face sits above the headline,
             // with a light blur that softens the mirror's marks.
-            ...(isApp ? { transform: 'translateY(-7%) scale(1.3)', filter: 'blur(1px)' } : {}),
+            ...(isApp ? { transform: 'translateY(-7%) scale(1.3)', filter: 'blur(0.5px)' } : {}),
             transition: `opacity ${CROSSFADE_SECONDS}s ease-in-out`,
           }}
         />
@@ -196,7 +196,7 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
       {/* Dark theme in the app: the soft blur sits under a brown wash, so the video melts into the palette. */}
       {isApp && tone === 'dark' && (
         <div
-          className="absolute inset-0 bg-gradient-to-b from-[#3b1f0e]/30 via-[#3b1f0e]/25 to-[#1a1008]/55 backdrop-blur-[2px]"
+          className="absolute inset-0 bg-gradient-to-b from-[#3b1f0e]/30 via-[#3b1f0e]/25 to-[#1a1008]/55 backdrop-blur-[1px]"
           aria-hidden="true"
         />
       )}
