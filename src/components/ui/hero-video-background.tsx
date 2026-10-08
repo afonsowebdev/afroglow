@@ -193,6 +193,14 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
         />
       ))}
 
+      {/* Dark theme in the app: the soft blur sits under a brown wash, so the video melts into the palette. */}
+      {isApp && tone === 'dark' && (
+        <div
+          className="absolute inset-0 bg-gradient-to-b from-[#3b1f0e]/30 via-[#3b1f0e]/25 to-[#1a1008]/55 backdrop-blur-[2px]"
+          aria-hidden="true"
+        />
+      )}
+
       {tint && (
         <div
           className={`absolute inset-0 bg-gradient-to-b transition-colors duration-500 ${TINT_BY_TONE[tone]}`}
