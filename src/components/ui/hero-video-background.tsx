@@ -30,12 +30,15 @@ const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
   app: `/videos/hero-light-${n}-app.mp4?v=1`,
 }))
 
-// The customer iPhone app plays one pre-edited file in portrait (the AFROGLOW models, four of them taking turns):
+// The customer iPhone app plays one pre-edited file per theme in portrait (the AFROGLOW models taking turns):
 // each clip plays for a few seconds before a soft sliding wipe hands over to the next, also at the loop point, so the
 // native loop shows no seam. It travels inside the app.
-const APP_CLIPS: Clip[] = [
-  { sd: '/videos/hero-app-portrait.mp4', hd: '/videos/hero-app-portrait.mp4', app: '/videos/hero-app-portrait.mp4' },
-]
+const appClip = (file: string): Clip[] => [{ sd: file, hd: file, app: file }]
+const APP_CLIPS_BY_TONE = {
+  dark: appClip('/videos/hero-app-portrait.mp4'),
+  // Light theme: three other takes of the models, same wipe and seamless loop.
+  light: appClip('/videos/hero-app-portrait-light.mp4'),
+} as const
 
 // Smallest file that still looks sharp on the visitor's screen: 720p on phones and
 // when data saving is on, 4K only on large/high-density screens, 1080p otherwise.
@@ -52,7 +55,7 @@ function pickRendition(clip: Clip) {
 // A still from the first clip of each theme: painted immediately (a few KB), so the hero is
 // never an empty box while the video downloads.
 const POSTER_BY_TONE = isApp
-  ? ({ light: '/images/hero-app-poster.jpg', dark: '/images/hero-app-poster.jpg' } as const)
+  ? ({ light: '/images/hero-app-poster-light.jpg', dark: '/images/hero-app-poster.jpg' } as const)
   : ({ light: '/images/hero-poster-light.jpg', dark: '/images/hero-poster-dark.jpg' } as const)
 
 // Normal playback speed (1 = real time). Lower it for a calmer, slow-motion feel.
@@ -88,8 +91,8 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
   const [firstPlaying, setFirstPlaying] = useState(false)
   // Resolved once per mount; the Hero remounts this component when the theme changes.
   const [videos] = useState(() => {
-    // In the app both themes play the same edited loop, which travels inside it (no download, starts at once).
-    const clips = isApp ? APP_CLIPS : tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
+    // In the app each theme plays its own edited loop, which travels inside it (no download, starts at once).
+    const clips = isApp ? APP_CLIPS_BY_TONE[tone] : tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
     return clips.map((clip) => pickRendition(clip))
   })
   const [sources, setSources] = useState([videos[0], videos[1 % videos.length]])
