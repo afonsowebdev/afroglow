@@ -183,6 +183,8 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
           className="absolute inset-0 h-full w-full object-cover"
           style={{
             opacity: active === slot ? 1 : 0,
+            // In the app the portrait video is zoomed in a little so the model fills the screen almost edge to edge.
+            ...(isApp ? { transform: 'scale(1.15)', transformOrigin: '50% 35%' } : {}),
             transition: `opacity ${CROSSFADE_SECONDS}s ease-in-out`,
           }}
         />
