@@ -30,11 +30,11 @@ const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
   app: `/videos/hero-light-${n}-app.mp4?v=1`,
 }))
 
-// The customer iPhone app plays one pre-edited file: light and dark clips alternating (light 1, dark 3, light 2, dark 5, light 3), each played to its end before
-// a soft sliding wipe hands over to the next (also at the loop point, so the native loop shows no seam). It
-// travels inside the app.
+// The customer iPhone app plays one pre-edited file in portrait (the AFROGLOW models, four of them taking turns):
+// each clip plays for a few seconds before a soft sliding wipe hands over to the next, also at the loop point, so the
+// native loop shows no seam. It travels inside the app.
 const APP_CLIPS: Clip[] = [
-  { sd: '/videos/hero-app-loop.mp4', hd: '/videos/hero-app-loop.mp4', app: '/videos/hero-app-loop.mp4' },
+  { sd: '/videos/hero-app-portrait.mp4', hd: '/videos/hero-app-portrait.mp4', app: '/videos/hero-app-portrait.mp4' },
 ]
 
 // Smallest file that still looks sharp on the visitor's screen: 720p on phones and
@@ -51,10 +51,9 @@ function pickRendition(clip: Clip) {
 
 // A still from the first clip of each theme: painted immediately (a few KB), so the hero is
 // never an empty box while the video downloads.
-const POSTER_BY_TONE = {
-  light: '/images/hero-poster-light.jpg',
-  dark: '/images/hero-poster-dark.jpg',
-} as const
+const POSTER_BY_TONE = isApp
+  ? ({ light: '/images/hero-app-poster.jpg', dark: '/images/hero-app-poster.jpg' } as const)
+  : ({ light: '/images/hero-poster-light.jpg', dark: '/images/hero-poster-dark.jpg' } as const)
 
 // Normal playback speed (1 = real time). Lower it for a calmer, slow-motion feel.
 // The app's loop is played a little slower, for a calmer feel; the website at normal speed.
