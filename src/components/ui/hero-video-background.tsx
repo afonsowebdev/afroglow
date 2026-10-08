@@ -52,7 +52,7 @@ function pickRendition(clip: Clip) {
 // A still from the first clip of each theme: painted immediately (a few KB), so the hero is
 // never an empty box while the video downloads.
 const POSTER_BY_TONE = isApp
-  ? ({ light: '/images/hero-app-poster-light.jpg', dark: '/images/hero-app-poster.jpg' } as const)
+  ? ({ light: '/images/hero-app-poster.jpg', dark: '/images/hero-app-poster.jpg' } as const)
   : ({ light: '/images/hero-poster-light.jpg', dark: '/images/hero-poster-dark.jpg' } as const)
 
 // Normal playback speed (1 = real time). Lower it for a calmer, slow-motion feel.
@@ -88,7 +88,7 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
   const [firstPlaying, setFirstPlaying] = useState(false)
   // Resolved once per mount; the Hero remounts this component when the theme changes.
   const [videos] = useState(() => {
-    // In the app each theme plays its own edited loop, which travels inside it (no download, starts at once).
+    // In the app both themes play the same edited loop, which travels inside it (no download, starts at once).
     const clips = isApp ? APP_CLIPS : tone === 'light' ? LIGHT_CLIPS : DARK_CLIPS
     return clips.map((clip) => pickRendition(clip))
   })
