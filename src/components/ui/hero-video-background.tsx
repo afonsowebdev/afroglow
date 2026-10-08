@@ -57,7 +57,7 @@ const POSTER_BY_TONE = isApp
 
 // Normal playback speed (1 = real time). Lower it for a calmer, slow-motion feel.
 // The app's loop is played a little slower, for a calmer feel; the website at normal speed.
-const playbackRateFor = (_tone: 'dark' | 'light') => (isApp ? 0.7 : 1)
+const playbackRateFor = (_tone: 'dark' | 'light') => (isApp ? 0.6 : 1)
 
 // The next clip starts this long before the current one ends, and the two
 // crossfade over the same window, so playback is continuous: no frozen last
