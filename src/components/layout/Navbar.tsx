@@ -126,14 +126,21 @@ export default function Navbar() {
     <>
       <div className="pointer-events-none fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          {/* The logo sits in the same glass pill as the tab bar: white over the video, gold over the light sections. */}
+          {/* The logo sits in the same glass pill as the tab bar: the brand's "A" emblem (as on the app icon), then the
+              wordmark, white over the video and gold over the light sections. */}
           <a
             href="#top"
             aria-label="AFROGLOW, voltar ao início"
-            className="liquid-glass pointer-events-auto flex h-[56px] items-center rounded-full px-6"
+            className="liquid-glass pointer-events-auto flex h-[56px] items-center gap-3 rounded-full pe-5 ps-2"
           >
             <span
-              className={`translate-y-[2px] font-logo text-2xl leading-none tracking-wide transition-colors duration-500 ${
+              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#f4eedf] font-logo text-[1.35rem] leading-none text-[#8b6a24] shadow-[0_1px_4px_rgba(0,0,0,0.18)]"
+              aria-hidden="true"
+            >
+              <span className="translate-y-[2px]">A</span>
+            </span>
+            <span
+              className={`translate-y-[2px] font-logo text-[1.35rem] leading-none tracking-[0.14em] transition-colors duration-500 ${
                 headerOverHero ? 'text-[#ffffff]' : 'text-gold-ink'
               }`}
             >
