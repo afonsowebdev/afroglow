@@ -168,7 +168,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
           <div className="mt-10 flex flex-col items-center gap-3">
             <ActionButton
               label="Ver as minhas marcações"
-              onClick={() => navigate(site ? '/conta' : '/marcacoes')}
+              onClick={() => navigate('/marcacoes')}
             />
             {site && service && slot && (
               <ActionButton
@@ -191,9 +191,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
   }
 
   return (
-    <main
-      className={`px-5 pb-32 ${site ? 'pt-[calc(7rem+env(safe-area-inset-top))] sm:pt-[calc(8rem+env(safe-area-inset-top))]' : 'pt-[calc(1.25rem+env(safe-area-inset-top))]'}`}
-    >
+    <main className="px-5 pb-32 pt-[calc(1.25rem+env(safe-area-inset-top))]">
       <div className="mx-auto max-w-md">
         <div className="flex items-center gap-3">
           {step > 0 ? (

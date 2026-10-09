@@ -9,7 +9,8 @@ import { setAvatar, useAvatar } from '@/lib/avatar-store'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { tap } from '@/lib/haptics'
 import { formatPrice, type Booking } from '@/lib/types'
-import { TestimonialForm } from '@/pages/AccountPage'
+import { bookPath } from '@/lib/app-mode'
+import { TestimonialForm } from './TestimonialForm'
 import { dayParts, longDay, timeLabel } from './dates'
 import { Fact, Facts, labelClass, panelClass, StatusDot } from './panel'
 
@@ -297,7 +298,7 @@ export default function ProfileScreen() {
                   ) : (
                     <div className={panelClass}>
                       <p className="font-subtitle text-base text-onyx">Sem sessões marcadas.</p>
-                      <ActionButton label="Marcar sessão" className="mt-4" onClick={() => navigate('/marcar')} />
+                      <ActionButton label="Marcar sessão" className="mt-4" onClick={() => navigate(bookPath)} />
                     </div>
                   )}
                 </section>
@@ -329,7 +330,7 @@ export default function ProfileScreen() {
                               type="button"
                               onClick={() => {
                                 void tap()
-                                navigate(`/marcar?service=${b.serviceId}`)
+                                navigate(`${bookPath}?service=${b.serviceId}`)
                               }}
                               className="mt-1 font-subtitle text-xs text-muted-dark underline underline-offset-4"
                             >

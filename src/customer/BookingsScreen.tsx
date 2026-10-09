@@ -5,6 +5,7 @@ import { ActionButton } from '@/components/ui/action-button'
 import { Sheet } from '@/components/ui/sheet'
 import { api, ApiError } from '@/lib/api'
 import { success, tap } from '@/lib/haptics'
+import { bookPath } from '@/lib/app-mode'
 import { useBusinessInfo } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking } from '@/lib/types'
 import { longDay, timeLabel } from './dates'
@@ -234,7 +235,7 @@ export default function BookingsScreen() {
                 <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
                   Marca a tua próxima sessão em poucos toques.
                 </p>
-                <ActionButton label="Marcar sessão" className="mt-6" onClick={() => navigate('/marcar')} />
+                <ActionButton label="Marcar sessão" className="mt-6" onClick={() => navigate(bookPath)} />
               </>
             )}
           </div>
@@ -323,7 +324,7 @@ export default function BookingsScreen() {
               </button>
             )}
             {selected.status === 'REJECTED' && (
-              <ActionButton label="Escolher outro horário" onClick={() => navigate('/marcar')} />
+              <ActionButton label="Escolher outro horário" onClick={() => navigate(bookPath)} />
             )}
           </>
         )}

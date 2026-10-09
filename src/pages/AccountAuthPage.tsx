@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
+import { SiteLogo } from '@/components/layout/SiteAppShell'
 import AuthSwitch from '@/components/ui/auth-switch'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { usePageTitle } from '@/lib/page-title'
@@ -16,9 +17,6 @@ export default function AccountAuthPage({ embedded = false }: { embedded?: boole
     }
   }, [loading, customer, navigate])
 
-  const pillClasses =
-    'flex items-center rounded-full bg-white/95 shadow-lg shadow-black/10 backdrop-blur transition-shadow duration-500'
-
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-white">
       <motion.span
@@ -33,13 +31,11 @@ export default function AccountAuthPage({ embedded = false }: { embedded?: boole
       {!embedded && (
       <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          <Link to="/" className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
-            <span className="font-logo text-2xl leading-none tracking-wide text-gold-ink">AFROGLOW</span>
-          </Link>
+          <SiteLogo />
 
           <Link
             to="/"
-            className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-ink sm:px-6 ${pillClasses}`}
+            className="liquid-glass flex h-[56px] items-center gap-2 rounded-full px-5 font-subtitle text-sm text-onyx transition-colors duration-300 hover:text-gold-ink"
           >
             <span>Sair</span>
             <i className="bx bx-x text-xl" aria-hidden="true" />
