@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CalendarPlus, Info, LogIn, LogOut, MessageSquareQuote, Moon, Sparkles, Sun, UserRound } from 'lucide-react'
+import { CalendarPlus, Info, LogOut, MessageSquareQuote, Moon, Sparkles, Sun } from 'lucide-react'
 import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
+import { loadAvatar, useAvatar } from '@/lib/avatar-store'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { useTheme } from '@/lib/theme'
 import { instagramDmUrl, useWhatsapp } from '@/lib/site-config'
 
-type TabId = 'top' | 'servicos' | 'galeria' | 'agendar' | 'contacto'
+type TabId = 'top' | 'servicos' | 'galeria' | 'agendar' | 'contacto' | 'perfil'
 
 // The same floating tab bar as the customer app: sections of the page, plus booking, which opens its own page.
 const TABS: Array<{ id: TabId; label: string; icon: string }> = [
@@ -16,9 +17,12 @@ const TABS: Array<{ id: TabId; label: string; icon: string }> = [
   { id: 'agendar', label: 'Agendar', icon: 'bx bx-calendar-plus' },
   { id: 'galeria', label: 'Galeria', icon: 'bx bx-images' },
   { id: 'contacto', label: 'Contacto', icon: 'bx bx-phone' },
+  { id: 'perfil', label: 'Perfil', icon: 'bx bx-user' },
 ]
 
-const SECTION_IDS = TABS.filter((tab) => tab.id !== 'agendar').map((tab) => tab.id)
+// Tabs that open their own page rather than a section of this one.
+const PAGE_TABS: TabId[] = ['agendar', 'perfil']
+const SECTION_IDS = TABS.filter((tab) => !PAGE_TABS.includes(tab.id)).map((tab) => tab.id)
 
 const scrollToSection = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
@@ -31,6 +35,11 @@ export default function Navbar() {
   const { customer, logout } = useCustomerAuth()
   const { theme, toggleTheme } = useTheme()
   const whatsapp = useWhatsapp()
+  const avatar = useAvatar()
+
+  useEffect(() => {
+    if (customer) void loadAvatar()
+  }, [customer])
   const [activeSection, setActiveSection] = useState<TabId>('top')
   const [overHero, setOverHero] = useState(true)
   const [headerOverHero, setHeaderOverHero] = useState(true)
@@ -91,9 +100,6 @@ export default function Navbar() {
     { Icon: MessageSquareQuote, label: 'Testemunhos', onClick: () => scrollToSection('testemunhos') },
     { Icon: Sparkles, label: 'Conhecer a CEO', onClick: () => navigate('/ceo') },
     { Icon: CalendarPlus, label: 'Agendar', onClick: () => navigate('/agendar') },
-    customer
-      ? { Icon: UserRound, label: 'A minha conta', onClick: () => navigate('/conta') }
-      : { Icon: LogIn, label: 'Entrar ou criar conta', onClick: () => navigate('/entrar') },
     { iconClass: 'bx bxl-instagram', label: 'Instagram', href: instagramDmUrl() },
     ...(whatsapp.enabled
       ? [
@@ -115,9 +121,14 @@ export default function Navbar() {
       value={activeSection}
       onChange={(id) => {
         if (id === 'agendar') navigate('/agendar')
+        // Signed in: the profile; otherwise the sign-in page, which leads there.
+        else if (id === 'perfil') navigate(customer ? '/conta' : '/entrar')
         else scrollToSection(id)
       }}
-      items={TABS}
+      items={TABS.map((item) =>
+        // The customer's photo stands in for the profile icon when there is one, as in the app.
+        item.id === 'perfil' && customer ? { ...item, image: avatar } : item,
+      )}
     />
   )
   const headerTone = headerOverHero ? 'onDark' : 'onLight'
