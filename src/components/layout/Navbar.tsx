@@ -34,6 +34,7 @@ export default function Navbar() {
   const [activeSection, setActiveSection] = useState<TabId>('top')
   const [overHero, setOverHero] = useState(true)
   const [scrolled, setScrolled] = useState(false)
+  const [headerOverHero, setHeaderOverHero] = useState(true)
 
   // Highlights the tab of the section on screen. The sections load lazily after the first paint, so they are
   // picked up as they appear instead of only once when the bar mounts.
@@ -75,6 +76,7 @@ export default function Navbar() {
       const hero = document.getElementById('top')
       setOverHero(!!hero && hero.getBoundingClientRect().bottom > window.innerHeight - 60)
       setScrolled(window.scrollY > 60)
+      setHeaderOverHero(!!hero && hero.getBoundingClientRect().bottom > 80)
     }
     update()
     window.addEventListener('scroll', update, { passive: true })
@@ -107,10 +109,25 @@ export default function Navbar() {
     ...(customer ? [{ Icon: LogOut, label: 'Terminar sessão', danger: true, onClick: () => void logout() }] : []),
   ]
 
+  const tabBar = (tone: 'onDark' | 'onLight') => (
+    <BottomNavBar
+      glass
+      compact
+      tone={tone}
+      value={activeSection}
+      onChange={(id) => {
+        if (id === 'agendar') navigate('/agendar')
+        else scrollToSection(id)
+      }}
+      items={TABS}
+    />
+  )
+  const headerTone = headerOverHero ? 'onDark' : 'onLight'
+
   return (
     <>
       <div className="pointer-events-none fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
-        <div className="mx-auto flex max-w-6xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           {/* Over the video: just the wordmark, large and white. Once the page scrolls: a small glass pill, in gold. */}
           <a
             href="#top"
@@ -122,32 +139,25 @@ export default function Navbar() {
             <span
               className={`font-logo leading-none tracking-wide transition-all duration-500 ease-out ${
                 scrolled
-                  ? 'text-xl text-gold-ink'
+                  ? `text-xl ${headerOverHero ? 'text-[#ffffff]' : 'text-gold-ink'}`
                   : 'text-3xl text-[#ffffff] [text-shadow:0_2px_18px_rgba(0,0,0,0.45)] sm:text-4xl'
               }`}
             >
               AFROGLOW
             </span>
           </a>
+
+          {/* In the header on wide screens: the app's tab bar and its round menu, which opens downward. */}
+          <div className="flex items-center gap-2.5">
+            <div className="pointer-events-auto hidden md:block">{tabBar(headerTone)}</div>
+            <FloatingActionMenu actions={menuActions} direction="down" tone={headerTone} />
+          </div>
         </div>
       </div>
 
-      {/* Tab bar with the round menu button beside it, as in the customer app. */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center gap-2.5 px-3">
-        <div className="pointer-events-auto">
-          <BottomNavBar
-            glass
-            compact
-            tone={overHero ? 'onDark' : 'onLight'}
-            value={activeSection}
-            onChange={(id) => {
-              if (id === 'agendar') navigate('/agendar')
-              else scrollToSection(id)
-            }}
-            items={TABS}
-          />
-        </div>
-        <FloatingActionMenu actions={menuActions} tone={overHero ? 'onDark' : 'onLight'} />
+      {/* On phones the header has no room for the tabs, so they stay at the bottom, as in the customer app. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex justify-center px-3 md:hidden">
+        <div className="pointer-events-auto">{tabBar(overHero ? 'onDark' : 'onLight')}</div>
       </div>
     </>
   )
