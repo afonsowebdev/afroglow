@@ -48,7 +48,7 @@ export default function AccountAuthPage({ embedded = false }: { embedded?: boole
       </div>
       )}
 
-      <main className={`relative mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-5 pb-8 ${embedded ? 'pt-[calc(1.5rem+env(safe-area-inset-top))]' : 'pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pt-[calc(6.5rem+env(safe-area-inset-top))]'} sm:px-8`}>
+      <main className={`relative mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-5 pb-8 ${embedded ? 'pt-[calc(1.5rem+env(safe-area-inset-top))]' : 'pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pt-[calc(6.5rem+env(safe-area-inset-top))]'} sm:px-8`}>
         <AuthSwitch onSuccess={() => navigate('/conta')} />
       </main>
     </div>
