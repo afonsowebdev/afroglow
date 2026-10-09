@@ -12,11 +12,14 @@ import { Fact, Facts, labelClass } from './panel'
 export function ServicePreview({
   service,
   chosen,
+  chooseLabel = 'Escolher este modelo',
   onClose,
   onChoose,
 }: {
   service: Service | null
   chosen: boolean
+  /** Label of the main button when the model isn't chosen yet. */
+  chooseLabel?: string
   onClose: () => void
   onChoose: () => void
 }) {
@@ -39,7 +42,7 @@ export function ServicePreview({
   return (
     <AnimatePresence>
       {service && (
-        <div className="fixed inset-0 z-[70] flex items-end justify-center">
+        <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-6">
           <motion.button
             type="button"
             aria-label="Fechar"
@@ -53,7 +56,7 @@ export function ServicePreview({
             role="dialog"
             aria-modal="true"
             aria-label={service.name}
-            className="relative flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white"
+            className="relative flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white sm:max-h-[88vh] sm:rounded-3xl"
             initial={{ y: 120, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 120, opacity: 0 }}
@@ -129,7 +132,7 @@ export function ServicePreview({
             <div className="border-t border-onyx/10 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
               <div className="flex justify-center">
                 <ActionButton
-                  label={chosen ? 'Retirar escolha' : 'Escolher este modelo'}
+                  label={chosen ? 'Retirar escolha' : chooseLabel}
                   variant={chosen ? 'secondary' : 'primary'}
                   icon={chosen ? 'bx bx-x' : undefined}
                   onClick={onChoose}

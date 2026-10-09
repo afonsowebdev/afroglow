@@ -1,123 +1,132 @@
-import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ServicePreview } from '@/customer/ServicePreview'
 import { api } from '@/lib/api'
-import { MotionButton } from '@/components/ui/motion-button'
+import { serviceImageUrls } from '@/lib/service-images'
 import { instagramDmUrl } from '@/lib/site-config'
 import { formatPrice, type Service } from '@/lib/types'
 
+// Shown on a card while the hairstyle has no photo of its own yet.
+const FALLBACK_PHOTOS = ['/images/hero/hero-1.jpg', '/images/hero/hero-2.jpg', '/images/hero/hero-3.jpg', '/images/hero/hero-4.jpg', '/images/hero/hero-5.jpg']
+
+/**
+ * The price catalogue, in the same card language as the customer app: one photo card per hairstyle with its
+ * duration, price and a button to book it. Clicking the photo opens all its pictures and details. Side by side
+ * on wide screens, a swipeable strip on phones.
+ */
 export default function Services() {
-  const [services, setServices] = useState<Service[]>([])
+  const navigate = useNavigate()
+  const [services, setServices] = useState<Service[] | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
-  const [activeId, setActiveId] = useState<string | null>(null)
+  const [previewId, setPreviewId] = useState<string | null>(null)
+  const preview = services?.find((s) => s.id === previewId) ?? null
 
   useEffect(() => {
     api
       .get<Service[]>('/services')
-      .then((data) => {
-        setServices(data)
-        setActiveId(data[0]?.id ?? null)
-      })
+      .then(setServices)
       .catch(() => setLoadFailed(true))
   }, [])
 
-  const active = services.find((service) => service.id === activeId) ?? services[0]
-
   return (
-    <section id="servicos" className="bg-white px-5 py-24 sm:px-8 md:py-32">
-      <div className="mx-auto max-w-6xl">
-        <h2 className="text-center font-logo text-4xl sm:text-5xl">Os nossos serviços</h2>
-
-        {loadFailed ? (
-          <p className="mt-16 text-center font-body text-sm text-muted-dark">
-            Não foi possível carregar os serviços agora. Contacta-nos diretamente pelo{' '}
-            <a href={instagramDmUrl()} target="_blank" rel="noreferrer" className="text-gold-ink underline">
-              Instagram
-            </a>
-            .
-          </p>
-        ) : (
-          <div className="mt-16 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
-            <div className="order-first lg:order-last lg:sticky lg:top-32 lg:self-start">
-              <div className="relative flex h-56 w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-cream to-muted/30 sm:h-72">
-                <AnimatePresence mode="wait">
-                  {active && (
-                    <motion.i
-                      key={active.id}
-                      className="bx bx-image text-4xl text-onyx/30"
-                      aria-hidden="true"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.3, ease: 'easeOut' }}
-                    />
-                  )}
-                </AnimatePresence>
-              </div>
-
-              <AnimatePresence mode="wait">
-                {active && (
-                  <motion.div
-                    key={active.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.25, ease: 'easeOut' }}
-                  >
-                    <p className="mt-6 font-logo text-sm tracking-wide text-muted-dark">{active.durationLabel}</p>
-                    <p className="mt-3 font-subtitle text-base font-light leading-relaxed text-muted-dark">
-                      {active.description}
-                    </p>
-                    <div className="mt-6">
-                      <MotionButton label="Agendar" size="sm" href={`/agendar?service=${active.id}`} />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <ul>
-              {services.map((service, index) => {
-                const isActive = service.id === active?.id
-                return (
-                  <li key={service.id} className="relative border-b border-gold/20">
-                    <button
-                      type="button"
-                      onMouseEnter={() => setActiveId(service.id)}
-                      onFocus={() => setActiveId(service.id)}
-                      onClick={() => setActiveId(service.id)}
-                      className={`group flex w-full items-baseline justify-between gap-6 py-6 text-left transition-colors duration-300 ${
-                        isActive ? 'text-onyx' : 'text-onyx/60 hover:text-onyx'
-                      }`}
-                    >
-                      <span className="flex items-baseline gap-4">
-                        <span
-                          className={`font-logo text-sm transition-colors duration-300 ${
-                            isActive ? 'text-gold-ink' : 'text-onyx/60 group-hover:text-gold-ink'
-                          }`}
-                        >
-                          {String(index + 1).padStart(2, '0')}
-                        </span>
-                        <span className="font-subtitle text-xl sm:text-2xl">{service.name}</span>
-                      </span>
-                      <span className="font-logo whitespace-nowrap text-xl text-gold-ink sm:text-2xl">
-                        {formatPrice(service.priceCents)}
-                      </span>
-                    </button>
-
-                    {isActive && (
-                      <motion.span
-                        layoutId="service-indicator"
-                        className="absolute inset-x-0 bottom-0 h-px bg-gold-deep"
-                        transition={{ type: 'spring', stiffness: 400, damping: 35 }}
-                      />
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        )}
+    <section id="servicos" className="bg-white py-24 md:py-32">
+      <div className="mx-auto max-w-6xl px-5 text-center sm:px-8">
+        <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Penteados</p>
+        <h2 className="mt-2 font-logo text-4xl sm:text-5xl">Os nossos serviços</h2>
+        <p className="mt-4 font-subtitle text-sm font-light text-muted-dark">
+          Clica na foto para ver mais. Clica em Marcar para escolher o dia.
+        </p>
       </div>
+
+      {loadFailed ? (
+        <p className="mx-auto mt-16 max-w-6xl px-5 text-center font-body text-sm text-muted-dark">
+          Não foi possível carregar os serviços agora. Contacta-nos diretamente pelo{' '}
+          <a href={instagramDmUrl()} target="_blank" rel="noreferrer" className="text-gold-ink underline">
+            Instagram
+          </a>
+          .
+        </p>
+      ) : (
+        <div className="mx-auto mt-12 flex max-w-6xl snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 [scrollbar-width:none] sm:px-8 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible lg:grid-cols-3 [&::-webkit-scrollbar]:hidden">
+          {services === null &&
+            [0, 1, 2].map((i) => (
+              <div key={i} className="h-[26rem] w-[85%] shrink-0 animate-pulse rounded-[2rem] bg-gold/10 md:w-auto" />
+            ))}
+          {services?.map((service, i) => {
+            const photos = serviceImageUrls(service)
+            return (
+              <article
+                key={service.id}
+                className="relative h-[26rem] w-[85%] max-w-sm shrink-0 snap-center overflow-hidden rounded-[2rem] bg-[#1c1c1e] md:w-auto md:max-w-none"
+              >
+                {/* The photo opens the gallery with more pictures. */}
+                <button
+                  type="button"
+                  aria-label={`Ver fotos de ${service.name}`}
+                  onClick={() => setPreviewId(service.id)}
+                  className="group absolute inset-0 block h-full w-full"
+                >
+                  <img
+                    src={photos[0] ?? FALLBACK_PHOTOS[i % FALLBACK_PHOTOS.length]}
+                    alt=""
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
+                </button>
+
+                <span className="pointer-events-none absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
+                  <i className="bx bx-time-five text-sm" aria-hidden="true" />
+                  {service.durationLabel}
+                </span>
+                {photos.length > 1 && (
+                  <span className="pointer-events-none absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
+                    <i className="bx bx-images text-sm" aria-hidden="true" />
+                    {photos.length} fotos
+                  </span>
+                )}
+
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 text-left text-[#ffffff]">
+                  <p className="truncate font-subtitle text-2xl font-semibold tracking-tight">{service.name}</p>
+                  {service.description && (
+                    <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light text-[#ffffff]/80">
+                      {service.description}
+                    </p>
+                  )}
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <p className="font-subtitle text-xl font-semibold text-[#e0c36e]">
+                      {formatPrice(service.priceCents)}
+                    </p>
+                    {/* The arrow goes straight to booking this model. */}
+                    <Link
+                      to={`/agendar?service=${service.id}`}
+                      aria-label={`Marcar ${service.name}`}
+                      className="pointer-events-auto flex h-11 items-center gap-2 rounded-full bg-[#ffffff]/25 pe-1.5 ps-4 font-subtitle text-sm font-medium text-[#ffffff] backdrop-blur-md transition-colors hover:bg-[#ffffff]/35"
+                    >
+                      Marcar
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ffffff]/30 text-xl">
+                        <i className="bx bx-right-arrow-alt" aria-hidden="true" />
+                      </span>
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            )
+          })}
+        </div>
+      )}
+
+      <ServicePreview
+        service={preview}
+        chosen={false}
+        chooseLabel="Marcar este modelo"
+        onClose={() => setPreviewId(null)}
+        onChoose={() => {
+          const id = previewId
+          setPreviewId(null)
+          if (id) navigate(`/agendar?service=${id}`)
+        }}
+      />
     </section>
   )
 }
