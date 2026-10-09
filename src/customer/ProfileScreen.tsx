@@ -130,13 +130,20 @@ export default function ProfileScreen() {
   return (
     <main className="pb-40">
       <header className="relative overflow-hidden bg-gradient-to-b from-cream via-white to-white px-6 pb-8 pt-[calc(1.25rem+env(safe-area-inset-top))] text-center">
-        {/* The brand word, barely visible */}
-        <span
+        {/* The brand word behind the photo: centred on it, never larger than the screen, a soft gold that fades
+            downward and breathes slowly. */}
+        <motion.span
           aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-24 -translate-x-1/2 select-none whitespace-nowrap font-logo text-[30vw] leading-none text-gold/[0.10]"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: [0.75, 1, 0.75], scale: 1 }}
+          transition={{
+            opacity: { duration: 8, repeat: Infinity, ease: 'easeInOut' },
+            scale: { duration: 1.2, ease: 'easeOut' },
+          }}
+          className="pointer-events-none absolute left-1/2 top-[calc(9.75rem+env(safe-area-inset-top))] -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap bg-gradient-to-b from-gold/30 via-gold/15 to-transparent bg-clip-text font-logo text-[clamp(5.5rem,28vw,12rem)] leading-none tracking-[0.04em] text-transparent"
         >
           AFROGLOW
-        </span>
+        </motion.span>
 
         <div className="relative flex items-center justify-between">
           <span className="font-subtitle text-[11px] uppercase tracking-[0.28em] text-muted-dark">O meu perfil</span>
