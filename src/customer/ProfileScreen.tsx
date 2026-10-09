@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ActionButton } from '@/components/ui/action-button'
 import { Sheet } from '@/components/ui/sheet'
 import { api, ApiError } from '@/lib/api'
@@ -54,7 +54,9 @@ export default function ProfileScreen() {
   const { customer } = useCustomerAuth()
   const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [testimonialOpen, setTestimonialOpen] = useState(false)
-  const [tab, setTab] = useState<TabId>('resumo')
+  // A link can open a given view directly, e.g. /conta?tab=testemunho from the website's testimonials.
+  const [searchParams] = useSearchParams()
+  const [tab, setTab] = useState<TabId>(() => TABS.find((t) => t.id === searchParams.get('tab'))?.id ?? 'resumo')
   const [direction, setDirection] = useState(1)
 
   const goTo = (id: TabId) => {
