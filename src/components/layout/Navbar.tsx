@@ -33,7 +33,6 @@ export default function Navbar() {
   const whatsapp = useWhatsapp()
   const [activeSection, setActiveSection] = useState<TabId>('top')
   const [overHero, setOverHero] = useState(true)
-  const [scrolled, setScrolled] = useState(false)
   const [headerOverHero, setHeaderOverHero] = useState(true)
 
   // Highlights the tab of the section on screen. The sections load lazily after the first paint, so they are
@@ -75,7 +74,6 @@ export default function Navbar() {
     const update = () => {
       const hero = document.getElementById('top')
       setOverHero(!!hero && hero.getBoundingClientRect().bottom > window.innerHeight - 60)
-      setScrolled(window.scrollY > 60)
       setHeaderOverHero(!!hero && hero.getBoundingClientRect().bottom > 80)
     }
     update()
@@ -128,19 +126,15 @@ export default function Navbar() {
     <>
       <div className="pointer-events-none fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          {/* Over the video: just the wordmark, large and white. Once the page scrolls: a small glass pill, in gold. */}
+          {/* The logo sits in the same glass pill as the tab bar: white over the video, gold over the light sections. */}
           <a
             href="#top"
             aria-label="AFROGLOW, voltar ao início"
-            className={`pointer-events-auto flex items-center rounded-full transition-all duration-500 ease-out ${
-              scrolled ? 'liquid-glass px-5 py-2.5' : 'px-1 py-2'
-            }`}
+            className="liquid-glass pointer-events-auto flex h-[56px] items-center rounded-full px-6"
           >
             <span
-              className={`font-logo leading-none tracking-wide transition-all duration-500 ease-out ${
-                scrolled
-                  ? `text-xl ${headerOverHero ? 'text-[#ffffff]' : 'text-gold-ink'}`
-                  : 'text-3xl text-[#ffffff] [text-shadow:0_2px_18px_rgba(0,0,0,0.45)] sm:text-4xl'
+              className={`font-logo text-2xl leading-none tracking-wide transition-colors duration-500 ${
+                headerOverHero ? 'text-[#ffffff]' : 'text-gold-ink'
               }`}
             >
               AFROGLOW
