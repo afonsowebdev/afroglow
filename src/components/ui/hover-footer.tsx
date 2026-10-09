@@ -19,8 +19,7 @@ export function TextHoverEffect({
   useEffect(() => {
     if (svgRef.current) {
       const svgRect = svgRef.current.getBoundingClientRect()
-      // Hidden below the `lg` breakpoint (`hidden lg:flex`), so the rect is
-      // zero-sized there — skip to avoid dividing by zero into NaN.
+      // Skip while not laid out (zero-sized rect) to avoid dividing by zero into NaN.
       if (svgRect.width === 0 || svgRect.height === 0) return
       const cxPercentage = ((cursor.x - svgRect.left) / svgRect.width) * 100
       const cyPercentage = ((cursor.y - svgRect.top) / svgRect.height) * 100
@@ -33,7 +32,7 @@ export function TextHoverEffect({
       ref={svgRef}
       width="100%"
       height="100%"
-      viewBox="0 0 300 100"
+      viewBox="0 0 380 100"
       xmlns="http://www.w3.org/2000/svg"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -86,7 +85,9 @@ export function TextHoverEffect({
         strokeWidth="0.3"
         className="fill-transparent font-logo text-7xl stroke-gold-deep"
         initial={{ strokeDashoffset: 1000, strokeDasharray: 1000 }}
-        animate={{ strokeDashoffset: 0, strokeDasharray: 1000 }}
+        // Draws when the footer scrolls into view, not on mount (it loads well before it is seen).
+        whileInView={{ strokeDashoffset: 0, strokeDasharray: 1000 }}
+        viewport={{ once: true, amount: 0.4 }}
         transition={{ duration: 4, ease: 'easeInOut' }}
       >
         {text}
