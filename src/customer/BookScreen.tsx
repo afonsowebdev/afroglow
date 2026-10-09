@@ -7,6 +7,7 @@ import { api, ApiError } from '@/lib/api'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { success, tap } from '@/lib/haptics'
 import { useBusinessInfo, useWhatsapp } from '@/lib/site-config'
+import { downloadBookingIcs } from '@/lib/calendar'
 import { formatPrice, type AvailabilitySlot, type Service } from '@/lib/types'
 import { longDay, timeLabel } from './dates'
 import { useHideNav } from './nav-visibility'
@@ -39,8 +40,12 @@ function Cta({ label, busy, onClick }: { label: string; busy?: boolean; onClick:
   )
 }
 
-export default function BookScreen() {
-  const { customer, loading: authLoading } = useCustomerAuth()
+/**
+ * The booking flow in three steps (model, date, confirm). The customer app shows it as a tab; the website (`site`)
+ * shows the same flow under its own header, with the links and wording of the web.
+ */
+export default function BookScreen({ site = false }: { site?: boolean } = {}) {
+  const { customer, loading: authLoading, refresh } = useCustomerAuth()
   const business = useBusinessInfo()
   const whatsapp = useWhatsapp()
   const navigate = useNavigate()
@@ -124,7 +129,11 @@ export default function BookScreen() {
       void success()
       setDone(true)
     } catch (err) {
-      if (err instanceof ApiError && err.status === 409) {
+      if (err instanceof ApiError && err.status === 401) {
+        // Session expired: refreshing shows the sign-in form again, and the choice stays.
+        setError('A tua sessão expirou. Entra novamente para concluir a marcação.')
+        void refresh()
+      } else if (err instanceof ApiError && err.status === 409) {
         setError('Esse horário acabou de ser ocupado. Escolhe outro.')
         setSlotId(null)
         setStep(1)
@@ -154,10 +163,26 @@ export default function BookScreen() {
             {service?.name} · {slot && `${longDay(slot.startsAt)} às ${timeLabel(slot.startsAt)}`}
           </p>
           <p className="mx-auto mt-3 max-w-xs font-subtitle text-sm font-light text-muted-dark">
-            Vais receber uma notificação assim que for confirmada.
+            {site ? 'Avisamos-te assim que for confirmada.' : 'Vais receber uma notificação assim que for confirmada.'}
           </p>
           <div className="mt-10 flex flex-col items-center gap-3">
-            <ActionButton label="Ver as minhas marcações" onClick={() => navigate('/marcacoes')} />
+            <ActionButton
+              label="Ver as minhas marcações"
+              onClick={() => navigate(site ? '/conta' : '/marcacoes')}
+            />
+            {site && service && slot && (
+              <ActionButton
+                label="Adicionar ao calendário"
+                variant="secondary"
+                onClick={() =>
+                  downloadBookingIcs({
+                    serviceName: service.name,
+                    startsAtIso: slot.startsAt,
+                    durationLabel: service.durationLabel,
+                  })
+                }
+              />
+            )}
             <ActionButton label="Voltar ao início" variant="secondary" onClick={() => navigate('/')} />
           </div>
         </motion.div>
@@ -166,7 +191,9 @@ export default function BookScreen() {
   }
 
   return (
-    <main className="px-5 pb-32 pt-[calc(1.25rem+env(safe-area-inset-top))]">
+    <main
+      className={`px-5 pb-32 ${site ? 'pt-[calc(7rem+env(safe-area-inset-top))] sm:pt-[calc(8rem+env(safe-area-inset-top))]' : 'pt-[calc(1.25rem+env(safe-area-inset-top))]'}`}
+    >
       <div className="mx-auto max-w-md">
         <div className="flex items-center gap-3">
           {step > 0 ? (
@@ -395,8 +422,10 @@ export default function BookScreen() {
                   ) : (
                     <div className="mt-6 flex flex-col gap-4">
                       <p className="font-subtitle text-sm font-light text-muted-dark">
-                        O pedido fica <strong className="font-semibold text-onyx">por confirmar</strong>. Avisamos-te na
-                        app assim que for aceite. Não há pagamentos na app.
+                        O pedido fica <strong className="font-semibold text-onyx">por confirmar</strong>.{' '}
+                        {site
+                          ? 'Avisamos-te assim que for aceite. Não há pagamentos online.'
+                          : 'Avisamos-te na app assim que for aceite. Não há pagamentos na app.'}
                       </p>
 
                       <div className={panelClass}>
