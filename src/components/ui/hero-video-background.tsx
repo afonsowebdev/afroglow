@@ -14,10 +14,20 @@ interface Clip {
 
 const isApp = import.meta.env.MODE === 'customer'
 
-// Website: one pre-edited horizontal file per theme (the AFROGLOW models taking turns, a soft dissolve between them,
-// also at the loop point so the browser's own loop shows no seam).
-const DARK_CLIPS: Clip[] = [{ sd: '/videos/hero-web-dark-sd.mp4?v=1', hd: '/videos/hero-web-dark.mp4?v=1' }]
-const LIGHT_CLIPS: Clip[] = [{ sd: '/videos/hero-web-light-sd.mp4?v=1', hd: '/videos/hero-web-light.mp4?v=1' }]
+// Dark theme playlist (1080p only).
+const DARK_CLIPS: Clip[] = [1, 2, 3, 4, 5, 6].map((n) => ({
+  sd: `/videos/hero-hd-${n}-sd.mp4`,
+  hd: `/videos/hero-hd-${n}.mp4`,
+}))
+
+// Light theme playlist. The order is deliberate: each clip ends on colours and
+// light close to where the next one begins, so the crossfade barely shows.
+const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
+  sd: `/videos/hero-light-${n}-sd.mp4?v=2`,
+  hd: `/videos/hero-light-${n}.mp4?v=2`,
+  uhd: `/videos/hero-light-${n}-4k.mp4?v=2`,
+  app: `/videos/hero-light-${n}-app.mp4?v=1`,
+}))
 
 // The customer iPhone app plays one pre-edited file in portrait per theme (the AFROGLOW models taking turns): each clip
 // plays for a few seconds before a soft dissolve hands over to the next, also at the loop point, so the native loop
@@ -47,8 +57,8 @@ const POSTER_BY_TONE = isApp
   : ({ light: '/images/hero-poster-light.jpg', dark: '/images/hero-poster-dark.jpg' } as const)
 
 // Normal playback speed (1 = real time). Lower it for a calmer, slow-motion feel.
-// Both the app and the website play at half speed, for a calm, slow-motion feel.
-const playbackRateFor = (_tone: 'dark' | 'light') => 0.5
+// The app's loop is played slower, for a calmer feel; the website at normal speed.
+const playbackRateFor = (_tone: 'dark' | 'light') => (isApp ? 0.5 : 1)
 
 // The next clip starts this long before the current one ends, and the two
 // crossfade over the same window, so playback is continuous: no frozen last
