@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { CalendarPlus, Info, LogOut, MessageSquareQuote, Moon, Sparkles, Sun } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { CalendarCheck, CalendarPlus, Info, LogOut, MessageSquareQuote, Moon, Settings, Sparkles, Sun } from 'lucide-react'
 import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import { loadAvatar, useAvatar } from '@/lib/avatar-store'
@@ -24,14 +24,30 @@ const TABS: Array<{ id: TabId; label: string; icon: string }> = [
 const PAGE_TABS: TabId[] = ['agendar', 'perfil']
 const SECTION_IDS = TABS.filter((tab) => !PAGE_TABS.includes(tab.id)).map((tab) => tab.id)
 
-const scrollToSection = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-
 /**
- * The website menu, in the customer app's pattern: the AFROGLOW logo at the top, and at the bottom a floating
- * "liquid glass" tab bar (the active item shows its name) with the round "+" beside it for everything else.
+ * The website menu, in the customer app's pattern: the AFROGLOW logo and a floating "liquid glass" tab bar (the
+ * active item shows its name) with the round "+" beside it for everything else. The same menu shows on the
+ * customer pages, with `page` keeping their tab selected; its section tabs then lead back to the home page.
  */
-export default function Navbar() {
+export default function Navbar({
+  page,
+  hidden = false,
+  dot = false,
+}: {
+  /** On a page of its own (booking, profile): the tab kept selected. */
+  page?: 'agendar' | 'perfil'
+  /** Slides the phone tab bar away (a screen showing its own bottom button). */
+  hidden?: boolean
+  /** A red dot on the profile tab: a booking decision the customer hasn't seen. */
+  dot?: boolean
+} = {}) {
   const navigate = useNavigate()
+  const onHome = useLocation().pathname === '/'
+  // On the home page the sections scroll into view; elsewhere they open the home page at that section.
+  const scrollToSection = (id: string) => {
+    if (onHome) document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+    else navigate(`/#${id}`)
+  }
   const { customer, logout } = useCustomerAuth()
   const { theme, toggleTheme } = useTheme()
   const whatsapp = useWhatsapp()
@@ -100,6 +116,12 @@ export default function Navbar() {
     { Icon: MessageSquareQuote, label: 'Testemunhos', onClick: () => scrollToSection('testemunhos') },
     { Icon: Sparkles, label: 'Conhecer a CEO', onClick: () => navigate('/ceo') },
     { Icon: CalendarPlus, label: 'Agendar', onClick: () => navigate('/agendar') },
+    ...(customer
+      ? [
+          { Icon: CalendarCheck, label: 'As minhas marcações', onClick: () => navigate('/marcacoes') },
+          { Icon: Settings, label: 'Definições', onClick: () => navigate('/definicoes') },
+        ]
+      : []),
     { iconClass: 'bx bxl-instagram', label: 'Instagram', href: instagramDmUrl() },
     ...(whatsapp.enabled
       ? [
@@ -110,15 +132,16 @@ export default function Navbar() {
           },
         ]
       : []),
-    ...(customer ? [{ Icon: LogOut, label: 'Terminar sessão', danger: true, onClick: () => void logout() }] : []),
+    ...(customer ? [{ Icon: LogOut, label: 'Terminar sessão', danger: true, onClick: () => void logout().then(() => navigate('/')) }] : []),
   ]
 
-  const tabBar = (tone: 'onDark' | 'onLight') => (
+  const tabBar = (tone: 'onDark' | 'onLight', hide = false) => (
     <BottomNavBar
       glass
       compact
       tone={tone}
-      value={activeSection}
+      hidden={hide}
+      value={page ?? activeSection}
       onChange={(id) => {
         if (id === 'agendar') navigate('/agendar')
         // Signed in: the profile; otherwise the sign-in page, which leads there.
@@ -127,7 +150,7 @@ export default function Navbar() {
       }}
       items={TABS.map((item) =>
         // The customer's photo stands in for the profile icon when there is one, as in the app.
-        item.id === 'perfil' && customer ? { ...item, image: avatar } : item,
+        item.id === 'perfil' && customer ? { ...item, image: avatar, dot } : item,
       )}
     />
   )
@@ -140,7 +163,12 @@ export default function Navbar() {
           {/* The logo sits in the same glass pill as the tab bar: the brand's "A" emblem (as on the app icon), then the
               wordmark, white over the video and gold over the light sections. */}
           <a
-            href="#top"
+            href={onHome ? '#top' : '/'}
+            onClick={(e) => {
+              if (onHome) return
+              e.preventDefault()
+              navigate('/')
+            }}
             aria-label="AFROGLOW, voltar ao início"
             className="liquid-glass pointer-events-auto flex h-[56px] items-center gap-3 rounded-full pe-5 ps-2"
           >
@@ -169,7 +197,9 @@ export default function Navbar() {
 
       {/* On phones the header has no room for the tabs, so they stay at the bottom, as in the customer app. */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex justify-center px-3 md:hidden">
-        <div className="pointer-events-auto">{tabBar(overHero ? 'onDark' : 'onLight')}</div>
+        <div className={hidden ? 'pointer-events-none' : 'pointer-events-auto'}>
+          {tabBar(overHero ? 'onDark' : 'onLight', hidden)}
+        </div>
       </div>
     </>
   )

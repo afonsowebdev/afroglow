@@ -36,6 +36,26 @@ export default function LandingPage() {
     return () => window.clearTimeout(timer)
   }, [])
 
+  // Arriving from another page's menu (e.g. /#servicos): scroll to that section as soon as it has loaded.
+  useEffect(() => {
+    const id = window.location.hash.slice(1)
+    if (!id) return
+    const go = () => {
+      const el = document.getElementById(id)
+      if (!el) return false
+      el.scrollIntoView()
+      return true
+    }
+    if (go()) return
+    const observer = new MutationObserver(() => go() && observer.disconnect())
+    observer.observe(document.body, { childList: true, subtree: true })
+    const stop = window.setTimeout(() => observer.disconnect(), 8000)
+    return () => {
+      observer.disconnect()
+      window.clearTimeout(stop)
+    }
+  }, [])
+
   return (
     <>
       <Navbar />
