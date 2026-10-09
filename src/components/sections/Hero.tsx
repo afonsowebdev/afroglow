@@ -27,7 +27,7 @@ export default function Hero() {
       </div>
 
       <motion.div
-        className="absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1"
+        className="absolute bottom-28 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1"
         animate={{ y: [0, 8, 0] }}
         transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
       >
