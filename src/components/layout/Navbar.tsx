@@ -33,6 +33,7 @@ export default function Navbar() {
   const whatsapp = useWhatsapp()
   const [activeSection, setActiveSection] = useState<TabId>('top')
   const [overHero, setOverHero] = useState(true)
+  const [scrolled, setScrolled] = useState(false)
 
   // Highlights the tab of the section on screen. The sections load lazily after the first paint, so they are
   // picked up as they appear instead of only once when the bar mounts.
@@ -73,6 +74,7 @@ export default function Navbar() {
     const update = () => {
       const hero = document.getElementById('top')
       setOverHero(!!hero && hero.getBoundingClientRect().bottom > window.innerHeight - 60)
+      setScrolled(window.scrollY > 60)
     }
     update()
     window.addEventListener('scroll', update, { passive: true })
@@ -109,11 +111,23 @@ export default function Navbar() {
     <>
       <div className="pointer-events-none fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl">
+          {/* Over the video: just the wordmark, large and white. Once the page scrolls: a small glass pill, in gold. */}
           <a
             href="#top"
-            className="pointer-events-auto flex items-center rounded-full bg-white px-5 py-3 shadow-lg shadow-black/10 sm:px-6"
+            aria-label="AFROGLOW, voltar ao início"
+            className={`pointer-events-auto flex items-center rounded-full transition-all duration-500 ease-out ${
+              scrolled ? 'liquid-glass px-5 py-2.5' : 'px-1 py-2'
+            }`}
           >
-            <span className="font-logo text-2xl leading-none tracking-wide text-gold-ink">AFROGLOW</span>
+            <span
+              className={`font-logo leading-none tracking-wide transition-all duration-500 ease-out ${
+                scrolled
+                  ? 'text-xl text-gold-ink'
+                  : 'text-3xl text-[#ffffff] [text-shadow:0_2px_18px_rgba(0,0,0,0.45)] sm:text-4xl'
+              }`}
+            >
+              AFROGLOW
+            </span>
           </a>
         </div>
       </div>
