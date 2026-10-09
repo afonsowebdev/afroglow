@@ -133,7 +133,7 @@ export default function Navbar() {
             className="liquid-glass pointer-events-auto flex h-[56px] items-center rounded-full px-6"
           >
             <span
-              className={`font-logo text-2xl leading-none tracking-wide transition-colors duration-500 ${
+              className={`translate-y-[2px] font-logo text-2xl leading-none tracking-wide transition-colors duration-500 ${
                 headerOverHero ? 'text-[#ffffff]' : 'text-gold-ink'
               }`}
             >
