@@ -15,7 +15,7 @@ import { instagramDmUrl, siteConfig } from '@/lib/site-config'
 export default function PortfolioPage() {
   usePageTitle('Portfólio')
   const [params, setParams] = useSearchParams()
-  const { items, photoCount, videoCount, hasBoth } = usePortfolio()
+  const { items, loaded, photoCount, videoCount, hasBoth } = usePortfolio()
   const [filter, setFilter] = useState<PortfolioFilter>('todos')
   // The viewer moves through what the filter shows.
   const shown = filter === 'todos' ? items : items.filter((i) => i.kind === filter)
@@ -49,7 +49,7 @@ export default function PortfolioPage() {
 
           <h1 className="mt-4 font-logo text-5xl text-onyx sm:text-6xl">O nosso trabalho</h1>
           <p className="mt-3 font-subtitle text-base font-light text-muted-dark">
-            {count}. Mais no Instagram:{' '}
+            {count ? `${count}. ` : ''}Mais no Instagram:{' '}
             <a
               href={instagramDmUrl()}
               target="_blank"
@@ -59,6 +59,12 @@ export default function PortfolioPage() {
               @{siteConfig.instagramHandle}
             </a>
           </p>
+
+          {loaded && items.length === 0 && (
+            <p className="mt-10 rounded-xl border border-dashed border-onyx/20 px-6 py-14 text-center font-subtitle text-sm text-muted-dark">
+              As primeiras fotos chegam em breve.
+            </p>
+          )}
 
           {hasBoth && <PortfolioFilters value={filter} onChange={setFilter} className="mt-10" />}
 

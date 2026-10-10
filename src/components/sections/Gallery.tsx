@@ -10,7 +10,7 @@ import { instagramDmUrl, siteConfig } from '@/lib/site-config'
  */
 export default function Gallery() {
   const navigate = useNavigate()
-  const { items } = usePortfolio()
+  const { items, loaded } = usePortfolio()
   // The large piece plus full rows around it: 1 + 8 fills three rows on wide screens, 1 + 4 fills two.
   const preview = items.slice(0, items.length >= 9 ? 9 : items.length >= 5 ? 5 : items.length)
   const open = (key: string) => navigate(`/portfolio?ver=${encodeURIComponent(key)}`)
@@ -25,11 +25,22 @@ export default function Gallery() {
               Knotless, box braids, boho e mais. Algumas das tranças feitas no nosso espaço.
             </p>
           </div>
-          <div className="flex items-center gap-5">
-            <span className="font-subtitle text-sm text-muted-dark">{items.length} trabalhos</span>
-            <MotionButton label="Ver todos" onClick={() => navigate('/portfolio')} />
-          </div>
+          {items.length > 0 && (
+            <div className="flex items-center gap-5">
+              <span className="font-subtitle text-sm text-muted-dark">
+                {items.length} {items.length === 1 ? 'trabalho' : 'trabalhos'}
+              </span>
+              <MotionButton label="Ver todos" onClick={() => navigate('/portfolio')} />
+            </div>
+          )}
         </div>
+
+        {/* Until the first photos are added in the admin app. */}
+        {loaded && items.length === 0 && (
+          <p className="mt-12 rounded-xl border border-dashed border-onyx/20 px-6 py-14 text-center font-subtitle text-sm text-muted-dark">
+            As primeiras fotos chegam em breve.
+          </p>
+        )}
 
         {/* The first piece takes two columns and two rows; the rest fill the grid around it. */}
         <div className="mt-12 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
