@@ -4,8 +4,8 @@ import { cn } from '@/lib/utils'
 
 /**
  * A pill with the label and a round arrow disc on the right; on hover the disc slides across to the left and turns,
- * while the label moves the other way. Colours follow what is behind it: dark over light sections, white over the
- * video (`tone="onDark"`).
+ * while the label moves the other way. In the header's "liquid glass" (as the logo, tabs and account button), with
+ * white letters over the video (`tone="onDark"`) and dark ones over the light sections.
  */
 export function ButtonWithIcon({
   label,
@@ -25,8 +25,8 @@ export function ButtonWithIcon({
       type="button"
       onClick={onClick}
       className={cn(
-        'group relative h-12 w-fit cursor-pointer overflow-hidden rounded-full p-1 ps-6 pe-14 font-subtitle text-sm font-medium transition-all duration-500 hover:ps-14 hover:pe-6 hover:brightness-100',
-        onDark ? 'bg-[#ffffff] text-[#1a1008]' : 'bg-onyx text-white',
+        'liquid-glass group relative h-[56px] w-fit cursor-pointer overflow-hidden rounded-full bg-transparent p-1 ps-6 pe-[3.75rem] font-subtitle text-sm font-semibold transition-all duration-500 hover:ps-[3.75rem] hover:pe-6 hover:brightness-100',
+        onDark ? 'text-[#ffffff] [filter:drop-shadow(0_0_1px_rgba(0,0,0,0.25))]' : 'text-onyx',
         className,
       )}
       {...props}
@@ -34,12 +34,11 @@ export function ButtonWithIcon({
       <span className="relative z-10 transition-all duration-500">{label}</span>
       <span
         className={cn(
-          'absolute right-1 flex size-10 items-center justify-center rounded-full transition-all duration-500 group-hover:right-[calc(100%-44px)] group-hover:rotate-45',
-          onDark ? 'bg-[#1a1008] text-[#ffffff]' : 'bg-white text-onyx',
+          'liquid-glass-bubble absolute right-1.5 flex size-11 items-center justify-center rounded-full transition-all duration-500 group-hover:right-[calc(100%-50px)] group-hover:rotate-45',
         )}
         aria-hidden="true"
       >
-        <ArrowUpRight size={16} />
+        <ArrowUpRight size={18} />
       </span>
     </Button>
   )
