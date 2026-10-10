@@ -1,7 +1,7 @@
-import type { SVGProps } from 'react'
+import { useId, type SVGProps } from 'react'
 
 /*
- * Menu icons (tab bar and "+" menu) drawn in the language of Apple's SF Symbols (the ".fill" variants iOS uses in tab bars): solid
+ * Menu icons (tab bars and "+" menus of the website and both apps) drawn in the language of Apple's SF Symbols (the ".fill" variants iOS uses in tab bars): solid
  * shapes, rounded corners, details cut out of the shape. Drawn here because SF Symbols themselves may only be
  * used in apps for Apple platforms. All on a 24px grid, coloured by `currentColor`.
  */
@@ -255,6 +255,139 @@ export function PlusBold(props: IconProps) {
   return (
     <Svg {...props}>
       <path d="M12 4.6v14.8M4.6 12h14.8" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+    </Svg>
+  )
+}
+
+const BELL =
+  'M12 2.6c.6 0 1 .4 1 1v.5a6.3 6.3 0 0 1 5.3 6.2v3.6l1.6 2.4c.4.6 0 1.4-.8 1.4H4.9c-.8 0-1.2-.8-.8-1.4l1.6-2.4v-3.6A6.3 6.3 0 0 1 11 4.1v-.5c0-.6.4-1 1-1ZM9.5 19h5a2.5 2.5 0 0 1-5 0Z'
+
+/** bell.fill */
+export function BellFill(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d={BELL} />
+    </Svg>
+  )
+}
+
+/** bell.slash.fill */
+export function BellSlashFill(props: IconProps) {
+  const id = `bell-slash-${useId().replace(/[^a-zA-Z0-9]/g, '')}`
+  return (
+    <Svg {...props}>
+      <mask id={id}>
+        <rect width="24" height="24" fill="white" />
+        {/* a gap either side of the slash */}
+        <path d="M3.4 2.6 21.4 20.6" stroke="black" strokeWidth="4.4" strokeLinecap="round" />
+      </mask>
+      <path d={BELL} mask={`url(#${id})`} />
+      <path d="M3.4 2.6 21.4 20.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </Svg>
+  )
+}
+
+/** clock.fill */
+export function ClockFill(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        fillRule="evenodd"
+        d={
+          circle(12, 12, 9.8) +
+          'M11.1 6.6a.9.9 0 0 1 1.8 0v5.05l3.05 1.8a.9.9 0 1 1-.92 1.55l-3.48-2.06a.9.9 0 0 1-.45-.78Z'
+        }
+      />
+    </Svg>
+  )
+}
+
+/** person.2.fill */
+export function PeopleFill(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d={circle(16.6, 8.4, 2.75)} />
+      <path d="M16.9 13.2c2.9.15 4.85 1.95 4.85 4.7 0 .55-.4.95-.95.95h-3.5c.08-.3.1-.6.1-.9 0-1.8-.72-3.45-2.02-4.6.48-.1 1-.15 1.52-.15Z" />
+      <path d={circle(9, 7.9, 3.35)} />
+      <path d="M2.3 19c0-3.3 2.95-5.6 6.7-5.6s6.7 2.3 6.7 5.6c0 .55-.42.95-.95.95H3.25c-.53 0-.95-.4-.95-.95Z" />
+    </Svg>
+  )
+}
+
+/** scissors */
+export function ScissorsFill(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <circle cx="6" cy="6.6" r="2.9" />
+        <circle cx="6" cy="17.4" r="2.9" />
+        <path d="M8.5 8.3 20.5 16.8M8.5 15.7 20.5 7.2" />
+      </g>
+    </Svg>
+  )
+}
+
+/** chart.bar.fill */
+export function ChartBarFill(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3.5" y="12" width="4.6" height="8.5" rx="1.5" />
+      <rect x="9.7" y="4" width="4.6" height="16.5" rx="1.5" />
+      <rect x="15.9" y="8.5" width="4.6" height="12" rx="1.5" />
+    </Svg>
+  )
+}
+
+/** storefront.fill */
+export function StorefrontFill(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M4.2 3.5h15.6l1.9 5.2c0 1.4-1.1 2.5-2.5 2.5s-2.4-1.1-2.4-2.5c0 1.4-1.1 2.5-2.4 2.5S12 10.1 12 8.7c0 1.4-1.1 2.5-2.4 2.5S7.2 10.1 7.2 8.7c0 1.4-1.1 2.5-2.4 2.5S2.3 10.1 2.3 8.7Z" />
+      <path fillRule="evenodd" d="M5 12.7h14v5.8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2ZM10.2 15.1h3.6v5.4h-3.6Z" />
+    </Svg>
+  )
+}
+
+/** lock.fill */
+export function LockFill(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M8 10.4V7.7a4 4 0 0 1 8 0v2.7" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path
+        fillRule="evenodd"
+        d={
+          'M7.6 9.9h8.8a2.8 2.8 0 0 1 2.8 2.8v5.7a2.8 2.8 0 0 1-2.8 2.8H7.6a2.8 2.8 0 0 1-2.8-2.8v-5.7a2.8 2.8 0 0 1 2.8-2.8Z' +
+          circle(12, 14.6, 1.45) +
+          'M11.35 15.4h1.3v2.3a.65.65 0 0 1-1.3 0Z'
+        }
+      />
+    </Svg>
+  )
+}
+
+/** The tab bar stays: a screen with its bar in place. */
+export function DockFill(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3.2" y="4.2" width="17.6" height="15.6" rx="3.6" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M7.3 14.6h9.4a1.1 1.1 0 0 1 0 2.2H7.3a1.1 1.1 0 0 1 0-2.2Z" />
+    </Svg>
+  )
+}
+
+/** The tab bar slides away while scrolling: a screen with an arrow down. */
+export function DockDownFill(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3.2" y="4.2" width="17.6" height="15.6" rx="3.6" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M12 8.2v6.6M8.9 11.9 12 15l3.1-3.1"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </Svg>
   )
 }

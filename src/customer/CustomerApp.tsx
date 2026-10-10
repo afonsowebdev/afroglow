@@ -1,8 +1,22 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { Bell, BellOff, LogOut, Moon, PanelBottomClose, PanelBottomOpen, Settings, Sun } from 'lucide-react'
-import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
+import {
+  BellFill,
+  BellSlashFill,
+  CalendarCheckFill,
+  CalendarPlusFill,
+  DockDownFill,
+  DockFill,
+  GearFill,
+  HouseFill,
+  MoonFill,
+  PersonCircleFill,
+  PlusBold,
+  SignOutFill,
+  SunFill,
+} from '@/components/ui/apple-icons'
+import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import AccountAuthPage from '@/pages/AccountAuthPage'
 import { api } from '@/lib/api'
@@ -29,21 +43,12 @@ import SettingsScreen from './SettingsScreen'
 
 type TabId = 'inicio' | 'marcar' | 'marcacoes' | 'conta'
 
-const TABS: Array<{ id: TabId; label: string; icon: string; path: string }> = [
-  { id: 'inicio', label: 'Início', icon: 'bx bx-home-alt', path: '/' },
-  {
-    id: 'marcar',
-    label: 'Marcar',
-    icon: 'bx bx-calendar-plus',
-    path: '/marcar',
-  },
-  {
-    id: 'marcacoes',
-    label: 'Marcações',
-    icon: 'bx bx-calendar-check',
-    path: '/marcacoes',
-  },
-  { id: 'conta', label: 'Conta', icon: 'bx bx-user', path: '/conta' },
+// Icons in the style of Apple's SF Symbols (see apple-icons); `icon` stays as the Boxicons fallback.
+const TABS: Array<BottomNavItem<TabId> & { path: string }> = [
+  { id: 'inicio', label: 'Início', icon: 'bx bx-home-alt', Icon: HouseFill, path: '/' },
+  { id: 'marcar', label: 'Marcar', icon: 'bx bx-calendar-plus', Icon: CalendarPlusFill, path: '/marcar' },
+  { id: 'marcacoes', label: 'Marcações', icon: 'bx bx-calendar-check', Icon: CalendarCheckFill, path: '/marcacoes' },
+  { id: 'conta', label: 'Conta', icon: 'bx bx-user', Icon: PersonCircleFill, path: '/conta' },
 ]
 
 function tabFor(pathname: string): TabId {
@@ -145,24 +150,24 @@ function CustomerShell() {
 
   const menuActions: MenuAction[] = [
     {
-      Icon: theme.theme === 'dark' ? Sun : Moon,
+      Icon: theme.theme === 'dark' ? SunFill : MoonFill,
       label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
       onClick: theme.toggleTheme,
     },
     {
-      Icon: hideOnScroll ? PanelBottomOpen : PanelBottomClose,
+      Icon: hideOnScroll ? DockFill : DockDownFill,
       label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
       onClick: () => setHideNavOnScroll(!hideOnScroll),
     },
     {
-      Icon: Settings,
+      Icon: GearFill,
       label: 'Definições',
       onClick: () => navigate('/definicoes'),
     },
     ...(pushSupported()
       ? [
           {
-            Icon: notificationsOn ? Bell : BellOff,
+            Icon: notificationsOn ? BellFill : BellSlashFill,
             label: notificationsOn ? 'Desligar avisos' : 'Ligar avisos',
             onClick: async () => {
               if (notificationsOn) {
@@ -187,7 +192,7 @@ function CustomerShell() {
     ...(customer
       ? [
           {
-            Icon: LogOut,
+            Icon: SignOutFill,
             label: 'Terminar sessão',
             danger: true,
             onClick: () => {
@@ -255,17 +260,23 @@ function CustomerShell() {
               if (target) navigate(target.path)
               window.scrollTo({ top: 0 })
             }}
-            items={TABS.map(({ id, label, icon }) => ({
+            items={TABS.map(({ id, label, icon, Icon }) => ({
               id,
               label,
               icon,
+              Icon,
               dot: id === 'marcacoes' && unseen.size > 0,
               // The customer's photo stands in for the account icon when there is one.
               ...(id === 'conta' && customer ? { image: avatar } : {}),
             }))}
           />
         </div>
-        <FloatingActionMenu actions={menuActions} hidden={menuForcedHidden} tone={overHero ? 'onDark' : 'onLight'} />
+        <FloatingActionMenu
+          actions={menuActions}
+          hidden={menuForcedHidden}
+          tone={overHero ? 'onDark' : 'onLight'}
+          PlusIcon={PlusBold}
+        />
       </div>
     </div>
   )
