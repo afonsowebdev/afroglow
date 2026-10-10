@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { BrandMarquee } from '@/components/ui/brand-marquee'
 import { MotionButton } from '@/components/ui/motion-button'
+import { VelocityRow } from '@/components/ui/velocity-marquee'
 import { api, assetUrl } from '@/lib/api'
 import { instagramDmUrl, siteConfig } from '@/lib/site-config'
 
@@ -141,9 +141,11 @@ export default function Gallery() {
   }, [viewer, goTo])
 
   return (
-    <section id="galeria" className="relative overflow-hidden bg-cream py-24 md:py-32">
-      {/* AFROGLOW sliding behind the work: one row right to left, the other left to right. */}
-      <BrandMarquee />
+    <section id="galeria" className="relative overflow-hidden bg-cream pb-40 pt-24 md:pb-56 md:pt-32">
+      {/* AFROGLOW sliding behind the section: gold outline behind the title (right to left), soft fill under
+          the work (left to right). Both speed up while the page scrolls. */}
+      <VelocityRow direction={1} outline className="absolute inset-x-0 top-6 md:top-10" />
+      <VelocityRow direction={-1} className="absolute inset-x-0 bottom-2 md:bottom-4" />
       <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-6 px-5 text-center sm:px-8 md:flex-row md:items-end md:justify-between md:text-left">
         <div>
           <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Portfólio</p>
