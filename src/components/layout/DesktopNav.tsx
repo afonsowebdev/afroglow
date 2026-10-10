@@ -85,7 +85,7 @@ export function DesktopNav({
 
       {/* The one action of the site, set apart from the sections. */}
       <ButtonWithIcon
-        label="Marcar sessão"
+        label="Agendar"
         tone={tone}
         onClick={onBook}
         aria-current={bookingActive ? 'page' : undefined}
