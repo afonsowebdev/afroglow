@@ -25,7 +25,7 @@ export function ButtonWithIcon({
       type="button"
       onClick={onClick}
       className={cn(
-        'liquid-glass group relative h-[56px] w-fit cursor-pointer overflow-hidden rounded-full bg-transparent p-1 ps-6 pe-[3.75rem] font-subtitle text-sm font-semibold transition-all duration-500 hover:ps-[3.75rem] hover:pe-6 hover:brightness-100',
+        'liquid-glass group relative h-[56px] w-fit cursor-pointer overflow-hidden rounded-full bg-transparent p-1 ps-6 pe-[3.75rem] font-subtitle text-sm font-normal transition-all duration-500 hover:ps-[3.75rem] hover:pe-6 hover:brightness-100',
         onDark ? 'text-[#ffffff] [filter:drop-shadow(0_0_1px_rgba(0,0,0,0.25))]' : 'text-onyx',
         className,
       )}
