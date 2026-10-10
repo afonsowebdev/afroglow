@@ -391,3 +391,18 @@ export function DockDownFill(props: IconProps) {
     </Svg>
   )
 }
+
+/** mappin (filled) */
+export function MapPinFill(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        fillRule="evenodd"
+        d={
+          'M12 2.4a7.1 7.1 0 0 1 7.1 7.1c0 5.05-5.55 10.75-6.38 11.55a1.03 1.03 0 0 1-1.44 0C10.45 20.25 4.9 14.55 4.9 9.5A7.1 7.1 0 0 1 12 2.4Z' +
+          circle(12, 9.5, 2.6)
+        }
+      />
+    </Svg>
+  )
+}

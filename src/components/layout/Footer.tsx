@@ -1,5 +1,7 @@
+import type { ReactNode } from 'react'
+import { ClockFill, MapPinFill } from '@/components/ui/apple-icons'
 import { FooterBackgroundGradient, TextHoverEffect } from '@/components/ui/hover-footer'
-import { MotionButton } from '@/components/ui/motion-button'
+import { useOpeningStatus } from '@/lib/opening-hours'
 import { instagramDmUrl, siteConfig, useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 
 const EXPLORE_LINKS = [
@@ -64,10 +66,33 @@ export default function Footer() {
     ...(business.phone
       ? [{ icon: 'bx bx-phone', text: business.phone, href: `tel:${business.phone.replace(/[^+\d]/g, '')}` }]
       : []),
+    // The address and today's hours are in the strip above the columns.
     { icon: 'bx bx-envelope', text: siteConfig.email, href: `mailto:${siteConfig.email}` },
-    business.address
-      ? { icon: 'bx bx-map', text: business.address, href: business.mapUrl || undefined }
-      : { icon: 'bx bx-map', text: siteConfig.location },
+  ]
+
+  const { status } = useOpeningStatus(business.openingHours)
+  const QUICK: Array<{ label: string; value: string; href: string; icon: ReactNode; dot?: boolean }> = [
+    {
+      label: 'Hoje',
+      value: status?.text ?? 'Ver horário',
+      href: '#localizacao',
+      icon: <ClockFill className="size-6" />,
+      dot: status ? status.open : undefined,
+    },
+    {
+      label: 'Onde estamos',
+      value: business.address || siteConfig.location,
+      href: business.mapUrl || '#localizacao',
+      icon: <MapPinFill className="size-6" />,
+    },
+    whatsappUrl
+      ? { label: 'Fala connosco', value: 'WhatsApp', href: whatsappUrl, icon: <i className="bx bxl-whatsapp text-2xl" aria-hidden="true" /> }
+      : {
+          label: 'Fala connosco',
+          value: `@${siteConfig.instagramHandle}`,
+          href: instagramDmUrl(),
+          icon: <i className="bx bxl-instagram text-2xl" aria-hidden="true" />,
+        },
   ]
 
   const year = new Date().getFullYear()
@@ -78,32 +103,41 @@ export default function Footer() {
       <FooterBackgroundGradient />
 
       <div className="relative z-10 mx-auto max-w-6xl px-5 pt-16 sm:px-10 md:pt-24">
-        <div className="relative overflow-hidden rounded-3xl border border-gold/25 bg-white/60 px-6 py-10 text-center shadow-sm shadow-black/5 backdrop-blur-sm sm:px-12 lg:flex lg:items-center lg:justify-between lg:gap-10 lg:text-left">
-          <div
-            className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-gold/20 blur-3xl"
-            aria-hidden="true"
-          />
-          <div className="relative">
-            <h3 className="font-logo text-3xl text-onyx sm:text-4xl">Pronta para brilhar?</h3>
-            <p className="mx-auto mt-3 max-w-md font-subtitle text-sm font-light leading-relaxed text-muted-dark md:text-base lg:mx-0">
-              Marca a tua próxima sessão de tranças em poucos minutos. Escolhe o serviço, o dia e a hora.
-            </p>
-          </div>
-          <div className="relative mt-7 flex flex-col items-center gap-4 sm:flex-row sm:justify-center lg:mt-0 lg:shrink-0">
-            <MotionButton label="Agendar" href="/agendar" />
-            {whatsappUrl && (
+        {/* Quick facts before the columns: today's hours, where to find us, a direct line. */}
+        <ul className="grid divide-y divide-gold/20 border-y border-gold/20 md:grid-cols-3 md:divide-x md:divide-y-0">
+          {QUICK.map((item) => (
+            <li key={item.label}>
               <a
-                href={whatsappUrl}
-                target="_blank"
+                href={item.href}
+                target={item.href.startsWith('http') ? '_blank' : undefined}
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 font-body text-sm text-muted-dark transition-colors hover:text-gold-ink"
+                className="group flex h-full items-center gap-4 py-6 transition-colors md:px-6 md:first:pl-0 md:last:pr-0 lg:px-8"
               >
-                <i className="bx bxl-whatsapp text-lg" aria-hidden="true" />
-                Ou fala connosco
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 text-gold-ink transition-colors duration-300 group-hover:bg-gold-deep group-hover:text-cream">
+                  {item.icon}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-subtitle text-[11px] font-medium uppercase tracking-[0.16em] text-muted-dark">
+                    {item.label}
+                  </span>
+                  <span className="mt-1 flex items-center gap-2 font-subtitle text-sm text-onyx sm:text-base">
+                    {item.dot !== undefined && (
+                      <span
+                        className={`size-2 shrink-0 rounded-full ${item.dot ? 'bg-emerald-500' : 'bg-muted'}`}
+                        aria-hidden="true"
+                      />
+                    )}
+                    <span className="line-clamp-2">{item.value}</span>
+                  </span>
+                </span>
+                <i
+                  className="bx bx-chevron-right -translate-x-1 text-xl text-muted-dark opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
+                  aria-hidden="true"
+                />
               </a>
-            )}
-          </div>
-        </div>
+            </li>
+          ))}
+        </ul>
 
         <div className="grid grid-cols-2 gap-x-8 gap-y-12 py-14 md:py-16 lg:grid-cols-12 lg:gap-x-10">
           <div className="col-span-2 flex flex-col gap-6 lg:col-span-4">
@@ -159,16 +193,6 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-            {business.openingHours.length > 0 && (
-              <dl className="mt-6 flex flex-col gap-1.5 border-t border-gold/15 pt-5 font-body text-sm">
-                {business.openingHours.map((row) => (
-                  <div key={row.days} className="flex justify-between gap-4">
-                    <dt className="text-muted-dark">{row.days}</dt>
-                    <dd className="text-onyx">{row.hours}</dd>
-                  </div>
-                ))}
-              </dl>
-            )}
           </div>
         </div>
 
