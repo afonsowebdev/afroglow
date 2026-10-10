@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ComponentType } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { CalendarPlusFill, PersonCircleFill } from '@/components/ui/apple-icons'
+import { PersonCircleFill } from '@/components/ui/apple-icons'
 import { cn } from '@/lib/utils'
 
 export interface DesktopLink {
@@ -82,15 +82,18 @@ export function DesktopNav({
         })}
       </nav>
 
-      {/* The one action of the site, set apart from the sections. */}
+      {/* The one action of the site, set apart from the sections: plain, solid, no icon. Dark over the light
+          sections, white over the video. */}
       <button
         type="button"
         onClick={onBook}
         aria-current={bookingActive ? 'page' : undefined}
-        className="flex h-[56px] items-center gap-2 rounded-full bg-gold-deep pe-6 ps-5 font-subtitle text-sm font-semibold text-[#ffffff] shadow-lg shadow-gold-deep/25 transition-[transform,filter] duration-300 hover:brightness-110 active:scale-[0.97]"
+        className={cn(
+          'h-11 rounded-full px-6 font-subtitle text-sm font-medium tracking-wide transition-colors duration-300',
+          onDark ? 'bg-[#ffffff] text-[#1a1008] hover:bg-[#ffffff]/85' : 'bg-onyx text-white hover:bg-onyx/85',
+        )}
       >
-        <CalendarPlusFill className="size-5" />
-        Agendar
+        Marcar sessão
       </button>
 
       <AccountMenu

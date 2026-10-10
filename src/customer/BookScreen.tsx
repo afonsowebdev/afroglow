@@ -558,29 +558,15 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                     </div>
                   )}
                 </dl>
-                {/* The site's gold button, as "Agendar" in the header: full width, the step's action and where it leads. */}
+                {/* Same plain button as "Marcar sessão" in the header. */}
                 <button
                   type="button"
                   disabled={!ctaVisible || submitting}
                   onClick={() => (step === 2 ? void submit() : setStep(step + 1))}
-                  className="group mt-6 flex h-14 w-full items-center justify-between rounded-full bg-gold-deep pe-2 ps-6 font-subtitle text-[#ffffff] shadow-lg shadow-gold-deep/25 transition-[transform,filter,background-color,box-shadow] duration-300 hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-gold-deep/25 disabled:text-onyx/50 disabled:shadow-none disabled:hover:brightness-100"
+                  className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-onyx font-subtitle text-sm font-medium tracking-wide text-white transition-colors duration-300 hover:bg-onyx/85 disabled:cursor-not-allowed disabled:bg-onyx/15 disabled:text-onyx/40"
                 >
-                  <span className="flex flex-col items-start leading-tight">
-                    <span className="text-[15px] font-semibold">
-                      {submitting ? 'A enviar...' : step === 2 ? 'Enviar pedido' : 'Continuar'}
-                    </span>
-                    {!submitting && (
-                      <span className="text-[11px] opacity-80">
-                        {step === 0 ? 'A seguir: data e hora' : step === 1 ? 'A seguir: confirmar' : 'Fica por confirmar'}
-                      </span>
-                    )}
-                  </span>
-                  <span className="flex size-10 items-center justify-center rounded-full bg-[#ffffff]/20 transition-transform duration-300 group-enabled:group-hover:translate-x-0.5">
-                    <i
-                      className={`bx ${submitting ? 'bx-loader-alt animate-spin' : step === 2 ? 'bx-send' : 'bx-right-arrow-alt'} text-xl`}
-                      aria-hidden="true"
-                    />
-                  </span>
+                  {submitting ? 'A enviar...' : step === 2 ? 'Enviar pedido' : 'Continuar'}
+                  {!submitting && <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />}
                 </button>
                 <p className="mt-3 font-subtitle text-xs font-light text-muted-dark">
                   {step === 0 && !service
