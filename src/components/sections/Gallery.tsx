@@ -141,7 +141,7 @@ export default function Gallery() {
   }, [viewer, goTo])
 
   return (
-    <section id="galeria" className="relative overflow-hidden bg-cream pb-40 pt-24 md:pb-56 md:pt-32">
+    <section id="galeria" className="relative overflow-hidden bg-white pb-40 pt-24 md:pb-56 md:pt-32">
       {/* AFROGLOW sliding behind the section: gold outline behind the title (right to left), soft fill under
           the work (left to right). Both speed up while the page scrolls. */}
       <VelocityRow direction={1} outline className="absolute inset-x-0 top-6 md:top-10" />
