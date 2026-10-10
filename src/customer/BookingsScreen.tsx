@@ -80,7 +80,12 @@ function BookingCard({ booking, onOpen, isNew }: { booking: Booking; onOpen: () 
   )
 }
 
-export default function BookingsScreen() {
+// The app stacks the cards; the website sets them side by side, as many as fit.
+const listLayout = (wide: boolean) =>
+  wide ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3' : 'flex flex-col gap-3'
+
+/** `wide`: the website's layout, the cards side by side instead of the app's single column. */
+export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}) {
   const navigate = useNavigate()
   const business = useBusinessInfo()
   const [bookings, setBookings] = useState<Booking[] | null>(null)
@@ -174,10 +179,10 @@ export default function BookingsScreen() {
   return (
     <main className="px-5 pb-40 pt-[calc(1.25rem+env(safe-area-inset-top))]" {...handlers}>
       {indicator}
-      <div className="mx-auto max-w-md">
+      <div className={wide ? 'mx-auto max-w-6xl sm:px-3' : 'mx-auto max-w-md'}>
         <h1 className="font-subtitle font-semibold tracking-tight text-4xl text-onyx">As minhas marcações</h1>
 
-        <div className="glass-chip mt-6 flex rounded-full p-1">
+        <div className={`glass-chip mt-6 flex rounded-full p-1 ${wide ? 'max-w-md' : ''}`}>
           {(
             [
               ['next', 'Próximas', next.length],
@@ -217,8 +222,8 @@ export default function BookingsScreen() {
         )}
 
         {!bookings && !loadError && (
-          <div className="mt-6 flex flex-col gap-3" aria-label="A carregar">
-            {[0, 1].map((i) => (
+          <div className={`mt-6 ${listLayout(wide)}`} aria-label="A carregar">
+            {[0, 1, 2].slice(0, wide ? 3 : 2).map((i) => (
               <div key={i} className="h-28 animate-pulse rounded-3xl bg-gold/10" />
             ))}
           </div>
@@ -241,7 +246,7 @@ export default function BookingsScreen() {
           </div>
         )}
 
-        <div className="mt-6 flex flex-col gap-3">
+        <div className={`mt-6 ${listLayout(wide)}`}>
           {bookings &&
             list.map((booking) => (
               <BookingCard
