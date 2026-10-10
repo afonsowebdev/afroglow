@@ -150,10 +150,11 @@ function AccountMenu({
           active && 'ring-2 ring-gold/70',
         )}
       >
+        {/* The photo or icon fills the circle, leaving only a thin glass rim around it. */}
         {avatar ? (
-          <img src={avatar} alt="" className="size-10 rounded-full object-cover" />
+          <img src={avatar} alt="" className="size-[46px] rounded-full object-cover" />
         ) : (
-          <PersonCircleFill className="size-7" />
+          <PersonCircleFill className="size-[46px]" />
         )}
         {dot && (
           <span
