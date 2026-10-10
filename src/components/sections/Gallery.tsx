@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { BrandMarquee } from '@/components/ui/brand-marquee'
 import { MotionButton } from '@/components/ui/motion-button'
 import { api, assetUrl } from '@/lib/api'
 import { instagramDmUrl, siteConfig } from '@/lib/site-config'
@@ -140,8 +141,10 @@ export default function Gallery() {
   }, [viewer, goTo])
 
   return (
-    <section id="galeria" className="bg-cream py-24 md:py-32">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-5 text-center sm:px-8 md:flex-row md:items-end md:justify-between md:text-left">
+    <section id="galeria" className="relative overflow-hidden bg-cream py-24 md:py-32">
+      {/* AFROGLOW sliding behind the work: one row right to left, the other left to right. */}
+      <BrandMarquee />
+      <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-6 px-5 text-center sm:px-8 md:flex-row md:items-end md:justify-between md:text-left">
         <div>
           <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Portfólio</p>
           <h2 className="mt-2 font-logo text-4xl sm:text-5xl">O nosso trabalho</h2>
@@ -155,7 +158,7 @@ export default function Gallery() {
       </div>
 
       {hasBoth && (
-        <div className="mx-auto mt-10 flex max-w-6xl justify-center gap-2 px-5 sm:px-8 md:justify-start" role="tablist" aria-label="Mostrar">
+        <div className="relative mx-auto mt-10 flex max-w-6xl justify-center gap-2 px-5 sm:px-8 md:justify-start" role="tablist" aria-label="Mostrar">
           {FILTERS.map(({ id, label }) => (
             <button
               key={id}
@@ -179,7 +182,7 @@ export default function Gallery() {
       )}
 
       {/* Mosaic: columns fill top to bottom, each piece keeps its own height. */}
-      <div className={`mx-auto max-w-6xl columns-2 gap-3 px-5 sm:px-8 md:columns-3 md:gap-4 ${hasBoth ? 'mt-6' : 'mt-12'}`}>
+      <div className={`relative mx-auto max-w-6xl columns-2 gap-3 px-5 sm:px-8 md:columns-3 md:gap-4 ${hasBoth ? 'mt-6' : 'mt-12'}`}>
         {visible.map((item, i) => (
           <motion.button
             key={item.key}
@@ -229,7 +232,7 @@ export default function Gallery() {
       </div>
 
       {total > FIRST_BATCH && (
-        <div className="mt-10 flex justify-center">
+        <div className="relative mt-10 flex justify-center">
           <MotionButton
             label={showAll ? 'Ver menos' : `Ver tudo (${total})`}
             variant="secondary"
