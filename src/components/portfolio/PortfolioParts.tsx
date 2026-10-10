@@ -1,11 +1,10 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef } from 'react'
 import type { PortfolioFilter, WorkItem } from '@/lib/portfolio'
-import { instagramDmUrl, siteConfig } from '@/lib/site-config'
 
 /*
- * The pieces of the portfolio, shared by the home page preview (Gallery) and the portfolio page: a mosaic tile,
- * the Instagram card, the filters, the counts and the full-screen viewer.
+ * The pieces of the portfolio, shared by the home page preview (Gallery) and the portfolio page: a grid tile, the
+ * filters and the full-screen viewer.
  */
 
 const FILTERS: Array<{ id: PortfolioFilter; label: string }> = [
@@ -33,29 +32,15 @@ function AutoVideo({ src, className }: { src: string; className?: string }) {
   return <video ref={ref} src={src} muted loop playsInline preload="metadata" className={className} />
 }
 
-/** One piece of the mosaic; `shape` is its aspect-ratio class. */
-export function PortfolioTile({
-  item,
-  index,
-  shape,
-  onOpen,
-}: {
-  item: WorkItem
-  index: number
-  shape: string
-  onOpen: () => void
-}) {
+/** One photo or video of the grid; opens it on click. */
+export function PortfolioTile({ item, index, onOpen }: { item: WorkItem; index: number; onOpen: () => void }) {
   const video = item.kind === 'VIDEO'
   return (
-    <motion.button
+    <button
       type="button"
       aria-label={`Ver ${video ? 'vídeo' : 'foto'} ${index + 1} em ecrã inteiro`}
       onClick={onOpen}
-      initial={{ opacity: 0, y: 24, scale: 0.97 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.6, delay: (index % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      className={`group relative mb-3 block w-full break-inside-avoid overflow-hidden rounded-3xl bg-black/5 shadow-sm shadow-black/5 ring-1 ring-black/5 transition-shadow duration-500 hover:shadow-xl hover:shadow-gold-deep/20 md:mb-4 ${shape}`}
+      className="group relative block aspect-[4/5] w-full overflow-hidden rounded-xl bg-black/5"
     >
       {video ? (
         <AutoVideo src={item.src} className="h-full w-full object-cover" />
@@ -64,68 +49,16 @@ export function PortfolioTile({
           src={item.src}
           alt={item.alt}
           loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
         />
       )}
-      <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
       {video && (
-        <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 font-subtitle text-[11px] font-medium text-[#ffffff] backdrop-blur-md">
-          <i className="bx bx-play text-sm" aria-hidden="true" />
-          Vídeo
-        </span>
+        <i
+          className="bx bx-play absolute right-2.5 top-2.5 text-2xl text-[#ffffff] [filter:drop-shadow(0_1px_3px_rgba(0,0,0,0.5))]"
+          aria-hidden="true"
+        />
       )}
-      {/* Phones: a small corner icon; wide screens: "Ver" in the middle on hover. */}
-      <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-[#ffffff] backdrop-blur-md md:hidden">
-        <i className={video ? 'bx bx-play' : 'bx bx-expand-alt'} aria-hidden="true" />
-      </span>
-      <span className="pointer-events-none absolute inset-0 hidden items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:flex">
-        <span className="flex translate-y-2 items-center gap-1.5 rounded-full bg-[#ffffff]/90 px-4 py-2 font-subtitle text-sm font-medium text-[#1a1008] shadow-lg backdrop-blur-md transition-transform duration-300 group-hover:translate-y-0">
-          <i className={video ? 'bx bx-play text-base' : 'bx bx-expand-alt text-base'} aria-hidden="true" />
-          {video ? 'Ver vídeo' : 'Ver'}
-        </span>
-      </span>
-    </motion.button>
-  )
-}
-
-/** The last piece of a mosaic: the newest work on Instagram. */
-export function InstagramCard() {
-  return (
-    <a
-      href={instagramDmUrl()}
-      target="_blank"
-      rel="noreferrer"
-      className="group mb-3 flex aspect-[4/5] w-full break-inside-avoid flex-col items-center justify-center gap-3 rounded-3xl border-[1.5px] border-gold/30 bg-white px-4 text-center transition-colors duration-300 hover:border-gold-deep md:mb-4"
-    >
-      <span className="flex size-14 items-center justify-center rounded-full bg-gold-deep/10 text-3xl text-gold-ink transition-colors duration-300 group-hover:bg-gold-deep group-hover:text-cream">
-        <i className="bx bxl-instagram" aria-hidden="true" />
-      </span>
-      <span className="font-logo text-xl text-onyx sm:text-2xl">Mais no Instagram</span>
-      <span className="font-subtitle text-xs text-muted-dark sm:text-sm">
-        Vídeos e trabalhos recentes em @{siteConfig.instagramHandle}
-      </span>
-    </a>
-  )
-}
-
-/** "15 Fotos | 3 Vídeos" in large figures. */
-export function PortfolioCounts({ photos, videos, className = '' }: { photos: number; videos: number; className?: string }) {
-  const stats = [
-    { value: photos, label: photos === 1 ? 'Foto' : 'Fotos' },
-    ...(videos ? [{ value: videos, label: videos === 1 ? 'Vídeo' : 'Vídeos' }] : []),
-  ]
-  return (
-    <dl className={`flex divide-x divide-gold/30 ${className}`}>
-      {stats.map((stat) => (
-        // Label first in the markup, shown under the number.
-        <div key={stat.label} className="flex flex-col-reverse px-6 first:pl-0 last:pr-0">
-          <dt className="mt-1 font-subtitle text-[11px] font-medium uppercase tracking-[0.16em] text-muted-dark">
-            {stat.label}
-          </dt>
-          <dd className="font-logo text-4xl leading-none text-onyx">{stat.value}</dd>
-        </div>
-      ))}
-    </dl>
+    </button>
   )
 }
 
@@ -140,7 +73,7 @@ export function PortfolioFilters({
   className?: string
 }) {
   return (
-    <div className={`flex gap-2 ${className}`} role="tablist" aria-label="Mostrar">
+    <div className={`flex gap-6 ${className}`} role="tablist" aria-label="Mostrar">
       {FILTERS.map(({ id, label }) => (
         <button
           key={id}
@@ -148,10 +81,8 @@ export function PortfolioFilters({
           role="tab"
           aria-selected={value === id}
           onClick={() => onChange(id)}
-          className={`rounded-full px-4 py-2 font-subtitle text-sm transition-colors ${
-            value === id
-              ? 'bg-onyx text-[#ffffff] dark:bg-gold-deep'
-              : 'border-[1.5px] border-onyx/15 bg-white text-onyx/70 hover:text-onyx'
+          className={`border-b-2 pb-1 font-subtitle text-sm transition-colors ${
+            value === id ? 'border-onyx text-onyx' : 'border-transparent text-muted-dark hover:text-onyx'
           }`}
         >
           {label}
