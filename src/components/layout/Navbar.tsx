@@ -1,13 +1,21 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { CalendarCheck, CalendarPlus, Info, LogOut, MessageSquareQuote, Moon, Settings, Sparkles, Sun } from 'lucide-react'
 import {
+  CalendarCheckFill,
   CalendarPlusFill,
+  GearFill,
   HouseFill,
+  InfoCircleFill,
   ListRectangleFill,
+  MoonFill,
   PersonCircleFill,
   PhoneFill,
   PhotoStackFill,
+  PlusBold,
+  QuoteBubbleFill,
+  SignOutFill,
+  SparklesFill,
+  SunFill,
 } from '@/components/ui/apple-icons'
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
@@ -120,15 +128,15 @@ export default function Navbar({
   }, [])
 
   const menuActions: MenuAction[] = [
-    { Icon: theme === 'dark' ? Sun : Moon, label: theme === 'dark' ? 'Tema claro' : 'Tema escuro', onClick: toggleTheme },
-    { Icon: Info, label: 'Sobre nós', onClick: () => scrollToSection('sobre') },
-    { Icon: MessageSquareQuote, label: 'Testemunhos', onClick: () => scrollToSection('testemunhos') },
-    { Icon: Sparkles, label: 'Conhecer a CEO', onClick: () => navigate('/ceo') },
-    { Icon: CalendarPlus, label: 'Agendar', onClick: () => navigate('/agendar') },
+    { Icon: theme === 'dark' ? SunFill : MoonFill, label: theme === 'dark' ? 'Tema claro' : 'Tema escuro', onClick: toggleTheme },
+    { Icon: InfoCircleFill, label: 'Sobre nós', onClick: () => scrollToSection('sobre') },
+    { Icon: QuoteBubbleFill, label: 'Testemunhos', onClick: () => scrollToSection('testemunhos') },
+    { Icon: SparklesFill, label: 'Conhecer a CEO', onClick: () => navigate('/ceo') },
+    { Icon: CalendarPlusFill, label: 'Agendar', onClick: () => navigate('/agendar') },
     ...(customer
       ? [
-          { Icon: CalendarCheck, label: 'As minhas marcações', onClick: () => navigate('/marcacoes') },
-          { Icon: Settings, label: 'Definições', onClick: () => navigate('/definicoes') },
+          { Icon: CalendarCheckFill, label: 'As minhas marcações', onClick: () => navigate('/marcacoes') },
+          { Icon: GearFill, label: 'Definições', onClick: () => navigate('/definicoes') },
         ]
       : []),
     { iconClass: 'bx bxl-instagram', label: 'Instagram', href: instagramDmUrl() },
@@ -141,7 +149,7 @@ export default function Navbar({
           },
         ]
       : []),
-    ...(customer ? [{ Icon: LogOut, label: 'Terminar sessão', danger: true, onClick: () => void logout().then(() => navigate('/')) }] : []),
+    ...(customer ? [{ Icon: SignOutFill, label: 'Terminar sessão', danger: true, onClick: () => void logout().then(() => navigate('/')) }] : []),
   ]
 
   const tabBar = (tone: 'onDark' | 'onLight', hide = false) => (
@@ -199,7 +207,7 @@ export default function Navbar({
           {/* In the header on wide screens: the app's tab bar and its round menu, which opens downward. */}
           <div className="flex items-center gap-2.5">
             <div className="pointer-events-auto hidden md:block">{tabBar(headerTone)}</div>
-            <FloatingActionMenu actions={menuActions} direction="down" tone={headerTone} />
+            <FloatingActionMenu actions={menuActions} direction="down" tone={headerTone} PlusIcon={PlusBold} />
           </div>
         </div>
       </div>

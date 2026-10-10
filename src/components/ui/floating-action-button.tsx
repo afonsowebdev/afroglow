@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import { Plus, type LucideIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useState, type ComponentType } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 
@@ -135,7 +135,8 @@ export function AnimatedSocialIcons({ icons, className, iconSize = 22, onToggle 
 }
 
 export interface MenuAction {
-  Icon?: LucideIcon
+  /** A lucide icon or any icon component taking `size` (e.g. the Apple-style ones in apple-icons). */
+  Icon?: ComponentType<{ size?: number; className?: string }>
   /** Icon-font class for brand logos lucide doesn't ship (e.g. WhatsApp). */
   iconClass?: string
   label: string
@@ -159,8 +160,11 @@ export function FloatingActionMenu({
   dot = false,
   direction = 'up',
   compact = false,
+  PlusIcon = Plus,
 }: {
   actions: MenuAction[]
+  /** The glyph on the round button (turns into an "×" when open). */
+  PlusIcon?: ComponentType<{ size?: number; strokeWidth?: number }>
   /** Which way the options open: upward from a bottom button (apps) or downward from a header button (website). */
   direction?: 'up' | 'down'
   /** The small round button used in the website header instead of the big glass one. */
@@ -285,7 +289,7 @@ export function FloatingActionMenu({
                 )
           }
         >
-          <Plus size={compact ? 18 : 24} strokeWidth={2.6} />
+          <PlusIcon size={compact ? 18 : 24} strokeWidth={2.6} />
         </motion.button>
         {dot && !open ? (
           <span
