@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { MotionButton } from '@/components/ui/motion-button'
 import { api, assetUrl } from '@/lib/api'
 import { instagramDmUrl, siteConfig } from '@/lib/site-config'
@@ -72,6 +73,8 @@ export default function Gallery() {
   const [filter, setFilter] = useState<Filter>('todos')
   const [viewer, setViewer] = useState<number | null>(null)
   const viewerStrip = useRef<HTMLDivElement>(null)
+  const thumbStrip = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     api
@@ -123,6 +126,12 @@ export default function Gallery() {
     // Only on opening: later moves scroll the strip themselves.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewer === null])
+
+  // The thumbnail of the piece on screen stays in view as the viewer moves.
+  useEffect(() => {
+    if (viewer === null) return
+    thumbStrip.current?.children[viewer]?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+  }, [viewer])
 
   useEffect(() => {
     if (viewer === null) return
@@ -186,10 +195,10 @@ export default function Gallery() {
             type="button"
             aria-label={`Ver ${item.kind === 'VIDEO' ? 'vídeo' : 'foto'} ${i + 1} em ecrã inteiro`}
             onClick={() => setViewer(i)}
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 24, scale: 0.97 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
             viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.5, delay: (i % 3) * 0.06, ease: 'easeOut' }}
+            transition={{ duration: 0.6, delay: (i % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
             className={`group relative mb-3 block w-full break-inside-avoid overflow-hidden rounded-3xl bg-black/5 md:mb-4 ${
               SHAPES[i % SHAPES.length]
             }`}
@@ -204,9 +213,22 @@ export default function Gallery() {
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             )}
-            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-            <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-[#ffffff] opacity-100 backdrop-blur-md transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100">
+            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+            {item.kind === 'VIDEO' && (
+              <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 font-subtitle text-[11px] font-medium text-[#ffffff] backdrop-blur-md">
+                <i className="bx bx-play text-sm" aria-hidden="true" />
+                Vídeo
+              </span>
+            )}
+            {/* Phones: a small corner icon; wide screens: "Ver" in the middle on hover. */}
+            <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-[#ffffff] backdrop-blur-md md:hidden">
               <i className={item.kind === 'VIDEO' ? 'bx bx-play' : 'bx bx-expand-alt'} aria-hidden="true" />
+            </span>
+            <span className="pointer-events-none absolute inset-0 hidden items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:flex">
+              <span className="flex translate-y-2 items-center gap-1.5 rounded-full bg-[#ffffff]/90 px-4 py-2 font-subtitle text-sm font-medium text-[#1a1008] shadow-lg backdrop-blur-md transition-transform duration-300 group-hover:translate-y-0">
+                <i className={item.kind === 'VIDEO' ? 'bx bx-play text-base' : 'bx bx-expand-alt text-base'} aria-hidden="true" />
+                {item.kind === 'VIDEO' ? 'Ver vídeo' : 'Ver'}
+              </span>
             </span>
           </motion.button>
         ))}
@@ -238,6 +260,12 @@ export default function Gallery() {
         </div>
       )}
 
+      {/* From inspiration to booking, without a second banner: one line under the work. */}
+      <div className="mx-auto mt-12 flex max-w-6xl flex-col items-center justify-center gap-4 px-5 text-center sm:flex-row sm:gap-6 sm:px-8">
+        <p className="font-logo text-2xl text-onyx sm:text-3xl">Encontraste o teu próximo estilo?</p>
+        <MotionButton label="Agendar" onClick={() => navigate('/agendar')} />
+      </div>
+
       <AnimatePresence>
         {viewer !== null && (
           <motion.div
@@ -258,7 +286,12 @@ export default function Gallery() {
               className="flex h-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               {shown.map((item, i) => (
-                <div key={item.key} className="flex h-full w-full shrink-0 snap-center items-center justify-center p-4 md:p-16">
+                <div
+                  key={item.key}
+                  // A click on the dark area around the piece closes the viewer.
+                  onClick={(e) => e.target === e.currentTarget && setViewer(null)}
+                  className="flex h-full w-full shrink-0 snap-center items-center justify-center px-4 pb-28 pt-20 md:px-24 md:pb-32"
+                >
                   {item.kind === 'VIDEO' ? (
                     // Only the videos next to the one on screen are mounted, so one plays at a time.
                     Math.abs(i - viewer) <= 1 ? (
@@ -306,9 +339,41 @@ export default function Gallery() {
                 </button>
               </>
             )}
-            <p className="pointer-events-none absolute inset-x-0 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] text-center font-subtitle text-sm text-[#ffffff]/80">
+            <p className="pointer-events-none absolute left-5 top-[calc(1.6rem+env(safe-area-inset-top))] font-subtitle text-sm tabular-nums text-[#ffffff]/80">
               {viewer + 1} / {total}
             </p>
+
+            {/* Every piece as a thumbnail, to jump straight to one. */}
+            {total > 1 && (
+              <div className="absolute inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] flex justify-center px-4">
+                <div
+                  ref={thumbStrip}
+                  className="flex max-w-full gap-2 overflow-x-auto rounded-2xl bg-[#ffffff]/10 p-2 backdrop-blur-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                >
+                  {shown.map((item, i) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      aria-label={`Ir para ${item.kind === 'VIDEO' ? 'vídeo' : 'foto'} ${i + 1}`}
+                      aria-current={i === viewer || undefined}
+                      onClick={() => goTo(i)}
+                      className={`relative size-12 shrink-0 overflow-hidden rounded-xl transition-all duration-300 sm:size-14 ${
+                        i === viewer ? 'opacity-100 ring-2 ring-[#ffffff]' : 'opacity-45 hover:opacity-80'
+                      }`}
+                    >
+                      {item.kind === 'VIDEO' ? (
+                        <>
+                          <video src={`${item.src}#t=0.1`} muted playsInline preload="metadata" className="size-full object-cover" />
+                          <i className="bx bx-play absolute inset-0 m-auto size-fit text-xl text-[#ffffff]" aria-hidden="true" />
+                        </>
+                      ) : (
+                        <img src={item.src} alt="" loading="lazy" className="size-full object-cover" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
