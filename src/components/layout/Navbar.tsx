@@ -20,6 +20,7 @@ import {
   SunFill,
 } from '@/components/ui/apple-icons'
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
+import { DesktopNav, type AccountItem, type DesktopLink } from '@/components/layout/DesktopNav'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import { loadAvatar, useAvatar } from '@/lib/avatar-store'
 import { useHideOnScroll } from '@/customer/nav-visibility'
@@ -43,12 +44,29 @@ const TABS: Array<BottomNavItem<TabId>> = [
 
 // Tabs that open their own page rather than a section of this one.
 const PAGE_TABS: TabId[] = ['agendar', 'perfil']
-const SECTION_IDS = TABS.filter((tab) => !PAGE_TABS.includes(tab.id)).map((tab) => tab.id)
+
+// Wide screens: the sections as words, in the order they appear on the page.
+const DESKTOP_LINKS: DesktopLink[] = [
+  { id: 'sobre', label: 'Sobre nós' },
+  { id: 'servicos', label: 'Serviços' },
+  { id: 'galeria', label: 'Galeria' },
+  { id: 'testemunhos', label: 'Testemunhos' },
+  { id: 'contacto', label: 'Contacto' },
+]
+
+// Every section either menu highlights while it is on screen.
+const SECTION_IDS = [
+  ...new Set([
+    ...TABS.filter((tab) => !PAGE_TABS.includes(tab.id)).map((tab) => tab.id as string),
+    ...DESKTOP_LINKS.map((link) => link.id),
+  ]),
+]
 
 /**
- * The website menu, in the customer app's pattern: the AFROGLOW logo and a floating "liquid glass" tab bar (the
- * active item shows its name) with the round "+" beside it for everything else. The same menu shows on the
- * customer pages, with `page` keeping their tab selected; its section tabs then lead back to the home page.
+ * The website menu. Wide screens: the AFROGLOW logo, the sections as words, an "Agendar" button and the account
+ * menu (DesktopNav). Tablets and phones: the customer app's floating "liquid glass" tab bar (the active item shows
+ * its name) with the round "+" for everything else. The same menu shows on the customer pages, with `page` keeping
+ * their tab selected; its sections then lead back to the home page.
  */
 export default function Navbar({
   page,
@@ -82,7 +100,7 @@ export default function Navbar({
   useEffect(() => {
     if (customer) void loadAvatar()
   }, [customer])
-  const [activeSection, setActiveSection] = useState<TabId>('top')
+  const [activeSection, setActiveSection] = useState<string>('top')
   const [overHero, setOverHero] = useState(true)
   const [headerOverHero, setHeaderOverHero] = useState(true)
 
@@ -95,7 +113,7 @@ export default function Navbar({
         const mostVisible = entries
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
-        if (mostVisible) setActiveSection(mostVisible.target.id as TabId)
+        if (mostVisible) setActiveSection(mostVisible.target.id)
       },
       { rootMargin: '-40% 0px -40% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] },
     )
@@ -172,7 +190,7 @@ export default function Navbar({
       compact
       tone={tone}
       hidden={hide}
-      value={page ?? activeSection}
+      value={page ?? (activeSection as TabId)}
       onChange={(id) => {
         if (id === 'agendar') navigate('/agendar')
         // Signed in: the profile; otherwise the sign-in page, which leads there.
@@ -186,6 +204,37 @@ export default function Navbar({
     />
   )
   const headerTone = headerOverHero ? 'onDark' : 'onLight'
+
+  // Wide screens: the account menu behind the customer's photo, with what the "+" holds elsewhere.
+  const firstName = customer?.name.trim().split(/\s+/)[0]
+  const accountItems: AccountItem[] = [
+    ...(customer
+      ? [
+          { Icon: PersonCircleFill, label: 'O meu perfil', onClick: () => navigate('/conta') },
+          { Icon: CalendarCheckFill, label: 'As minhas marcações', onClick: () => navigate('/marcacoes') },
+          { Icon: GearFill, label: 'Definições', onClick: () => navigate('/definicoes') },
+        ]
+      : [{ Icon: PersonCircleFill, label: 'Entrar ou criar conta', onClick: () => navigate('/entrar') }]),
+    { Icon: SparklesFill, label: 'Conhecer a CEO', onClick: () => navigate('/ceo'), divider: true },
+    { iconClass: 'bx bxl-instagram', label: 'Instagram', href: instagramDmUrl() },
+    ...(whatsapp.enabled
+      ? [{ iconClass: 'bx bxl-whatsapp', label: 'WhatsApp', href: whatsapp.url('Olá! Gostaria de saber mais sobre os vossos serviços.') }]
+      : []),
+    {
+      Icon: theme === 'dark' ? SunFill : MoonFill,
+      label: theme === 'dark' ? 'Tema claro' : 'Tema escuro',
+      onClick: toggleTheme,
+      divider: true,
+    },
+    {
+      Icon: hideOnScroll ? DockFill : DockDownFill,
+      label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
+      onClick: () => setHideNavOnScroll(!hideOnScroll),
+    },
+    ...(customer
+      ? [{ Icon: SignOutFill, label: 'Terminar sessão', danger: true, divider: true, onClick: () => void logout().then(() => navigate('/')) }]
+      : []),
+  ]
 
   return (
     <>
@@ -222,8 +271,25 @@ export default function Navbar({
             </span>
           </a>
 
-          {/* In the header on wide screens: the app's tab bar and its round menu, which opens downward. */}
-          <div className="flex items-center gap-2.5">
+          {/* Wide screens: the sections as words, booking as its own button and the account menu. */}
+          <div className="hidden lg:flex">
+            <DesktopNav
+              links={DESKTOP_LINKS}
+              active={!page && onHome && DESKTOP_LINKS.some((l) => l.id === activeSection) ? activeSection : null}
+              onLink={scrollToSection}
+              onBook={() => navigate('/agendar')}
+              bookingActive={page === 'agendar'}
+              profileActive={page === 'perfil'}
+              tone={headerTone}
+              avatar={customer ? avatar : null}
+              dot={dot}
+              accountLabel={customer ? `Olá, ${firstName}` : 'Ainda não tens conta?'}
+              accountItems={accountItems}
+            />
+          </div>
+
+          {/* Tablets: the app's tab bar and its round menu, which opens downward. Phones: only the menu here. */}
+          <div className="flex items-center gap-2.5 lg:hidden">
             <div className="pointer-events-auto hidden md:block">{tabBar(headerTone)}</div>
             <FloatingActionMenu actions={menuActions} direction="down" tone={headerTone} PlusIcon={PlusBold} />
           </div>
