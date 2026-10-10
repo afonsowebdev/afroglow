@@ -22,14 +22,24 @@ const fieldClass =
   'w-full rounded-xl border-2 border-onyx/30 bg-white px-4 py-3.5 font-subtitle text-onyx outline-none focus-visible:border-onyx'
 
 /** Bottom action button: slides up from the bottom edge only once there is something to continue with. */
-function Cta({ label, busy, onClick }: { label: string; busy?: boolean; onClick: () => void }) {
+function Cta({
+  label,
+  busy,
+  onClick,
+  className = '',
+}: {
+  label: string
+  busy?: boolean
+  onClick: () => void
+  className?: string
+}) {
   return (
     <motion.div
       initial={{ y: 90, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 90, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-      className="pointer-events-none fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 px-5"
+      className={`pointer-events-none fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 px-5 ${className}`}
     >
       <div className="pointer-events-auto mx-auto flex max-w-md justify-center">
         <div className="rounded-full">
@@ -158,7 +168,15 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
           <i className="bx bx-check text-6xl text-gold-ink" aria-hidden="true" />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-          <h1 className="mt-8 font-subtitle font-semibold tracking-tight text-4xl text-onyx">Pedido enviado!</h1>
+          <h1
+            className={
+              site
+                ? 'mt-8 font-logo text-4xl text-onyx sm:text-5xl'
+                : 'mt-8 font-subtitle font-semibold tracking-tight text-4xl text-onyx'
+            }
+          >
+            Pedido enviado!
+          </h1>
           <p className="mx-auto mt-4 max-w-xs font-subtitle text-base font-light text-muted-dark">
             {service?.name} · {slot && `${longDay(slot.startsAt)} às ${timeLabel(slot.startsAt)}`}
           </p>
@@ -192,7 +210,26 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
 
   return (
     <main className="px-5 pb-32 pt-[calc(1.25rem+env(safe-area-inset-top))]">
-      <div className="mx-auto max-w-md">
+      <div className={site ? 'mx-auto max-w-6xl sm:px-3' : 'mx-auto max-w-md'}>
+        {site ? (
+          // The website's heading: the site's display face, aligned left, the back arrow beside it.
+          <div className="flex items-center gap-3">
+            {step > 0 && (
+              <button
+                type="button"
+                aria-label="Passo anterior"
+                onClick={() => {
+                  setError(null)
+                  setStep(step - 1)
+                }}
+                className="glass-chip flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl text-onyx"
+              >
+                <i className="bx bx-chevron-left" aria-hidden="true" />
+              </button>
+            )}
+            <h1 className="font-logo text-4xl text-onyx sm:text-5xl">Marcar sessão</h1>
+          </div>
+        ) : (
         <div className="flex items-center gap-3">
           {step > 0 ? (
             <button
@@ -215,8 +252,9 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
           </h1>
           <span className="h-10 w-10" />
         </div>
+        )}
 
-        <div className="mt-5 flex gap-2" aria-label={`Passo ${step + 1} de 3: ${STEPS[step]}`}>
+        <div className={`mt-5 flex gap-2 ${site ? 'max-w-xl' : ''}`} aria-label={`Passo ${step + 1} de 3: ${STEPS[step]}`}>
           {STEPS.map((label, i) => (
             <div key={label} className="flex-1">
               <div className="h-1 overflow-hidden rounded-full bg-gold/20">
@@ -253,6 +291,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
         )}
 
         {services && slots && (
+          <div className={site ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-10' : ''}>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={step}
@@ -265,7 +304,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
               {step === 0 && (
                 <>
                   <h2 className="font-subtitle text-xl text-onyx">Que tranças queres?</h2>
-                  <div className="mt-5 flex flex-col gap-3">
+                  <div className={site ? 'mt-5 grid gap-4 sm:grid-cols-2' : 'mt-5 flex flex-col gap-3'}>
                     {services.map((s) => {
                       const chosen = serviceId === s.id
                       const photos = serviceImageUrls(s)
@@ -276,15 +315,17 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                             chosen ? 'border-onyx ring-1 ring-onyx' : 'border-onyx/15'
                           }`}
                         >
-                          {/* Tapping the card opens the photos; the circle picks the model directly. */}
+                          {/* App: tapping the card opens the photos; the circle picks the model directly.
+                              Website: clicking the card picks the model; "Ver fotos" opens the photos. */}
                           <button
                             type="button"
                             onClick={() => {
                               void tap()
-                              setPreviewId(s.id)
+                              if (site) setServiceId(chosen ? null : s.id)
+                              else setPreviewId(s.id)
                             }}
                             className="block w-full text-left"
-                            aria-label={`Ver fotos e detalhes de ${s.name}`}
+                            aria-label={site ? (chosen ? `Retirar ${s.name}` : `Escolher ${s.name}`) : `Ver fotos e detalhes de ${s.name}`}
                           >
                             {photos.length > 0 && (
                               <div className="relative">
@@ -316,12 +357,24 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                                 <Fact label="Duração">{s.durationLabel}</Fact>
                                 <Fact label="Preço">{formatPrice(s.priceCents)}</Fact>
                               </Facts>
-                              <p className="mt-4 flex items-center gap-1 font-subtitle text-sm font-medium text-onyx">
-                                {photos.length > 0 ? 'Ver fotos' : 'Ver detalhes'}
-                                <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
-                              </p>
+                              {!site && (
+                                <p className="mt-4 flex items-center gap-1 font-subtitle text-sm font-medium text-onyx">
+                                  {photos.length > 0 ? 'Ver fotos' : 'Ver detalhes'}
+                                  <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+                                </p>
+                              )}
                             </div>
                           </button>
+                          {site && (
+                            <button
+                              type="button"
+                              onClick={() => setPreviewId(s.id)}
+                              className="mx-5 mb-5 flex items-center gap-1 font-subtitle text-sm font-medium text-onyx underline-offset-4 hover:underline"
+                            >
+                              {photos.length > 0 ? 'Ver fotos' : 'Ver detalhes'}
+                              <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+                            </button>
+                          )}
 
                           <button
                             type="button"
@@ -378,8 +431,8 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                 <>
                   <h2 className="font-subtitle text-xl text-onyx">Confirma o teu pedido</h2>
 
-                  {/* Summary */}
-                  <div className={`${panelClass} mt-5`}>
+                  {/* Summary (on the website's wide screens it is in the column beside). */}
+                  <div className={`${panelClass} mt-5 ${site ? 'lg:hidden' : ''}`}>
                     <div className="flex items-center justify-between">
                       <p className={labelClass}>Resumo</p>
                       <span className="font-subtitle text-xs text-muted-dark">Por confirmar</span>
@@ -473,6 +526,64 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
               )}
             </motion.div>
           </AnimatePresence>
+
+          {/* Website, wide screens: what has been chosen so far, with the button to go on, beside the steps. */}
+          {site && (
+            <aside className="mt-8 hidden lg:sticky lg:top-28 lg:block">
+              <div className="rounded-3xl border border-gold/25 bg-cream p-6">
+                <p className={labelClass}>A tua marcação</p>
+                <dl className="mt-4 flex flex-col gap-4 font-subtitle text-sm">
+                  <div>
+                    <dt className="text-muted-dark">Modelo</dt>
+                    <dd className="mt-0.5 text-base font-medium text-onyx">{service?.name ?? 'Por escolher'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-dark">Data e hora</dt>
+                    <dd className="mt-0.5 text-base font-medium text-onyx">
+                      {slot ? `${longDay(slot.startsAt)}, ${timeLabel(slot.startsAt)}` : 'Por escolher'}
+                    </dd>
+                  </div>
+                  {service && (
+                    <div className="flex justify-between border-t border-gold/25 pt-4">
+                      <div>
+                        <dt className="text-muted-dark">Duração</dt>
+                        <dd className="mt-0.5 font-medium text-onyx">{service.durationLabel}</dd>
+                      </div>
+                      <div className="text-right">
+                        <dt className="text-muted-dark">Preço</dt>
+                        <dd className="mt-0.5 font-logo text-2xl leading-tight text-onyx">
+                          {formatPrice(service.priceCents)}
+                        </dd>
+                      </div>
+                    </div>
+                  )}
+                </dl>
+                <div className="mt-6">
+                  <ActionButton
+                    label={
+                      submitting
+                        ? 'A enviar...'
+                        : step === 2
+                          ? 'Enviar pedido'
+                          : 'Continuar'
+                    }
+                    disabled={!ctaVisible || submitting}
+                    onClick={() => (step === 2 ? void submit() : setStep(step + 1))}
+                  />
+                </div>
+                <p className="mt-3 font-subtitle text-xs font-light text-muted-dark">
+                  {step === 0 && !service
+                    ? 'Escolhe um modelo para continuar.'
+                    : step === 1 && !slot
+                      ? 'Escolhe o dia e a hora.'
+                      : step === 2 && !customer
+                        ? 'Entra na tua conta para enviar o pedido.'
+                        : 'Sem pagamentos online. Pagas no dia.'}
+                </p>
+              </div>
+            </aside>
+          )}
+          </div>
         )}
       </div>
 
@@ -483,6 +594,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
             label={step === 2 && service ? `Enviar pedido · ${formatPrice(service.priceCents)}` : 'Continuar'}
             busy={submitting}
             onClick={() => (step === 2 ? void submit() : setStep(step + 1))}
+            className={site ? 'lg:hidden' : ''}
           />
         )}
       </AnimatePresence>
