@@ -32,24 +32,39 @@ function AutoVideo({ src, className }: { src: string; className?: string }) {
   return <video ref={ref} src={src} muted loop playsInline preload="metadata" className={className} />
 }
 
-/** One photo or video of the grid; opens it on click. */
-export function PortfolioTile({ item, index, onOpen }: { item: WorkItem; index: number; onOpen: () => void }) {
+/** One photo or video of the grid; opens it on click. `className` sets its size in the grid (4/5 by default). */
+export function PortfolioTile({
+  item,
+  index,
+  onOpen,
+  className = 'aspect-[4/5]',
+}: {
+  item: WorkItem
+  index: number
+  onOpen: () => void
+  className?: string
+}) {
   const video = item.kind === 'VIDEO'
   return (
-    <button
+    <motion.button
       type="button"
       aria-label={`Ver ${video ? 'vídeo' : 'foto'} ${index + 1} em ecrã inteiro`}
       onClick={onOpen}
-      className="group relative block aspect-[4/5] w-full overflow-hidden rounded-xl bg-black/5"
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.5, delay: (index % 4) * 0.06, ease: [0.22, 1, 0.36, 1] }}
+      className={`group relative block w-full overflow-hidden rounded-xl bg-black/5 ${className}`}
     >
+      {/* Absolute, so the photo fills the tile without ever setting its height (the large tile follows the grid). */}
       {video ? (
-        <AutoVideo src={item.src} className="h-full w-full object-cover" />
+        <AutoVideo src={item.src} className="absolute inset-0 h-full w-full object-cover" />
       ) : (
         <img
           src={item.src}
           alt={item.alt}
           loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
         />
       )}
       {video && (
@@ -58,7 +73,14 @@ export function PortfolioTile({ item, index, onOpen }: { item: WorkItem; index: 
           aria-hidden="true"
         />
       )}
-    </button>
+      {/* On hover: the photo darkens from the bottom and says what a click does. */}
+      <span className="pointer-events-none absolute inset-0 flex items-end bg-gradient-to-t from-black/55 via-black/0 to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+        <span className="flex translate-y-1 items-center gap-1.5 font-subtitle text-sm font-medium text-[#ffffff] transition-transform duration-300 group-hover:translate-y-0">
+          <i className={video ? 'bx bx-play text-lg' : 'bx bx-expand-alt text-lg'} aria-hidden="true" />
+          {video ? 'Ver vídeo' : 'Ver foto'}
+        </span>
+      </span>
+    </motion.button>
   )
 }
 
