@@ -76,7 +76,8 @@ export default function Footer() {
     <footer className="relative overflow-hidden bg-cream pb-24 md:pb-0">
       <FooterBackgroundGradient />
 
-      <div className="relative z-10 mx-auto max-w-6xl px-5 pt-16 sm:px-10 md:pt-24">
+      {/* Above the wordmark, which tucks up under the last row with a negative margin. */}
+      <div className="relative z-20 mx-auto max-w-6xl px-5 pt-16 sm:px-10 md:pt-24">
         <div className="grid grid-cols-2 gap-x-8 gap-y-12 pb-14 md:pb-16 lg:grid-cols-12 lg:gap-x-10">
           <div className="col-span-2 flex flex-col gap-6 lg:col-span-4">
             <p className="max-w-xs font-subtitle text-lg font-light leading-relaxed text-onyx">
