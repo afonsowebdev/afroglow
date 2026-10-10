@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { CalendarCheck, CalendarPlus, Info, LogOut, MessageSquareQuote, Moon, Settings, Sparkles, Sun } from 'lucide-react'
-import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
+import {
+  CalendarPlusFill,
+  HouseFill,
+  ListRectangleFill,
+  PersonCircleFill,
+  PhoneFill,
+  PhotoStackFill,
+} from '@/components/ui/apple-icons'
+import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import { loadAvatar, useAvatar } from '@/lib/avatar-store'
 import { useCustomerAuth } from '@/lib/customer-auth'
@@ -11,13 +19,14 @@ import { instagramDmUrl, useWhatsapp } from '@/lib/site-config'
 type TabId = 'top' | 'servicos' | 'galeria' | 'agendar' | 'contacto' | 'perfil'
 
 // The same floating tab bar as the customer app: sections of the page, plus booking, which opens its own page.
-const TABS: Array<{ id: TabId; label: string; icon: string }> = [
-  { id: 'top', label: 'Início', icon: 'bx bx-home-alt' },
-  { id: 'servicos', label: 'Serviços', icon: 'bx bx-list-ul' },
-  { id: 'agendar', label: 'Agendar', icon: 'bx bx-calendar-plus' },
-  { id: 'galeria', label: 'Galeria', icon: 'bx bx-images' },
-  { id: 'contacto', label: 'Contacto', icon: 'bx bx-phone' },
-  { id: 'perfil', label: 'Perfil', icon: 'bx bx-user' },
+// Icons in the style of Apple's SF Symbols (see apple-icons); `icon` stays as the Boxicons fallback.
+const TABS: Array<BottomNavItem<TabId>> = [
+  { id: 'top', label: 'Início', icon: 'bx bx-home-alt', Icon: HouseFill },
+  { id: 'servicos', label: 'Serviços', icon: 'bx bx-list-ul', Icon: ListRectangleFill },
+  { id: 'agendar', label: 'Agendar', icon: 'bx bx-calendar-plus', Icon: CalendarPlusFill },
+  { id: 'galeria', label: 'Galeria', icon: 'bx bx-images', Icon: PhotoStackFill },
+  { id: 'contacto', label: 'Contacto', icon: 'bx bx-phone', Icon: PhoneFill },
+  { id: 'perfil', label: 'Perfil', icon: 'bx bx-user', Icon: PersonCircleFill },
 ]
 
 // Tabs that open their own page rather than a section of this one.

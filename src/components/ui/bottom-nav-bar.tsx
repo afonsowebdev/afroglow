@@ -1,3 +1,4 @@
+import type { ComponentType } from 'react'
 import { motion } from 'motion/react'
 import { cn } from '@/lib/utils'
 
@@ -6,6 +7,8 @@ export interface BottomNavItem<T extends string = string> {
   label: string
   /** Boxicons class, e.g. "bx bx-bell". */
   icon: string
+  /** An SVG icon component, drawn instead of the Boxicons one. */
+  Icon?: ComponentType<{ className?: string }>
   /** Optional count shown on the icon. */
   badge?: number
   /** A plain red dot (something new here) instead of a count. */
@@ -93,6 +96,8 @@ export function BottomNavBar<T extends string>({
                   alt=""
                   className="size-[26px] rounded-full object-cover ring-[1.5px] ring-current"
                 />
+              ) : item.Icon ? (
+                <item.Icon className="size-[22px]" />
               ) : (
                 <i className={item.icon} aria-hidden="true" />
               )}
