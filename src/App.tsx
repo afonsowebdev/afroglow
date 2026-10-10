@@ -9,7 +9,6 @@ const BookingPage = lazy(() => import('@/pages/BookingPage'))
 const BookingsPage = lazy(() => import('@/pages/BookingsPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
 const CeoPage = lazy(() => import('@/pages/CeoPage'))
-const PortfolioPage = lazy(() => import('@/pages/PortfolioPage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'))
 const TermsPage = lazy(() => import('@/pages/TermsPage'))
@@ -27,7 +26,6 @@ export default function App() {
         <Route path="/marcacoes" element={<BookingsPage />} />
         <Route path="/definicoes" element={<SettingsPage />} />
         <Route path="/ceo" element={<CeoPage />} />
-        <Route path="/portfolio" element={<PortfolioPage />} />
         <Route path="/privacidade" element={<PrivacyPage />} />
         <Route path="/termos" element={<TermsPage />} />
         <Route

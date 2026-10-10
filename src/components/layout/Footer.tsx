@@ -6,7 +6,7 @@ const EXPLORE_LINKS = [
   { label: 'Sobre nós', href: '/#sobre' },
   { label: 'Serviços', href: '/#servicos' },
   { label: 'Como funciona', href: '/#como-funciona' },
-  { label: 'Portfólio', href: '/portfolio' },
+  { label: 'Galeria', href: '/#galeria' },
   { label: 'Testemunhos', href: '/#testemunhos' },
   { label: 'Perguntas frequentes', href: '/#perguntas-frequentes' },
 ]

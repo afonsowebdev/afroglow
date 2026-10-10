@@ -55,8 +55,8 @@ export default function Navbar({
   hidden = false,
   dot = false,
 }: {
-  /** On a page of its own (booking, profile, portfolio): the tab kept selected. */
-  page?: 'agendar' | 'perfil' | 'galeria'
+  /** On a page of its own (booking, profile): the tab kept selected. */
+  page?: 'agendar' | 'perfil'
   /** Slides the phone tab bar away (a screen showing its own bottom button). */
   hidden?: boolean
   /** A red dot on the profile tab: a booking decision the customer hasn't seen. */
