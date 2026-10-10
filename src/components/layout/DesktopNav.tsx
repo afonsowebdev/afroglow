@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ComponentType } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { PersonCircleFill } from '@/components/ui/apple-icons'
+import { ButtonWithIcon } from '@/components/ui/button-with-icon'
 import { cn } from '@/lib/utils'
 
 export interface DesktopLink {
@@ -82,19 +83,13 @@ export function DesktopNav({
         })}
       </nav>
 
-      {/* The one action of the site, set apart from the sections: plain, solid, no icon. Dark over the light
-          sections, white over the video. */}
-      <button
-        type="button"
+      {/* The one action of the site, set apart from the sections. */}
+      <ButtonWithIcon
+        label="Marcar sessão"
+        tone={tone}
         onClick={onBook}
         aria-current={bookingActive ? 'page' : undefined}
-        className={cn(
-          'h-11 rounded-full px-6 font-subtitle text-sm font-medium tracking-wide transition-colors duration-300',
-          onDark ? 'bg-[#ffffff] text-[#1a1008] hover:bg-[#ffffff]/85' : 'bg-onyx text-white hover:bg-onyx/85',
-        )}
-      >
-        Marcar sessão
-      </button>
+      />
 
       <AccountMenu
         tone={tone}
