@@ -142,12 +142,19 @@ export default function Gallery() {
   }, [viewer, goTo])
 
   return (
-    <section id="galeria" className="bg-cream py-24 md:py-32">
-      <div className="mx-auto grid max-w-6xl gap-12 px-5 sm:px-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
+    <section id="galeria" className="relative overflow-hidden bg-cream py-24 md:py-32">
+      {/* A soft gold glow behind the introduction, so the cream has some depth. */}
+      <div
+        className="pointer-events-none absolute -left-40 top-10 size-[36rem] rounded-full bg-gold/20 blur-3xl"
+        aria-hidden="true"
+      />
+      <div className="relative mx-auto grid max-w-6xl gap-12 px-5 sm:px-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
         {/* The introduction stays beside the work while it scrolls past. */}
         <div className="text-center lg:sticky lg:top-28 lg:self-start lg:text-left">
           <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Portfólio</p>
-          <h2 className="mt-2 font-logo text-4xl sm:text-5xl lg:text-6xl">O nosso trabalho</h2>
+          <h2 className="mt-2 font-logo text-4xl sm:text-5xl lg:text-6xl">
+            O nosso <span className="text-gold-ink">trabalho</span>
+          </h2>
           <p className="mx-auto mt-5 max-w-md font-subtitle text-base font-light leading-relaxed text-muted-dark lg:mx-0">
             Cada trança é feita à mão, no nosso espaço, com tempo e cuidado com o teu cabelo. Toca numa foto para a
             veres em ecrã inteiro.
@@ -166,6 +173,20 @@ export default function Gallery() {
               </div>
             ))}
           </dl>
+
+          <a
+            href={instagramDmUrl()}
+            target="_blank"
+            rel="noreferrer"
+            className="group mt-6 inline-flex items-center gap-2 font-subtitle text-sm text-muted-dark transition-colors hover:text-gold-ink"
+          >
+            <i className="bx bxl-instagram text-lg" aria-hidden="true" />
+            Trabalhos novos em @{siteConfig.instagramHandle}
+            <i
+              className="bx bx-right-arrow-alt transition-transform duration-300 group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
+          </a>
 
           {hasBoth && (
             <div className="mt-8 flex justify-center gap-2 lg:justify-start" role="tablist" aria-label="Mostrar">
@@ -214,7 +235,7 @@ export default function Gallery() {
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{ duration: 0.6, delay: (i % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                className={`group relative mb-3 block w-full break-inside-avoid overflow-hidden rounded-3xl bg-black/5 md:mb-4 ${
+                className={`group relative mb-3 block w-full break-inside-avoid overflow-hidden rounded-3xl bg-black/5 shadow-sm shadow-black/5 ring-1 ring-black/5 transition-shadow duration-500 hover:shadow-xl hover:shadow-gold-deep/20 md:mb-4 ${
                   SHAPES[i % SHAPES.length]
                 }`}
               >
