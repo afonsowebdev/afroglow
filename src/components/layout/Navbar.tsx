@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import {
   CalendarCheckFill,
   CalendarPlusFill,
+  DockDownFill,
+  DockFill,
   GearFill,
   HouseFill,
   InfoCircleFill,
@@ -20,7 +22,9 @@ import {
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import { loadAvatar, useAvatar } from '@/lib/avatar-store'
+import { useHideOnScroll } from '@/customer/nav-visibility'
 import { useCustomerAuth } from '@/lib/customer-auth'
+import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
 import { useTheme } from '@/lib/theme'
 import { instagramDmUrl, useWhatsapp } from '@/lib/site-config'
 
@@ -59,7 +63,12 @@ export default function Navbar({
   dot?: boolean
 } = {}) {
   const navigate = useNavigate()
-  const onHome = useLocation().pathname === '/'
+  const { pathname } = useLocation()
+  const onHome = pathname === '/'
+  // As in the apps (same setting, in the "+" menu): the menu slides away while scrolling down and comes back on
+  // the way up, near the top, or at the end of the page.
+  const hideOnScroll = useHideNavOnScrollSetting()
+  const scrolledAway = useHideOnScroll(hideOnScroll, pathname)
   // On the home page the sections scroll into view; elsewhere they open the home page at that section.
   const scrollToSection = (id: string) => {
     if (onHome) document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
@@ -129,6 +138,11 @@ export default function Navbar({
 
   const menuActions: MenuAction[] = [
     { Icon: theme === 'dark' ? SunFill : MoonFill, label: theme === 'dark' ? 'Tema claro' : 'Tema escuro', onClick: toggleTheme },
+    {
+      Icon: hideOnScroll ? DockFill : DockDownFill,
+      label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
+      onClick: () => setHideNavOnScroll(!hideOnScroll),
+    },
     { Icon: InfoCircleFill, label: 'Sobre nós', onClick: () => scrollToSection('sobre') },
     { Icon: QuoteBubbleFill, label: 'Testemunhos', onClick: () => scrollToSection('testemunhos') },
     { Icon: SparklesFill, label: 'Conhecer a CEO', onClick: () => navigate('/ceo') },
@@ -175,7 +189,11 @@ export default function Navbar({
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
+      <div
+        className={`pointer-events-none fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6 ${
+          scrolledAway ? '-translate-y-[calc(100%+2.5rem+env(safe-area-inset-top))]' : ''
+        }`}
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           {/* The logo sits in the same glass pill as the tab bar: the brand's "A" emblem (as on the app icon), then the
               wordmark, white over the video and gold over the light sections. */}
@@ -214,8 +232,8 @@ export default function Navbar({
 
       {/* On phones the header has no room for the tabs, so they stay at the bottom, as in the customer app. */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex justify-center px-3 md:hidden">
-        <div className={hidden ? 'pointer-events-none' : 'pointer-events-auto'}>
-          {tabBar(overHero ? 'onDark' : 'onLight', hidden)}
+        <div className={hidden || scrolledAway ? 'pointer-events-none' : 'pointer-events-auto'}>
+          {tabBar(overHero ? 'onDark' : 'onLight', hidden || scrolledAway)}
         </div>
       </div>
     </>
