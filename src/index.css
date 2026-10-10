@@ -273,3 +273,13 @@
     animation: none !important;
   }
 }
+
+/*
+ * The logo face (Lamoric Rowen) ships in a single weight: a hairline stroke in the letters' own colour, painted
+ * under the fill, makes the wordmark heavier without changing its shapes. Raise or lower --logo-weight to taste.
+ */
+.logo-weight {
+  --logo-weight: 0.035em;
+  -webkit-text-stroke: var(--logo-weight) currentColor;
+  paint-order: stroke fill;
+}

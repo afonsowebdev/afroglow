@@ -208,13 +208,13 @@ export default function Navbar({
             className="liquid-glass pointer-events-auto flex h-[56px] items-center gap-3 rounded-full pe-5 ps-2"
           >
             <span
-              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#f4eedf] font-logo text-[1.35rem] leading-none text-[#8b6a24] shadow-[0_1px_4px_rgba(0,0,0,0.18)]"
+              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#f4eedf] logo-weight font-logo text-[1.35rem] leading-none text-[#8b6a24] shadow-[0_1px_4px_rgba(0,0,0,0.18)]"
               aria-hidden="true"
             >
               <span className="translate-y-[2px]">A</span>
             </span>
             <span
-              className={`translate-y-[2px] font-logo text-[1.35rem] leading-none tracking-[0.14em] transition-colors duration-500 ${
+              className={`translate-y-[2px] logo-weight font-logo text-[1.35rem] leading-none tracking-[0.14em] transition-colors duration-500 ${
                 headerOverHero ? 'text-[#ffffff]' : 'text-gold-ink'
               }`}
             >
