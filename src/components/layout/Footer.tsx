@@ -1,7 +1,4 @@
-import type { ReactNode } from 'react'
-import { ClockFill, MapPinFill } from '@/components/ui/apple-icons'
 import { FooterBackgroundGradient, TextHoverEffect } from '@/components/ui/hover-footer'
-import { useOpeningStatus } from '@/lib/opening-hours'
 import { instagramDmUrl, siteConfig, useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 
 const EXPLORE_LINKS = [
@@ -66,33 +63,10 @@ export default function Footer() {
     ...(business.phone
       ? [{ icon: 'bx bx-phone', text: business.phone, href: `tel:${business.phone.replace(/[^+\d]/g, '')}` }]
       : []),
-    // The address and today's hours are in the strip above the columns.
     { icon: 'bx bx-envelope', text: siteConfig.email, href: `mailto:${siteConfig.email}` },
-  ]
-
-  const { status } = useOpeningStatus(business.openingHours)
-  const QUICK: Array<{ label: string; value: string; href: string; icon: ReactNode; dot?: boolean }> = [
-    {
-      label: 'Hoje',
-      value: status?.text ?? 'Ver horário',
-      href: '#localizacao',
-      icon: <ClockFill className="size-6" />,
-      dot: status ? status.open : undefined,
-    },
-    {
-      label: 'Onde estamos',
-      value: business.address || siteConfig.location,
-      href: business.mapUrl || '#localizacao',
-      icon: <MapPinFill className="size-6" />,
-    },
-    whatsappUrl
-      ? { label: 'Fala connosco', value: 'WhatsApp', href: whatsappUrl, icon: <i className="bx bxl-whatsapp text-2xl" aria-hidden="true" /> }
-      : {
-          label: 'Fala connosco',
-          value: `@${siteConfig.instagramHandle}`,
-          href: instagramDmUrl(),
-          icon: <i className="bx bxl-instagram text-2xl" aria-hidden="true" />,
-        },
+    business.address
+      ? { icon: 'bx bx-map', text: business.address, href: business.mapUrl || undefined }
+      : { icon: 'bx bx-map', text: siteConfig.location },
   ]
 
   const year = new Date().getFullYear()
@@ -103,43 +77,7 @@ export default function Footer() {
       <FooterBackgroundGradient />
 
       <div className="relative z-10 mx-auto max-w-6xl px-5 pt-16 sm:px-10 md:pt-24">
-        {/* Quick facts before the columns: today's hours, where to find us, a direct line. */}
-        <ul className="grid divide-y divide-gold/20 border-y border-gold/20 md:grid-cols-3 md:divide-x md:divide-y-0">
-          {QUICK.map((item) => (
-            <li key={item.label}>
-              <a
-                href={item.href}
-                target={item.href.startsWith('http') ? '_blank' : undefined}
-                rel="noreferrer"
-                className="group flex h-full items-center gap-4 py-6 transition-colors md:px-6 md:first:pl-0 md:last:pr-0 lg:px-8"
-              >
-                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-gold-deep/10 text-gold-ink transition-colors duration-300 group-hover:bg-gold-deep group-hover:text-cream">
-                  {item.icon}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block font-subtitle text-[11px] font-medium uppercase tracking-[0.16em] text-muted-dark">
-                    {item.label}
-                  </span>
-                  <span className="mt-1 flex items-center gap-2 font-subtitle text-sm text-onyx sm:text-base">
-                    {item.dot !== undefined && (
-                      <span
-                        className={`size-2 shrink-0 rounded-full ${item.dot ? 'bg-emerald-500' : 'bg-muted'}`}
-                        aria-hidden="true"
-                      />
-                    )}
-                    <span className="line-clamp-2">{item.value}</span>
-                  </span>
-                </span>
-                <i
-                  className="bx bx-chevron-right -translate-x-1 text-xl text-muted-dark opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
-                  aria-hidden="true"
-                />
-              </a>
-            </li>
-          ))}
-        </ul>
-
-        <div className="grid grid-cols-2 gap-x-8 gap-y-12 py-14 md:py-16 lg:grid-cols-12 lg:gap-x-10">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-12 pb-14 md:pb-16 lg:grid-cols-12 lg:gap-x-10">
           <div className="col-span-2 flex flex-col gap-6 lg:col-span-4">
             <p className="max-w-xs font-subtitle text-lg font-light leading-relaxed text-onyx">
               Tranças afro feitas com <span className="text-gold-ink">cuidado</span>,{' '}
@@ -193,6 +131,16 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
+            {business.openingHours.length > 0 && (
+              <dl className="mt-6 flex flex-col gap-1.5 border-t border-gold/15 pt-5 font-body text-sm">
+                {business.openingHours.map((row) => (
+                  <div key={row.days} className="flex justify-between gap-4">
+                    <dt className="text-muted-dark">{row.days}</dt>
+                    <dd className="text-onyx">{row.hours}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
           </div>
         </div>
 
