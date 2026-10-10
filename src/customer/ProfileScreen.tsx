@@ -1,39 +1,22 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ActionButton } from '@/components/ui/action-button'
 import { Sheet } from '@/components/ui/sheet'
-import { api, ApiError } from '@/lib/api'
-import { shrinkAvatar } from '@/lib/avatar'
-import { setAvatar, useAvatar } from '@/lib/avatar-store'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { tap } from '@/lib/haptics'
-import { formatPrice, type Booking } from '@/lib/types'
+import { formatPrice } from '@/lib/types'
 import { bookPath } from '@/lib/app-mode'
 import { TestimonialForm } from './TestimonialForm'
 import { dayParts, longDay, timeLabel } from './dates'
 import { Fact, Facts, labelClass, panelClass, StatusDot } from './panel'
+import { useProfile } from './use-profile'
 
 type TabId = 'resumo' | 'historico' | 'testemunho'
 const TABS: Array<{ id: TabId; label: string }> = [
   { id: 'resumo', label: 'Resumo' },
   { id: 'historico', label: 'Histórico' },
   { id: 'testemunho', label: 'Testemunho' },
-]
-
-const MONTHS = [
-  'janeiro',
-  'fevereiro',
-  'março',
-  'abril',
-  'maio',
-  'junho',
-  'julho',
-  'agosto',
-  'setembro',
-  'outubro',
-  'novembro',
-  'dezembro',
 ]
 
 function Stat({ icon, value, label }: { icon: string; value: string; label: string }) {
@@ -52,7 +35,6 @@ function Stat({ icon, value, label }: { icon: string; value: string; label: stri
 export default function ProfileScreen() {
   const navigate = useNavigate()
   const { customer } = useCustomerAuth()
-  const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [testimonialOpen, setTestimonialOpen] = useState(false)
   // A link can open a given view directly, e.g. /conta?tab=testemunho from the website's testimonials.
   const [searchParams] = useSearchParams()
@@ -65,69 +47,25 @@ export default function ProfileScreen() {
     setDirection(TABS.findIndex((t) => t.id === id) > TABS.findIndex((t) => t.id === tab) ? 1 : -1)
     setTab(id)
   }
-  const photo = useAvatar()
-  const [photoBusy, setPhotoBusy] = useState(false)
-  const [photoError, setPhotoError] = useState<string | null>(null)
-  const photoInput = useRef<HTMLInputElement>(null)
-
-  async function changePhoto(file: File | undefined) {
-    if (!file) return
-    setPhotoBusy(true)
-    setPhotoError(null)
-    try {
-      const data = await shrinkAvatar(file)
-      await api.put('/account/avatar', { contentType: 'image/jpeg', data })
-      setAvatar(`data:image/jpeg;base64,${data}`)
-    } catch (err) {
-      setPhotoError(err instanceof ApiError ? err.message : 'Não foi possível guardar a foto.')
-    } finally {
-      setPhotoBusy(false)
-      if (photoInput.current) photoInput.current.value = ''
-    }
-  }
-
-  async function removePhoto() {
-    setPhotoBusy(true)
-    setPhotoError(null)
-    try {
-      await api.delete('/account/avatar')
-      setAvatar(null)
-    } catch {
-      setPhotoError('Não foi possível remover a foto.')
-    } finally {
-      setPhotoBusy(false)
-    }
-  }
-
-  useEffect(() => {
-    api
-      .get<Booking[]>('/account/bookings')
-      .then(setBookings)
-      .catch(() => setBookings([]))
-  }, [])
-
-  const data = useMemo(() => {
-    const now = Date.now()
-    const all = bookings ?? []
-    const upcoming = all
-      .filter((b) => (b.status === 'PENDING' || b.status === 'ACCEPTED') && new Date(b.slot.startsAt).getTime() >= now)
-      .sort((a, b) => a.slot.startsAt.localeCompare(b.slot.startsAt))
-    const done = all
-      .filter((b) => b.status === 'ACCEPTED' && new Date(b.slot.startsAt).getTime() < now)
-      .sort((a, b) => b.slot.startsAt.localeCompare(a.slot.startsAt))
-    const since = all.length ? all.reduce((min, b) => (b.createdAt < min ? b.createdAt : min), all[0].createdAt) : null
-    const spent = done.reduce((sum, b) => sum + b.service.priceCents, 0)
-    return { upcoming, done, since, spent }
-  }, [bookings])
+  const {
+    bookings,
+    upcoming,
+    done,
+    spent,
+    sinceLabel,
+    photo,
+    photoBusy,
+    photoError,
+    photoInput,
+    changePhoto,
+    removePhoto,
+  } = useProfile()
 
   if (!customer) return <div className="min-h-screen bg-white" />
 
   const initial = customer.name.trim().charAt(0).toUpperCase() || '?'
-  const next = data.upcoming[0]
+  const next = upcoming[0]
   const nextParts = next ? dayParts(next.slot.startsAt) : null
-  const sinceLabel = data.since
-    ? `${MONTHS[new Date(data.since).getMonth()]} de ${new Date(data.since).getFullYear()}`
-    : null
 
   return (
     <main className="pb-40">
@@ -229,11 +167,11 @@ export default function ProfileScreen() {
 
       <div className="mx-auto max-w-2xl px-5">
         <div className="grid grid-cols-3 gap-3">
-          <Stat icon="bx bx-check-circle" value={bookings ? String(data.done.length) : '–'} label="Sessões" />
+          <Stat icon="bx bx-check-circle" value={bookings ? String(done.length) : '–'} label="Sessões" />
           <Stat icon="bx bx-calendar" value={nextParts ? `${nextParts.day} ${nextParts.month}` : '–'} label="Próxima" />
           <Stat
             icon="bx bx-wallet"
-            value={bookings ? formatPrice(data.spent).replace(/,00/, '') : '–'}
+            value={bookings ? formatPrice(spent).replace(/,00/, '') : '–'}
             label="Investido"
           />
         </div>
@@ -317,13 +255,13 @@ export default function ProfileScreen() {
               <>
                 <section className="mt-8">
                   <h2 className={`${labelClass} mb-3 px-1`}>Histórico</h2>
-                  {data.done.length === 0 ? (
+                  {done.length === 0 ? (
                     <p className="rounded-2xl border border-dashed border-onyx/20 px-5 py-6 text-center font-subtitle text-sm text-muted-dark">
                       As tuas sessões concluídas aparecem aqui.
                     </p>
                   ) : (
                     <ol className="relative ml-2 border-l border-onyx/15">
-                      {data.done.map((b) => {
+                      {done.map((b) => {
                         const parts = dayParts(b.slot.startsAt)
                         return (
                           <li key={b.id} className="relative pb-6 pl-6 last:pb-0">
