@@ -21,19 +21,18 @@ const SAMPLE_WORK: WorkItem[] = [
   { src: '/images/hero/hero-5.jpg', alt: 'Detalhe do couro cabeludo com repartição triangular' },
 ].map((photo) => ({ key: photo.src, kind: 'IMAGE', ...photo }))
 
-// How many pieces show before "Ver tudo": with the Instagram card, three per column of the mosaic.
-const FIRST_BATCH = 8
+// How many pieces show before "Ver tudo": with the Instagram card, four per column of the mosaic.
+const FIRST_BATCH = 7
 
-// Heights alternate down the mosaic so it never reads as a plain grid. Picked so that eight pieces plus the
-// Instagram card (4/5) end level: every column of three adds up to the same height.
+// Heights alternate down the mosaic so it never reads as a plain grid. Picked so that seven pieces plus the
+// Instagram card (4/5) end level in two columns: each column of four adds up to the same height.
 const SHAPES = [
   'aspect-[4/5]',
+  'aspect-square',
   'aspect-[3/4]',
   'aspect-square',
   'aspect-[3/4]',
-  'aspect-[4/5]',
   'aspect-square',
-  'aspect-[3/4]',
   'aspect-square',
 ]
 
@@ -101,12 +100,6 @@ export default function Gallery() {
   const visible = showAll ? shown : shown.slice(0, FIRST_BATCH)
   const photoCount = items.filter((i) => i.kind === 'IMAGE').length
   const videoCount = items.length - photoCount
-  const countLabel = [
-    photoCount ? `${photoCount} ${photoCount === 1 ? 'foto' : 'fotos'}` : '',
-    videoCount ? `${videoCount} ${videoCount === 1 ? 'vídeo' : 'vídeos'}` : '',
-  ]
-    .filter(Boolean)
-    .join(' · ')
 
   const goTo = useCallback(
     (i: number) => {
@@ -150,120 +143,143 @@ export default function Gallery() {
 
   return (
     <section id="galeria" className="bg-cream py-24 md:py-32">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-5 text-center sm:px-8 md:flex-row md:items-end md:justify-between md:text-left">
-        <div>
+      <div className="mx-auto grid max-w-6xl gap-12 px-5 sm:px-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
+        {/* The introduction stays beside the work while it scrolls past. */}
+        <div className="text-center lg:sticky lg:top-28 lg:self-start lg:text-left">
           <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Portfólio</p>
-          <h2 className="mt-2 font-logo text-4xl sm:text-5xl">O nosso trabalho</h2>
-          <p className="mt-4 max-w-md font-subtitle text-sm font-light leading-relaxed text-muted-dark">
-            Tranças feitas no nosso espaço. Toca numa foto para a veres em ecrã inteiro.
+          <h2 className="mt-2 font-logo text-4xl sm:text-5xl lg:text-6xl">O nosso trabalho</h2>
+          <p className="mx-auto mt-5 max-w-md font-subtitle text-base font-light leading-relaxed text-muted-dark lg:mx-0">
+            Cada trança é feita à mão, no nosso espaço, com tempo e cuidado com o teu cabelo. Toca numa foto para a
+            veres em ecrã inteiro.
           </p>
-        </div>
-        <p className="rounded-full bg-white/70 px-4 py-2 font-subtitle text-xs font-medium uppercase tracking-[0.16em] text-muted-dark">
-          {countLabel}
-        </p>
-      </div>
 
-      {hasBoth && (
-        <div className="mx-auto mt-10 flex max-w-6xl justify-center gap-2 px-5 sm:px-8 md:justify-start" role="tablist" aria-label="Mostrar">
-          {FILTERS.map(({ id, label }) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={filter === id}
-              onClick={() => {
-                setFilter(id)
-                setShowAll(false)
-              }}
-              className={`rounded-full px-4 py-2 font-subtitle text-sm transition-colors ${
-                filter === id
-                  ? 'bg-onyx text-[#ffffff] dark:bg-gold-deep'
-                  : 'border-[1.5px] border-onyx/15 bg-white text-onyx/70 hover:text-onyx'
-              }`}
+          <dl className="mx-auto mt-8 flex max-w-xs justify-center divide-x divide-gold/30 lg:mx-0 lg:justify-start">
+            {[
+              { value: photoCount, label: photoCount === 1 ? 'Foto' : 'Fotos' },
+              ...(videoCount ? [{ value: videoCount, label: videoCount === 1 ? 'Vídeo' : 'Vídeos' }] : []),
+            ].map((stat) => (
+              <div key={stat.label} className="flex flex-col-reverse px-6 first:pl-0 last:pr-0">
+                <dt className="mt-1 font-subtitle text-[11px] font-medium uppercase tracking-[0.16em] text-muted-dark">
+                  {stat.label}
+                </dt>
+                <dd className="font-logo text-4xl leading-none text-onyx">{stat.value}</dd>
+              </div>
+            ))}
+          </dl>
+
+          {hasBoth && (
+            <div className="mt-8 flex justify-center gap-2 lg:justify-start" role="tablist" aria-label="Mostrar">
+              {FILTERS.map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === id}
+                  onClick={() => {
+                    setFilter(id)
+                    setShowAll(false)
+                  }}
+                  className={`rounded-full px-4 py-2 font-subtitle text-sm transition-colors ${
+                    filter === id
+                      ? 'bg-onyx text-[#ffffff] dark:bg-gold-deep'
+                      : 'border-[1.5px] border-onyx/15 bg-white text-onyx/70 hover:text-onyx'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Wide screens: the way to book sits with the introduction; phones get it after the work. */}
+          <div className="mt-10 hidden border-t border-gold/25 pt-8 lg:block">
+            <p className="font-logo text-2xl text-onyx">Encontraste o teu próximo estilo?</p>
+            <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">
+              Marca a tua sessão e mostra-nos a foto que te inspirou.
+            </p>
+            <MotionButton label="Agendar" className="mt-5" onClick={() => navigate('/agendar')} />
+          </div>
+        </div>
+
+        <div>
+          {/* Mosaic: columns fill top to bottom, each piece keeps its own height. */}
+          <div className="columns-2 gap-3 md:gap-4">
+            {visible.map((item, i) => (
+              <motion.button
+                key={item.key}
+                type="button"
+                aria-label={`Ver ${item.kind === 'VIDEO' ? 'vídeo' : 'foto'} ${i + 1} em ecrã inteiro`}
+                onClick={() => setViewer(i)}
+                initial={{ opacity: 0, y: 24, scale: 0.97 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ duration: 0.6, delay: (i % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                className={`group relative mb-3 block w-full break-inside-avoid overflow-hidden rounded-3xl bg-black/5 md:mb-4 ${
+                  SHAPES[i % SHAPES.length]
+                }`}
+              >
+                {item.kind === 'VIDEO' ? (
+                  <AutoVideo src={item.src} className="h-full w-full object-cover" />
+                ) : (
+                  <img
+                    src={item.src}
+                    alt={item.alt}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                )}
+                <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                {item.kind === 'VIDEO' && (
+                  <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 font-subtitle text-[11px] font-medium text-[#ffffff] backdrop-blur-md">
+                    <i className="bx bx-play text-sm" aria-hidden="true" />
+                    Vídeo
+                  </span>
+                )}
+                {/* Phones: a small corner icon; wide screens: "Ver" in the middle on hover. */}
+                <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-[#ffffff] backdrop-blur-md md:hidden">
+                  <i className={item.kind === 'VIDEO' ? 'bx bx-play' : 'bx bx-expand-alt'} aria-hidden="true" />
+                </span>
+                <span className="pointer-events-none absolute inset-0 hidden items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:flex">
+                  <span className="flex translate-y-2 items-center gap-1.5 rounded-full bg-[#ffffff]/90 px-4 py-2 font-subtitle text-sm font-medium text-[#1a1008] shadow-lg backdrop-blur-md transition-transform duration-300 group-hover:translate-y-0">
+                    <i className={item.kind === 'VIDEO' ? 'bx bx-play text-base' : 'bx bx-expand-alt text-base'} aria-hidden="true" />
+                    {item.kind === 'VIDEO' ? 'Ver vídeo' : 'Ver'}
+                  </span>
+                </span>
+              </motion.button>
+            ))}
+
+            {/* The last piece of the mosaic points to the newest work on Instagram. */}
+            <a
+              href={instagramDmUrl()}
+              target="_blank"
+              rel="noreferrer"
+              className="group mb-3 flex aspect-[4/5] w-full break-inside-avoid flex-col items-center justify-center gap-3 rounded-3xl border-[1.5px] border-gold/30 bg-white px-4 text-center transition-colors duration-300 hover:border-gold-deep md:mb-4"
             >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
+              <span className="flex size-14 items-center justify-center rounded-full bg-gold-deep/10 text-3xl text-gold-ink transition-colors duration-300 group-hover:bg-gold-deep group-hover:text-cream">
+                <i className="bx bxl-instagram" aria-hidden="true" />
+              </span>
+              <span className="font-logo text-xl text-onyx sm:text-2xl">Mais no Instagram</span>
+              <span className="font-subtitle text-xs text-muted-dark sm:text-sm">
+                Vídeos e trabalhos recentes em @{siteConfig.instagramHandle}
+              </span>
+            </a>
+          </div>
 
-      {/* Mosaic: columns fill top to bottom, each piece keeps its own height. */}
-      <div className={`mx-auto max-w-6xl columns-2 gap-3 px-5 sm:px-8 md:columns-3 md:gap-4 ${hasBoth ? 'mt-6' : 'mt-12'}`}>
-        {visible.map((item, i) => (
-          <motion.button
-            key={item.key}
-            type="button"
-            aria-label={`Ver ${item.kind === 'VIDEO' ? 'vídeo' : 'foto'} ${i + 1} em ecrã inteiro`}
-            onClick={() => setViewer(i)}
-            initial={{ opacity: 0, y: 24, scale: 0.97 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.6, delay: (i % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
-            className={`group relative mb-3 block w-full break-inside-avoid overflow-hidden rounded-3xl bg-black/5 md:mb-4 ${
-              SHAPES[i % SHAPES.length]
-            }`}
-          >
-            {item.kind === 'VIDEO' ? (
-              <AutoVideo src={item.src} className="h-full w-full object-cover" />
-            ) : (
-              <img
-                src={item.src}
-                alt={item.alt}
-                loading="lazy"
-                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+          {total > FIRST_BATCH && (
+            <div className="mt-8 flex justify-center">
+              <MotionButton
+                label={showAll ? 'Ver menos' : `Ver tudo (${total})`}
+                variant="secondary"
+                onClick={() => setShowAll((v) => !v)}
               />
-            )}
-            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-            {item.kind === 'VIDEO' && (
-              <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 font-subtitle text-[11px] font-medium text-[#ffffff] backdrop-blur-md">
-                <i className="bx bx-play text-sm" aria-hidden="true" />
-                Vídeo
-              </span>
-            )}
-            {/* Phones: a small corner icon; wide screens: "Ver" in the middle on hover. */}
-            <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-[#ffffff] backdrop-blur-md md:hidden">
-              <i className={item.kind === 'VIDEO' ? 'bx bx-play' : 'bx bx-expand-alt'} aria-hidden="true" />
-            </span>
-            <span className="pointer-events-none absolute inset-0 hidden items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:flex">
-              <span className="flex translate-y-2 items-center gap-1.5 rounded-full bg-[#ffffff]/90 px-4 py-2 font-subtitle text-sm font-medium text-[#1a1008] shadow-lg backdrop-blur-md transition-transform duration-300 group-hover:translate-y-0">
-                <i className={item.kind === 'VIDEO' ? 'bx bx-play text-base' : 'bx bx-expand-alt text-base'} aria-hidden="true" />
-                {item.kind === 'VIDEO' ? 'Ver vídeo' : 'Ver'}
-              </span>
-            </span>
-          </motion.button>
-        ))}
+            </div>
+          )}
 
-        {/* The last piece of the mosaic points to the newest work on Instagram. */}
-        <a
-          href={instagramDmUrl()}
-          target="_blank"
-          rel="noreferrer"
-          className="group mb-3 flex aspect-[4/5] w-full break-inside-avoid flex-col items-center justify-center gap-3 rounded-3xl border-[1.5px] border-gold/30 bg-white px-4 text-center transition-colors duration-300 hover:border-gold-deep md:mb-4"
-        >
-          <span className="flex size-14 items-center justify-center rounded-full bg-gold-deep/10 text-3xl text-gold-ink transition-colors duration-300 group-hover:bg-gold-deep group-hover:text-cream">
-            <i className="bx bxl-instagram" aria-hidden="true" />
-          </span>
-          <span className="font-logo text-xl text-onyx sm:text-2xl">Mais no Instagram</span>
-          <span className="font-subtitle text-xs text-muted-dark sm:text-sm">
-            Vídeos e trabalhos recentes em @{siteConfig.instagramHandle}
-          </span>
-        </a>
-      </div>
-
-      {total > FIRST_BATCH && (
-        <div className="mt-10 flex justify-center">
-          <MotionButton
-            label={showAll ? 'Ver menos' : `Ver tudo (${total})`}
-            variant="secondary"
-            onClick={() => setShowAll((v) => !v)}
-          />
+          <div className="mt-12 flex flex-col items-center gap-4 text-center lg:hidden">
+            <p className="font-logo text-2xl text-onyx sm:text-3xl">Encontraste o teu próximo estilo?</p>
+            <MotionButton label="Agendar" onClick={() => navigate('/agendar')} />
+          </div>
         </div>
-      )}
-
-      {/* From inspiration to booking, without a second banner: one line under the work. */}
-      <div className="mx-auto mt-12 flex max-w-6xl flex-col items-center justify-center gap-4 px-5 text-center sm:flex-row sm:gap-6 sm:px-8">
-        <p className="font-logo text-2xl text-onyx sm:text-3xl">Encontraste o teu próximo estilo?</p>
-        <MotionButton label="Agendar" onClick={() => navigate('/agendar')} />
       </div>
 
       <AnimatePresence>
