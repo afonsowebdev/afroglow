@@ -2,12 +2,13 @@ import { FooterBackgroundGradient, TextHoverEffect } from '@/components/ui/hover
 import { instagramDmUrl, siteConfig, useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 
 const EXPLORE_LINKS = [
-  { label: 'Sobre nós', href: '#sobre' },
-  { label: 'Serviços', href: '#servicos' },
-  { label: 'Como funciona', href: '#como-funciona' },
-  { label: 'Galeria', href: '#galeria' },
-  { label: 'Testemunhos', href: '#testemunhos' },
-  { label: 'Perguntas frequentes', href: '#perguntas-frequentes' },
+  // Sections of the home page, written as /#… so they also work from the other pages that show this footer.
+  { label: 'Sobre nós', href: '/#sobre' },
+  { label: 'Serviços', href: '/#servicos' },
+  { label: 'Como funciona', href: '/#como-funciona' },
+  { label: 'Portfólio', href: '/portfolio' },
+  { label: 'Testemunhos', href: '/#testemunhos' },
+  { label: 'Perguntas frequentes', href: '/#perguntas-frequentes' },
 ]
 
 const ACCOUNT_LINKS = [
@@ -166,6 +167,11 @@ export default function Footer() {
             </a>
             <a
               href="#top"
+              // Scrolls up on any page, including those without a #top section.
+              onClick={(e) => {
+                e.preventDefault()
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
               className="group inline-flex items-center gap-1 font-body text-sm text-muted-dark transition-colors hover:text-gold-ink"
             >
               Voltar ao topo
