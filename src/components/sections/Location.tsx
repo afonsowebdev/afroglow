@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { Link } from 'react-router-dom'
 import { dayList, useOpeningStatus } from '@/lib/opening-hours'
 import { useBusinessInfo } from '@/lib/site-config'
@@ -10,6 +10,11 @@ const reveal = (delay: number) => ({
   viewport: { once: true, amount: 0.15 },
   transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] as const },
 })
+
+// The address on Google Maps: embedded (no key needed) and as a link for phones' map apps.
+const mapsQuery = (address: string) => encodeURIComponent(`${address}, Portugal`)
+const mapsEmbed = (address: string) => `https://www.google.com/maps?q=${mapsQuery(address)}&output=embed`
+const mapsLink = (address: string) => `https://www.google.com/maps/search/?api=1&query=${mapsQuery(address)}`
 
 /** Small caps label over each block. */
 const label = 'font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-onyx/50'
@@ -43,6 +48,8 @@ export default function Location() {
   const business = useBusinessInfo()
   const { todayRows, closedDays, todayClosed, status } = useOpeningStatus(business.openingHours)
   const [copied, setCopied] = useState(false)
+  // The right-hand column shows either the address and hours, or the map.
+  const [view, setView] = useState<'info' | 'map'>('info')
   const hasHours = business.openingHours.length > 0
   if (!business.address && !hasHours) return null
 
@@ -77,50 +84,91 @@ export default function Location() {
           )}
         </div>
 
-        <div className="flex flex-col gap-14">
-          {business.address && (
-            <motion.div {...reveal(0)}>
-              <h3 className={label}>Morada</h3>
-              <address className="mt-4 border-t border-onyx/10 pt-5 font-logo text-2xl not-italic leading-snug text-onyx sm:text-3xl">
-                {business.address}
-              </address>
-              <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
-                {business.mapUrl && (
-                  <a href={business.mapUrl} target="_blank" rel="noreferrer" className={linkClass}>
-                    Abrir no mapa
-                    <i className="bx bx-right-arrow-alt text-base" aria-hidden="true" />
-                  </a>
-                )}
-                <button type="button" onClick={copyAddress} className={linkClass}>
-                  <span aria-live="polite">{copied ? 'Morada copiada' : 'Copiar morada'}</span>
-                </button>
-                {business.phone && (
-                  <a href={`tel:${business.phone.replace(/[^+\d]/g, '')}`} className={linkClass}>
-                    {business.phone}
-                  </a>
-                )}
-              </div>
-            </motion.div>
-          )}
+        {/* Address and hours, or the map: one replaces the other with a short cross-fade. */}
+        <AnimatePresence mode="wait" initial={false}>
+          {view === 'info' || !business.address ? (
+            <motion.div
+              key="info"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            >
+                <div className="flex flex-col gap-14">
+              {business.address && (
+                <motion.div {...reveal(0)}>
+                  <h3 className={label}>Morada</h3>
+                  <address className="mt-4 border-t border-onyx/10 pt-5 font-logo text-2xl not-italic leading-snug text-onyx sm:text-3xl">
+                    {business.address}
+                  </address>
+                  <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+                    <button type="button" onClick={() => setView('map')} className={linkClass}>
+                      Ver no mapa
+                      <i className="bx bx-right-arrow-alt text-base" aria-hidden="true" />
+                    </button>
+                    <button type="button" onClick={copyAddress} className={linkClass}>
+                      <span aria-live="polite">{copied ? 'Morada copiada' : 'Copiar morada'}</span>
+                    </button>
+                    {business.phone && (
+                      <a href={`tel:${business.phone.replace(/[^+\d]/g, '')}`} className={linkClass}>
+                        {business.phone}
+                      </a>
+                    )}
+                  </div>
+                </motion.div>
+              )}
 
-          {hasHours && (
-            <motion.div {...reveal(0.1)}>
-              <h3 className={label}>Horário</h3>
-              <dl className="mt-4 border-t border-onyx/10">
-                {business.openingHours.map((row, index) => (
-                  <HoursRow key={row.days} days={row.days} hours={row.hours} today={todayRows.has(index)} />
-                ))}
-                {closedDays.length > 0 && (
-                  <HoursRow days={dayList(closedDays)} hours="Fechado" today={todayClosed} closed />
-                )}
-              </dl>
-              <Link to="/agendar" className={`mt-6 ${linkClass}`}>
-                Marcar sessão
-                <i className="bx bx-right-arrow-alt text-base" aria-hidden="true" />
-              </Link>
+              {hasHours && (
+                <motion.div {...reveal(0.1)}>
+                  <h3 className={label}>Horário</h3>
+                  <dl className="mt-4 border-t border-onyx/10">
+                    {business.openingHours.map((row, index) => (
+                      <HoursRow key={row.days} days={row.days} hours={row.hours} today={todayRows.has(index)} />
+                    ))}
+                    {closedDays.length > 0 && (
+                      <HoursRow days={dayList(closedDays)} hours="Fechado" today={todayClosed} closed />
+                    )}
+                  </dl>
+                  <Link to="/agendar" className={`mt-6 ${linkClass}`}>
+                    Marcar sessão
+                    <i className="bx bx-right-arrow-alt text-base" aria-hidden="true" />
+                  </Link>
+                </motion.div>
+              )}
+            </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="map"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+                <button type="button" onClick={() => setView('info')} className={linkClass}>
+                  <i className="bx bx-left-arrow-alt text-base" aria-hidden="true" />
+                  Morada e horário
+                </button>
+                <a href={business.mapUrl || mapsLink(business.address)} target="_blank" rel="noreferrer" className={linkClass}>
+                  Abrir na app de mapas
+                  <i className="bx bx-right-arrow-alt text-base" aria-hidden="true" />
+                </a>
+              </div>
+              <div className="mt-5 overflow-hidden rounded-2xl border border-onyx/10">
+                <iframe
+                  title={`Mapa: ${business.address}`}
+                  src={mapsEmbed(business.address)}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  // Greyscale, to sit with the page's black and white.
+                  className="block h-[380px] w-full grayscale sm:h-[460px]"
+                />
+              </div>
+              <p className="mt-4 font-subtitle text-sm text-onyx/60">{business.address}</p>
             </motion.div>
           )}
-        </div>
+        </AnimatePresence>
       </div>
     </section>
   )
