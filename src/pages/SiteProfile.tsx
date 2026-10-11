@@ -27,7 +27,7 @@ const reveal = (delay: number) => ({
 function SectionTitle({ eyebrow, children }: { eyebrow: string; children: ReactNode }) {
   return (
     <div className="mb-5">
-      <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">{eyebrow}</p>
+      <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-onyx/55">{eyebrow}</p>
       <h2 className="mt-1 font-logo text-3xl text-onyx sm:text-4xl">{children}</h2>
     </div>
   )
@@ -48,11 +48,11 @@ function AccountLink({
     <button
       type="button"
       onClick={onClick}
-      className="group flex w-full items-center gap-4 rounded-2xl px-4 py-3.5 text-left transition-colors hover:bg-cream"
+      className="group flex w-full items-center gap-4 rounded-2xl px-4 py-3.5 text-left transition-colors hover:bg-onyx/5"
     >
       <span
         className={`flex size-10 shrink-0 items-center justify-center rounded-full ${
-          danger ? 'bg-red-600/10 text-red-700 dark:text-red-400' : 'bg-gold-deep/10 text-gold-ink'
+          danger ? 'bg-red-600/10 text-red-700 dark:text-red-400' : 'bg-onyx/5 text-onyx'
         }`}
       >
         <Icon className="size-5" />
@@ -61,7 +61,7 @@ function AccountLink({
         {label}
       </span>
       <i
-        className="bx bx-chevron-right text-xl text-muted-dark transition-transform duration-300 group-hover:translate-x-0.5"
+        className="bx bx-chevron-right text-xl text-onyx/55 transition-transform duration-300 group-hover:translate-x-0.5"
         aria-hidden="true"
       />
     </button>
@@ -115,7 +115,7 @@ export default function SiteProfile() {
           {/* The brand word, faint, behind the right-hand side. */}
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute -bottom-6 -right-4 select-none whitespace-nowrap bg-gradient-to-b from-gold/20 to-transparent bg-clip-text font-logo text-[clamp(4rem,11vw,9rem)] leading-none text-transparent"
+            className="pointer-events-none absolute -bottom-6 -right-4 select-none whitespace-nowrap bg-gradient-to-b from-onyx/[0.07] to-transparent bg-clip-text font-logo text-[clamp(4rem,11vw,9rem)] leading-none text-transparent"
           >
             AFROGLOW
           </span>
@@ -126,13 +126,13 @@ export default function SiteProfile() {
                 aria-label="Alterar foto de perfil"
                 disabled={photoBusy}
                 onClick={() => photoInput.current?.click()}
-                className="flex size-full items-center justify-center overflow-hidden rounded-full bg-cream font-logo text-6xl text-gold-ink shadow-lg shadow-gold-deep/15 ring-4 ring-white"
+                className="flex size-full items-center justify-center overflow-hidden rounded-full bg-onyx/5 font-logo text-6xl text-onyx shadow-lg shadow-black/10 ring-4 ring-white"
               >
                 {photo ? <img src={photo} alt="" className="size-full object-cover" /> : initial}
               </button>
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-1 right-1 flex size-9 items-center justify-center rounded-full bg-gold-deep text-lg text-[#ffffff] shadow-md"
+                className="pointer-events-none absolute bottom-1 right-1 flex size-9 items-center justify-center rounded-full bg-onyx text-lg text-white shadow-md"
               >
                 <i className={photoBusy ? 'bx bx-loader-alt animate-spin' : 'bx bx-camera'} />
               </span>
@@ -146,14 +146,14 @@ export default function SiteProfile() {
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">
+              <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-onyx/55">
                 O meu perfil
               </p>
               <h1 className="mt-1 truncate font-logo text-4xl text-onyx sm:text-5xl">Olá, {firstName}</h1>
-              <p className="mt-3 font-subtitle text-sm text-muted-dark">
+              <p className="mt-3 font-subtitle text-sm text-onyx/55">
                 {sinceLabel ? `Cliente desde ${sinceLabel}` : 'Cliente AFROGLOW'}
                 {/* On its own line on phones, so the address never breaks in the middle. */}
-                <span className="mx-2 hidden text-gold sm:inline" aria-hidden="true">
+                <span className="mx-2 hidden text-onyx/30 sm:inline" aria-hidden="true">
                   ·
                 </span>
                 <span className="block truncate sm:inline">{customer.email}</span>
@@ -183,11 +183,11 @@ export default function SiteProfile() {
               {photoError && <p className="mt-2 font-subtitle text-xs text-red-700">{photoError}</p>}
             </div>
 
-            <dl className="grid w-full grid-cols-3 divide-x divide-gold/25 rounded-2xl border border-gold/20 bg-white/70 py-5 backdrop-blur-sm sm:max-w-md lg:w-auto lg:min-w-[380px]">
+            <dl className="grid w-full grid-cols-3 divide-x divide-onyx/10 rounded-2xl border border-onyx/10 bg-white/70 py-5 backdrop-blur-sm sm:max-w-md lg:w-auto lg:min-w-[380px]">
               {stats.map((stat) => (
                 // Label first in the markup, shown under the number.
                 <div key={stat.label} className="flex flex-col-reverse px-3 text-center">
-                  <dt className="mt-2 font-subtitle text-[10px] font-medium uppercase tracking-[0.16em] text-muted-dark">
+                  <dt className="mt-2 font-subtitle text-[10px] font-medium uppercase tracking-[0.16em] text-onyx/55">
                     {stat.label}
                   </dt>
                   <dd className="font-logo text-2xl leading-none text-onyx sm:text-3xl">{stat.value}</dd>
@@ -203,8 +203,8 @@ export default function SiteProfile() {
           <motion.section {...reveal(0.1)}>
             <SectionTitle eyebrow="A seguir">Próxima sessão</SectionTitle>
             {next && nextParts ? (
-              <div className="flex flex-col gap-6 rounded-3xl border border-gold/20 bg-white p-6 shadow-sm shadow-black/5 sm:flex-row sm:items-center sm:p-7">
-                <div className="flex w-24 shrink-0 flex-col items-center rounded-2xl bg-gold-deep py-3 text-[#ffffff]">
+              <div className="flex flex-col gap-6 rounded-3xl border border-onyx/10 bg-white p-6 shadow-sm shadow-black/5 sm:flex-row sm:items-center sm:p-7">
+                <div className="flex w-24 shrink-0 flex-col items-center rounded-2xl bg-onyx py-3 text-white">
                   <span className="font-subtitle text-[11px] font-medium uppercase tracking-[0.16em] opacity-80">
                     {nextParts.weekday}
                   </span>
@@ -216,12 +216,12 @@ export default function SiteProfile() {
                     <h3 className="font-logo text-2xl text-onyx">{next.service.name}</h3>
                     <StatusDot status={next.status} />
                   </div>
-                  <p className="mt-2 font-subtitle text-sm text-muted-dark">
+                  <p className="mt-2 font-subtitle text-sm text-onyx/55">
                     {longDay(next.slot.startsAt)} às {timeLabel(next.slot.startsAt)}
                     {next.service.durationLabel ? ` · ${next.service.durationLabel}` : ''}
                   </p>
                   {upcoming.length > 1 && (
-                    <p className="mt-1 font-subtitle text-xs text-muted-dark">
+                    <p className="mt-1 font-subtitle text-xs text-onyx/55">
                       E mais {upcoming.length - 1} {upcoming.length === 2 ? 'sessão marcada' : 'sessões marcadas'}.
                     </p>
                   )}
@@ -229,10 +229,10 @@ export default function SiteProfile() {
                 <MotionButton label="Ver marcações" size="sm" onClick={() => navigate('/marcacoes')} />
               </div>
             ) : (
-              <div className="flex flex-col items-start gap-4 rounded-3xl border border-dashed border-gold/40 bg-white p-7 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col items-start gap-4 rounded-3xl border border-dashed border-onyx/20 bg-white p-7 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-logo text-2xl text-onyx">Ainda sem sessões marcadas</p>
-                  <p className="mt-1 font-subtitle text-sm text-muted-dark">Escolhe o estilo, o dia e a hora.</p>
+                  <p className="mt-1 font-subtitle text-sm text-onyx/55">Escolhe o estilo, o dia e a hora.</p>
                 </div>
                 <MotionButton label="Agendar" onClick={() => navigate(bookPath)} />
               </div>
@@ -242,24 +242,24 @@ export default function SiteProfile() {
           <motion.section {...reveal(0.2)}>
             <SectionTitle eyebrow="O teu percurso">Histórico</SectionTitle>
             {done.length === 0 ? (
-              <p className="rounded-3xl border border-dashed border-gold/40 px-6 py-8 text-center font-subtitle text-sm text-muted-dark">
+              <p className="rounded-3xl border border-dashed border-onyx/20 px-6 py-8 text-center font-subtitle text-sm text-onyx/55">
                 As tuas sessões concluídas aparecem aqui.
               </p>
             ) : (
-              <ul className="divide-y divide-gold/15 overflow-hidden rounded-3xl border border-gold/20 bg-white shadow-sm shadow-black/5">
+              <ul className="divide-y divide-onyx/10 overflow-hidden rounded-3xl border border-onyx/10 bg-white shadow-sm shadow-black/5">
                 {done.map((b) => {
                   const parts = dayParts(b.slot.startsAt)
                   return (
                     <li key={b.id} className="flex items-center gap-4 px-5 py-4 sm:px-6">
-                      <span className="flex size-12 shrink-0 flex-col items-center justify-center rounded-xl bg-cream leading-none">
+                      <span className="flex size-12 shrink-0 flex-col items-center justify-center rounded-xl bg-onyx/5 leading-none">
                         <span className="font-logo text-lg text-onyx">{parts.day}</span>
-                        <span className="mt-0.5 font-subtitle text-[10px] uppercase tracking-wide text-muted-dark">
+                        <span className="mt-0.5 font-subtitle text-[10px] uppercase tracking-wide text-onyx/55">
                           {parts.month}
                         </span>
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-subtitle text-base font-medium text-onyx">{b.service.name}</p>
-                        <p className="font-subtitle text-xs text-muted-dark">{longDay(b.slot.startsAt)}</p>
+                        <p className="font-subtitle text-xs text-onyx/55">{longDay(b.slot.startsAt)}</p>
                       </div>
                       <span className="hidden font-subtitle text-sm text-onyx sm:block">
                         {formatPrice(b.service.priceCents)}
@@ -282,22 +282,22 @@ export default function SiteProfile() {
         </div>
 
         <motion.aside {...reveal(0.15)} className="flex flex-col gap-6 lg:sticky lg:top-28 lg:self-start">
-          <div className="relative overflow-hidden rounded-3xl bg-cream p-7">
-            <span className="flex size-12 items-center justify-center rounded-full bg-white text-gold-ink shadow-sm">
+          <div className="relative overflow-hidden rounded-3xl bg-onyx/[0.04] p-7">
+            <span className="flex size-12 items-center justify-center rounded-full bg-white text-onyx shadow-sm">
               <QuoteBubbleFill className="size-6" />
             </span>
             <h3 className="mt-5 font-logo text-2xl text-onyx">Conta como foi</h3>
-            <p className="mt-2 font-subtitle text-sm font-light leading-relaxed text-muted-dark">
+            <p className="mt-2 font-subtitle text-sm font-light leading-relaxed text-onyx/55">
               Deixa o teu testemunho. Depois de aprovado, aparece na página principal com o teu nome.
             </p>
             <MotionButton label="Escrever testemunho" size="sm" className="mt-6" onClick={() => setTestimonialOpen(true)} />
           </div>
 
-          <nav aria-label="A minha conta" className="rounded-3xl border border-gold/20 bg-white p-2 shadow-sm shadow-black/5">
+          <nav aria-label="A minha conta" className="rounded-3xl border border-onyx/10 bg-white p-2 shadow-sm shadow-black/5">
             <AccountLink Icon={CalendarCheckFill} label="As minhas marcações" onClick={() => navigate('/marcacoes')} />
             <AccountLink Icon={CalendarPlusFill} label="Agendar nova sessão" onClick={() => navigate(bookPath)} />
             <AccountLink Icon={GearFill} label="Definições da conta" onClick={() => navigate('/definicoes')} />
-            <div className="mx-4 my-1 border-t border-gold/15" />
+            <div className="mx-4 my-1 border-t border-onyx/10" />
             <AccountLink
               Icon={SignOutFill}
               label="Terminar sessão"
