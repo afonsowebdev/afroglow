@@ -1,33 +1,48 @@
 import { motion } from 'motion/react'
+import { Link } from 'react-router-dom'
 
 const STEPS = [
   {
-    icon: 'bx bx-list-check',
     title: 'Escolhe o modelo',
     text: 'Vê os modelos de tranças, a duração e o preço de cada um, e escolhe o teu.',
   },
   {
-    icon: 'bx bx-calendar-plus',
     title: 'Marca o dia e a hora',
     text: 'Seleciona um horário livre e envia o pedido com a tua conta. Demora poucos minutos.',
   },
   {
-    icon: 'bx bx-envelope',
     title: 'Recebe a confirmação',
-    text: 'Respondemos por email assim que vermos o pedido, e lembramos-te antes da sessão.',
+    text: 'Respondemos por email assim que virmos o pedido, e lembramos-te antes da sessão.',
   },
 ]
 
+/**
+ * How booking works, in black and white like the other sections: the title and a button to start on the left,
+ * the three steps as numbered rows between hairlines on the right (stacked on phones). The numbers are real:
+ * booking happens in this order.
+ */
 export default function HowItWorks() {
   return (
     <section id="como-funciona" className="bg-white px-5 py-24 sm:px-8 md:py-32">
-      <div className="mx-auto max-w-5xl">
-        <h2 className="text-center font-logo text-4xl sm:text-5xl">Como funciona</h2>
-        <p className="mx-auto mt-4 max-w-xl text-center font-subtitle text-base font-light text-muted-dark">
-          Marcar a tua sessão é simples. Três passos e ficas despachada.
-        </p>
+      <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
+        <div className="lg:sticky lg:top-32 lg:self-start">
+          <h2 className="font-logo text-4xl text-onyx sm:text-5xl">Como funciona</h2>
+          <p className="mt-4 max-w-sm font-subtitle text-base font-light leading-relaxed text-onyx/60">
+            Marcar a tua sessão é simples. Três passos e ficas despachada.
+          </p>
+          <Link
+            to="/agendar"
+            className="group mt-8 inline-flex h-11 items-center gap-1.5 rounded-full bg-onyx pe-4 ps-5 font-subtitle text-sm font-medium text-white transition-colors hover:bg-onyx/85"
+          >
+            Começar a marcação
+            <i
+              className="bx bx-right-arrow-alt text-base transition-transform duration-300 group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
+          </Link>
+        </div>
 
-        <ol className="mt-16 grid gap-6 md:grid-cols-3">
+        <ol className="border-b border-onyx/10">
           {STEPS.map((step, index) => (
             <motion.li
               key={step.title}
@@ -35,16 +50,15 @@ export default function HowItWorks() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.4 }}
               transition={{ duration: 0.6, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="relative rounded-2xl border border-gold/20 bg-white p-7 text-center shadow-sm shadow-black/5"
+              className="grid grid-cols-[3.5rem_1fr] gap-x-4 border-t border-onyx/10 py-8 sm:grid-cols-[5rem_1fr] sm:gap-x-6"
             >
-              <span className="absolute -top-4 left-1/2 flex h-8 min-w-8 -translate-x-1/2 items-center justify-center rounded-full bg-gold-deep px-2 font-logo text-sm text-[#ffffff]">
-                {index + 1}
+              <span className="font-logo text-4xl leading-none text-onyx/25 sm:text-5xl" aria-hidden="true">
+                {String(index + 1).padStart(2, '0')}
               </span>
-              <span className="mx-auto mt-2 flex h-14 w-14 items-center justify-center rounded-full bg-gold-deep/10 text-2xl text-gold-ink">
-                <i className={step.icon} aria-hidden="true" />
-              </span>
-              <h3 className="mt-5 font-logo text-xl text-onyx">{step.title}</h3>
-              <p className="mt-2 font-subtitle text-sm leading-relaxed text-muted-dark">{step.text}</p>
+              <div>
+                <h3 className="font-subtitle text-xl font-medium text-onyx">{step.title}</h3>
+                <p className="mt-2 max-w-lg font-subtitle text-[15px] leading-relaxed text-onyx/60">{step.text}</p>
+              </div>
             </motion.li>
           ))}
         </ol>
