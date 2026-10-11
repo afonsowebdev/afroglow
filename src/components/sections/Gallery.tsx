@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { MotionButton } from '@/components/ui/motion-button'
 import { VelocityRow } from '@/components/ui/velocity-marquee'
 import { api, assetUrl } from '@/lib/api'
 import { instagramDmUrl, siteConfig } from '@/lib/site-config'
@@ -146,19 +145,16 @@ export default function Gallery() {
       <VelocityRow direction={-1} className="absolute inset-x-0 bottom-2 md:bottom-4" />
       <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-6 px-5 text-center sm:px-8 md:flex-row md:items-end md:justify-between md:text-left">
         <div>
-          <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Portfólio</p>
-          <h2 className="mt-2 font-logo text-4xl sm:text-5xl">O nosso trabalho</h2>
-          <p className="mt-4 max-w-md font-subtitle text-sm font-light leading-relaxed text-muted-dark">
+          <h2 className="font-logo text-4xl text-onyx sm:text-5xl">O nosso trabalho</h2>
+          <p className="mt-4 max-w-md font-subtitle text-base font-light leading-relaxed text-onyx/60">
             Tranças feitas no nosso espaço. Toca numa foto para a veres em ecrã inteiro.
           </p>
         </div>
-        <p className="rounded-full bg-white/70 px-4 py-2 font-subtitle text-xs font-medium uppercase tracking-[0.16em] text-muted-dark">
-          {countLabel}
-        </p>
+        <p className="font-subtitle text-sm text-onyx/50">{countLabel}</p>
       </div>
 
       {hasBoth && (
-        <div className="relative mx-auto mt-10 flex max-w-6xl justify-center gap-2 px-5 sm:px-8 md:justify-start" role="tablist" aria-label="Mostrar">
+        <div className="relative mx-auto mt-10 flex max-w-6xl justify-center gap-x-7 px-5 sm:px-8 md:justify-start" role="tablist" aria-label="Mostrar">
           {FILTERS.map(({ id, label }) => (
             <button
               key={id}
@@ -169,10 +165,8 @@ export default function Gallery() {
                 setFilter(id)
                 setShowAll(false)
               }}
-              className={`rounded-full px-4 py-2 font-subtitle text-sm transition-colors ${
-                filter === id
-                  ? 'bg-onyx text-[#ffffff] dark:bg-gold-deep'
-                  : 'border-[1.5px] border-onyx/15 bg-white text-onyx/70 hover:text-onyx'
+              className={`border-b-2 pb-1.5 font-subtitle text-sm transition-colors ${
+                filter === id ? 'border-onyx font-medium text-onyx' : 'border-transparent text-onyx/50 hover:text-onyx'
               }`}
             >
               {label}
@@ -193,7 +187,7 @@ export default function Gallery() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-40px' }}
             transition={{ duration: 0.5, delay: (i % 3) * 0.06, ease: 'easeOut' }}
-            className={`group relative mb-3 block w-full break-inside-avoid overflow-hidden rounded-3xl bg-black/5 md:mb-4 ${
+            className={`group relative mb-3 block w-full break-inside-avoid overflow-hidden rounded-2xl bg-black/5 md:mb-4 ${
               SHAPES[i % SHAPES.length]
             }`}
           >
@@ -219,13 +213,13 @@ export default function Gallery() {
           href={instagramDmUrl()}
           target="_blank"
           rel="noreferrer"
-          className="group mb-3 flex aspect-[4/5] w-full break-inside-avoid flex-col items-center justify-center gap-3 rounded-3xl border-[1.5px] border-gold/30 bg-white px-4 text-center transition-colors duration-300 hover:border-gold-deep md:mb-4"
+          className="group mb-3 flex aspect-[4/5] w-full break-inside-avoid flex-col items-center justify-center gap-3 rounded-2xl border border-onyx/10 bg-white px-4 text-center transition-colors duration-300 hover:border-onyx/40 md:mb-4"
         >
-          <span className="flex size-14 items-center justify-center rounded-full bg-gold-deep/10 text-3xl text-gold-ink transition-colors duration-300 group-hover:bg-gold-deep group-hover:text-cream">
+          <span className="flex size-14 items-center justify-center rounded-full bg-onyx/5 text-3xl text-onyx transition-colors duration-300 group-hover:bg-onyx group-hover:text-white">
             <i className="bx bxl-instagram" aria-hidden="true" />
           </span>
           <span className="font-logo text-xl text-onyx sm:text-2xl">Mais no Instagram</span>
-          <span className="font-subtitle text-xs text-muted-dark sm:text-sm">
+          <span className="font-subtitle text-xs text-onyx/55 sm:text-sm">
             Vídeos e trabalhos recentes em @{siteConfig.instagramHandle}
           </span>
         </a>
@@ -233,11 +227,13 @@ export default function Gallery() {
 
       {total > FIRST_BATCH && (
         <div className="relative mt-10 flex justify-center">
-          <MotionButton
-            label={showAll ? 'Ver menos' : `Ver tudo (${total})`}
-            variant="secondary"
+          <button
+            type="button"
             onClick={() => setShowAll((v) => !v)}
-          />
+            className="h-11 rounded-full border border-onyx px-6 font-subtitle text-sm font-medium text-onyx transition-colors hover:bg-onyx hover:text-white"
+          >
+            {showAll ? 'Ver menos' : `Ver tudo (${total})`}
+          </button>
         </div>
       )}
 

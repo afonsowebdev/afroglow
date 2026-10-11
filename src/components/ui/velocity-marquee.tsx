@@ -30,7 +30,7 @@ export function VelocityRow({
   direction: 1 | -1
   /** Percent of the row per second while the page is still. */
   speed?: number
-  /** Gold outline letters instead of filled ones. */
+  /** Outline letters instead of filled ones. */
   outline?: boolean
   className?: string
 }) {
@@ -56,7 +56,7 @@ export function VelocityRow({
 
   const word = cn(
     'font-logo leading-none tracking-tight',
-    outline ? 'text-transparent [-webkit-text-stroke:1.5px_var(--color-gold)] opacity-60' : 'text-gold-ink/10',
+    outline ? 'text-transparent [-webkit-text-stroke:1.5px_var(--color-onyx)] opacity-20' : 'text-onyx/[0.06]',
   )
 
   return (
@@ -67,8 +67,8 @@ export function VelocityRow({
             {[0, 1, 2].map((n) => (
               <span key={n} className="flex items-center">
                 <span className={word}>AFROGLOW</span>
-                {/* A small gold diamond between the words. */}
-                <span className="mx-[3vw] size-[1.2vw] min-h-2 min-w-2 rotate-45 bg-gold/40" />
+                {/* A small diamond between the words. */}
+                <span className="mx-[3vw] size-[1.2vw] min-h-2 min-w-2 rotate-45 bg-onyx/15" />
               </span>
             ))}
           </span>
