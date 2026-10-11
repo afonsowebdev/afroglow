@@ -11,7 +11,7 @@ const STATS = [
 export default function About() {
   return (
     <section id="sobre" className="relative flex min-h-screen items-center overflow-hidden bg-white">
-      {/* AFROGLOW sliding behind the text, as in the gallery: one row across the middle, faster while scrolling. */}
+      {/* AFROGLOW sliding across the middle, faster while scrolling. Every other section from here down has it. */}
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-center">
         <VelocityRow direction={1} />
       </div>

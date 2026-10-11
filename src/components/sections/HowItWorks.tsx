@@ -1,5 +1,6 @@
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
+import { VelocityRow } from '@/components/ui/velocity-marquee'
 
 const STEPS = [
   {
@@ -23,8 +24,12 @@ const STEPS = [
  */
 export default function HowItWorks() {
   return (
-    <section id="como-funciona" className="bg-white px-5 py-24 sm:px-8 md:py-32">
-      <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
+    <section id="como-funciona" className="relative overflow-hidden bg-white px-5 py-24 sm:px-8 md:py-32">
+      {/* AFROGLOW sliding across the middle, as on every other section from "Quem somos" down. */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col justify-center">
+        <VelocityRow direction={-1} />
+      </div>
+      <div className="relative mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
         <div className="lg:sticky lg:top-32 lg:self-start">
           <h2 className="font-logo text-4xl text-onyx sm:text-5xl">Como funciona</h2>
           <p className="mt-4 max-w-sm font-subtitle text-base font-light leading-relaxed text-onyx/60">
