@@ -240,13 +240,14 @@ export default function Navbar({
   return (
     <>
       <div
-        className={`pointer-events-none fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6 ${
+        data-tone={headerTone}
+        className={`site-header pointer-events-none fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6 ${
           scrolledAway ? '-translate-y-[calc(100%+2.5rem+env(safe-area-inset-top))]' : ''
         }`}
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          {/* The logo sits in the same glass pill as the tab bar: the brand's "A" emblem (as on the app icon), then the
-              wordmark, white over the video and gold over the light sections. */}
+          {/* The logo sits in the same glass pill as the tab bar: the brand's "A" emblem, then the wordmark. Black and
+              white like the rest of the site: white over the video, black over the light sections. */}
           <a
             href={onHome ? '#top' : '/'}
             onClick={(e) => {
@@ -258,14 +259,16 @@ export default function Navbar({
             className="liquid-glass pointer-events-auto flex h-[56px] items-center gap-3 rounded-full pe-5 ps-2"
           >
             <span
-              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#f4eedf] logo-weight font-logo text-[1.35rem] leading-none text-[#8b6a24] shadow-[0_1px_4px_rgba(0,0,0,0.18)]"
+              className={`flex size-10 shrink-0 items-center justify-center rounded-full logo-weight font-logo text-[1.35rem] leading-none shadow-[0_1px_4px_rgba(0,0,0,0.18)] transition-colors duration-500 ${
+                headerOverHero ? 'bg-[#ffffff] text-[#111111]' : 'bg-onyx text-white'
+              }`}
               aria-hidden="true"
             >
               <span className="translate-y-[2px]">A</span>
             </span>
             <span
               className={`translate-y-[2px] logo-weight font-logo text-[1.35rem] leading-none tracking-[0.14em] transition-colors duration-500 ${
-                headerOverHero ? 'text-[#ffffff]' : 'text-gold-ink'
+                headerOverHero ? 'text-[#ffffff]' : 'text-onyx'
               }`}
             >
               AFROGLOW
