@@ -106,10 +106,13 @@ export default function Services() {
                     <Link
                       to={`/agendar?service=${service.id}`}
                       aria-label={`Marcar ${service.name}`}
-                      className="inline-flex items-center gap-1 font-subtitle text-sm font-medium text-onyx underline underline-offset-4 hover:no-underline"
+                      className="group inline-flex h-9 items-center gap-1.5 rounded-full bg-onyx pe-3 ps-4 font-subtitle text-sm font-medium text-white transition-colors hover:bg-onyx/85"
                     >
                       Marcar
-                      <i className="bx bx-right-arrow-alt text-base" aria-hidden="true" />
+                      <i
+                        className="bx bx-right-arrow-alt text-base transition-transform duration-300 group-hover:translate-x-0.5"
+                        aria-hidden="true"
+                      />
                     </Link>
                   </div>
                 </div>
