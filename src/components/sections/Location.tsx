@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
-import { MotionButton } from '@/components/ui/motion-button'
+import { Link } from 'react-router-dom'
 import { dayList, useOpeningStatus } from '@/lib/opening-hours'
 import { useBusinessInfo } from '@/lib/site-config'
 
@@ -11,47 +11,34 @@ const reveal = (delay: number) => ({
   transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] as const },
 })
 
-/** Stylised street map behind the pin; decorative only, no third-party map is loaded. */
-function MapArt() {
-  return (
-    <svg className="absolute inset-0 h-full w-full text-gold" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <g fill="none" stroke="currentColor" strokeLinecap="round">
-        <path d="M-10 150 C 80 120, 140 170, 230 120 S 360 60, 420 80" strokeWidth="14" opacity="0.18" />
-        <path d="M120 -10 C 140 60, 110 120, 150 210" strokeWidth="10" opacity="0.16" />
-        <path d="M300 -10 L 260 210" strokeWidth="8" opacity="0.14" />
-        <path d="M-10 40 L 420 20" strokeWidth="6" opacity="0.12" />
-        <path d="M30 210 L 70 -10" strokeWidth="4" opacity="0.12" />
-        <path d="M200 -10 C 210 40, 190 80, 230 120" strokeWidth="4" opacity="0.14" />
-        <path d="M340 210 C 330 160, 370 130, 420 140" strokeWidth="4" opacity="0.12" />
-      </g>
-      <rect x="160" y="40" width="70" height="44" rx="10" fill="currentColor" opacity="0.08" />
-      <rect x="40" y="70" width="50" height="34" rx="8" fill="currentColor" opacity="0.07" />
-      <rect x="310" y="120" width="60" height="40" rx="10" fill="currentColor" opacity="0.07" />
-    </svg>
-  )
-}
+/** Small caps label over each block. */
+const label = 'font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-onyx/50'
+const linkClass =
+  'inline-flex items-center gap-1.5 font-subtitle text-sm text-onyx underline underline-offset-4 hover:no-underline'
 
 function HoursRow({ days, hours, today, closed = false }: { days: string; hours: string; today: boolean; closed?: boolean }) {
   return (
-    <div
-      className={`flex items-center justify-between gap-3 rounded-xl px-3 py-3 font-subtitle text-[15px] sm:px-4 sm:text-base ${
-        today ? 'bg-gold/15' : ''
-      }`}
-    >
-      <dt className={`flex items-center gap-2 ${today ? 'font-medium text-onyx' : 'text-muted-dark'}`}>
+    <div className="flex items-center justify-between gap-4 border-b border-onyx/10 py-4 font-subtitle text-base">
+      <dt className={`flex items-center gap-2.5 ${today ? 'font-medium text-onyx' : 'text-onyx/60'}`}>
         {days}
         {today && (
-          <span className="rounded-full bg-gold-deep px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#ffffff]">
+          <span className="rounded-full bg-onyx px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
             Hoje
           </span>
         )}
       </dt>
-      <dd className={`shrink-0 tabular-nums ${closed ? 'text-muted' : 'text-onyx'} ${today ? 'font-medium' : ''}`}>{hours}</dd>
+      <dd className={`shrink-0 tabular-nums ${closed ? 'text-onyx/40' : 'text-onyx'} ${today ? 'font-medium' : ''}`}>
+        {hours}
+      </dd>
     </div>
   )
 }
 
-/** Address and opening hours. Renders nothing until the business has filled them in (site-config). */
+/**
+ * Address and opening hours, in black and white: the title and today's status on the left, the address and the
+ * week's hours as plain lists between hairlines on the right (stacked on phones). Renders nothing until the
+ * business has filled them in (site-config).
+ */
 export default function Location() {
   const business = useBusinessInfo()
   const { todayRows, closedDays, todayClosed, status } = useOpeningStatus(business.openingHours)
@@ -69,94 +56,57 @@ export default function Location() {
     }
   }
 
-  const both = business.address && hasHours
-
   return (
     <section id="localizacao" className="bg-white px-5 py-24 sm:px-8 md:py-32">
-      <div className="mx-auto max-w-5xl">
-        <p className="text-center font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">
-          Visita-nos
-        </p>
-        <h2 className="mt-2 text-center font-logo text-4xl sm:text-5xl">Onde estamos</h2>
-        <p className="mx-auto mt-4 max-w-xl text-center font-subtitle text-base font-light text-muted-dark">
-          A morada, o horário e tudo o que precisas para chegar até nós.
-        </p>
+      <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
+        <div className="lg:sticky lg:top-32 lg:self-start">
+          <h2 className="font-logo text-4xl text-onyx sm:text-5xl">Onde estamos</h2>
+          <p className="mt-4 max-w-sm font-subtitle text-base font-light leading-relaxed text-onyx/60">
+            A morada, o horário e tudo o que precisas para chegar até nós.
+          </p>
+          {status && (
+            <p className="mt-8 inline-flex items-center gap-2.5 font-subtitle text-sm text-onyx">
+              <span className="relative flex size-2">
+                {status.open && (
+                  <span className="absolute inset-0 animate-ping rounded-full bg-emerald-500/70 motion-reduce:animate-none" />
+                )}
+                <span className={`relative size-2 rounded-full ${status.open ? 'bg-emerald-500' : 'bg-onyx/30'}`} />
+              </span>
+              {status.text}
+            </p>
+          )}
+        </div>
 
-        <div className={`mt-14 grid gap-6 ${both ? 'md:grid-cols-[1.1fr_1fr]' : 'mx-auto max-w-xl'}`}>
+        <div className="flex flex-col gap-14">
           {business.address && (
-            <motion.div
-              {...reveal(0)}
-              className="flex flex-col overflow-hidden rounded-3xl border border-gold/20 bg-white shadow-sm shadow-black/5"
-            >
-              <div className="relative h-44 overflow-hidden bg-cream sm:h-52">
-                <MapArt />
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[70%]">
-                  <span className="absolute left-1/2 top-full h-3 w-8 -translate-x-1/2 -translate-y-1 rounded-full bg-gold-deep/30 blur-[2px]" />
-                  <span className="absolute inset-0 animate-ping rounded-full bg-gold/40 motion-reduce:animate-none" />
-                  <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gold-deep text-2xl text-[#ffffff] shadow-lg shadow-gold-deep/30">
-                    <i className="bx bxs-map" aria-hidden="true" />
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-1 flex-col p-7">
-                <h3 className="font-logo text-xl text-onyx">Morada</h3>
-                <address className="mt-2 font-subtitle text-lg not-italic leading-snug text-onyx">
-                  {business.address}
-                </address>
-
-                <div className="mt-auto flex flex-wrap items-center gap-3 pt-6">
-                  {business.mapUrl && (
-                    <MotionButton label="Abrir no mapa" size="sm" href={business.mapUrl} target="_blank" rel="noreferrer" />
-                  )}
-                  <button
-                    type="button"
-                    onClick={copyAddress}
-                    className="flex h-10 items-center gap-2 rounded-full border-[1.5px] border-onyx/15 px-4 font-subtitle text-xs font-medium text-onyx transition-colors hover:border-onyx/40"
-                  >
-                    <i className={`bx ${copied ? 'bx-check text-gold-ink' : 'bx-copy'} text-base`} aria-hidden="true" />
-                    <span aria-live="polite">{copied ? 'Copiada' : 'Copiar morada'}</span>
-                  </button>
-                  {business.phone && (
-                    <a
-                      href={`tel:${business.phone.replace(/[^+\d]/g, '')}`}
-                      className="flex h-10 items-center gap-2 rounded-full border-[1.5px] border-onyx/15 px-4 font-subtitle text-xs font-medium text-onyx transition-colors hover:border-onyx/40"
-                    >
-                      <i className="bx bx-phone text-base" aria-hidden="true" />
-                      {business.phone}
-                    </a>
-                  )}
-                </div>
+            <motion.div {...reveal(0)}>
+              <h3 className={label}>Morada</h3>
+              <address className="mt-4 border-t border-onyx/10 pt-5 font-logo text-2xl not-italic leading-snug text-onyx sm:text-3xl">
+                {business.address}
+              </address>
+              <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+                {business.mapUrl && (
+                  <a href={business.mapUrl} target="_blank" rel="noreferrer" className={linkClass}>
+                    Abrir no mapa
+                    <i className="bx bx-right-arrow-alt text-base" aria-hidden="true" />
+                  </a>
+                )}
+                <button type="button" onClick={copyAddress} className={linkClass}>
+                  <span aria-live="polite">{copied ? 'Morada copiada' : 'Copiar morada'}</span>
+                </button>
+                {business.phone && (
+                  <a href={`tel:${business.phone.replace(/[^+\d]/g, '')}`} className={linkClass}>
+                    {business.phone}
+                  </a>
+                )}
               </div>
             </motion.div>
           )}
 
           {hasHours && (
-            <motion.div
-              {...reveal(0.1)}
-              className="flex flex-col rounded-3xl border border-gold/20 bg-white p-7 shadow-sm shadow-black/5"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gold-deep/10 text-xl text-gold-ink">
-                    <i className="bx bx-time-five" aria-hidden="true" />
-                  </span>
-                  <h3 className="font-logo text-xl text-onyx">Horário</h3>
-                </div>
-                {status && (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-cream px-3 py-1.5 font-subtitle text-xs font-medium text-onyx">
-                    <span className="relative flex h-2 w-2">
-                      {status.open && (
-                        <span className="absolute inset-0 animate-ping rounded-full bg-emerald-500/70 motion-reduce:animate-none" />
-                      )}
-                      <span className={`relative h-2 w-2 rounded-full ${status.open ? 'bg-emerald-500' : 'bg-muted'}`} />
-                    </span>
-                    {status.text}
-                  </span>
-                )}
-              </div>
-
-              <dl className="mt-6 flex flex-col gap-1">
+            <motion.div {...reveal(0.1)}>
+              <h3 className={label}>Horário</h3>
+              <dl className="mt-4 border-t border-onyx/10">
                 {business.openingHours.map((row, index) => (
                   <HoursRow key={row.days} days={row.days} hours={row.hours} today={todayRows.has(index)} />
                 ))}
@@ -164,10 +114,10 @@ export default function Location() {
                   <HoursRow days={dayList(closedDays)} hours="Fechado" today={todayClosed} closed />
                 )}
               </dl>
-
-              <div className="mt-auto pt-7">
-                <MotionButton label="Marcar sessão" size="sm" href="/agendar" />
-              </div>
+              <Link to="/agendar" className={`mt-6 ${linkClass}`}>
+                Marcar sessão
+                <i className="bx bx-right-arrow-alt text-base" aria-hidden="true" />
+              </Link>
             </motion.div>
           )}
         </div>
