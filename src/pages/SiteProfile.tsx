@@ -110,15 +110,19 @@ export default function SiteProfile() {
       <section className="mx-auto max-w-6xl px-5 sm:px-8">
         <motion.div
           {...reveal(0)}
-          className="relative overflow-hidden rounded-[2rem] border border-gold/20 bg-cream px-6 py-10 sm:px-12 sm:py-12"
+          className="relative overflow-hidden rounded-[2rem] bg-[#1a1008] px-6 py-10 sm:px-12 sm:py-12"
         >
-          {/* The brand word, faint, behind the right-hand side. */}
-          <span
+          {/* Background: a photo of the studio's braids, darkened from the left so the text stays readable. */}
+          <img
+            src="/images/hero/hero-4.jpg"
+            alt=""
             aria-hidden="true"
-            className="pointer-events-none absolute -bottom-6 -right-4 select-none whitespace-nowrap bg-gradient-to-b from-gold/20 to-transparent bg-clip-text font-logo text-[clamp(4rem,11vw,9rem)] leading-none text-transparent"
-          >
-            AFROGLOW
-          </span>
+            className="pointer-events-none absolute inset-0 size-full object-cover object-[50%_35%]"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#1a1008]/85 via-[#1a1008]/70 to-[#1a1008]/55 lg:bg-gradient-to-r lg:from-[#1a1008]/90 lg:via-[#1a1008]/65 lg:to-[#1a1008]/35"
+          />
 
           <div className="relative flex flex-col items-center gap-8 text-center lg:flex-row lg:gap-10 lg:text-left">
             <div className="relative size-32 shrink-0 sm:size-36">
@@ -147,11 +151,11 @@ export default function SiteProfile() {
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">
+              <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-[#ffffff]/70">
                 O meu perfil
               </p>
-              <h1 className="mt-1 truncate font-logo text-4xl text-onyx sm:text-5xl">Olá, {firstName}</h1>
-              <p className="mt-3 font-subtitle text-sm text-muted-dark">
+              <h1 className="mt-1 truncate font-logo text-4xl text-[#ffffff] sm:text-5xl">Olá, {firstName}</h1>
+              <p className="mt-3 font-subtitle text-sm text-[#ffffff]/80">
                 {sinceLabel ? `Cliente desde ${sinceLabel}` : 'Cliente AFROGLOW'}
                 {/* On its own line on phones, so the address never breaks in the middle. */}
                 <span className="mx-2 hidden text-gold sm:inline" aria-hidden="true">
@@ -181,7 +185,7 @@ export default function SiteProfile() {
                   </button>
                 )}
               </div>
-              {photoError && <p className="mt-2 font-subtitle text-xs text-red-700">{photoError}</p>}
+              {photoError && <p className="mt-2 font-subtitle text-xs text-red-300">{photoError}</p>}
             </div>
 
             <dl className="grid w-full grid-cols-3 divide-x divide-gold/25 rounded-2xl border border-gold/20 bg-white/70 py-5 backdrop-blur-sm sm:max-w-md lg:w-auto lg:min-w-[380px]">
