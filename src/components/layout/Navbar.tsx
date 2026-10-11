@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { CalendarCheck, LogIn, LogOut, Moon, PanelTop, PanelTopClose, Settings, Sparkles, Sun, UserRound } from 'lucide-react'
 import {
   CalendarCheckFill,
   CalendarPlusFill,
@@ -205,34 +206,34 @@ export default function Navbar({
   )
   const headerTone = headerOverHero ? 'onDark' : 'onLight'
 
-  // Wide screens: the account menu behind the customer's photo, with what the "+" holds elsewhere.
+  // Wide screens: the account menu behind the customer's photo, with what the "+" holds elsewhere; outline icons.
   const firstName = customer?.name.trim().split(/\s+/)[0]
   const accountItems: AccountItem[] = [
     ...(customer
       ? [
-          { Icon: PersonCircleFill, label: 'O meu perfil', onClick: () => navigate('/conta') },
-          { Icon: CalendarCheckFill, label: 'As minhas marcações', onClick: () => navigate('/marcacoes') },
-          { Icon: GearFill, label: 'Definições', onClick: () => navigate('/definicoes') },
+          { Icon: UserRound, label: 'O meu perfil', onClick: () => navigate('/conta') },
+          { Icon: CalendarCheck, label: 'As minhas marcações', onClick: () => navigate('/marcacoes') },
+          { Icon: Settings, label: 'Definições', onClick: () => navigate('/definicoes') },
         ]
-      : [{ Icon: PersonCircleFill, label: 'Entrar ou criar conta', onClick: () => navigate('/entrar') }]),
-    { Icon: SparklesFill, label: 'Conhecer a CEO', onClick: () => navigate('/ceo'), divider: true },
+      : [{ Icon: LogIn, label: 'Entrar ou criar conta', onClick: () => navigate('/entrar') }]),
+    { Icon: Sparkles, label: 'Conhecer a CEO', onClick: () => navigate('/ceo'), divider: true },
     { iconClass: 'bx bxl-instagram', label: 'Instagram', href: instagramDmUrl() },
     ...(whatsapp.enabled
       ? [{ iconClass: 'bx bxl-whatsapp', label: 'WhatsApp', href: whatsapp.url('Olá! Gostaria de saber mais sobre os vossos serviços.') }]
       : []),
     {
-      Icon: theme === 'dark' ? SunFill : MoonFill,
+      Icon: theme === 'dark' ? Sun : Moon,
       label: theme === 'dark' ? 'Tema claro' : 'Tema escuro',
       onClick: toggleTheme,
       divider: true,
     },
     {
-      Icon: hideOnScroll ? DockFill : DockDownFill,
+      Icon: hideOnScroll ? PanelTop : PanelTopClose,
       label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
       onClick: () => setHideNavOnScroll(!hideOnScroll),
     },
     ...(customer
-      ? [{ Icon: SignOutFill, label: 'Terminar sessão', danger: true, divider: true, onClick: () => void logout().then(() => navigate('/')) }]
+      ? [{ Icon: LogOut, label: 'Terminar sessão', danger: true, divider: true, onClick: () => void logout().then(() => navigate('/')) }]
       : []),
   ]
 

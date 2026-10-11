@@ -11,7 +11,8 @@ export interface DesktopLink {
 
 export interface AccountItem {
   label: string
-  Icon?: ComponentType<{ className?: string }>
+  /** An outline icon (lucide), drawn in the menu's neutral grey. */
+  Icon?: ComponentType<{ className?: string; strokeWidth?: number }>
   iconClass?: string
   onClick?: () => void
   href?: string
@@ -179,9 +180,9 @@ function AccountMenu({
             {items.map((item) => {
               const content = (
                 <>
-                  <span className="flex size-5 items-center justify-center text-gold-ink">
+                  <span className={cn('flex size-5 items-center justify-center', item.danger ? '' : 'text-onyx/60')}>
                     {item.Icon ? (
-                      <item.Icon className="size-[18px]" />
+                      <item.Icon className="size-[18px]" strokeWidth={1.75} />
                     ) : (
                       <i className={cn(item.iconClass, 'text-lg')} aria-hidden="true" />
                     )}
