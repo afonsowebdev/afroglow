@@ -1,21 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import {
-  BellFill,
-  BellSlashFill,
-  CalendarCheckFill,
-  CalendarPlusFill,
-  DockDownFill,
-  DockFill,
-  GearFill,
-  HouseFill,
-  MoonFill,
-  PersonCircleFill,
-  PlusBold,
-  SignOutFill,
-  SunFill,
-} from '@/components/ui/apple-icons'
+import { Bell, BellOff, CalendarCheck, CalendarPlus, House, LogOut, Moon, PanelTop, PanelTopClose, Plus, Settings, Sun, UserRound } from 'lucide-react'
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import AccountAuthPage from '@/pages/AccountAuthPage'
@@ -43,12 +29,12 @@ import SettingsScreen from './SettingsScreen'
 
 type TabId = 'inicio' | 'marcar' | 'marcacoes' | 'conta'
 
-// Icons in the style of Apple's SF Symbols (see apple-icons); `icon` stays as the Boxicons fallback.
+// Outline icons (lucide), as in the website's account menu; `icon` stays as the Boxicons fallback.
 const TABS: Array<BottomNavItem<TabId> & { path: string }> = [
-  { id: 'inicio', label: 'Início', icon: 'bx bx-home-alt', Icon: HouseFill, path: '/' },
-  { id: 'marcar', label: 'Marcar', icon: 'bx bx-calendar-plus', Icon: CalendarPlusFill, path: '/marcar' },
-  { id: 'marcacoes', label: 'Marcações', icon: 'bx bx-calendar-check', Icon: CalendarCheckFill, path: '/marcacoes' },
-  { id: 'conta', label: 'Conta', icon: 'bx bx-user', Icon: PersonCircleFill, path: '/conta' },
+  { id: 'inicio', label: 'Início', icon: 'bx bx-home-alt', Icon: House, path: '/' },
+  { id: 'marcar', label: 'Marcar', icon: 'bx bx-calendar-plus', Icon: CalendarPlus, path: '/marcar' },
+  { id: 'marcacoes', label: 'Marcações', icon: 'bx bx-calendar-check', Icon: CalendarCheck, path: '/marcacoes' },
+  { id: 'conta', label: 'Conta', icon: 'bx bx-user', Icon: UserRound, path: '/conta' },
 ]
 
 function tabFor(pathname: string): TabId {
@@ -150,24 +136,24 @@ function CustomerShell() {
 
   const menuActions: MenuAction[] = [
     {
-      Icon: theme.theme === 'dark' ? SunFill : MoonFill,
+      Icon: theme.theme === 'dark' ? Sun : Moon,
       label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
       onClick: theme.toggleTheme,
     },
     {
-      Icon: hideOnScroll ? DockFill : DockDownFill,
+      Icon: hideOnScroll ? PanelTop : PanelTopClose,
       label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
       onClick: () => setHideNavOnScroll(!hideOnScroll),
     },
     {
-      Icon: GearFill,
+      Icon: Settings,
       label: 'Definições',
       onClick: () => navigate('/definicoes'),
     },
     ...(pushSupported()
       ? [
           {
-            Icon: notificationsOn ? BellFill : BellSlashFill,
+            Icon: notificationsOn ? Bell : BellOff,
             label: notificationsOn ? 'Desligar avisos' : 'Ligar avisos',
             onClick: async () => {
               if (notificationsOn) {
@@ -192,7 +178,7 @@ function CustomerShell() {
     ...(customer
       ? [
           {
-            Icon: SignOutFill,
+            Icon: LogOut,
             label: 'Terminar sessão',
             danger: true,
             onClick: () => {
@@ -275,7 +261,7 @@ function CustomerShell() {
           actions={menuActions}
           hidden={menuForcedHidden}
           tone={overHero ? 'onDark' : 'onLight'}
-          PlusIcon={PlusBold}
+          PlusIcon={Plus}
         />
       </div>
     </div>

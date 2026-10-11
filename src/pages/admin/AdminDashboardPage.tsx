@@ -2,23 +2,23 @@ import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import {
-  BellFill,
-  CalendarCheckFill,
-  ChartBarFill,
-  ClockFill,
-  DockDownFill,
-  DockFill,
-  LockFill,
-  MoonFill,
-  PeopleFill,
-  PhotoStackFill,
-  PlusBold,
-  QuoteBubbleFill,
-  ScissorsFill,
-  SignOutFill,
-  StorefrontFill,
-  SunFill,
-} from '@/components/ui/apple-icons'
+  Bell,
+  CalendarCheck,
+  ChartColumn,
+  Clock,
+  Images,
+  Lock,
+  LogOut,
+  MessageSquareQuote,
+  Moon,
+  PanelTop,
+  PanelTopClose,
+  Plus,
+  Scissors,
+  Store,
+  Sun,
+  Users,
+} from 'lucide-react'
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import { DatePicker } from '@/components/ui/date-picker'
@@ -117,12 +117,12 @@ type AdminTab = NavTab | MoreTarget
 
 const MORE_TARGETS: MoreTarget[] = ['servicos', 'portfolio', 'testemunhos', 'estatisticas', 'definicoes', 'seguranca']
 
-// Icons in the style of Apple's SF Symbols (see apple-icons); `icon` stays as the Boxicons fallback.
+// Outline icons (lucide), as in the website's account menu; `icon` stays as the Boxicons fallback.
 const TABS: Array<BottomNavItem<NavTab>> = [
-  { id: 'pedidos', label: 'Pedidos', icon: 'bx bx-bell', Icon: BellFill },
-  { id: 'agenda', label: 'Agenda', icon: 'bx bx-calendar-check', Icon: CalendarCheckFill },
-  { id: 'disponibilidade', label: 'Horários', icon: 'bx bx-time-five', Icon: ClockFill },
-  { id: 'clientes', label: 'Clientes', icon: 'bx bx-user', Icon: PeopleFill },
+  { id: 'pedidos', label: 'Pedidos', icon: 'bx bx-bell', Icon: Bell },
+  { id: 'agenda', label: 'Agenda', icon: 'bx bx-calendar-check', Icon: CalendarCheck },
+  { id: 'disponibilidade', label: 'Horários', icon: 'bx bx-time-five', Icon: Clock },
+  { id: 'clientes', label: 'Clientes', icon: 'bx bx-user', Icon: Users },
 ]
 
 /** Step 2 of "Criar horários": the times of the day in three groups, with one-tap presets. */
@@ -2016,23 +2016,23 @@ function AdminDashboard() {
     window.scrollTo({ top: 0 })
   }
   const menuActions: MenuAction[] = [
-    { Icon: QuoteBubbleFill, label: 'Testemunhos', badge: pendingTestimonials.length, onClick: open('testemunhos') },
-    { Icon: ScissorsFill, label: 'Serviços', onClick: open('servicos') },
-    { Icon: PhotoStackFill, label: 'Portfólio', onClick: open('portfolio') },
-    { Icon: ChartBarFill, label: 'Estatísticas', onClick: open('estatisticas') },
-    { Icon: StorefrontFill, label: 'Definições do negócio', onClick: open('definicoes') },
-    { Icon: LockFill, label: 'Segurança', onClick: open('seguranca') },
+    { Icon: MessageSquareQuote, label: 'Testemunhos', badge: pendingTestimonials.length, onClick: open('testemunhos') },
+    { Icon: Scissors, label: 'Serviços', onClick: open('servicos') },
+    { Icon: Images, label: 'Portfólio', onClick: open('portfolio') },
+    { Icon: ChartColumn, label: 'Estatísticas', onClick: open('estatisticas') },
+    { Icon: Store, label: 'Definições do negócio', onClick: open('definicoes') },
+    { Icon: Lock, label: 'Segurança', onClick: open('seguranca') },
     {
-      Icon: hideOnScroll ? DockFill : DockDownFill,
+      Icon: hideOnScroll ? PanelTop : PanelTopClose,
       label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
       onClick: () => setHideNavOnScroll(!hideOnScroll),
     },
     {
-      Icon: theme.theme === 'dark' ? SunFill : MoonFill,
+      Icon: theme.theme === 'dark' ? Sun : Moon,
       label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
       onClick: theme.toggleTheme,
     },
-    { Icon: SignOutFill, label: 'Sair', danger: true, onClick: () => void handleLogout() },
+    { Icon: LogOut, label: 'Sair', danger: true, onClick: () => void handleLogout() },
   ]
 
   if (checkingAuth) {
@@ -2529,7 +2529,7 @@ function AdminDashboard() {
           actions={menuActions}
           dot={pendingTestimonials.length > 0}
           hidden={menuForcedHidden}
-          PlusIcon={PlusBold}
+          PlusIcon={Plus}
         />
       </div>
     </div>
