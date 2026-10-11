@@ -11,10 +11,9 @@ const STATS = [
 export default function About() {
   return (
     <section id="sobre" className="relative flex min-h-screen items-center overflow-hidden bg-white">
-      {/* AFROGLOW sliding behind the text, as in the gallery: one row each way, faster while the page scrolls. */}
-      <div className="pointer-events-none absolute inset-0 flex flex-col justify-center gap-[6vw]">
+      {/* AFROGLOW sliding behind the text, as in the gallery: one row across the middle, faster while scrolling. */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col justify-center">
         <VelocityRow direction={1} />
-        <VelocityRow direction={-1} />
       </div>
 
       <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center px-5 pt-28 pb-36 text-center sm:px-8 sm:pt-32 sm:pb-44">
