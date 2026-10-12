@@ -303,7 +303,8 @@
   box-shadow: none;
 }
 .dark .site-header[data-tone='onLight'] .liquid-glass {
-  background: rgba(20, 20, 20, 0.72);
+  /* The site's own dark background (its brown), frosted, rather than black. */
+  background: color-mix(in srgb, var(--color-white) 82%, transparent);
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.1),
     0 4px 14px rgba(0, 0, 0, 0.4);
