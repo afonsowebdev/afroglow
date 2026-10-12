@@ -9,10 +9,10 @@ export default function Hero() {
 
   return (
     <section id="top" className="relative flex min-h-screen items-center justify-center overflow-hidden">
-      <HeroVideoBackground key={dark ? 'dark' : 'light'} tone={dark ? 'dark' : 'light'} />
+      <HeroVideoBackground key={dark ? 'dark' : 'light'} tone={dark ? 'dark' : 'light'} tint={false} />
 
       <div className="relative z-10 flex max-w-3xl flex-col items-center px-6 text-center">
-        <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-gold">AFROGLOW · Portugal</span>
+        <span className="mb-4 font-body text-xs uppercase tracking-[0.3em] text-[#f5efdf] [text-shadow:0_1px_10px_rgba(0,0,0,0.55)]">AFROGLOW · Portugal</span>
         <h1 className="font-logo text-[8.4vw] leading-[1.05] text-[#f5efdf] [text-shadow:0_2px_24px_rgba(0,0,0,0.45)] sm:text-[7vw] md:text-[6vw]">
           Cada penteado,
           <br />
@@ -31,8 +31,8 @@ export default function Hero() {
         animate={{ y: [0, 8, 0] }}
         transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <span className="font-body text-[0.65rem] uppercase tracking-[0.3em] text-gold">Scroll</span>
-        <i className="bx bx-chevron-down text-3xl text-gold" aria-hidden="true" />
+        <span className="font-body text-[0.65rem] uppercase tracking-[0.3em] text-[#f5efdf] [text-shadow:0_1px_8px_rgba(0,0,0,0.55)]">Scroll</span>
+        <i className="bx bx-chevron-down text-3xl text-[#f5efdf] [filter:drop-shadow(0_1px_6px_rgba(0,0,0,0.5))]" aria-hidden="true" />
       </motion.div>
     </section>
   )
