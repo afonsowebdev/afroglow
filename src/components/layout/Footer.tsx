@@ -1,4 +1,3 @@
-import { FooterBackgroundGradient, TextHoverEffect } from '@/components/ui/hover-footer'
 import { instagramDmUrl, siteConfig, useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 
 const EXPLORE_LINKS = [
@@ -17,6 +16,26 @@ const ACCOUNT_LINKS = [
   { label: 'Perfil', href: '/conta' },
   { label: 'Conhecer a CEO', href: '/ceo' },
 ]
+
+/** The footer's ground: the theme's light (or dark) tone fading into its cream, with a faint grid that fades out. */
+function FooterBackdrop() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+      <div className="absolute inset-0 bg-gradient-to-b from-white via-cream/60 to-cream" />
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, color-mix(in srgb, var(--color-onyx) 6%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--color-onyx) 6%, transparent) 1px, transparent 1px)',
+          backgroundSize: '56px 56px',
+          maskImage: 'radial-gradient(ellipse 80% 70% at 50% 100%, black 20%, transparent 75%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 80% 70% at 50% 100%, black 20%, transparent 75%)',
+        }}
+      />
+      <div className="absolute inset-x-0 top-0 h-px bg-onyx/10" />
+    </div>
+  )
+}
 
 function ColumnTitle({ children }: { children: string }) {
   return (
@@ -74,8 +93,8 @@ export default function Footer() {
 
   return (
     // Bottom padding below `md` leaves room for the floating tab bar.
-    <footer className="relative overflow-hidden bg-cream pb-24 md:pb-0">
-      <FooterBackgroundGradient />
+    <footer className="relative overflow-hidden bg-white pb-24 md:pb-0">
+      <FooterBackdrop />
 
       {/* Above the wordmark, which tucks up under the last row with a negative margin. */}
       <div className="relative z-20 mx-auto max-w-6xl px-5 pt-16 sm:px-10 md:pt-24">
@@ -184,8 +203,18 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="relative z-10 -mt-2 flex h-32 px-2 sm:h-56 lg:-mt-6 lg:h-72">
-        <TextHoverEffect text={siteConfig.name} />
+      {/* The brand name rising out of the bottom edge, part of the background. */}
+      <div aria-hidden="true" className="pointer-events-none relative z-10 mt-6 select-none md:-mt-4 overflow-hidden">
+        <p
+          className="translate-y-[18%] text-center font-logo text-[17.5vw] leading-[0.8] tracking-tight text-transparent"
+          style={{
+            backgroundImage: 'linear-gradient(to bottom, color-mix(in srgb, var(--color-onyx) 16%, transparent), transparent 85%)',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+          }}
+        >
+          {siteConfig.name}
+        </p>
       </div>
     </footer>
   )
