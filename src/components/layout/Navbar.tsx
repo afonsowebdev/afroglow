@@ -282,12 +282,10 @@ export default function Navbar({
           <div className="lg:hidden">{logo(true)}</div>
 
           {/* Wide screens: a glass bar with the logo and the sections (centred on the page), then "Agendar" and the
-              account, each in its own glass beside it. 48px over the video, 44px once the page is scrolled. */}
+              account, each in its own glass beside it. Always 48px tall. */}
           <div className="relative hidden w-full items-center gap-2.5 lg:flex">
             <div
-              className={`liquid-glass pointer-events-auto flex min-w-0 flex-1 items-center rounded-full px-2 transition-[height] duration-500 ${
-                headerOverHero ? 'h-12' : 'h-11'
-              }`}
+              className="liquid-glass pointer-events-auto flex h-12 min-w-0 flex-1 items-center rounded-full px-2"
             >
               {logo(false)}
             </div>
@@ -310,7 +308,7 @@ export default function Navbar({
               <div className="pointer-events-auto">
                 <NotificationBell
                   tone={headerTone}
-                  className={`transition-[width,height] duration-500 ${headerOverHero ? 'size-12' : 'size-11'}`}
+                  className="size-12"
                 />
               </div>
             )}
@@ -321,7 +319,7 @@ export default function Navbar({
                 compact
                 onClick={() => navigate('/agendar')}
                 aria-current={page === 'agendar' ? 'page' : undefined}
-                className={`transition-[height,padding] duration-500 ${headerOverHero ? '!h-12' : '!h-11'}`}
+                className="!h-12"
               />
             </div>
             <div className="pointer-events-auto">
@@ -332,7 +330,7 @@ export default function Navbar({
                 active={page === 'perfil'}
                 label={customer ? `Olá, ${firstName}` : 'Ainda não tens conta?'}
                 items={accountItems}
-                className={`transition-[width,height] duration-500 ${headerOverHero ? '!size-12' : '!size-11'}`}
+                className="!size-12"
               />
             </div>
           </div>
