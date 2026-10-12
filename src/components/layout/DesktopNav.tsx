@@ -58,10 +58,14 @@ export function DesktopNav({
   const ink = onDark ? 'text-[#ffffff] [filter:drop-shadow(0_0_1px_rgba(0,0,0,0.25))]' : 'text-onyx'
 
   return (
-    <div className="pointer-events-auto flex items-center gap-2.5">
+    // In the bar the pieces join its grid: the sections in the middle column, booking and account on the right.
+    <div className={inBar ? 'contents' : 'pointer-events-auto flex items-center gap-2.5'}>
       <nav
         aria-label="Secções"
-        className={cn('flex items-center gap-1 rounded-full', inBar ? 'h-12' : 'liquid-glass h-[56px] px-2')}
+        className={cn(
+          'flex items-center gap-1 rounded-full',
+          inBar ? 'h-12 justify-self-center' : 'liquid-glass h-[56px] px-2',
+        )}
       >
         {links.map((link) => {
           const isActive = link.id === active
@@ -90,6 +94,7 @@ export function DesktopNav({
         })}
       </nav>
 
+      <div className={inBar ? 'flex items-center gap-2 justify-self-end' : 'contents'}>
       {/* The one action of the site, set apart from the sections. */}
       <ButtonWithIcon
         label="Agendar"
@@ -108,6 +113,7 @@ export function DesktopNav({
         items={accountItems}
         bare={inBar}
       />
+      </div>
     </div>
   )
 }

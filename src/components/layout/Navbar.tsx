@@ -279,10 +279,15 @@ export default function Navbar({
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <div className="lg:hidden">{logo(true)}</div>
 
-          {/* Wide screens: one glass bar with the logo, the sections as words, booking and the account menu. */}
-          <div className="liquid-glass pointer-events-auto hidden h-16 w-full items-center justify-between gap-4 rounded-full px-2 lg:flex">
+          {/* Wide screens: one glass bar, logo on the left, the sections centred, booking and the account on the
+              right. Taller over the video, a little slimmer once the page is scrolled. */}
+          <div
+            className={`liquid-glass pointer-events-auto hidden w-full grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-full px-2 transition-[height] duration-500 lg:grid ${
+              headerOverHero ? 'h-16' : 'h-14'
+            }`}
+          >
             {logo(false)}
-            <div className="flex items-center">
+            <div className="contents">
               <DesktopNav
                 links={DESKTOP_LINKS}
                 active={!page && onHome && DESKTOP_LINKS.some((l) => l.id === activeSection) ? activeSection : null}
