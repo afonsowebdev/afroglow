@@ -272,7 +272,7 @@ export default function Navbar({
     </a>
   )
 
-  // Phones and tablets: just the "A", gold on white (white on gold in the dark theme).
+  // Phones and tablets: just the "A", gold on white (the dark background colour on gold in the dark theme).
   const mark = (
     <a
       href={onHome ? '#top' : '/'}
@@ -282,7 +282,7 @@ export default function Navbar({
         navigate('/')
       }}
       aria-label="AFROGLOW, voltar ao início"
-      className="pointer-events-auto flex size-[56px] items-center justify-center rounded-full bg-[#ffffff] font-logo text-[1.75rem] leading-none text-[#c9a84c] shadow-[0_2px_10px_rgba(0,0,0,0.16)] logo-weight dark:bg-[#c9a84c] dark:text-[#ffffff]"
+      className="pointer-events-auto flex size-[56px] items-center justify-center rounded-full bg-[#ffffff] font-logo text-[1.75rem] leading-none text-[#c9a84c] shadow-[0_2px_10px_rgba(0,0,0,0.16)] logo-weight dark:bg-[#c9a84c] dark:text-[#2b1d12]"
     >
       <span className="translate-y-[2px]" aria-hidden="true">
         A
