@@ -1,5 +1,4 @@
-import { useRef } from 'react'
-import { motion, useScroll, useTransform } from 'motion/react'
+import { VelocityRow } from '@/components/ui/velocity-marquee'
 import { instagramDmUrl, siteConfig, useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 
 const EXPLORE_LINKS = [
@@ -18,52 +17,6 @@ const ACCOUNT_LINKS = [
   { label: 'Perfil', href: '/conta' },
   { label: 'Conhecer a CEO', href: '/ceo' },
 ]
-
-// A fine paper grain, drawn once as an SVG noise tile.
-const GRAIN =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")"
-
-const tint = (percent: number) => `color-mix(in srgb, var(--color-onyx) ${percent}%, transparent)`
-
-/** The footer's ground: the theme's tone deepening into its cream, a soft light behind the brand name and a grain. */
-function FooterBackdrop() {
-  return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-      <div className="absolute inset-0 bg-gradient-to-b from-white via-cream/70 to-cream" />
-      {/* A wide, low glow where the brand name sits, and a darker edge along the very bottom. */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: `radial-gradient(ellipse 70% 45% at 50% 100%, ${tint(7)}, transparent 70%), linear-gradient(to top, ${tint(5)}, transparent 18%)`,
-        }}
-      />
-      <div className="absolute inset-0 opacity-[0.07] mix-blend-multiply dark:opacity-[0.1] dark:mix-blend-screen" style={{ backgroundImage: GRAIN }} />
-      <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${tint(14)}, transparent)` }} />
-    </div>
-  )
-}
-
-/** AFROGLOW rising out of the bottom edge: a soft fill with a fine outline, lifting a little as the footer comes in. */
-function FooterWordmark({ target }: { target: React.RefObject<HTMLElement | null> }) {
-  const { scrollYProgress } = useScroll({ target, offset: ['start end', 'end end'] })
-  const y = useTransform(scrollYProgress, [0, 1], ['45%', '16%'])
-  return (
-    <div aria-hidden="true" className="pointer-events-none relative z-10 mt-8 select-none overflow-hidden md:mt-10">
-      <motion.p
-        style={{
-          y,
-          backgroundImage: `linear-gradient(to bottom, ${tint(18)}, ${tint(4)} 70%, transparent)`,
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-          WebkitTextStroke: `1px ${tint(14)}`,
-        }}
-        className="text-center font-logo text-[17.5vw] leading-[0.8] tracking-tight text-transparent"
-      >
-        {siteConfig.name}
-      </motion.p>
-    </div>
-  )
-}
 
 function ColumnTitle({ children }: { children: string }) {
   return (
@@ -118,15 +71,17 @@ export default function Footer() {
   ]
 
   const year = new Date().getFullYear()
-  const footerRef = useRef<HTMLElement>(null)
 
   return (
     // Bottom padding below `md` leaves room for the floating tab bar.
-    <footer ref={footerRef} className="relative overflow-hidden bg-white pb-24 md:pb-0">
-      <FooterBackdrop />
+    <footer className="relative overflow-hidden border-t border-onyx/10 bg-white pb-24 md:pb-0">
+      {/* AFROGLOW sliding across the middle, as on the sections above. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 flex flex-col justify-center">
+        <VelocityRow direction={-1} />
+      </div>
 
-      {/* Above the wordmark, which tucks up under the last row with a negative margin. */}
-      <div className="relative z-20 mx-auto max-w-6xl px-5 pt-16 sm:px-10 md:pt-24">
+      {/* Above the sliding AFROGLOW. */}
+      <div className="relative z-20 mx-auto max-w-6xl px-5 py-16 sm:px-10 md:py-24">
         <div className="grid grid-cols-2 gap-x-8 gap-y-12 pb-14 md:pb-16 lg:grid-cols-12 lg:gap-x-10">
           <div className="col-span-2 flex flex-col gap-6 lg:col-span-4">
             <p className="max-w-xs font-subtitle text-lg font-light leading-relaxed text-onyx">
@@ -232,7 +187,6 @@ export default function Footer() {
         </div>
       </div>
 
-      <FooterWordmark target={footerRef} />
     </footer>
   )
 }
