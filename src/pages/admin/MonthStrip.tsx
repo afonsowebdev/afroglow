@@ -37,7 +37,7 @@ export function MonthStrip({
   const arrow = 'flex size-10 items-center justify-center text-2xl text-onyx active:opacity-50'
 
   return (
-    <div className="mt-6 rounded-2xl border-[1.5px] border-onyx/25 bg-white">
+    <div className="mt-6 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white">
       <div className="flex items-center justify-between px-2 py-1.5">
         <button type="button" aria-label="Mês anterior" onClick={() => onSelect(step(value, -1))} className={arrow}>
           <i className="bx bx-chevron-left" aria-hidden="true" />
@@ -117,7 +117,7 @@ export function MonthStrip({
                         active
                           ? 'glass-chip-on font-semibold text-onyx'
                           : current
-                            ? 'glass-chip font-semibold text-gold-ink'
+                            ? 'glass-chip font-semibold text-onyx'
                             : 'glass-chip text-onyx'
                       }`}
                     >

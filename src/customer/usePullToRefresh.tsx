@@ -41,7 +41,7 @@ export function usePullToRefresh(onRefresh: () => Promise<unknown>) {
     pull > 4 || refreshing ? (
       <div className="flex items-center justify-center overflow-hidden" style={{ height: pull }} aria-hidden="true">
         <i
-          className={`bx bx-refresh text-2xl text-gold-ink ${refreshing ? 'animate-spin' : ''}`}
+          className={`bx bx-refresh text-2xl text-onyx ${refreshing ? 'animate-spin' : ''}`}
           style={{
             transform: refreshing ? undefined : `rotate(${pull * 3}deg)`,
             opacity: Math.min(1, pull / THRESHOLD),

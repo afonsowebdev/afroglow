@@ -97,7 +97,7 @@ export function Greeting() {
         ) : upcoming.length === 0 ? (
           <p className="mt-3 font-subtitle text-sm text-muted-dark">Sem horários livres de momento.</p>
         ) : allOpen ? (
-          <div className="mt-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
+          <div className="mt-3 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
             {shownDays.map(([key, daySlots], index) => {
               const free = daySlots.filter((x) => x.status === 'OPEN').length
               return (
@@ -213,7 +213,7 @@ export function WelcomeCard() {
 
   if (loading) return <div className="h-40 animate-pulse rounded-2xl bg-onyx/5" />
 
-  const panel = 'rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5'
+  const panel = 'rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5'
   const label = 'font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-muted-dark'
 
   // Plain panel with one clear action, used when there is no upcoming session to show.
@@ -421,14 +421,15 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
         {services === null &&
           [0].map((i) => (
             <div key={i} className="w-full shrink-0 px-5">
-              <div className="mx-auto h-[26rem] max-w-sm animate-pulse rounded-[2rem] bg-gold/10" />
+              <div className="mx-auto aspect-[4/5] max-w-sm animate-pulse rounded-2xl bg-onyx/5" />
             </div>
           ))}
         {services?.map((service, i) => {
           const photos = serviceImageUrls(service)
           return (
             <div key={service.id} className="w-full shrink-0 snap-center snap-always px-5">
-              <div className="relative mx-auto h-[26rem] max-w-sm overflow-hidden rounded-[2rem] bg-[#1c1c1e]">
+              {/* The website's service card: photo on top, then name and price, description, and duration with "Marcar". */}
+              <div className="mx-auto flex max-w-sm flex-col">
                 {/* The photo opens the gallery with more pictures. */}
                 <button
                   type="button"
@@ -437,7 +438,7 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
                     void tap()
                     setPreviewId(service.id)
                   }}
-                  className="absolute inset-0 block h-full w-full"
+                  className="relative block aspect-[4/5] w-full overflow-hidden rounded-2xl bg-onyx/5"
                 >
                   <img
                     src={photos[0] ?? PHOTOS[i % PHOTOS.length].src}
@@ -445,44 +446,38 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
                     loading="lazy"
                     className="absolute inset-0 h-full w-full object-cover"
                   />
-                  <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
+                  {photos.length > 1 && (
+                    <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
+                      <i className="bx bx-images text-sm" aria-hidden="true" />
+                      {photos.length} fotos
+                    </span>
+                  )}
                 </button>
 
-                <span className="pointer-events-none absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
-                  <i className="bx bx-time-five text-sm" aria-hidden="true" />
-                  {service.durationLabel}
-                </span>
-                {photos.length > 1 && (
-                  <span className="pointer-events-none absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1.5 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
-                    <i className="bx bx-images text-sm" aria-hidden="true" />
-                    {photos.length} fotos
-                  </span>
+                <div className="mt-4 flex items-baseline justify-between gap-4">
+                  <p className="truncate font-subtitle text-xl font-medium text-onyx">{service.name}</p>
+                  <p className="shrink-0 font-subtitle text-base tabular-nums text-onyx">{servicePriceLabel(service)}</p>
+                </div>
+                {service.description && (
+                  <p className="mt-1.5 line-clamp-2 font-subtitle text-sm font-light leading-relaxed text-onyx/60">
+                    {service.description}
+                  </p>
                 )}
-
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 text-[#ffffff]">
-                  <p className="truncate font-subtitle text-2xl font-semibold tracking-tight">{service.name}</p>
-                  {service.description && (
-                    <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light text-[#ffffff]/80">
-                      {service.description}
-                    </p>
-                  )}
-                  <div className="mt-4 flex items-center justify-between gap-3">
-                    <p className="font-subtitle text-xl font-semibold text-[#e0c36e]">
-                      {servicePriceLabel(service)}
-                    </p>
-                    {/* The arrow goes straight to booking this model. */}
-                    <Link
-                      to={`/marcar?service=${service.id}`}
-                      aria-label={`Marcar ${service.name}`}
-                      onClick={() => void tap('medium')}
-                      className="pointer-events-auto flex h-11 items-center gap-2 rounded-full bg-[#ffffff]/25 pe-1.5 ps-4 font-subtitle text-sm font-medium text-[#ffffff] backdrop-blur-md"
-                    >
-                      Marcar
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ffffff]/30 text-xl">
-                        <i className="bx bx-right-arrow-alt" aria-hidden="true" />
-                      </span>
-                    </Link>
-                  </div>
+                <div className="mt-4 flex items-center justify-between gap-4 border-t border-onyx/10 pt-4">
+                  <span className="inline-flex items-center gap-1.5 font-subtitle text-sm text-onyx/55">
+                    <i className="bx bx-time-five text-base" aria-hidden="true" />
+                    {service.durationLabel}
+                  </span>
+                  {/* Straight to booking this model. */}
+                  <Link
+                    to={`/marcar?service=${service.id}`}
+                    aria-label={`Marcar ${service.name}`}
+                    onClick={() => void tap('medium')}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-full bg-onyx pe-3 ps-4 font-subtitle text-sm font-medium text-white"
+                  >
+                    Marcar
+                    <i className="bx bx-right-arrow-alt text-base" aria-hidden="true" />
+                  </Link>
                 </div>
               </div>
             </div>
@@ -558,7 +553,7 @@ export function StepsRow() {
               transition={{ delay: index * 0.08 }}
               className="relative flex items-center gap-4 py-3"
             >
-              <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[1.5px] border-onyx/25 bg-white text-xl text-onyx">
+              <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-onyx/10 shadow-sm shadow-black/5 bg-white text-xl text-onyx">
                 <i className={step.icon} aria-hidden="true" />
               </span>
               <span>
@@ -570,7 +565,7 @@ export function StepsRow() {
             </motion.li>
           ))}
         </ol>
-        <p className="mt-3 flex items-start gap-2 rounded-2xl border-[1.5px] border-onyx/25 px-4 py-3 font-subtitle text-sm text-muted-dark">
+        <p className="mt-3 flex items-start gap-2 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 px-4 py-3 font-subtitle text-sm text-muted-dark">
           <i className="bx bx-info-circle mt-0.5 text-lg text-onyx" aria-hidden="true" />
           Não pagas nada na app. Avisamos-te assim que o pedido for aceite.
         </p>
@@ -702,7 +697,7 @@ export function WorkGrid() {
             href={instagramDmUrl()}
             target="_blank"
             rel="noreferrer"
-            className="mx-auto flex aspect-[4/5] w-full max-w-md flex-col items-center justify-center gap-3 rounded-[2rem] border-[1.5px] border-onyx/25 bg-white text-center"
+            className="mx-auto flex aspect-[4/5] w-full max-w-md flex-col items-center justify-center gap-3 rounded-[2rem] border border-onyx/10 shadow-sm shadow-black/5 bg-white text-center"
           >
             <i className="bx bxl-instagram text-5xl text-onyx" aria-hidden="true" />
             <span className="font-subtitle text-base font-semibold text-onyx">Vídeos no Instagram</span>
@@ -795,7 +790,7 @@ function ReviewCard({ review }: { review: Review }) {
   const when = review.date ? new Date(review.date) : null
   return (
     <div className="flex w-full shrink-0 snap-center snap-always px-3">
-      <figure className="mx-auto flex w-full max-w-md flex-col rounded-[2rem] border-[1.5px] border-onyx/25 bg-white p-7">
+      <figure className="mx-auto flex w-full max-w-md flex-col rounded-[2rem] border border-onyx/10 shadow-sm shadow-black/5 bg-white p-7">
         <i className="bx bxs-quote-alt-left text-6xl text-onyx/15" aria-hidden="true" />
         <blockquote
           className={`mt-3 flex-1 font-subtitle text-[19px] font-normal leading-relaxed text-onyx ${open ? '' : 'line-clamp-6'}`}
@@ -820,7 +815,7 @@ function ReviewCard({ review }: { review: Review }) {
               className="h-12 w-12 shrink-0 rounded-full object-cover"
             />
           ) : (
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-onyx font-subtitle text-base font-semibold text-[#ffffff] dark:bg-gold-deep">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-onyx font-subtitle text-base font-semibold text-[#ffffff]">
               {review.name.trim().charAt(0).toUpperCase()}
             </span>
           )}
@@ -958,7 +953,7 @@ export function Visit() {
         )}
       </div>
 
-      <div className="mt-5 overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white">
+      <div className="mt-5 overflow-hidden rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white">
         {business.address && (
           <div className="flex items-start gap-4 p-5">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-xl text-onyx">
@@ -1062,7 +1057,7 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
       <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">
         Escolhe a forma que for mais fácil para ti.
       </p>
-      <div className="mt-5 divide-y divide-onyx/10 overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white">
+      <div className="mt-5 divide-y divide-onyx/10 overflow-hidden rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white">
         {options.map((option) => (
           <a
             key={option.title}

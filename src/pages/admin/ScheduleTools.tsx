@@ -94,7 +94,7 @@ const miniLabel = 'mb-1.5 block font-subtitle text-[11px] uppercase tracking-wid
 /** A titled card that groups related fields. */
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border-[1.5px] border-onyx/25 p-4">
+    <section className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 p-4">
       <h3 className="mb-3 font-subtitle text-sm font-semibold tracking-tight text-onyx">{title}</h3>
       {children}
     </section>

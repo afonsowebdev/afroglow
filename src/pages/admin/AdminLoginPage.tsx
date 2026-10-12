@@ -33,13 +33,13 @@ export default function AdminLoginPage() {
     <div className="app-neutral relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-cream px-5 py-16">
       <ScrollMorphHero className="absolute inset-0" />
 
-      <Link to="/" className="relative z-10 mb-8 font-logo text-3xl leading-none tracking-wide text-gold-deep">
+      <Link to="/" className="relative z-10 mb-8 font-logo text-3xl leading-none tracking-wide text-onyx">
         AFROGLOW
       </Link>
 
       <form
         onSubmit={handleSubmit}
-        className="relative z-10 w-full max-w-sm rounded-3xl border-[1.5px] border-onyx/25 bg-white/95 p-8 backdrop-blur-sm"
+        className="relative z-10 w-full max-w-sm rounded-3xl border border-onyx/10 shadow-sm shadow-black/5 bg-white/95 p-8 backdrop-blur-sm"
       >
         <h1 className="font-subtitle text-2xl font-semibold tracking-tight text-onyx">Área de Admin</h1>
         <div className="mt-6 flex flex-col gap-4">
@@ -50,7 +50,7 @@ export default function AdminLoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="rounded-xl border border-gold/30 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-gold-deep"
+              className="rounded-xl border border-onyx/15 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-onyx"
             />
           </label>
           <label className="flex flex-col gap-1.5">
@@ -60,7 +60,7 @@ export default function AdminLoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="rounded-xl border border-gold/30 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-gold-deep"
+              className="rounded-xl border border-onyx/15 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-onyx"
             />
           </label>
         </div>

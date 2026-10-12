@@ -4,7 +4,7 @@ import { api, ApiError } from '@/lib/api'
 import { loadBusinessInfo, type BusinessInfo } from '@/lib/site-config'
 
 const fieldClass =
-  'w-full rounded-xl border border-gold/30 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-gold-deep'
+  'w-full rounded-xl border border-onyx/15 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-onyx'
 
 function Label({ children, hint }: { children: string; hint?: string }) {
   return (
@@ -66,7 +66,7 @@ export function SettingsView() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-6 flex flex-col gap-5 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5 sm:p-6"
+      className="mt-6 flex flex-col gap-5 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5 sm:p-6"
     >
       <div>
         <p className="font-subtitle text-sm font-light text-muted-dark">
@@ -154,7 +154,7 @@ export function SettingsView() {
           <button
             type="button"
             onClick={() => update({ openingHours: [...form.openingHours, { days: '', hours: '' }] })}
-            className="mt-3 font-subtitle text-sm text-gold-deep underline"
+            className="mt-3 font-subtitle text-sm text-onyx underline"
           >
             + Adicionar linha
           </button>
@@ -174,7 +174,7 @@ export function SettingsView() {
       </label>
 
       {message && (
-        <p className={`font-subtitle text-sm ${message.ok ? 'text-gold-deep' : 'text-red-700'}`}>{message.text}</p>
+        <p className={`font-subtitle text-sm ${message.ok ? 'text-onyx' : 'text-red-700'}`}>{message.text}</p>
       )}
 
       <div>

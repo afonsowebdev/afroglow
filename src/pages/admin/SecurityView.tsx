@@ -3,7 +3,7 @@ import { MotionButton } from '@/components/ui/motion-button'
 import { api, ApiError } from '@/lib/api'
 
 const fieldClass =
-  'w-full rounded-xl border border-gold/30 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-gold-deep'
+  'w-full rounded-xl border border-onyx/15 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-onyx'
 
 export function SecurityView() {
   const [current, setCurrent] = useState('')
@@ -36,7 +36,7 @@ export function SecurityView() {
   return (
     <form
       onSubmit={submit}
-      className="mt-6 flex flex-col gap-5 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5 sm:p-6"
+      className="mt-6 flex flex-col gap-5 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5 sm:p-6"
     >
       <div>
         <h2 className="font-subtitle text-xl text-onyx">Alterar password</h2>
@@ -80,7 +80,7 @@ export function SecurityView() {
         {mismatch && <span className="mt-1 block font-subtitle text-xs text-red-700">As passwords não coincidem.</span>}
       </label>
       {message && (
-        <p className={`font-subtitle text-sm ${message.ok ? 'text-gold-deep' : 'text-red-700'}`}>{message.text}</p>
+        <p className={`font-subtitle text-sm ${message.ok ? 'text-onyx' : 'text-red-700'}`}>{message.text}</p>
       )}
       <div>
         <MotionButton label={busy ? 'A guardar...' : 'Alterar password'} type="submit" disabled={!canSubmit || busy} />

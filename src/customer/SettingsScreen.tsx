@@ -251,8 +251,8 @@ export default function SettingsScreen() {
 
       <div className="mx-auto max-w-2xl px-5">
         {notice && (
-          <div className="mt-6 flex items-start gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
-            <i className="bx bx-check-circle mt-0.5 text-xl text-gold-ink" aria-hidden="true" />
+          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
+            <i className="bx bx-check-circle mt-0.5 text-xl text-onyx" aria-hidden="true" />
             <p className="flex-1 font-subtitle text-sm text-onyx">{notice}</p>
             <button
               type="button"
@@ -269,7 +269,7 @@ export default function SettingsScreen() {
           {photo ? (
             <img src={photo} alt="" className="size-14 shrink-0 rounded-full object-cover" />
           ) : (
-            <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-3xl text-gold-ink">
+            <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-3xl text-onyx">
               {customer.name.trim().charAt(0).toUpperCase() || '?'}
             </span>
           )}

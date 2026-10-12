@@ -20,7 +20,7 @@ export function PricingEditor({
   const cols = partings.length ? partings : ['']
 
   return (
-    <div className="rounded-2xl border border-gold/30 p-4">
+    <div className="rounded-2xl border border-onyx/15 p-4">
       <label className="flex items-center justify-between gap-3">
         <span>
           <span className="block font-subtitle text-sm font-medium text-onyx">Preço por comprimento e repartição</span>

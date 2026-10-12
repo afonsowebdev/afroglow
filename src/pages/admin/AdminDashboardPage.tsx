@@ -262,7 +262,7 @@ function SlotsDayView({
     <div className="mt-6">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 font-subtitle text-base font-semibold tracking-tight text-onyx">
-          <i className="bx bx-calendar text-xl text-gold-ink" aria-hidden="true" />
+          <i className="bx bx-calendar text-xl text-onyx" aria-hidden="true" />
           <span className="first-letter:uppercase">
             Calendário de {monthName} {viewMonth.year}
           </span>
@@ -306,7 +306,7 @@ function SlotsDayView({
             >
               <span className="text-[10px] font-medium uppercase tracking-wide text-muted-dark">{weekday}</span>
               <span
-                className={`text-lg font-semibold lining-nums leading-tight tracking-tight ${key === todayKey ? 'text-gold-ink' : ''}`}
+                className={`text-lg font-semibold lining-nums leading-tight tracking-tight ${key === todayKey ? 'text-onyx' : ''}`}
               >
                 {day}
               </span>
@@ -328,7 +328,7 @@ function SlotsDayView({
         </span>
       </div>
 
-      <div className="mt-5 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
+      <div className="mt-5 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
         {list.length === 0 ? (
           <div className="py-6 text-center">
             <p className="font-subtitle text-base font-semibold text-onyx">Sem horários neste dia</p>
@@ -416,8 +416,8 @@ function dayHeading(iso: string) {
 }
 
 const HISTORY_CHIP: Record<Booking['status'], string> = {
-  PENDING: 'bg-onyx/5 text-gold-deep',
-  ACCEPTED: 'bg-onyx/5 text-gold-deep',
+  PENDING: 'bg-onyx/5 text-onyx',
+  ACCEPTED: 'bg-onyx/5 text-onyx',
   REJECTED: 'bg-red-700/10 text-red-700',
   CANCELLED: 'bg-onyx/5 text-muted-dark',
 }
@@ -472,8 +472,8 @@ function AgendaView({
     <div>
       <div className="mt-4 grid grid-cols-3 gap-3">
         {stats.map((stat) => (
-          <div key={stat.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
-            <i className={`${stat.icon} text-lg text-gold-deep`} aria-hidden="true" />
+          <div key={stat.label} className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
+            <i className={`${stat.icon} text-lg text-onyx`} aria-hidden="true" />
             <p className="mt-2 font-subtitle font-semibold lining-nums tracking-tight text-lg leading-none text-onyx">
               {stat.value}
             </p>
@@ -488,7 +488,7 @@ function AgendaView({
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Pesquisar cliente ou modelo"
           aria-label="Pesquisar na agenda"
-          className="min-w-0 flex-1 rounded-full border border-gold/30 bg-white px-5 py-3 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/40 focus-visible:border-gold-deep"
+          className="min-w-0 flex-1 rounded-full border border-onyx/15 bg-white px-5 py-3 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/40 focus-visible:border-onyx"
         />
         <button
           type="button"
@@ -524,7 +524,7 @@ function AgendaView({
             <span className={`relative transition-colors ${view === id ? 'text-onyx' : 'text-onyx/70'}`}>{label}</span>
             <span
               className={`relative rounded-full px-2 py-0.5 text-[11px] leading-none transition-colors ${
-                view === id ? 'bg-onyx/10 text-onyx' : 'bg-onyx/5 text-gold-deep'
+                view === id ? 'bg-onyx/10 text-onyx' : 'bg-onyx/5 text-onyx'
               }`}
             >
               {count}
@@ -536,7 +536,7 @@ function AgendaView({
       {view === 'proximas' &&
         (upcoming.length === 0 ? (
           <div className="mt-12 flex flex-col items-center text-center">
-            <i className="bx bx-calendar text-5xl text-gold-deep/40" aria-hidden="true" />
+            <i className="bx bx-calendar text-5xl text-onyx/25" aria-hidden="true" />
             <p className="mt-3 font-subtitle text-base text-onyx">Sem sessões marcadas</p>
             <p className="mt-1 font-subtitle text-sm text-muted-dark">
               As sessões confirmadas deste mês aparecem aqui.
@@ -557,7 +557,7 @@ function AgendaView({
                   {dayBookings.map((booking) => (
                     <article
                       key={booking.id}
-                      className="flex overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white"
+                      className="flex overflow-hidden rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white"
                     >
                       <div className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-onyx/10 bg-onyx/5 py-4">
                         <span className="font-subtitle text-xl font-semibold lining-nums leading-none tracking-tight text-onyx">
@@ -583,7 +583,7 @@ function AgendaView({
                             target="_blank"
                             rel="noreferrer"
                             aria-label={`WhatsApp de ${booking.customerName}`}
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full glass-chip text-lg text-onyx transition-colors hover:text-gold-deep"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full glass-chip text-lg text-onyx transition-colors hover:text-onyx"
                           >
                             <i className="bx bxl-whatsapp" aria-hidden="true" />
                           </a>
@@ -616,12 +616,12 @@ function AgendaView({
       {view === 'historico' &&
         (history.length === 0 ? (
           <div className="mt-12 flex flex-col items-center text-center">
-            <i className="bx bx-history text-5xl text-gold-deep/40" aria-hidden="true" />
+            <i className="bx bx-history text-5xl text-onyx/25" aria-hidden="true" />
             <p className="mt-3 font-subtitle text-base text-onyx">Sem histórico</p>
             <p className="mt-1 font-subtitle text-sm text-muted-dark">As sessões passadas aparecem aqui.</p>
           </div>
         ) : (
-          <div className="mt-6 divide-y divide-onyx/10 overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white">
+          <div className="mt-6 divide-y divide-onyx/10 overflow-hidden rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white">
             {history.map((booking) => {
               const { day, month, time } = dateParts(booking.slot.startsAt)
               return (
@@ -758,7 +758,7 @@ function ClearMonthDialog({
                   value={password}
                   onChange={(e) => onPasswordChange(e.target.value)}
                   autoComplete="current-password"
-                  className="w-full rounded-xl border border-gold/30 bg-white px-3 py-2.5 pr-11 font-subtitle text-sm text-onyx outline-none focus-visible:border-red-700"
+                  className="w-full rounded-xl border border-onyx/15 bg-white px-3 py-2.5 pr-11 font-subtitle text-sm text-onyx outline-none focus-visible:border-red-700"
                 />
                 <button
                   type="button"
@@ -851,7 +851,7 @@ function ServiceDialog({
 
   const isNew = form?.id === null
   const fieldClass =
-    'w-full rounded-xl border border-gold/30 bg-white px-3 py-2.5 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/30 focus-visible:border-gold-deep'
+    'w-full rounded-xl border border-onyx/15 bg-white px-3 py-2.5 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/30 focus-visible:border-onyx'
 
   return (
     <AnimatePresence>
@@ -881,7 +881,7 @@ function ServiceDialog({
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           >
             <div className="flex items-center gap-4">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-xl text-gold-deep">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-xl text-onyx">
                 <i className={`bx ${isNew ? 'bx-plus' : 'bx-pencil'}`} aria-hidden="true" />
               </span>
               <div>
@@ -960,7 +960,7 @@ function ServiceDialog({
                 fieldClass={fieldClass}
               />
 
-              <label className="flex items-center justify-between gap-3 rounded-2xl border border-gold/30 p-4">
+              <label className="flex items-center justify-between gap-3 rounded-2xl border border-onyx/15 p-4">
                 <span>
                   <span className="block font-subtitle text-sm font-medium text-onyx">Disponível para marcar</span>
                   <span className="block font-subtitle text-xs text-muted-dark">
@@ -1174,7 +1174,7 @@ function AuthorAvatar({ testimonial }: { testimonial: Testimonial }) {
   return src ? (
     <img src={src} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
   ) : (
-    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-lg text-gold-deep">
+    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-lg text-onyx">
       {testimonial.customer.name.trim().charAt(0).toUpperCase() || '?'}
     </span>
   )
@@ -1213,7 +1213,7 @@ function TestimonialsView({
     <div>
       <div className="mt-4 grid grid-cols-3 gap-3">
         {tabs.map((tab) => (
-          <div key={tab.id} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
+          <div key={tab.id} className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
             <p className="font-subtitle font-semibold lining-nums tracking-tight text-2xl leading-none text-onyx">
               {lists[tab.id].length}
             </p>
@@ -1246,14 +1246,14 @@ function TestimonialsView({
 
       {current.length === 0 ? (
         <div className="mt-12 flex flex-col items-center text-center">
-          <i className={`${emptyText[0]} text-5xl text-gold-deep/40`} aria-hidden="true" />
+          <i className={`${emptyText[0]} text-5xl text-onyx/25`} aria-hidden="true" />
           <p className="mt-3 font-subtitle text-base text-onyx">{emptyText[1]}</p>
           <p className="mt-1 font-subtitle text-sm text-muted-dark">{emptyText[2]}</p>
         </div>
       ) : (
         <div className="mt-6 flex flex-col gap-4">
           {current.map((testimonial) => (
-            <article key={testimonial.id} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
+            <article key={testimonial.id} className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5">
               <div className="flex items-center gap-3">
                 <AuthorAvatar testimonial={testimonial} />
                 <div className="min-w-0 flex-1">
@@ -1268,7 +1268,7 @@ function TestimonialsView({
                 {view !== 'PENDING' && (
                   <span
                     className={`shrink-0 rounded-full px-2.5 py-1 font-subtitle text-[11px] ${
-                      view === 'APPROVED' ? 'bg-onyx/5 text-gold-deep' : 'bg-red-700/10 text-red-700'
+                      view === 'APPROVED' ? 'bg-onyx/5 text-onyx' : 'bg-red-700/10 text-red-700'
                     }`}
                   >
                     {view === 'APPROVED' ? 'Publicado' : 'Recusado'}
@@ -1315,7 +1315,7 @@ function TestimonialsView({
                     type="button"
                     disabled={busyId === testimonial.id}
                     onClick={() => onDecision(testimonial.id, 'approve')}
-                    className="rounded-full glass-chip px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:text-gold-deep disabled:opacity-50"
+                    className="rounded-full glass-chip px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:text-onyx disabled:opacity-50"
                   >
                     Publicar
                   </button>
@@ -1355,11 +1355,11 @@ function PendingCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -24 }}
-      className="overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white"
+      className="overflow-hidden rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white"
     >
       <div className="p-4">
         <div className="flex items-center gap-3">
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-xl text-gold-ink">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-xl text-onyx">
             {booking.customerName.trim().charAt(0).toUpperCase()}
           </span>
           <div className="min-w-0 flex-1">
@@ -1502,7 +1502,7 @@ function PendingView({
   if (bookings.length === 0) {
     return (
       <div className="mt-16 flex flex-col items-center text-center">
-        <i className="bx bx-bell-off text-5xl text-gold-deep/40" aria-hidden="true" />
+        <i className="bx bx-bell-off text-5xl text-onyx/25" aria-hidden="true" />
         <p className="mt-3 font-subtitle text-base font-semibold text-onyx">Sem pedidos pendentes</p>
         <p className="mt-1 font-subtitle text-sm text-muted-dark">Os novos pedidos aparecem aqui logo que chegam.</p>
       </div>
@@ -1511,7 +1511,7 @@ function PendingView({
 
   return (
     <div>
-      <div className="mt-4 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
+      <div className="mt-4 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5">
         <p className="font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">
           À espera de resposta
         </p>
@@ -2094,7 +2094,7 @@ function AdminDashboard() {
       <div className="absolute inset-x-0 top-0 z-40 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-5xl items-center justify-center">
           <div className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
-            <span className="font-logo text-2xl leading-none tracking-wide text-gold-deep">AFROGLOW</span>
+            <span className="font-logo text-2xl leading-none tracking-wide text-onyx">AFROGLOW</span>
           </div>
         </div>
       </div>
@@ -2137,8 +2137,8 @@ function AdminDashboard() {
             {tab === 'servicos' && (
               <section className="mt-6">
                 {serviceNotice && (
-                  <div className="mb-4 flex items-start gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
-                    <i className="bx bx-check-circle mt-0.5 text-xl text-gold-deep" aria-hidden="true" />
+                  <div className="mb-4 flex items-start gap-3 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
+                    <i className="bx bx-check-circle mt-0.5 text-xl text-onyx" aria-hidden="true" />
                     <p className="flex-1 font-subtitle text-sm text-onyx">{serviceNotice}</p>
                     <button
                       type="button"
@@ -2162,7 +2162,7 @@ function AdminDashboard() {
                       value: services.length ? formatPrice(Math.max(...services.map((x) => x.priceCents))) : '—',
                     },
                   ].map((stat) => (
-                    <div key={stat.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
+                    <div key={stat.label} className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
                       <p className="font-subtitle font-semibold lining-nums tracking-tight text-lg leading-none text-onyx">
                         {stat.value}
                       </p>
@@ -2175,7 +2175,7 @@ function AdminDashboard() {
 
                 <div className="mt-6 flex flex-col gap-3">
                   {services.map((service) => (
-                    <article key={service.id} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
+                    <article key={service.id} className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
                           <h3 className="font-subtitle text-lg font-semibold tracking-tight text-onyx">
@@ -2186,7 +2186,7 @@ function AdminDashboard() {
                               Escondido · não aparece para marcar
                             </span>
                           )}
-                          <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-onyx/5 px-2.5 py-1 font-subtitle text-[11px] text-gold-deep">
+                          <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-onyx/5 px-2.5 py-1 font-subtitle text-[11px] text-onyx">
                             <i className="bx bx-time-five text-sm" aria-hidden="true" />
                             {service.durationLabel}
                           </span>
@@ -2211,7 +2211,7 @@ function AdminDashboard() {
                         <button
                           type="button"
                           onClick={() => openEditService(service)}
-                          className="inline-flex items-center gap-1.5 rounded-full glass-chip px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:text-gold-deep"
+                          className="inline-flex items-center gap-1.5 rounded-full glass-chip px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:text-onyx"
                         >
                           <i className="bx bx-pencil text-base" aria-hidden="true" />
                           Editar
@@ -2225,9 +2225,9 @@ function AdminDashboard() {
                   type="button"
                   onClick={openNewService}
                   whileTap={{ scale: 0.98 }}
-                  className="group mt-4 flex w-full items-center gap-4 rounded-2xl border-[1.5px] border-onyx/25 bg-onyx/5 p-4 text-left transition-colors duration-300 hover:border-gold-deep hover:bg-onyx/5"
+                  className="group mt-4 flex w-full items-center gap-4 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-onyx/5 p-4 text-left transition-colors duration-300 hover:border-onyx/40 hover:bg-onyx/5"
                 >
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-2xl text-gold-ink transition-transform duration-300 group-hover:rotate-90">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-2xl text-onyx transition-transform duration-300 group-hover:rotate-90">
                     <i className="bx bx-plus" aria-hidden="true" />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -2237,7 +2237,7 @@ function AdminDashboard() {
                     </span>
                   </span>
                   <i
-                    className="bx bx-chevron-right text-2xl text-gold-deep transition-transform duration-300 group-hover:translate-x-0.5"
+                    className="bx bx-chevron-right text-2xl text-onyx transition-transform duration-300 group-hover:translate-x-0.5"
                     aria-hidden="true"
                   />
                 </motion.button>
@@ -2267,7 +2267,7 @@ function AdminDashboard() {
             {tab === 'disponibilidade' && (
               <section className="mt-4">
                 {scheduleNotice && (
-                  <p className="mb-4 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4 font-subtitle text-sm text-onyx">
+                  <p className="mb-4 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4 font-subtitle text-sm text-onyx">
                     {scheduleNotice}
                   </p>
                 )}
@@ -2288,8 +2288,8 @@ function AdminDashboard() {
                   </button>
                 </div>
                 {clearResult && (
-                  <div className="mb-4 flex items-start gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
-                    <i className="bx bx-check-circle mt-0.5 text-xl text-gold-deep" aria-hidden="true" />
+                  <div className="mb-4 flex items-start gap-3 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
+                    <i className="bx bx-check-circle mt-0.5 text-xl text-onyx" aria-hidden="true" />
                     <p className="flex-1 font-subtitle text-sm text-onyx">{clearResult}</p>
                     <button
                       type="button"
@@ -2307,7 +2307,7 @@ function AdminDashboard() {
                     { label: 'Pendentes', value: monthSlots.filter((slot) => slot.status === 'PENDING').length },
                     { label: 'Reservadas', value: monthSlots.filter((slot) => slot.status === 'BOOKED').length },
                   ].map((stat) => (
-                    <div key={stat.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
+                    <div key={stat.label} className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
                       <p className="font-subtitle font-semibold lining-nums tracking-tight text-xl leading-none text-onyx">
                         {stat.value}
                       </p>
@@ -2320,7 +2320,7 @@ function AdminDashboard() {
 
                 <form
                   onSubmit={handleCreateSlots}
-                  className="mt-6 rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5"
+                  className="mt-6 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5"
                 >
                   <button
                     type="button"
@@ -2430,7 +2430,7 @@ function AdminDashboard() {
 
                 {slotsByDate.length === 0 ? (
                   <div className="mt-12 flex flex-col items-center text-center">
-                    <i className="bx bx-time-five text-5xl text-gold-deep/40" aria-hidden="true" />
+                    <i className="bx bx-time-five text-5xl text-onyx/25" aria-hidden="true" />
                     <p className="mt-3 font-subtitle text-base text-onyx">Sem horários neste mês</p>
                     <p className="mt-1 font-subtitle text-sm text-muted-dark">
                       Cria vagas acima para as clientes poderem marcar.
@@ -2448,15 +2448,15 @@ function AdminDashboard() {
 
                 <div className="mt-12">
                   <div className="flex items-center gap-3">
-                    <span className="h-px flex-1 bg-gold/25" />
+                    <span className="h-px flex-1 bg-onyx/10" />
                     <span className="flex items-center gap-1.5 font-subtitle text-[11px] uppercase tracking-[0.18em] text-muted-dark">
                       <i className="bx bx-error text-sm text-red-700" aria-hidden="true" />
                       Zona de perigo
                     </span>
-                    <span className="h-px flex-1 bg-gold/25" />
+                    <span className="h-px flex-1 bg-onyx/10" />
                   </div>
 
-                  <div className="relative mt-4 overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
+                  <div className="relative mt-4 overflow-hidden rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5">
                     <span className="absolute inset-y-0 left-0 w-1 bg-red-700" aria-hidden="true" />
                     <div className="pl-2">
                       <p className="font-subtitle font-semibold lining-nums tracking-tight text-lg text-onyx">

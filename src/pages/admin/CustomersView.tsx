@@ -152,7 +152,7 @@ export function CustomersView({
 
   return (
     <section className="mt-6">
-      <div className="grid grid-cols-3 divide-x divide-onyx/15 rounded-2xl border-[1.5px] border-onyx/25 bg-white py-4">
+      <div className="grid grid-cols-3 divide-x divide-onyx/15 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white py-4">
         {[
           [customers ? String(customers.length) : '–', 'Clientes'],
           [customers ? String(totalSessions) : '–', 'Sessões'],
@@ -214,7 +214,7 @@ export function CustomersView({
       </div>
 
       {selecting && (
-        <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border-[1.5px] border-onyx/25 bg-white px-4 py-3">
+        <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white px-4 py-3">
           <button
             type="button"
             onClick={() => setPicked(allPicked ? new Set() : new Set(filtered.map((c) => c.id)))}
@@ -236,7 +236,7 @@ export function CustomersView({
 
       {notice && (
         <p className="mt-3 flex items-center gap-2 font-subtitle text-sm text-onyx">
-          <i className="bx bx-check-circle text-lg text-gold-ink" aria-hidden="true" /> {notice}
+          <i className="bx bx-check-circle text-lg text-onyx" aria-hidden="true" /> {notice}
         </p>
       )}
       {loadError && (
@@ -280,7 +280,7 @@ export function CustomersView({
                     aria-hidden="true"
                   />
                 )}
-                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-xl text-gold-ink">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-xl text-onyx">
                   {customer.name.trim().charAt(0).toUpperCase()}
                 </span>
                 <span className="min-w-0 flex-1">

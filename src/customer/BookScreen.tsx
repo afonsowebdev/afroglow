@@ -282,9 +282,9 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
           initial={{ scale: 0.4, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-          className="flex h-24 w-24 items-center justify-center rounded-full bg-gold-deep/10"
+          className="flex h-24 w-24 items-center justify-center rounded-full bg-onyx/5"
         >
-          <i className="bx bx-check text-6xl text-gold-ink" aria-hidden="true" />
+          <i className="bx bx-check text-6xl text-onyx" aria-hidden="true" />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
           <h1
@@ -384,9 +384,9 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
         <div className={`mt-5 flex gap-2 ${site ? 'max-w-xl' : ''}`} aria-label={`Passo ${step + 1} de 3: ${STEPS[step]}`}>
           {STEPS.map((label, i) => (
             <div key={label} className="flex-1">
-              <div className={`h-1 overflow-hidden rounded-full ${site ? 'bg-onyx/10' : 'bg-gold/20'}`}>
+              <div className={`h-1 overflow-hidden rounded-full ${site ? 'bg-onyx/10' : 'bg-onyx/[0.07]'}`}>
                 <motion.div
-                  className={`h-full rounded-full ${site ? 'bg-onyx' : 'bg-brand'}`}
+                  className={`h-full rounded-full ${site ? 'bg-onyx' : 'bg-onyx'}`}
                   initial={false}
                   animate={{ width: i <= step ? '100%' : '0%' }}
                   transition={{ duration: 0.35 }}
@@ -412,7 +412,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
         {!loadError && (!services || !slots) && (
           <div className="mt-8 flex flex-col gap-3" aria-label="A carregar">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="h-28 animate-pulse rounded-3xl bg-gold/10" />
+              <div key={i} className="h-28 animate-pulse rounded-3xl bg-onyx/5" />
             ))}
           </div>
         )}
@@ -573,7 +573,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                   <h2 className="font-subtitle text-xl text-onyx">Quando queres vir?</h2>
                   {slots.length === 0 ? (
                     <div className="mt-8 text-center">
-                      <i className="bx bx-calendar-x text-5xl text-gold-deep/40" aria-hidden="true" />
+                      <i className="bx bx-calendar-x text-5xl text-onyx/25" aria-hidden="true" />
                       <p className="mt-3 font-subtitle text-base text-onyx">Sem horários livres de momento</p>
                       <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
                         Fala connosco e arranjamos uma data.
@@ -583,7 +583,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                           href={whatsapp.url('Olá! Gostaria de marcar uma sessão de tranças.')}
                           target="_blank"
                           rel="noreferrer"
-                          className="mt-5 inline-block rounded-full border border-gold/40 px-6 py-3 font-subtitle text-sm text-onyx"
+                          className="mt-5 inline-block rounded-full border border-onyx/20 px-6 py-3 font-subtitle text-sm text-onyx"
                         >
                           Falar no WhatsApp
                         </a>

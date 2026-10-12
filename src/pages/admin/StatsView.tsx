@@ -42,8 +42,8 @@ export function StatsView() {
     <div className="mt-6 flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-3">
         {cards.map((card) => (
-          <div key={card.label} className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-4">
-            <i className={`${card.icon} text-lg text-gold-deep`} aria-hidden="true" />
+          <div key={card.label} className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
+            <i className={`${card.icon} text-lg text-onyx`} aria-hidden="true" />
             <p className="mt-2 font-subtitle font-semibold lining-nums tracking-tight text-xl leading-none text-onyx">
               {card.value}
             </p>
@@ -80,7 +80,7 @@ export function StatsView() {
         Só conta sessões confirmadas, no mês da sessão. Toca no gráfico para ver cada mês.
       </p>
 
-      <section className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
+      <section className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5">
         <h2 className="font-subtitle text-base text-onyx">Modelos mais pedidos</h2>
         {stats.topServices.length === 0 ? (
           <p className="mt-3 font-subtitle text-sm text-muted-dark">Ainda sem sessões confirmadas.</p>
@@ -98,7 +98,7 @@ export function StatsView() {
         )}
       </section>
 
-      <section className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
+      <section className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5">
         <h2 className="font-subtitle text-base text-onyx">Em geral</h2>
         <div className="mt-3 divide-y divide-onyx/10 font-subtitle text-sm">
           {[

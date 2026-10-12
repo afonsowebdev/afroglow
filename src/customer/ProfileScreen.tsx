@@ -22,8 +22,8 @@ const TABS: Array<{ id: TabId; label: string }> = [
 
 function Stat({ icon, value, label }: { icon: string; value: string; label: string }) {
   return (
-    <div className="flex flex-col items-center rounded-2xl border-[1.5px] border-onyx/25 bg-white px-2 pb-4 pt-4 text-center">
-      <span className="flex size-9 items-center justify-center rounded-full bg-gold-ink/10 text-lg text-gold-ink">
+    <div className="flex flex-col items-center rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white px-2 pb-4 pt-4 text-center">
+      <span className="flex size-9 items-center justify-center rounded-full bg-onyx/5 text-lg text-onyx">
         <i className={icon} aria-hidden="true" />
       </span>
       <p className="mt-3 font-subtitle text-xl font-semibold leading-none tracking-tight text-onyx">{value}</p>
@@ -81,7 +81,7 @@ export default function ProfileScreen() {
             opacity: { duration: 8, repeat: Infinity, ease: 'easeInOut' },
             scale: { duration: 1.2, ease: 'easeOut' },
           }}
-          className="pointer-events-none absolute left-1/2 top-[calc(9.75rem+env(safe-area-inset-top))] -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap bg-gradient-to-b from-gold/30 via-gold/15 to-transparent bg-clip-text font-logo text-[clamp(5.5rem,28vw,12rem)] leading-none tracking-[0.04em] text-transparent"
+          className="pointer-events-none absolute left-1/2 top-[calc(9.75rem+env(safe-area-inset-top))] -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap bg-gradient-to-b from-onyx/[0.07] via-onyx/[0.04] to-transparent bg-clip-text font-logo text-[clamp(5.5rem,28vw,12rem)] leading-none tracking-[0.04em] text-transparent"
         >
           AFROGLOW
         </motion.span>
@@ -115,7 +115,7 @@ export default function ProfileScreen() {
               void tap()
               photoInput.current?.click()
             }}
-            className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-b from-cream to-white font-logo text-6xl text-gold-ink"
+            className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-b from-cream to-white font-logo text-6xl text-onyx"
           >
             {photo ? <img src={photo} alt="" className="h-full w-full object-cover" /> : initial}
           </button>
@@ -138,7 +138,7 @@ export default function ProfileScreen() {
           {customer.name}
         </h1>
         <p className="glass-chip relative mx-auto mt-3 inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-subtitle text-xs text-muted-dark">
-          <span className="size-1.5 rounded-full bg-gold-ink" aria-hidden="true" />
+          <span className="size-1.5 rounded-full bg-onyx" aria-hidden="true" />
           {sinceLabel ? `Cliente desde ${sinceLabel}` : 'Cliente AFROGLOW'}
         </p>
         <div className="relative mt-4 flex items-center justify-center gap-2">

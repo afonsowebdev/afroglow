@@ -159,7 +159,7 @@ export function ManualBookingSheet({
       ) : (
         <div>
           {picked ? (
-            <div className="flex items-center justify-between rounded-xl border border-gold-deep bg-cream px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl border border-onyx bg-cream px-4 py-3">
               <div>
                 <p className="font-subtitle text-sm font-semibold text-onyx">{picked.name}</p>
                 <p className="font-subtitle text-xs text-muted-dark">{picked.phone}</p>
@@ -168,7 +168,7 @@ export function ManualBookingSheet({
                 <button
                   type="button"
                   onClick={() => setPicked(null)}
-                  className="font-subtitle text-sm text-gold-deep underline"
+                  className="font-subtitle text-sm text-onyx underline"
                 >
                   Mudar
                 </button>

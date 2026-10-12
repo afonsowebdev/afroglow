@@ -27,7 +27,7 @@ export function MoreView({
   badges: Partial<Record<MoreTarget, number>>
 }) {
   return (
-    <div className="mt-6 divide-y divide-onyx/10 overflow-hidden rounded-2xl border-[1.5px] border-onyx/25 bg-white">
+    <div className="mt-6 divide-y divide-onyx/10 overflow-hidden rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white">
       {ITEMS.map((item) => (
         <button
           key={item.id}
@@ -35,7 +35,7 @@ export function MoreView({
           onClick={() => onOpen(item.id)}
           className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-onyx/5"
         >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-xl text-gold-deep">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-xl text-onyx">
             <i className={item.icon} aria-hidden="true" />
           </span>
           <span className="min-w-0 flex-1">

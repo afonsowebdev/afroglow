@@ -18,7 +18,7 @@ import { bookingPrice, bookingExtras } from '@/lib/pricing'
 const STATUS: Record<Booking['status'], { label: string; chip: string; hint: string }> = {
   PENDING: {
     label: 'Por confirmar',
-    chip: 'bg-gold-deep/15 text-gold-ink',
+    chip: 'bg-onyx/[0.07] text-onyx',
     hint: 'Vais receber uma notificação quando for confirmada.',
   },
   ACCEPTED: {
@@ -226,14 +226,14 @@ export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}
         {!bookings && !loadError && (
           <div className={`mt-6 ${listLayout(wide)}`} aria-label="A carregar">
             {[0, 1, 2].slice(0, wide ? 3 : 2).map((i) => (
-              <div key={i} className="h-28 animate-pulse rounded-3xl bg-gold/10" />
+              <div key={i} className="h-28 animate-pulse rounded-3xl bg-onyx/5" />
             ))}
           </div>
         )}
 
         {bookings && list.length === 0 && (
           <div className="mt-16 flex flex-col items-center text-center">
-            <i className="bx bx-calendar-heart text-6xl text-gold-deep/40" aria-hidden="true" />
+            <i className="bx bx-calendar-heart text-6xl text-onyx/25" aria-hidden="true" />
             <p className="mt-4 font-subtitle text-lg text-onyx">
               {tab === 'next' ? 'Sem sessões marcadas' : 'Ainda sem histórico'}
             </p>
@@ -303,7 +303,7 @@ export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}
       >
         {selected && mode === 'details' && (
           <>
-            <div className="rounded-2xl border-[1.5px] border-onyx/25 p-4">
+            <div className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 p-4">
               <div className="flex items-center justify-between">
                 <StatusDot status={selected.status} />
                 <span className="font-subtitle text-xl font-semibold tracking-tight text-onyx">

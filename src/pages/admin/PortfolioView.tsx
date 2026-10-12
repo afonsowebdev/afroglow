@@ -102,7 +102,7 @@ export function PortfolioView() {
 
   return (
     <section className="mt-6">
-      <div className="rounded-2xl border-[1.5px] border-onyx/25 bg-white p-5">
+      <div className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5">
         <p className="font-subtitle text-sm text-onyx">
           As fotos que adicionares aparecem no <strong>portfólio da app dos clientes</strong>, pela ordem em que estão
           aqui. Podes juntar quantas quiseres (até 60). Os vídeos ficam no Instagram: a app mostra um cartão no fim do
@@ -132,7 +132,7 @@ export function PortfolioView() {
           onChange={(e) => void addFiles(e.target.files)}
         />
         {message && (
-          <p className={`mt-3 font-subtitle text-sm ${message.ok ? 'text-gold-deep' : 'text-red-700'}`}>
+          <p className={`mt-3 font-subtitle text-sm ${message.ok ? 'text-onyx' : 'text-red-700'}`}>
             {message.text}
           </p>
         )}
@@ -149,7 +149,7 @@ export function PortfolioView() {
         {items?.map((item, index) => (
           <div
             key={item.id}
-            className="relative aspect-[3/4] overflow-hidden rounded-xl border-[1.5px] border-onyx/25 bg-black/5"
+            className="relative aspect-[3/4] overflow-hidden rounded-xl border border-onyx/10 shadow-sm shadow-black/5 bg-black/5"
           >
             {item.kind === 'IMAGE' ? (
               <img src={fileUrl(item.id)} alt="" loading="lazy" className="h-full w-full object-cover" />

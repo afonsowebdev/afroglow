@@ -73,7 +73,7 @@ export function ServicePhotos({
           <div key={image.id} className="relative aspect-square overflow-hidden rounded-xl glass-chip">
             <img src={serviceImageUrl(serviceId, image.id)} alt="" className="h-full w-full object-cover" />
             {index === 0 ? (
-              <span className="absolute left-1 top-1 rounded-full bg-gold-deep px-2 py-0.5 font-subtitle text-[10px] text-[#ffffff]">
+              <span className="absolute left-1 top-1 rounded-full bg-onyx px-2 py-0.5 font-subtitle text-[10px] text-[#ffffff]">
                 Capa
               </span>
             ) : (
