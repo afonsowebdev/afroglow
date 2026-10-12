@@ -211,7 +211,9 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
   }
 
   return (
-    <main className="px-5 pb-32 pt-[calc(1.25rem+env(safe-area-inset-top))]">
+    <main
+      className={`px-5 pb-32 ${site ? 'pt-10 sm:pt-14 lg:pt-20' : 'pt-[calc(1.25rem+env(safe-area-inset-top))]'}`}
+    >
       {/* Website: the sliding AFROGLOW behind the page, as on the home page's sections. */}
       {site && (
         <div className="pointer-events-none fixed inset-0 flex flex-col justify-center">
