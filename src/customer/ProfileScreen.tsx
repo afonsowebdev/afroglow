@@ -90,7 +90,7 @@ export default function ProfileScreen() {
         <div className="relative flex items-center justify-between">
           <span className="font-subtitle text-[11px] uppercase tracking-[0.28em] text-muted-dark">O meu perfil</span>
           <div className="flex items-center gap-2">
-            <NotificationBell tone="onLight" className="size-10" />
+            <NotificationBell tone="onLight" className="size-10" plainBadge />
             <button
               type="button"
               aria-label="Definições"

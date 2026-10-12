@@ -31,7 +31,16 @@ function ago(iso: string) {
  * cancelled, reminders), listed newest first. A red count shows the unread ones; opening the list marks them read.
  * Checks again every minute and when the tab comes back to the front.
  */
-export function NotificationBell({ tone, className }: { tone: 'onLight' | 'onDark'; className?: string }) {
+export function NotificationBell({
+  tone,
+  className,
+  plainBadge = false,
+}: {
+  tone: 'onLight' | 'onDark'
+  className?: string
+  /** The count without the white ring around it (the customer app). */
+  plainBadge?: boolean
+}) {
   const navigate = useNavigate()
   const [items, setItems] = useState<Notification[] | null>(null)
   const [unread, setUnread] = useState(0)
@@ -118,7 +127,12 @@ export function NotificationBell({ tone, className }: { tone: 'onLight' | 'onDar
           <Bell className="size-[18px]" strokeWidth={1.75} />
         </motion.span>
         {unread > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1 font-subtitle text-[10px] font-semibold leading-none text-[#ffffff] ring-2 ring-white">
+          <span
+            className={cn(
+              'absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1 font-subtitle text-[10px] font-semibold leading-none text-[#ffffff]',
+              !plainBadge && 'ring-2 ring-white',
+            )}
+          >
             {unread > 9 ? '9+' : unread}
           </span>
         )}

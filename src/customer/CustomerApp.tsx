@@ -236,7 +236,7 @@ function CustomerShell() {
       {/* The bell, top right on every screen (the profile has it beside its settings button). */}
       {customer && !location.pathname.startsWith('/conta') && (
         <div className="fixed right-4 top-[calc(0.75rem+env(safe-area-inset-top))] z-50">
-          <NotificationBell tone={overHero ? 'onDark' : 'onLight'} className="size-11" />
+          <NotificationBell tone={overHero ? 'onDark' : 'onLight'} className="size-11" plainBadge />
         </div>
       )}
 
