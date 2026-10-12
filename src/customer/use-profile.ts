@@ -3,6 +3,7 @@ import { api, ApiError } from '@/lib/api'
 import { shrinkAvatar } from '@/lib/avatar'
 import { setAvatar, useAvatar } from '@/lib/avatar-store'
 import type { Booking } from '@/lib/types'
+import { bookingPrice } from '@/lib/pricing'
 
 const MONTHS = [
   'janeiro',
@@ -73,7 +74,7 @@ export function useProfile() {
       .filter((b) => b.status === 'ACCEPTED' && new Date(b.slot.startsAt).getTime() < now)
       .sort((a, b) => b.slot.startsAt.localeCompare(a.slot.startsAt))
     const since = all.length ? all.reduce((min, b) => (b.createdAt < min ? b.createdAt : min), all[0].createdAt) : null
-    const spent = done.reduce((sum, b) => sum + b.service.priceCents, 0)
+    const spent = done.reduce((sum, b) => sum + bookingPrice(b), 0)
     return { upcoming, done, since, spent }
   }, [bookings])
 

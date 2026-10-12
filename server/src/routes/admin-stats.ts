@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { requireAdmin } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
+import { bookingPrice } from '../lib/pricing.js'
 
 export const adminStatsRouter = Router()
 adminStatsRouter.use(requireAdmin)
@@ -36,7 +37,7 @@ adminStatsRouter.get('/', async (_req, res) => {
     const row = months.find((m) => m.key === lisbonMonthKey(booking.slot.startsAt))
     if (row) {
       row.bookings += 1
-      row.revenueCents += booking.service.priceCents
+      row.revenueCents += bookingPrice(booking)
     }
   }
 
@@ -44,7 +45,7 @@ adminStatsRouter.get('/', async (_req, res) => {
   for (const booking of accepted) {
     const row = byService.get(booking.serviceId) ?? { name: booking.service.name, count: 0, revenueCents: 0 }
     row.count += 1
-    row.revenueCents += booking.service.priceCents
+    row.revenueCents += bookingPrice(booking)
     byService.set(booking.serviceId, row)
   }
 

@@ -13,6 +13,7 @@ import { longDay, timeLabel } from './dates'
 import { useHideNav } from './nav-visibility'
 import { serviceImageUrls } from '@/lib/service-images'
 import { Fact, Facts, labelClass, panelClass } from './panel'
+import { choiceComplete, choiceLabel, optionsOf, priceFor, servicePriceLabel } from '@/lib/pricing'
 import { VelocityRow } from '@/components/ui/velocity-marquee'
 import { ButtonWithIcon } from '@/components/ui/button-with-icon'
 import { ServicePreview } from './ServicePreview'
@@ -22,6 +23,55 @@ const STEPS = ['Modelo', 'Data', 'Confirmar'] as const
 
 const fieldClass =
   'w-full rounded-xl border-2 border-onyx/30 bg-white px-4 py-3.5 font-subtitle text-onyx outline-none focus-visible:border-onyx'
+
+/** One row of options (lengths or partings) as chips; the chosen one is filled. */
+function OptionChips({
+  label,
+  values,
+  value,
+  onChange,
+  site,
+}: {
+  label: string
+  values: string[]
+  value: string | null
+  onChange: (value: string) => void
+  site: boolean
+}) {
+  return (
+    <div className="mt-5">
+      <p className={labelClass}>{label}</p>
+      <div className="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-label={label}>
+        {values.map((v) => {
+          const on = v === value
+          return (
+            <button
+              key={v}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              onClick={() => {
+                void tap()
+                onChange(v)
+              }}
+              className={`h-11 rounded-full px-5 font-subtitle text-sm transition-colors ${
+                on
+                  ? site
+                    ? 'bg-onyx text-white'
+                    : 'glass-chip-on font-medium text-onyx'
+                  : site
+                    ? 'border border-onyx/15 bg-white text-onyx hover:border-onyx/40'
+                    : 'glass-chip text-onyx/70'
+              }`}
+            >
+              {v}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 /** Bottom action button: slides up from the bottom edge only once there is something to continue with. */
 function Cta({
@@ -71,6 +121,9 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
   const [serviceId, setServiceId] = useState<string | null>(searchParams.get('service'))
   const [previewId, setPreviewId] = useState<string | null>(searchParams.get('preview'))
   const [slotId, setSlotId] = useState<string | null>(null)
+  // Length and parting, for hairstyles priced by them (see lib/pricing).
+  const [length, setLength] = useState<string | null>(null)
+  const [parting, setParting] = useState<string | null>(null)
   const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -116,13 +169,23 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
 
   const service = services?.find((s) => s.id === serviceId) ?? null
   const slot = slots?.find((s) => s.id === slotId) ?? null
+  const options = service ? optionsOf(service) : { lengths: [], partings: [], hasOptions: false }
+  const optionsDone = !service || choiceComplete(service, length, parting)
+  const price = service ? priceFor(service, length, parting) : null
+  const chosenLabel = options.hasOptions ? choiceLabel(length, parting) : null
+
+  // A different hairstyle has its own options: start the choice again.
+  useEffect(() => {
+    setLength(null)
+    setParting(null)
+  }, [serviceId])
 
   // The button only exists once the step has a choice; while it is on screen the tab bar steps aside.
   const ctaVisible =
     !done &&
     Boolean(services && slots) &&
     ((step === 0 && Boolean(service)) ||
-      (step === 1 && Boolean(slot) && (slots?.length ?? 0) > 0) ||
+      (step === 1 && optionsDone && Boolean(slot) && (slots?.length ?? 0) > 0) ||
       (step === 2 && Boolean(customer) && phone.trim().length >= 6))
   useHideNav(ctaVisible)
 
@@ -134,6 +197,8 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
       await api.post('/bookings', {
         slotId: slot.id,
         serviceId: service.id,
+        length: length ?? undefined,
+        parting: parting ?? undefined,
         customerName: customer.name,
         customerPhone: phone.trim(),
         notes: notes.trim() || undefined,
@@ -365,7 +430,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                               )}
                               <Facts columns="1fr 1fr">
                                 <Fact label="Duração">{s.durationLabel}</Fact>
-                                <Fact label="Preço">{formatPrice(s.priceCents)}</Fact>
+                                <Fact label="Preço">{servicePriceLabel(s)}</Fact>
                               </Facts>
                               {!site && (
                                 <p className="mt-4 flex items-center gap-1 font-subtitle text-sm font-medium text-onyx">
@@ -415,6 +480,35 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
 
               {step === 1 && (
                 <>
+                  {service && options.hasOptions && (
+                    <section className="mb-10">
+                      <h2 className="font-subtitle text-xl text-onyx">Como queres as tuas {service.name}?</h2>
+                      <p className="mt-1 font-subtitle text-sm font-light text-onyx/60">
+                        O preço depende{' '}
+                        {options.lengths.length && options.partings.length
+                          ? 'do comprimento e da repartição'
+                          : options.lengths.length
+                            ? 'do comprimento'
+                            : 'da repartição'}
+                        . Tudo incluído.
+                      </p>
+                      {options.lengths.length > 0 && (
+                        <OptionChips label="Comprimento" values={options.lengths} value={length} onChange={setLength} site={site} />
+                      )}
+                      {options.partings.length > 0 && (
+                        <OptionChips label="Repartição" values={options.partings} value={parting} onChange={setParting} site={site} />
+                      )}
+                      <p className="mt-5 font-subtitle text-sm text-onyx">
+                        {price !== null ? (
+                          <>
+                            Preço: <strong className="font-semibold">{formatPrice(price)}</strong>
+                          </>
+                        ) : (
+                          <span className="text-onyx/55">Escolhe para veres o preço.</span>
+                        )}
+                      </p>
+                    </section>
+                  )}
                   <h2 className="font-subtitle text-xl text-onyx">Quando queres vir?</h2>
                   {slots.length === 0 ? (
                     <div className="mt-8 text-center">
@@ -454,6 +548,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                       <span className="font-subtitle text-xs text-muted-dark">Por confirmar</span>
                     </div>
                     <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">{service.name}</p>
+                    {chosenLabel && <p className="mt-0.5 font-subtitle text-sm text-muted-dark">{chosenLabel}</p>}
 
                     <Facts columns="2fr 1fr">
                       <Fact label="Data">{longDay(slot.startsAt)}</Fact>
@@ -461,7 +556,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                     </Facts>
                     <Facts columns="1fr 1fr">
                       <Fact label="Duração">{service.durationLabel}</Fact>
-                      <Fact label="Preço">{formatPrice(service.priceCents)}</Fact>
+                      <Fact label="Preço">{formatPrice(price ?? service.priceCents)}</Fact>
                     </Facts>
                     {business.address && (
                       <Facts columns="1fr">
@@ -553,6 +648,12 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                     <dt className="text-onyx/55">Modelo</dt>
                     <dd className="mt-0.5 text-base font-medium text-onyx">{service?.name ?? 'Por escolher'}</dd>
                   </div>
+                  {service && options.hasOptions && (
+                    <div>
+                      <dt className="text-onyx/55">Opções</dt>
+                      <dd className="mt-0.5 text-base font-medium text-onyx">{chosenLabel ?? 'Por escolher'}</dd>
+                    </div>
+                  )}
                   <div>
                     <dt className="text-onyx/55">Data e hora</dt>
                     <dd className="mt-0.5 text-base font-medium text-onyx">
@@ -568,7 +669,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                       <div className="text-right">
                         <dt className="text-onyx/55">Preço</dt>
                         <dd className="mt-0.5 font-logo text-2xl leading-tight text-onyx">
-                          {formatPrice(service.priceCents)}
+                          {price !== null ? formatPrice(price) : servicePriceLabel(service)}
                         </dd>
                       </div>
                     </div>
@@ -586,7 +687,9 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                 <p className="mt-3 font-subtitle text-xs font-light text-onyx/55">
                   {step === 0 && !service
                     ? 'Escolhe um modelo para continuar.'
-                    : step === 1 && !slot
+                    : step === 1 && !optionsDone
+                      ? 'Escolhe o comprimento e a repartição.'
+                      : step === 1 && !slot
                       ? 'Escolhe o dia e a hora.'
                       : step === 2 && !customer
                         ? 'Entra na tua conta para enviar o pedido.'
@@ -603,7 +706,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
         {ctaVisible && (
           <Cta
             key={`cta-${step}`}
-            label={step === 2 && service ? `Enviar pedido · ${formatPrice(service.priceCents)}` : 'Continuar'}
+            label={step === 2 && service ? `Enviar pedido · ${formatPrice(price ?? service.priceCents)}` : 'Continuar'}
             busy={submitting}
             onClick={() => (step === 2 ? void submit() : setStep(step + 1))}
             className={site ? 'lg:hidden' : ''}

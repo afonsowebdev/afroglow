@@ -10,12 +10,14 @@ import {
   sendBookingNotification,
   sendBookingRejectedEmail,
 } from '../lib/resend.js'
+import { bookingPrice, bookingServiceName, resolveChoice } from '../lib/pricing.js'
 import { createBookingSchema, manualBookingSchema, rejectBookingSchema } from '../lib/validation.js'
 
 export const bookingsRouter = Router()
 
 class SlotUnavailableError extends Error {}
 class ServiceNotFoundError extends Error {}
+class OptionsInvalidError extends Error {}
 
 bookingsRouter.post('/', requireCustomer, async (req, res) => {
   const parsed = createBookingSchema.safeParse(req.body)
@@ -24,7 +26,7 @@ bookingsRouter.post('/', requireCustomer, async (req, res) => {
     return
   }
 
-  const { slotId, serviceId, customerName, customerPhone, notes } = parsed.data
+  const { slotId, serviceId, length, parting, customerName, customerPhone, notes } = parsed.data
   const customerId = req.customerId!
 
   try {
@@ -35,18 +37,29 @@ bookingsRouter.post('/', requireCustomer, async (req, res) => {
       }
 
       const service = await tx.service.findUnique({ where: { id: serviceId } })
-      if (!service) {
+      if (!service || !service.active) {
         throw new ServiceNotFoundError()
       }
+      const choice = resolveChoice(service, length, parting)
+      if (!choice) throw new OptionsInvalidError()
 
       const customer = await tx.customer.findUniqueOrThrow({ where: { id: customerId } })
 
       await tx.availabilitySlot.update({ where: { id: slot.id }, data: { status: 'PENDING' } })
       const booking = await tx.booking.create({
-        data: { slotId: slot.id, serviceId: service.id, customerId, customerName, customerPhone, notes },
+        data: {
+          slotId: slot.id,
+          serviceId: service.id,
+          customerId,
+          customerName,
+          customerPhone,
+          notes,
+          optionLabel: choice.optionLabel,
+          priceCents: choice.priceCents,
+        },
       })
 
-      return { booking, slot, service, customer }
+      return { booking: { ...booking, service }, slot, service, customer }
     })
 
     // Awaited (not fire-and-forget) — a detached push send was observed to
@@ -55,20 +68,20 @@ bookingsRouter.post('/', requireCustomer, async (req, res) => {
     // directly (confirmed via the diagnostic endpoint).
     await Promise.all([
       sendBookingConfirmationEmail(customer.email, {
-        serviceName: service.name,
-        priceCents: service.priceCents,
+        serviceName: bookingServiceName(booking),
+        priceCents: bookingPrice(booking),
         startsAt: slot.startsAt,
         durationLabel: service.durationLabel,
       }),
       sendBookingNotification({
         customerName,
         customerPhone,
-        serviceName: service.name,
-        priceCents: service.priceCents,
+        serviceName: bookingServiceName(booking),
+        priceCents: bookingPrice(booking),
         startsAt: slot.startsAt,
         durationLabel: service.durationLabel,
       }),
-      sendBookingPushNotification({ customerName, serviceName: service.name }),
+      sendBookingPushNotification({ customerName, serviceName: bookingServiceName(booking) }),
     ])
 
     res.status(201).json({ id: booking.id, status: booking.status })
@@ -79,6 +92,10 @@ bookingsRouter.post('/', requireCustomer, async (req, res) => {
     }
     if (error instanceof ServiceNotFoundError) {
       res.status(404).json({ error: 'Serviço não encontrado.' })
+      return
+    }
+    if (error instanceof OptionsInvalidError) {
+      res.status(400).json({ error: 'Escolhe o comprimento e a repartição.' })
       return
     }
     console.error('[bookings] create failed:', error)
@@ -117,7 +134,7 @@ adminBookingsRouter.post('/manual', async (req, res) => {
     res.status(400).json({ error: 'Dados da marcação inválidos.' })
     return
   }
-  const { startsAt, serviceId, customerId, customerName, customerPhone, notes } = parsed.data
+  const { startsAt, serviceId, length, parting, customerId, customerName, customerPhone, notes } = parsed.data
   if (!customerId && (!customerName || !customerPhone)) {
     res.status(400).json({ error: 'Indica o nome e o telemóvel do cliente.' })
     return
@@ -128,6 +145,8 @@ adminBookingsRouter.post('/manual', async (req, res) => {
     const { booking, customer, service, slot } = await prisma.$transaction(async (tx) => {
       const service = await tx.service.findUnique({ where: { id: serviceId } })
       if (!service) throw new ServiceNotFoundError()
+      const choice = resolveChoice(service, length, parting)
+      if (!choice) throw new OptionsInvalidError()
 
       let customer = customerId ? await tx.customer.findUnique({ where: { id: customerId } }) : null
       if (customerId && !customer) throw new Error('customer-not-found')
@@ -159,6 +178,8 @@ adminBookingsRouter.post('/manual', async (req, res) => {
           customerName: customerName ?? customer.name,
           customerPhone: customerPhone ?? customer.phone,
           notes,
+          optionLabel: choice.optionLabel,
+          priceCents: choice.priceCents,
           status: 'ACCEPTED',
         },
         include: { slot: true, service: true },
@@ -167,8 +188,8 @@ adminBookingsRouter.post('/manual', async (req, res) => {
     })
 
     await sendBookingAcceptedEmail(customer.email, {
-      serviceName: service.name,
-      priceCents: service.priceCents,
+      serviceName: bookingServiceName(booking),
+      priceCents: bookingPrice(booking),
       startsAt: slot.startsAt,
       durationLabel: service.durationLabel,
     })
@@ -181,6 +202,10 @@ adminBookingsRouter.post('/manual', async (req, res) => {
     }
     if (error instanceof ServiceNotFoundError) {
       res.status(404).json({ error: 'Serviço não encontrado.' })
+      return
+    }
+    if (error instanceof OptionsInvalidError) {
+      res.status(400).json({ error: 'Escolhe o comprimento e a repartição.' })
       return
     }
     if (error instanceof Error && error.message === 'customer-not-found') {
@@ -225,14 +250,14 @@ async function resolveBooking(
 
     if (bookingStatus === 'ACCEPTED') {
       await sendBookingAcceptedEmail(booking.customer.email, {
-        serviceName: booking.service.name,
-        priceCents: booking.service.priceCents,
+        serviceName: bookingServiceName(booking),
+        priceCents: bookingPrice(booking),
         startsAt: booking.slot.startsAt,
         durationLabel: booking.service.durationLabel,
       })
     } else if (bookingStatus === 'REJECTED') {
       await sendBookingRejectedEmail(booking.customer.email, {
-        serviceName: booking.service.name,
+        serviceName: bookingServiceName(booking),
         startsAt: booking.slot.startsAt,
       }, reason)
     }

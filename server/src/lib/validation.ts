@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { pricingSchema } from './pricing.js'
 
 // Emails are case-insensitive in practice; normalise so "Maria@x.com" at signup
 // and "maria@x.com" at login are the same account.
@@ -18,6 +19,8 @@ export const createSlotsBatchSchema = z.object({
 })
 
 export const updateServiceSchema = z.object({
+  pricing: pricingSchema.nullable().optional(),
+  active: z.boolean().optional(),
   name: z.string().trim().min(1).max(80).optional(),
   description: z.string().trim().min(1).max(300).optional(),
   durationLabel: z.string().trim().min(1).max(40).optional(),
@@ -25,6 +28,7 @@ export const updateServiceSchema = z.object({
 })
 
 export const createServiceSchema = z.object({
+  pricing: pricingSchema.nullable().optional(),
   name: z.string().trim().min(1).max(80),
   description: z.string().trim().min(1).max(300),
   durationLabel: z.string().trim().min(1).max(40),
@@ -38,6 +42,9 @@ export const registerPushTokenSchema = z.object({
 export const createBookingSchema = z.object({
   slotId: z.string().min(1),
   serviceId: z.string().min(1),
+  // The options picked when the hairstyle is priced by length and/or parting.
+  length: z.string().trim().max(30).optional(),
+  parting: z.string().trim().max(30).optional(),
   customerName: z.string().trim().min(2).max(100),
   customerPhone: z.string().trim().min(6).max(30),
   notes: z.string().trim().max(500).optional(),
@@ -127,6 +134,8 @@ export const businessSettingsSchema = z.object({
 export const manualBookingSchema = z.object({
   startsAt: z.string().datetime(),
   serviceId: z.string().min(1),
+  length: z.string().trim().max(30).optional(),
+  parting: z.string().trim().max(30).optional(),
   // Either an existing client, or the name + phone of someone without an account.
   customerId: z.string().min(1).optional(),
   customerName: z.string().trim().min(2).max(100).optional(),

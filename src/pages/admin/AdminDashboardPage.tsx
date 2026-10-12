@@ -41,6 +41,9 @@ import { useTheme } from '@/lib/theme'
 import { NavVisibilityProvider, useAutoHideNav, useNavForcedHidden, useNavHidden } from '@/customer/nav-visibility'
 import { customerWhatsappUrl } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service, type Testimonial } from '@/lib/types'
+import { bookingName, bookingPrice } from '@/lib/pricing'
+import { PricingEditor } from './PricingEditor'
+import { draftFromPricing, pricingFromDraft, type PricingDraft } from './pricing-draft'
 
 const LISBON_TZ = 'Europe/Lisbon'
 
@@ -567,7 +570,7 @@ function AgendaView({
                               {booking.customerName}
                             </p>
                             <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
-                              {booking.service.name} · {formatPrice(booking.service.priceCents)}
+                              {bookingName(booking)} · {formatPrice(bookingPrice(booking))}
                             </p>
                           </div>
                           <a
@@ -630,7 +633,7 @@ function AgendaView({
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-subtitle text-sm font-semibold text-onyx">{booking.customerName}</p>
                     <p className="truncate font-subtitle text-xs text-muted-dark">
-                      {booking.service.name} · {time}
+                      {bookingName(booking)} · {time}
                     </p>
                   </div>
                   <span
@@ -810,6 +813,10 @@ interface ServiceFormState {
   description: string
   duration: string
   price: string
+  /** Prices by length / parting (PricingEditor). */
+  pricing: PricingDraft
+  /** Shown for booking; off hides it while keeping its bookings. */
+  active: boolean
 }
 
 function ServiceDialog({
@@ -927,11 +934,12 @@ function ServiceDialog({
                 </label>
                 <label>
                   <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                    Preço
+                    {form.pricing.on ? 'Preço (usa a tabela)' : 'Preço'}
                   </span>
                   <span className="relative block">
                     <input
                       value={form.price}
+                      disabled={form.pricing.on}
                       onChange={(e) => onChange({ ...form, price: e.target.value })}
                       inputMode="decimal"
                       placeholder="65"
@@ -943,6 +951,27 @@ function ServiceDialog({
                   </span>
                 </label>
               </div>
+
+              <PricingEditor
+                draft={form.pricing}
+                onChange={(pricing) => onChange({ ...form, pricing })}
+                fieldClass={fieldClass}
+              />
+
+              <label className="flex items-center justify-between gap-3 rounded-2xl border border-gold/30 p-4">
+                <span>
+                  <span className="block font-subtitle text-sm font-medium text-onyx">Disponível para marcar</span>
+                  <span className="block font-subtitle text-xs text-muted-dark">
+                    Desligado, o modelo deixa de aparecer no site e na app, mas as marcações feitas com ele mantêm-se.
+                  </span>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={form.active}
+                  onChange={(e) => onChange({ ...form, active: e.target.checked })}
+                  className="size-5 shrink-0 accent-[#1a1008]"
+                />
+              </label>
 
               {form.id ? (
                 <ServicePhotos serviceId={form.id} images={images} onChanged={onImagesChanged} />
@@ -1366,9 +1395,9 @@ function PendingCard({
             </span>
           </div>
           <div className="mt-3 flex items-center justify-between gap-3 border-t border-onyx/10 pt-3 font-subtitle text-sm">
-            <span className="min-w-0 truncate text-onyx">{booking.service.name}</span>
+            <span className="min-w-0 truncate text-onyx">{bookingName(booking)}</span>
             <span className="shrink-0 font-semibold lining-nums text-onyx">
-              {formatPrice(booking.service.priceCents)}
+              {formatPrice(bookingPrice(booking))}
             </span>
           </div>
           {urgency && (
@@ -1465,7 +1494,7 @@ function PendingView({
     const t = new Date(b.slot.startsAt).getTime()
     return t >= now && t < now + 7 * 86_400_000
   }).length
-  const totalCents = bookings.reduce((sum, b) => sum + b.service.priceCents, 0)
+  const totalCents = bookings.reduce((sum, b) => sum + bookingPrice(b), 0)
 
   if (bookings.length === 0) {
     return (
@@ -1683,7 +1712,7 @@ function AdminDashboard() {
     async (opts: { silent?: boolean } = {}) => {
       try {
         const [servicesData, slotsData, bookingsData, testimonialsData] = await Promise.all([
-          api.get<Service[]>('/services'),
+          api.get<Service[]>('/admin/services'),
           api.get<AvailabilitySlot[]>('/admin/availability'),
           api.get<Booking[]>('/admin/bookings'),
           api.get<Testimonial[]>('/admin/testimonials'),
@@ -1775,7 +1804,7 @@ function AdminDashboard() {
 
   function openNewService() {
     setServiceError(null)
-    setServiceForm({ id: null, name: '', description: '', duration: '', price: '' })
+    setServiceForm({ id: null, name: '', description: '', duration: '', price: '', pricing: draftFromPricing(null), active: true })
   }
 
   function openEditService(service: Service) {
@@ -1786,6 +1815,8 @@ function AdminDashboard() {
       description: service.description,
       duration: service.durationLabel,
       price: (service.priceCents / 100).toFixed(2),
+      pricing: draftFromPricing(service.pricing),
+      active: service.active !== false,
     })
   }
 
@@ -1839,7 +1870,12 @@ function AdminDashboard() {
       setServiceError('Preenche o nome, a descrição e a duração.')
       return
     }
-    if (serviceForm.price.trim() === '' || Number.isNaN(price) || price < 0) {
+    const table = pricingFromDraft(serviceForm.pricing)
+    if ('error' in table) {
+      setServiceError(table.error)
+      return
+    }
+    if (!table.pricing && (serviceForm.price.trim() === '' || Number.isNaN(price) || price < 0)) {
       setServiceError('Preço inválido.')
       return
     }
@@ -1849,7 +1885,10 @@ function AdminDashboard() {
       name: serviceForm.name.trim(),
       description: serviceForm.description.trim(),
       durationLabel: serviceForm.duration.trim(),
-      priceCents: Math.round(price * 100),
+      // With a table the server stores its lowest price as the service's own.
+      priceCents: table.pricing ? 0 : Math.round(price * 100),
+      pricing: table.pricing,
+      active: serviceForm.active,
     }
     try {
       if (serviceForm.id === null) await api.post('/admin/services', payload)
@@ -2004,7 +2043,7 @@ function AdminDashboard() {
   const monthConfirmedCount = monthBookings.filter((b) => b.status === 'ACCEPTED').length
   const monthRevenueCents = monthBookings
     .filter((b) => b.status === 'ACCEPTED')
-    .reduce((sum, b) => sum + b.service.priceCents, 0)
+    .reduce((sum, b) => sum + bookingPrice(b), 0)
 
   const pillClasses = `flex items-center rounded-full bg-white/95 shadow-lg shadow-black/10 backdrop-blur transition-shadow duration-500 ${
     scrolled ? 'shadow-xl shadow-black/15' : ''
@@ -2136,12 +2175,20 @@ function AdminDashboard() {
                           <h3 className="font-subtitle text-lg font-semibold tracking-tight text-onyx">
                             {service.name}
                           </h3>
+                          {service.active === false && (
+                            <span className="mt-1 inline-block rounded-full bg-onyx/10 px-2 py-0.5 font-subtitle text-[11px] text-onyx/70">
+                              Escondido · não aparece para marcar
+                            </span>
+                          )}
                           <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-onyx/5 px-2.5 py-1 font-subtitle text-[11px] text-gold-deep">
                             <i className="bx bx-time-five text-sm" aria-hidden="true" />
                             {service.durationLabel}
                           </span>
                         </div>
-                        <p className="shrink-0 font-subtitle font-semibold lining-nums tracking-tight text-2xl leading-none text-onyx">
+                        <p className="shrink-0 text-right font-subtitle font-semibold lining-nums tracking-tight text-2xl leading-none text-onyx">
+                          {service.pricing && (
+                            <span className="block text-[11px] font-normal tracking-normal text-muted-dark">a partir de</span>
+                          )}
                           {formatPrice(service.priceCents)}
                         </p>
                       </div>

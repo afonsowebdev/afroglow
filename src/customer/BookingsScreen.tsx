@@ -13,6 +13,7 @@ import { useBookingAlerts } from './booking-alerts'
 import { Fact, Facts, labelClass, panelClass, StatusDot } from './panel'
 import { SlotPicker } from './SlotPicker'
 import { usePullToRefresh } from './usePullToRefresh'
+import { bookingPrice } from '@/lib/pricing'
 
 const STATUS: Record<Booking['status'], { label: string; chip: string; hint: string }> = {
   PENDING: {
@@ -66,12 +67,13 @@ function BookingCard({ booking, onOpen, isNew }: { booking: Booking; onOpen: () 
       <p className="mt-2 truncate font-subtitle text-xl font-semibold tracking-tight text-onyx">
         {booking.service.name}
       </p>
+      {booking.optionLabel && <p className="mt-0.5 font-subtitle text-sm text-muted-dark">{booking.optionLabel}</p>}
       <Facts columns="2fr 1fr">
         <Fact label="Data">{longDay(booking.slot.startsAt)}</Fact>
         <Fact label="Hora">{timeLabel(booking.slot.startsAt)}</Fact>
       </Facts>
       <p className="mt-4 flex items-center justify-between font-subtitle text-sm font-medium text-onyx">
-        <span>{formatPrice(booking.service.priceCents)}</span>
+        <span>{formatPrice(bookingPrice(booking))}</span>
         <span className="flex items-center gap-1">
           Ver detalhes <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
         </span>
@@ -305,7 +307,7 @@ export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}
               <div className="flex items-center justify-between">
                 <StatusDot status={selected.status} />
                 <span className="font-subtitle text-xl font-semibold tracking-tight text-onyx">
-                  {formatPrice(selected.service.priceCents)}
+                  {formatPrice(bookingPrice(selected))}
                 </span>
               </div>
               <Facts columns="1fr 1fr">

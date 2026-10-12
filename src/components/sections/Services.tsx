@@ -4,7 +4,8 @@ import { ServicePreview } from '@/customer/ServicePreview'
 import { api } from '@/lib/api'
 import { serviceImageUrls } from '@/lib/service-images'
 import { instagramDmUrl } from '@/lib/site-config'
-import { formatPrice, type Service } from '@/lib/types'
+import type { Service } from '@/lib/types'
+import { servicePriceLabel } from '@/lib/pricing'
 
 // Shown on a card while the hairstyle has no photo of its own yet.
 const FALLBACK_PHOTOS = ['/images/hero/hero-1.jpg', '/images/hero/hero-2.jpg', '/images/hero/hero-3.jpg', '/images/hero/hero-4.jpg', '/images/hero/hero-5.jpg']
@@ -89,7 +90,7 @@ export default function Services() {
                 <div className="mt-5 flex flex-1 flex-col">
                   <div className="flex items-baseline justify-between gap-4">
                     <h3 className="font-subtitle text-xl font-medium text-onyx">{service.name}</h3>
-                    <p className="shrink-0 font-subtitle text-lg tabular-nums text-onyx">{formatPrice(service.priceCents)}</p>
+                    <p className="shrink-0 font-subtitle text-lg tabular-nums text-onyx">{servicePriceLabel(service)}</p>
                   </div>
                   {service.description && (
                     <p className="mb-4 mt-1.5 line-clamp-2 font-subtitle text-sm font-light leading-relaxed text-onyx/60">

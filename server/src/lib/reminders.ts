@@ -2,6 +2,7 @@ import { bookingPush } from './booking-push.js'
 import { prisma } from './prisma.js'
 import { isPlaceholderEmail, sendBookingReminderEmail } from './resend.js'
 import { sendSms } from './sms.js'
+import { bookingPrice, bookingServiceName } from './pricing.js'
 
 const REMINDER_WINDOW_MS = 48 * 60 * 60 * 1000
 
@@ -44,8 +45,8 @@ export async function sendDueBookingReminders() {
         ))
       if (hasEmail && !texted) {
         await sendBookingReminderEmail(booking.customer.email, {
-          serviceName: booking.service.name,
-          priceCents: booking.service.priceCents,
+          serviceName: bookingServiceName(booking),
+          priceCents: bookingPrice(booking),
           startsAt: booking.slot.startsAt,
           durationLabel: booking.service.durationLabel,
         })

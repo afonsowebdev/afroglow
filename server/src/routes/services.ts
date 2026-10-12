@@ -1,5 +1,7 @@
 import { Router } from 'express'
 import { requireAdmin } from '../lib/auth.js'
+import { Prisma } from '@prisma/client'
+import { lowestPrice, type Pricing } from '../lib/pricing.js'
 import { prisma } from '../lib/prisma.js'
 import { createServiceSchema, serviceImageSchema, updateServiceSchema } from '../lib/validation.js'
 
@@ -7,8 +9,10 @@ const MAX_IMAGES_PER_SERVICE = 5
 
 export const servicesRouter = Router()
 
+// What customers can book. The admin list (below) also shows the hidden ones.
 servicesRouter.get('/', async (_req, res) => {
   const services = await prisma.service.findMany({
+    where: { active: true },
     orderBy: { createdAt: 'asc' },
     include: { images: { select: { id: true }, orderBy: { position: 'asc' } } },
   })
@@ -32,6 +36,22 @@ servicesRouter.get('/:id/images/:imageId', async (req, res) => {
 
 export const adminServicesRouter = Router()
 adminServicesRouter.use(requireAdmin)
+
+adminServicesRouter.get('/', async (_req, res) => {
+  const services = await prisma.service.findMany({
+    orderBy: { createdAt: 'asc' },
+    include: { images: { select: { id: true }, orderBy: { position: 'asc' } } },
+  })
+  res.json(services)
+})
+
+// With a price table, the service's own price is its lowest ("a partir de"); Prisma needs DbNull to clear JSON.
+function serviceData<T extends { pricing?: Pricing | null; priceCents?: number }>(data: T) {
+  const { pricing, ...rest } = data
+  if (pricing === undefined) return rest
+  if (pricing === null) return { ...rest, pricing: Prisma.DbNull }
+  return { ...rest, pricing, priceCents: lowestPrice(pricing) }
+}
 
 adminServicesRouter.post('/:id/images', async (req, res) => {
   const parsed = serviceImageSchema.safeParse(req.body)
@@ -97,7 +117,7 @@ adminServicesRouter.post('/', async (req, res) => {
   }
 
   try {
-    const service = await prisma.service.create({ data: parsed.data })
+    const service = await prisma.service.create({ data: serviceData(parsed.data) as Prisma.ServiceCreateInput })
     res.status(201).json(service)
   } catch (error) {
     if (error instanceof Error && 'code' in error && error.code === 'P2002') {
@@ -117,7 +137,7 @@ adminServicesRouter.patch('/:id', async (req, res) => {
   }
 
   try {
-    const service = await prisma.service.update({ where: { id: req.params.id }, data: parsed.data })
+    const service = await prisma.service.update({ where: { id: req.params.id }, data: serviceData(parsed.data) })
     res.json(service)
   } catch (error) {
     console.error('[services] update failed:', error)

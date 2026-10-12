@@ -3,6 +3,7 @@ import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
 import { api, ApiError } from '@/lib/api'
 import { formatPrice, type Service } from '@/lib/types'
 import type { AdminCustomer } from '@/pages/admin/admin-types'
+import { choiceComplete, optionsOf, priceFor, servicePriceLabel } from '@/lib/pricing'
 
 function localDateValue(date: Date) {
   const m = String(date.getMonth() + 1).padStart(2, '0')
@@ -36,6 +37,9 @@ export function ManualBookingSheet({
   const [date, setDate] = useState('')
   const [time, setTime] = useState('10:00')
   const [serviceId, setServiceId] = useState('')
+  // For hairstyles priced by length and/or parting.
+  const [length, setLength] = useState('')
+  const [parting, setParting] = useState('')
   const [notes, setNotes] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -46,7 +50,7 @@ export function ManualBookingSheet({
     setNotes('')
     setSearch('')
     setDate(localDateValue(new Date()))
-    setServiceId((current) => current || services[0]?.id || '')
+    setServiceId((current) => current || services.find((s) => s.active !== false)?.id || '')
     if (presetCustomer) {
       setMode('existing')
       setPicked(presetCustomer)
@@ -71,7 +75,11 @@ export function ManualBookingSheet({
   }, [customers, search])
 
   const hasClient = mode === 'existing' ? Boolean(picked) : name.trim().length >= 2 && phone.trim().length >= 6
-  const canSubmit = hasClient && Boolean(date) && Boolean(time) && Boolean(serviceId)
+  const service = services.find((s) => s.id === serviceId)
+  const options = service ? optionsOf(service) : { lengths: [], partings: [], hasOptions: false }
+  const price = service ? priceFor(service, length || null, parting || null) : null
+  const canSubmit =
+    hasClient && Boolean(date) && Boolean(time) && Boolean(serviceId) && (!service || choiceComplete(service, length || null, parting || null))
 
   async function submit() {
     setBusy(true)
@@ -80,6 +88,8 @@ export function ManualBookingSheet({
       await api.post('/admin/bookings/manual', {
         startsAt: new Date(`${date}T${time}:00`).toISOString(),
         serviceId,
+        length: length || undefined,
+        parting: parting || undefined,
         ...(mode === 'existing' && picked
           ? { customerId: picked.id }
           : { customerName: name.trim(), customerPhone: phone.trim() }),
@@ -191,14 +201,52 @@ export function ManualBookingSheet({
       )}
 
       <SheetField label="Modelo">
-        <select value={serviceId} onChange={(e) => setServiceId(e.target.value)} className={sheetFieldClass}>
-          {services.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name} · {formatPrice(s.priceCents)}
-            </option>
-          ))}
+        <select
+          value={serviceId}
+          onChange={(e) => {
+            setServiceId(e.target.value)
+            setLength('')
+            setParting('')
+          }}
+          className={sheetFieldClass}
+        >
+          {services
+            .filter((s) => s.active !== false)
+            .map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} · {servicePriceLabel(s)}
+              </option>
+            ))}
         </select>
       </SheetField>
+
+      {options.hasOptions && (
+        <div className="grid grid-cols-2 gap-3">
+          {options.lengths.length > 0 && (
+            <SheetField label="Comprimento">
+              <select value={length} onChange={(e) => setLength(e.target.value)} className={sheetFieldClass}>
+                <option value="">Escolher</option>
+                {options.lengths.map((v) => (
+                  <option key={v}>{v}</option>
+                ))}
+              </select>
+            </SheetField>
+          )}
+          {options.partings.length > 0 && (
+            <SheetField label="Repartição">
+              <select value={parting} onChange={(e) => setParting(e.target.value)} className={sheetFieldClass}>
+                <option value="">Escolher</option>
+                {options.partings.map((v) => (
+                  <option key={v}>{v}</option>
+                ))}
+              </select>
+            </SheetField>
+          )}
+          {price !== null && (
+            <p className="col-span-2 font-subtitle text-sm text-onyx">Preço: {formatPrice(price)}</p>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <SheetField label="Data">

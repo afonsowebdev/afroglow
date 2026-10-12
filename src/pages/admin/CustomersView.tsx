@@ -4,6 +4,7 @@ import { api, ApiError } from '@/lib/api'
 import { customerWhatsappUrl } from '@/lib/site-config'
 import { formatPrice } from '@/lib/types'
 import { STATUS_LABEL, type AdminCustomer, type AdminCustomerDetail } from '@/pages/admin/admin-types'
+import { bookingName } from '@/lib/pricing'
 
 const LISBON_TZ = 'Europe/Lisbon'
 
@@ -417,7 +418,7 @@ export function CustomersView({
                 {detail?.bookings.map((b) => (
                   <div key={b.id} className="flex items-center justify-between gap-3 py-2.5">
                     <div className="min-w-0">
-                      <p className="truncate font-subtitle text-sm text-onyx">{b.service.name}</p>
+                      <p className="truncate font-subtitle text-sm text-onyx">{bookingName(b)}</p>
                       <p className="font-subtitle text-xs text-muted-dark">{formatDateTime(b.slot.startsAt)}</p>
                     </div>
                     <span className={`flex shrink-0 items-center gap-1.5 font-subtitle text-xs text-muted-dark`}>

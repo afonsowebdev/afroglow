@@ -9,10 +9,11 @@ import { tap } from '@/lib/haptics'
 import { serviceImageUrls } from '@/lib/service-images'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { instagramDmUrl, siteConfig, useBusinessInfo } from '@/lib/site-config'
-import { formatPrice, type AvailabilitySlot, type Booking, type Service } from '@/lib/types'
+import type { AvailabilitySlot, Booking, Service } from '@/lib/types'
 import { useBookingAlerts } from './booking-alerts'
 import { ServicePreview } from './ServicePreview'
 import { dayKey, dayParts, longDay, timeLabel } from './dates'
+import { servicePriceLabel } from '@/lib/pricing'
 
 /** Time-of-day greeting plus one line of what matters right now (a decision to look at, or free slots). */
 export function Greeting() {
@@ -269,6 +270,7 @@ export function WelcomeCard() {
         </span>
       </div>
       <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">{next.service.name}</p>
+{next.optionLabel && <p className="font-subtitle text-sm text-muted-dark">{next.optionLabel}</p>}
 
       <dl className="mt-4 grid grid-cols-[2fr_1fr] gap-4 border-t border-onyx/15 pt-4">
         <div>
@@ -466,7 +468,7 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
                   )}
                   <div className="mt-4 flex items-center justify-between gap-3">
                     <p className="font-subtitle text-xl font-semibold text-[#e0c36e]">
-                      {formatPrice(service.priceCents)}
+                      {servicePriceLabel(service)}
                     </p>
                     {/* The arrow goes straight to booking this model. */}
                     <Link

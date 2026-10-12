@@ -32,6 +32,11 @@ model Service {
   description   String
   durationLabel String
   priceCents    Int
+  /// Prices by length and/or parting: { lengths: string[], partings: string[], prices: { "length|parting": cents } }.
+  /// When set, the customer picks the options and `priceCents` is the "a partir de" (lowest) price.
+  pricing       Json?
+  /// Hidden from booking (kept for the bookings already made with it).
+  active        Boolean   @default(true)
   createdAt     DateTime  @default(now())
   bookings      Booking[]
   images        ServiceImage[]
@@ -102,6 +107,9 @@ model Booking {
   customerName  String
   customerPhone String
   notes         String?
+  /// The options chosen for this booking, e.g. "Longa · Finas", and the price they came to.
+  optionLabel   String?
+  priceCents    Int?
   status        BookingStatus    @default(PENDING)
   reminderSentAt DateTime?
   createdAt     DateTime         @default(now())

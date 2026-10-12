@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ActionButton } from '@/components/ui/action-button'
 import { serviceImageUrls } from '@/lib/service-images'
-import { formatPrice, type Service } from '@/lib/types'
+import type { Service } from '@/lib/types'
 import { Fact, Facts, labelClass } from './panel'
+import { servicePriceLabel } from '@/lib/pricing'
 
 /**
  * Bottom sheet with all the photos of a hairstyle (swipe sideways), its details and a button to choose it, so
@@ -124,7 +125,7 @@ export function ServicePreview({
                 )}
                 <Facts columns="1fr 1fr">
                   <Fact label="Duração">{service.durationLabel}</Fact>
-                  <Fact label="Preço">{formatPrice(service.priceCents)}</Fact>
+                  <Fact label="Preço">{servicePriceLabel(service)}</Fact>
                 </Facts>
               </div>
             </div>

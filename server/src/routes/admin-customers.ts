@@ -5,6 +5,7 @@ import { removeCustomer } from '../lib/customer-removal.js'
 import { prisma } from '../lib/prisma.js'
 import { isPlaceholderEmail } from '../lib/resend.js'
 import { customerNotesSchema, deleteCustomersSchema } from '../lib/validation.js'
+import { bookingPrice } from '../lib/pricing.js'
 
 export const adminCustomersRouter = Router()
 adminCustomersRouter.use(requireAdmin)
@@ -47,7 +48,7 @@ adminCustomersRouter.get('/', async (_req, res) => {
       return {
         ...present(customer),
         bookingCount: done.length,
-        spentCents: done.reduce((sum, b) => sum + b.service.priceCents, 0),
+        spentCents: done.reduce((sum, b) => sum + bookingPrice(b), 0),
         lastBookingAt: times.length ? new Date(Math.max(...times)).toISOString() : null,
       }
     }),

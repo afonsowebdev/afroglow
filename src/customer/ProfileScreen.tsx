@@ -273,6 +273,7 @@ export default function ProfileScreen() {
                               {parts.day} {parts.month}
                             </p>
                             <p className="mt-0.5 font-subtitle text-base font-semibold text-onyx">{b.service.name}</p>
+{b.optionLabel && <p className="font-subtitle text-sm text-muted-dark">{b.optionLabel}</p>}
                             <button
                               type="button"
                               onClick={() => {

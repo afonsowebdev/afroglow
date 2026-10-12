@@ -4,9 +4,20 @@ export interface Service {
   description: string
   durationLabel: string
   priceCents: number
+  /** Prices by length and/or parting; when set, priceCents is the lowest ("a partir de"). See lib/pricing. */
+  pricing?: Pricing | null
+  /** False when hidden from booking (kept for the bookings already made with it). */
+  active?: boolean
   createdAt: string
   /** Photos of the hairstyle, cover first. */
   images?: Array<{ id: string }>
+}
+
+export interface Pricing {
+  lengths: string[]
+  partings: string[]
+  /** Cents per combination, keyed "length|parting" (an empty part where that list is empty). */
+  prices: Record<string, number>
 }
 
 export type SlotStatus = 'OPEN' | 'PENDING' | 'BOOKED'
@@ -28,6 +39,9 @@ export interface Booking {
   customerName: string
   customerPhone: string
   notes: string | null
+  /** The options chosen ("Longa · Finas") and the price they came to; null for bookings without options. */
+  optionLabel?: string | null
+  priceCents?: number | null
   status: BookingStatus
   createdAt: string
   updatedAt: string
