@@ -69,12 +69,13 @@ export default function Testimonials() {
   const long = (review?.quote.length ?? 0) > 280
 
   return (
-    <section id="testemunhos" className="relative overflow-hidden bg-white px-5 py-24 sm:px-8 md:py-32">
+    // A whole screen of its own, content centred in it.
+    <section id="testemunhos" className="relative flex min-h-[100svh] items-center overflow-hidden bg-white px-5 py-24 sm:px-8 md:py-32">
       {/* AFROGLOW sliding across the middle, as on every other section from "Quem somos" down. */}
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-center">
         <VelocityRow direction={1} />
       </div>
-      <div className="relative mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
+      <div className="relative mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
         <div className="lg:sticky lg:top-32 lg:self-start">
           <h2 className="font-logo text-4xl text-onyx sm:text-5xl">O que dizem as nossas clientes</h2>
           <p className="mt-4 max-w-sm font-subtitle text-base font-light leading-relaxed text-onyx/60">

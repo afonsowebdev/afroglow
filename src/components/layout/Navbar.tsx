@@ -54,6 +54,7 @@ const DESKTOP_LINKS: DesktopLink[] = [
   { id: 'servicos', label: 'Serviços' },
   { id: 'galeria', label: 'Galeria' },
   { id: 'testemunhos', label: 'Testemunhos' },
+  { id: 'perguntas-frequentes', label: 'FAQ' },
   { id: 'contacto', label: 'Contacto' },
 ]
 
@@ -166,6 +167,7 @@ export default function Navbar({
     },
     { Icon: InfoCircleFill, label: 'Sobre nós', onClick: () => scrollToSection('sobre') },
     { Icon: QuoteBubbleFill, label: 'Testemunhos', onClick: () => scrollToSection('testemunhos') },
+    { Icon: InfoCircleFill, label: 'Perguntas frequentes', onClick: () => scrollToSection('perguntas-frequentes') },
     { Icon: SparklesFill, label: 'Conhecer a CEO', onClick: () => navigate('/ceo') },
     { Icon: CalendarPlusFill, label: 'Agendar', onClick: () => navigate('/agendar') },
     ...(customer

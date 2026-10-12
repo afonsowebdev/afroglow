@@ -91,8 +91,8 @@ export default function Faq() {
   const shown = category === 'todas' ? questions : questions.filter((item) => item.category === category)
 
   return (
-    <section id="perguntas-frequentes" className="bg-white px-5 py-24 sm:px-8 md:py-32">
-      <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
+    <section id="perguntas-frequentes" className="flex min-h-[100svh] items-center bg-white px-5 py-24 sm:px-8 md:py-32">
+      <div className="mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
         <div className="lg:sticky lg:top-32 lg:self-start">
           <h2 className="font-logo text-4xl text-onyx sm:text-5xl">Perguntas frequentes</h2>
           <p className="mt-4 max-w-sm font-subtitle text-base font-light leading-relaxed text-onyx/60">
