@@ -55,12 +55,15 @@ export function DesktopNav({
   inBar?: boolean
 }) {
   const onDark = tone === 'onDark'
+  // The link under the pointer: a soft pill glides from link to link while the pointer moves along the bar.
+  const [hovered, setHovered] = useState<string | null>(null)
   const ink = onDark ? 'text-[#ffffff] [filter:drop-shadow(0_0_1px_rgba(0,0,0,0.25))]' : 'text-onyx'
 
   return (
     // In the bar the pieces join it: the sections centred on the header row, booking on the right.
     <div className={inBar ? 'contents' : 'pointer-events-auto flex items-center gap-2.5'}>
       <nav
+        onMouseLeave={() => setHovered(null)}
         aria-label="Secções"
         className={cn(
           'flex items-center gap-1 rounded-full',
@@ -78,13 +81,28 @@ export function DesktopNav({
               key={link.id}
               type="button"
               onClick={() => onLink(link.id)}
+              onMouseEnter={() => setHovered(link.id)}
+              onFocus={() => setHovered(link.id)}
+              onBlur={() => setHovered(null)}
               aria-current={isActive ? 'true' : undefined}
               className={cn(
                 'relative h-9 whitespace-nowrap rounded-full px-3 font-subtitle text-sm transition-colors duration-500 xl:px-4',
                 ink,
-                isActive ? 'font-semibold' : 'opacity-80 hover:opacity-100',
+                isActive ? 'font-semibold' : 'opacity-75 hover:opacity-100',
               )}
             >
+              <AnimatePresence>
+                {hovered === link.id && !isActive && (
+                  <motion.span
+                    layoutId="desktop-nav-hover"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 38, opacity: { duration: 0.15 } }}
+                    className={cn('absolute inset-0 rounded-full', onDark ? 'bg-[#ffffff]/15' : 'bg-onyx/[0.05]')}
+                  />
+                )}
+              </AnimatePresence>
               {isActive && (
                 <motion.span
                   layoutId="desktop-nav-active"
