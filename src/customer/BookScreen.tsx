@@ -14,6 +14,7 @@ import { useHideNav } from './nav-visibility'
 import { serviceImageUrls } from '@/lib/service-images'
 import { Fact, Facts, labelClass, panelClass } from './panel'
 import { VelocityRow } from '@/components/ui/velocity-marquee'
+import { ButtonWithIcon } from '@/components/ui/button-with-icon'
 import { ServicePreview } from './ServicePreview'
 import { SlotPicker } from './SlotPicker'
 
@@ -571,16 +572,15 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                     </div>
                   )}
                 </dl>
-                {/* Same plain button as "Marcar sessão" in the header. */}
-                <button
-                  type="button"
+                {/* The site's button with the sliding arrow disc, as "Agendar" in the header. */}
+                <ButtonWithIcon
+                  label={submitting ? 'A enviar...' : step === 2 ? 'Enviar pedido' : 'Continuar'}
+                  solid
+                  large
                   disabled={!ctaVisible || submitting}
                   onClick={() => (step === 2 ? void submit() : setStep(step + 1))}
-                  className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-onyx font-subtitle text-sm font-medium tracking-wide text-white transition-colors duration-300 hover:bg-onyx/85 disabled:cursor-not-allowed disabled:bg-onyx/15 disabled:text-onyx/40"
-                >
-                  {submitting ? 'A enviar...' : step === 2 ? 'Enviar pedido' : 'Continuar'}
-                  {!submitting && <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />}
-                </button>
+                  className="mt-6 w-full disabled:cursor-not-allowed disabled:opacity-30"
+                />
                 <p className="mt-3 font-subtitle text-xs font-light text-onyx/55">
                   {step === 0 && !service
                     ? 'Escolhe um modelo para continuar.'

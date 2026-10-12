@@ -13,6 +13,7 @@ export function ButtonWithIcon({
   tone = 'onLight',
   solid = false,
   compact = false,
+  large = false,
   className,
   ...props
 }: {
@@ -23,6 +24,8 @@ export function ButtonWithIcon({
   solid?: boolean
   /** Glass but smaller (header beside the bar): less padding, smaller disc and text. */
   compact?: boolean
+  /** With `solid`: the full-size version (48px, larger disc), e.g. a page's main action. */
+  large?: boolean
   className?: string
 } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onClick'>) {
   const onDark = tone === 'onDark'
@@ -34,7 +37,7 @@ export function ButtonWithIcon({
         'group relative w-fit cursor-pointer overflow-hidden rounded-full p-1 font-subtitle text-sm font-normal transition-all duration-500 hover:brightness-100',
         solid
           ? cn(
-              'h-9 ps-4 pe-10 text-[13px] hover:ps-10 hover:pe-4',
+              large ? 'h-12 ps-6 pe-14 hover:ps-14 hover:pe-6' : 'h-9 ps-4 pe-10 text-[13px] hover:ps-10 hover:pe-4',
               onDark ? 'bg-[#ffffff] text-[#111111]' : 'bg-onyx text-white',
             )
           : cn(
@@ -54,7 +57,7 @@ export function ButtonWithIcon({
           'absolute flex items-center justify-center rounded-full transition-all duration-500 group-hover:rotate-45',
           solid
             ? cn(
-                'right-1 size-7 group-hover:right-[calc(100%-32px)]',
+                large ? 'right-1 size-10 group-hover:right-[calc(100%-44px)]' : 'right-1 size-7 group-hover:right-[calc(100%-32px)]',
                 onDark ? 'bg-[#111111] text-[#ffffff]' : 'bg-white text-onyx',
               )
             : compact
