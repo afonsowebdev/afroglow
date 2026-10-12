@@ -37,6 +37,7 @@ export function DesktopNav({
   dot,
   accountLabel,
   accountItems,
+  inBar = false,
 }: {
   links: DesktopLink[]
   active: string | null
@@ -50,13 +51,18 @@ export function DesktopNav({
   /** Name shown at the top of the account menu (or how to sign in). */
   accountLabel: string
   accountItems: AccountItem[]
+  /** Inside one header bar (which holds the glass): no glass of their own, booking as a filled button. */
+  inBar?: boolean
 }) {
   const onDark = tone === 'onDark'
   const ink = onDark ? 'text-[#ffffff] [filter:drop-shadow(0_0_1px_rgba(0,0,0,0.25))]' : 'text-onyx'
 
   return (
     <div className="pointer-events-auto flex items-center gap-2.5">
-      <nav aria-label="Secções" className="liquid-glass flex h-[56px] items-center gap-1 rounded-full px-2">
+      <nav
+        aria-label="Secções"
+        className={cn('flex items-center gap-1 rounded-full', inBar ? 'h-12' : 'liquid-glass h-[56px] px-2')}
+      >
         {links.map((link) => {
           const isActive = link.id === active
           return (
@@ -88,6 +94,7 @@ export function DesktopNav({
       <ButtonWithIcon
         label="Agendar"
         tone={tone}
+        solid={inBar}
         onClick={onBook}
         aria-current={bookingActive ? 'page' : undefined}
       />
@@ -99,6 +106,7 @@ export function DesktopNav({
         active={profileActive}
         label={accountLabel}
         items={accountItems}
+        bare={inBar}
       />
     </div>
   )
@@ -111,8 +119,11 @@ function AccountMenu({
   active,
   label,
   items,
+  bare = false,
 }: {
   tone: 'onDark' | 'onLight'
+  /** Without its own glass (inside the header bar). */
+  bare?: boolean
   avatar: string | null
   dot: boolean
   active: boolean
@@ -146,16 +157,17 @@ function AccountMenu({
         aria-haspopup="menu"
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'liquid-glass relative flex size-[56px] items-center justify-center rounded-full transition-colors duration-500',
+          'relative flex items-center justify-center rounded-full transition-colors duration-500',
+          bare ? 'size-12' : 'liquid-glass size-[56px]',
           tone === 'onDark' ? 'text-[#ffffff]' : 'text-onyx',
           active && 'ring-2 ring-gold/70',
         )}
       >
         {/* The photo or icon fills the circle, leaving only a thin glass rim around it. */}
         {avatar ? (
-          <img src={avatar} alt="" className="size-[46px] rounded-full object-cover" />
+          <img src={avatar} alt="" className={cn('rounded-full object-cover', bare ? 'size-10' : 'size-[46px]')} />
         ) : (
-          <PersonCircleFill className="size-[46px]" />
+          <PersonCircleFill className={bare ? 'size-10' : 'size-[46px]'} />
         )}
         {dot && (
           <span

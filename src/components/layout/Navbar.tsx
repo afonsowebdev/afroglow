@@ -237,6 +237,37 @@ export default function Navbar({
       : []),
   ]
 
+  // The brand's "A" emblem, then the wordmark: white over the video, black over the light sections. On wide screens it
+  // sits inside the one header bar; on smaller ones in a glass pill of its own, beside the tab bar.
+  const logo = (glass: boolean) => (
+    <a
+      href={onHome ? '#top' : '/'}
+      onClick={(e) => {
+        if (onHome) return
+        e.preventDefault()
+        navigate('/')
+      }}
+      aria-label="AFROGLOW, voltar ao início"
+      className={`pointer-events-auto flex items-center gap-3 rounded-full pe-5 ps-2 ${glass ? 'liquid-glass h-[56px]' : 'h-12'}`}
+    >
+      <span
+        className={`flex size-10 shrink-0 items-center justify-center rounded-full logo-weight font-logo text-[1.35rem] leading-none shadow-[0_1px_4px_rgba(0,0,0,0.18)] transition-colors duration-500 ${
+          headerOverHero ? 'bg-[#ffffff] text-[#111111]' : 'bg-onyx text-white'
+        }`}
+        aria-hidden="true"
+      >
+        <span className="translate-y-[2px]">A</span>
+      </span>
+      <span
+        className={`translate-y-[2px] logo-weight font-logo text-[1.35rem] leading-none tracking-[0.14em] transition-colors duration-500 ${
+          headerOverHero ? 'text-[#ffffff]' : 'text-onyx'
+        }`}
+      >
+        AFROGLOW
+      </span>
+    </a>
+  )
+
   return (
     <>
       <div
@@ -246,50 +277,27 @@ export default function Navbar({
         }`}
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          {/* The logo sits in the same glass pill as the tab bar: the brand's "A" emblem, then the wordmark. Black and
-              white like the rest of the site: white over the video, black over the light sections. */}
-          <a
-            href={onHome ? '#top' : '/'}
-            onClick={(e) => {
-              if (onHome) return
-              e.preventDefault()
-              navigate('/')
-            }}
-            aria-label="AFROGLOW, voltar ao início"
-            className="liquid-glass pointer-events-auto flex h-[56px] items-center gap-3 rounded-full pe-5 ps-2"
-          >
-            <span
-              className={`flex size-10 shrink-0 items-center justify-center rounded-full logo-weight font-logo text-[1.35rem] leading-none shadow-[0_1px_4px_rgba(0,0,0,0.18)] transition-colors duration-500 ${
-                headerOverHero ? 'bg-[#ffffff] text-[#111111]' : 'bg-onyx text-white'
-              }`}
-              aria-hidden="true"
-            >
-              <span className="translate-y-[2px]">A</span>
-            </span>
-            <span
-              className={`translate-y-[2px] logo-weight font-logo text-[1.35rem] leading-none tracking-[0.14em] transition-colors duration-500 ${
-                headerOverHero ? 'text-[#ffffff]' : 'text-onyx'
-              }`}
-            >
-              AFROGLOW
-            </span>
-          </a>
+          <div className="lg:hidden">{logo(true)}</div>
 
-          {/* Wide screens: the sections as words, booking as its own button and the account menu. */}
-          <div className="hidden lg:flex">
-            <DesktopNav
-              links={DESKTOP_LINKS}
-              active={!page && onHome && DESKTOP_LINKS.some((l) => l.id === activeSection) ? activeSection : null}
-              onLink={scrollToSection}
-              onBook={() => navigate('/agendar')}
-              bookingActive={page === 'agendar'}
-              profileActive={page === 'perfil'}
-              tone={headerTone}
-              avatar={customer ? avatar : null}
-              dot={dot}
-              accountLabel={customer ? `Olá, ${firstName}` : 'Ainda não tens conta?'}
-              accountItems={accountItems}
-            />
+          {/* Wide screens: one glass bar with the logo, the sections as words, booking and the account menu. */}
+          <div className="liquid-glass pointer-events-auto hidden h-16 w-full items-center justify-between gap-4 rounded-full px-2 lg:flex">
+            {logo(false)}
+            <div className="flex items-center">
+              <DesktopNav
+                links={DESKTOP_LINKS}
+                active={!page && onHome && DESKTOP_LINKS.some((l) => l.id === activeSection) ? activeSection : null}
+                onLink={scrollToSection}
+                onBook={() => navigate('/agendar')}
+                bookingActive={page === 'agendar'}
+                profileActive={page === 'perfil'}
+                tone={headerTone}
+                avatar={customer ? avatar : null}
+                dot={dot}
+                accountLabel={customer ? `Olá, ${firstName}` : 'Ainda não tens conta?'}
+                accountItems={accountItems}
+                inBar
+              />
+            </div>
           </div>
 
           {/* Tablets: the app's tab bar and its round menu, which opens downward. Phones: only the menu here. */}
