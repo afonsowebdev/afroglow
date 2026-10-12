@@ -29,7 +29,7 @@ const LIGHT_CLIPS: Clip[] = [1, 2, 3, 4, 5].map((n) => ({
   app: `/videos/hero-light-${n}-app.mp4?v=1`,
 }))
 
-// The customer iPhone app plays one pre-edited file in portrait per theme (the AFROGLOW models taking turns): each clip
+// The customer iPhone app plays one pre-edited file in portrait per theme (takes 2 and 3 of each theme taking turns): each clip
 // plays for a few seconds before a soft dissolve hands over to the next, also at the loop point, so the native loop
 // shows no seam. Both files travel inside the app.
 const appClip = (file: string): Clip[] => [{ sd: file, hd: file, app: file }]
