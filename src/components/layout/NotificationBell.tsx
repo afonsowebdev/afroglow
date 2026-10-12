@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
-import { Bell } from 'lucide-react'
+import { Bell, X } from 'lucide-react'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { tap } from '@/lib/haptics'
@@ -13,6 +13,21 @@ interface Notification {
   bookingId: string | null
   readAt: string | null
   createdAt: string
+}
+
+type Filter = 'todas' | 'por-ler' | 'marcacoes' | 'lembretes'
+const FILTERS: Array<{ id: Filter; label: string }> = [
+  { id: 'todas', label: 'Todas' },
+  { id: 'por-ler', label: 'Por ler' },
+  { id: 'marcacoes', label: 'Marcações' },
+  { id: 'lembretes', label: 'Lembretes' },
+]
+const isReminder = (n: Notification) => n.title.startsWith('Lembrete')
+function matches(n: Notification, filter: Filter) {
+  if (filter === 'por-ler') return !n.readAt
+  if (filter === 'lembretes') return isReminder(n)
+  if (filter === 'marcacoes') return !isReminder(n)
+  return true
 }
 
 /** "agora", "há 5 min", "há 3 h", "ontem", "12 out". */
@@ -28,7 +43,8 @@ function ago(iso: string) {
 
 /**
  * The website's bell, for signed-in customers: the notifications the app would send (booking confirmed, declined,
- * cancelled, reminders), listed newest first. A red count shows the unread ones; opening the list marks them read.
+ * cancelled, reminders), listed newest first, with filters. A red dot marks each unread one until it is opened;
+ * each can be deleted, or all of them at once.
  * Checks again every minute and when the tab comes back to the front.
  */
 export function NotificationBell({
@@ -50,6 +66,8 @@ export function NotificationBell({
   const known = useRef<Set<string> | null>(null)
   const [fresh, setFresh] = useState<Set<string>>(new Set())
   const [ring, setRing] = useState(0)
+  const [filter, setFilter] = useState<Filter>('todas')
+  const [confirmClear, setConfirmClear] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -96,12 +114,52 @@ export function NotificationBell({
     void tap()
     const next = !open
     setOpen(next)
-    if (!next) setFresh(new Set())
-    if (next && unread > 0) {
-      setUnread(0)
-      void api.post('/account/notifications/read').catch(() => {})
+    if (!next) {
+      setFresh(new Set())
+      setConfirmClear(false)
     }
   }
+
+  const markRead = (ids: string[]) => {
+    const now = new Date().toISOString()
+    setItems((list) => list?.map((n) => (ids.includes(n.id) && !n.readAt ? { ...n, readAt: now } : n)) ?? null)
+    setUnread((u) => Math.max(0, u - (items ?? []).filter((n) => ids.includes(n.id) && !n.readAt).length))
+  }
+
+  // Opening a notification: it counts as seen (its dot goes), then its booking opens.
+  const openOne = (n: Notification) => {
+    void tap()
+    if (!n.readAt) {
+      markRead([n.id])
+      void api.post(`/account/notifications/${n.id}/read`).catch(() => {})
+    }
+    setOpen(false)
+    navigate(n.bookingId ? `/marcacoes?abrir=${n.bookingId}` : '/marcacoes')
+  }
+
+  const readAll = () => {
+    markRead((items ?? []).map((n) => n.id))
+    setUnread(0)
+    void api.post('/account/notifications/read').catch(() => {})
+  }
+
+  const remove = (n: Notification) => {
+    void tap()
+    setItems((list) => list?.filter((x) => x.id !== n.id) ?? null)
+    if (!n.readAt) setUnread((u) => Math.max(0, u - 1))
+    known.current?.delete(n.id)
+    void api.delete(`/account/notifications/${n.id}`).catch(() => void load())
+  }
+
+  const clearAll = () => {
+    void tap()
+    setItems([])
+    setUnread(0)
+    setConfirmClear(false)
+    void api.delete('/account/notifications').catch(() => void load())
+  }
+
+  const shown = (items ?? []).filter((n) => matches(n, filter))
 
   return (
     <div ref={root} className="relative">
@@ -149,21 +207,44 @@ export function NotificationBell({
             transition={{ duration: 0.16 }}
             className="absolute right-0 top-full z-10 mt-3 w-[22rem] origin-top-right max-md:fixed max-md:inset-x-4 max-md:top-[calc(5.5rem+env(safe-area-inset-top))] max-md:mt-0 max-md:w-auto overflow-hidden rounded-2xl border border-onyx/10 bg-white shadow-xl shadow-black/15"
           >
-            <div className="flex items-center justify-between border-b border-onyx/10 px-4 py-3">
-              <p className="font-subtitle text-sm font-medium text-onyx">Notificações</p>
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false)
-                  navigate('/marcacoes')
-                }}
-                className="font-subtitle text-xs text-onyx/60 underline-offset-4 hover:text-onyx hover:underline"
-              >
-                As minhas marcações
-              </button>
+            <div className="border-b border-onyx/10 px-4 pb-2.5 pt-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-subtitle text-sm font-medium text-onyx">Notificações</p>
+                {unread > 0 && (
+                  <button
+                    type="button"
+                    onClick={readAll}
+                    className="font-subtitle text-xs text-onyx/60 underline-offset-4 hover:text-onyx hover:underline"
+                  >
+                    Marcar todas como lidas
+                  </button>
+                )}
+              </div>
+              <div className="mt-2.5 flex gap-1.5 overflow-x-auto [scrollbar-width:none]" role="tablist" aria-label="Filtrar">
+                {FILTERS.map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={filter === f.id}
+                    onClick={() => setFilter(f.id)}
+                    className={cn(
+                      'shrink-0 rounded-full px-3 py-1 font-subtitle text-xs transition-colors',
+                      filter === f.id ? 'bg-onyx text-white' : 'bg-onyx/[0.06] text-onyx/70 hover:text-onyx',
+                    )}
+                  >
+                    {f.label}
+                    {f.id === 'por-ler' && unread > 0 ? ` · ${unread}` : ''}
+                  </button>
+                ))}
+              </div>
             </div>
             {items === null ? (
               <p className="px-4 py-8 text-center font-subtitle text-sm text-onyx/55">A carregar…</p>
+            ) : shown.length === 0 && items.length > 0 ? (
+              <p className="px-4 py-10 text-center font-subtitle text-sm text-onyx/55">
+                {filter === 'por-ler' ? 'Já viste todas as notificações.' : 'Nada aqui por agora.'}
+              </p>
             ) : items.length === 0 ? (
               <div className="px-6 py-10 text-center">
                 <Bell className="mx-auto size-6 text-onyx/30" strokeWidth={1.5} />
@@ -174,7 +255,7 @@ export function NotificationBell({
               </div>
             ) : (
               <ul className="max-h-[22rem] divide-y divide-onyx/10 overflow-y-auto">
-                {items.map((n, i) => (
+                {shown.map((n, i) => (
                   <motion.li
                     key={n.id}
                     // New ones fall in from above, one after another.
@@ -182,14 +263,12 @@ export function NotificationBell({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.35, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
                   >
+                    <div className="group relative">
                     <button
                       type="button"
                       // Opens the booking it is about, with its details (reschedule / cancel) already showing.
-                      onClick={() => {
-                        setOpen(false)
-                        navigate(n.bookingId ? `/marcacoes?abrir=${n.bookingId}` : '/marcacoes')
-                      }}
-                      className="flex w-full gap-3 px-4 py-3.5 text-left transition-colors hover:bg-onyx/[0.03]"
+                      onClick={() => openOne(n)}
+                      className="flex w-full gap-3 py-3.5 pl-4 pr-11 text-left transition-colors hover:bg-onyx/[0.03]"
                     >
                       <span
                         className={cn('mt-1.5 size-2 shrink-0 rounded-full', n.readAt ? 'bg-transparent' : 'bg-red-600')}
@@ -203,9 +282,49 @@ export function NotificationBell({
                         <span className="mt-0.5 block font-subtitle text-xs leading-relaxed text-onyx/60">{n.body}</span>
                       </span>
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => remove(n)}
+                      aria-label={`Eliminar notificação: ${n.title}`}
+                      className="absolute right-2 top-2.5 flex size-8 items-center justify-center rounded-full text-onyx/35 transition-colors hover:bg-onyx/[0.06] hover:text-onyx"
+                    >
+                      <X className="size-4" strokeWidth={1.75} />
+                    </button>
+                    </div>
                   </motion.li>
                 ))}
               </ul>
+            )}
+            {items && items.length > 0 && (
+              <div className="flex items-center justify-end gap-3 border-t border-onyx/10 px-4 py-2.5">
+                {confirmClear ? (
+                  <>
+                    <span className="mr-auto font-subtitle text-xs text-onyx/60">Eliminar todas?</span>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmClear(false)}
+                      className="font-subtitle text-xs text-onyx/60 hover:text-onyx"
+                    >
+                      Não
+                    </button>
+                    <button
+                      type="button"
+                      onClick={clearAll}
+                      className="rounded-full bg-red-600 px-3 py-1 font-subtitle text-xs font-medium text-[#ffffff]"
+                    >
+                      Sim, eliminar
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmClear(true)}
+                    className="font-subtitle text-xs text-red-700 underline-offset-4 hover:underline dark:text-red-400"
+                  >
+                    Limpar tudo
+                  </button>
+                )}
+              </div>
             )}
           </motion.div>
         )}

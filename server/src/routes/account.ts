@@ -96,12 +96,32 @@ accountRouter.get('/notifications', requireCustomer, async (req, res) => {
   res.json({ items, unread })
 })
 
-// Opening the bell marks everything as read.
+// "Marcar todas como lidas".
 accountRouter.post('/notifications/read', requireCustomer, async (req, res) => {
   await prisma.customerNotification.updateMany({
     where: { customerId: req.customerId!, readAt: null },
     data: { readAt: new Date() },
   })
+  res.status(204).end()
+})
+
+// One notification opened: it counts as seen.
+accountRouter.post('/notifications/:id/read', requireCustomer, async (req, res) => {
+  await prisma.customerNotification.updateMany({
+    where: { id: req.params.id, customerId: req.customerId!, readAt: null },
+    data: { readAt: new Date() },
+  })
+  res.status(204).end()
+})
+
+// Deleting one notification, or all of them ("Limpar tudo").
+accountRouter.delete('/notifications/:id', requireCustomer, async (req, res) => {
+  await prisma.customerNotification.deleteMany({ where: { id: req.params.id, customerId: req.customerId! } })
+  res.status(204).end()
+})
+
+accountRouter.delete('/notifications', requireCustomer, async (req, res) => {
+  await prisma.customerNotification.deleteMany({ where: { customerId: req.customerId! } })
   res.status(204).end()
 })
 
