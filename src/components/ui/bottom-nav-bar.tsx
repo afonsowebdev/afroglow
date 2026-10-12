@@ -31,6 +31,8 @@ interface BottomNavBarProps<T extends string> {
   compact?: boolean
   /** Slides the bar off the bottom of the screen (e.g. while a screen shows its own action button). */
   hidden?: boolean
+  /** Spread across the width of its container (as at the top of a page), easing back to the pill when false. */
+  wide?: boolean
 }
 
 // Floating pill navigation: the active item expands to show its label while
@@ -45,6 +47,7 @@ export function BottomNavBar<T extends string>({
   tone = 'onLight',
   hidden = false,
   compact = false,
+  wide = false,
 }: BottomNavBarProps<T>) {
   const onDark = glass && tone === 'onDark'
   return (
@@ -52,11 +55,14 @@ export function BottomNavBar<T extends string>({
       initial={{ scale: 0.9, opacity: 0 }}
       animate={hidden ? { scale: 0.96, opacity: 0, y: 120 } : { scale: 1, opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-      style={{ pointerEvents: hidden ? 'none' : 'auto' }}
+      // `layout` eases the change between the full width and the pill; the radius is set here so it stays round.
+      layout
+      style={{ pointerEvents: hidden ? 'none' : 'auto', borderRadius: 9999 }}
       aria-hidden={hidden || undefined}
       aria-label="Secções do painel"
       className={cn(
-        'flex h-[56px] max-w-[95vw] items-center rounded-full p-2 transition-colors duration-300',
+        'flex h-[56px] max-w-[95vw] items-center p-2 transition-colors duration-300',
+        wide && 'w-full justify-between',
         compact ? 'gap-0' : 'gap-1',
         glass
           ? `liquid-glass ${stickyBottom ? '' : 'relative'}`
@@ -71,13 +77,16 @@ export function BottomNavBar<T extends string>({
           <motion.button
             key={item.id}
             type="button"
+            layout
+            style={{ borderRadius: 9999 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => onChange(item.id)}
             aria-label={item.label}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
               compact ? 'px-2.5' : 'px-3',
-              'relative flex h-10 min-w-[40px] items-center justify-center rounded-full font-subtitle transition-[color,filter,background-color,box-shadow] duration-500 ease-in-out focus:outline-none',
+              wide && 'flex-auto',
+              'relative flex h-10 min-w-[40px] items-center justify-center font-subtitle transition-[color,filter,background-color,box-shadow] duration-500 ease-in-out focus:outline-none',
               glass
                 ? isActive
                   ? `liquid-glass-bubble ${onDark ? 'text-[#ffffff] [filter:drop-shadow(0_0_1px_rgba(0,0,0,0.25))]' : 'text-onyx'}`
@@ -89,7 +98,7 @@ export function BottomNavBar<T extends string>({
                   : 'text-onyx/60 hover:bg-[rgba(255,255,255,0.3)] hover:text-onyx dark:hover:bg-[rgba(255,255,255,0.08)]',
             )}
           >
-            <span className="relative text-[22px] leading-none">
+            <motion.span layout="position" className="relative text-[22px] leading-none">
               {item.image ? (
                 <img
                   src={item.image}
@@ -113,7 +122,7 @@ export function BottomNavBar<T extends string>({
                   {item.badge}
                 </span>
               ) : null}
-            </span>
+            </motion.span>
             <motion.span
               initial={false}
               animate={{
