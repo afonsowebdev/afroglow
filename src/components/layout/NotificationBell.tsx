@@ -68,6 +68,8 @@ export function NotificationBell({
   const [ring, setRing] = useState(0)
   const [filter, setFilter] = useState<Filter>('todas')
   const [confirmClear, setConfirmClear] = useState(false)
+  // Shown when the server refused a change (the list is reloaded to what it really holds).
+  const [failed, setFailed] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     try {
@@ -114,6 +116,7 @@ export function NotificationBell({
     void tap()
     const next = !open
     setOpen(next)
+    setFailed(null)
     if (!next) {
       setFresh(new Set())
       setConfirmClear(false)
@@ -148,7 +151,10 @@ export function NotificationBell({
     setItems((list) => list?.filter((x) => x.id !== n.id) ?? null)
     if (!n.readAt) setUnread((u) => Math.max(0, u - 1))
     known.current?.delete(n.id)
-    void api.delete(`/account/notifications/${n.id}`).catch(() => void load())
+    void api.delete(`/account/notifications/${n.id}`).catch(() => {
+      setFailed('Não foi possível eliminar. Tenta de novo daqui a pouco.')
+      void load()
+    })
   }
 
   const clearAll = () => {
@@ -156,7 +162,10 @@ export function NotificationBell({
     setItems([])
     setUnread(0)
     setConfirmClear(false)
-    void api.delete('/account/notifications').catch(() => void load())
+    void api.delete('/account/notifications').catch(() => {
+      setFailed('Não foi possível eliminar. Tenta de novo daqui a pouco.')
+      void load()
+    })
   }
 
   const shown = (items ?? []).filter((n) => matches(n, filter))
@@ -295,6 +304,7 @@ export function NotificationBell({
                 ))}
               </ul>
             )}
+            {failed && <p className="border-t border-onyx/10 px-4 py-2.5 font-subtitle text-xs text-red-700">{failed}</p>}
             {items && items.length > 0 && (
               <div className="flex items-center justify-end gap-3 border-t border-onyx/10 px-4 py-2.5">
                 {confirmClear ? (
