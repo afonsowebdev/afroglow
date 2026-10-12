@@ -1,7 +1,10 @@
 import { motion } from 'motion/react'
+import { useNavigate } from 'react-router-dom'
+import { ArrowUpRight } from 'lucide-react'
 import { ImageStreamHero, type StreamImage } from '@/components/ui/image-stream-hero'
-import { MotionButton } from '@/components/ui/motion-button'
-import { instagramDmUrl, siteConfig, useWhatsapp } from '@/lib/site-config'
+import { ButtonWithIcon } from '@/components/ui/button-with-icon'
+import { useOpeningStatus } from '@/lib/opening-hours'
+import { instagramDmUrl, siteConfig, useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 
 const HERO_PHOTOS = [
   '/images/hero/hero-1.jpg',
@@ -16,8 +19,32 @@ const PLACEHOLDER_IMAGES: StreamImage[] = Array.from({ length: 6 }, (_, index) =
   alt: 'Knotless braids com pontas cacheadas',
 }))
 
-const pill =
-  'flex h-11 items-center gap-2 rounded-full border-[1.5px] border-onyx/15 bg-white/60 px-4 font-subtitle text-sm font-medium text-onyx transition-colors hover:border-onyx/40'
+type Channel = { icon: string; name: string; detail: string; href: string; external: boolean }
+
+/** One way to reach us: the icon, the channel and its handle or address, and an arrow that turns on hover. */
+function ChannelLink({ channel }: { channel: Channel }) {
+  return (
+    <a
+      href={channel.href}
+      target={channel.external ? '_blank' : undefined}
+      rel={channel.external ? 'noreferrer' : undefined}
+      className="group flex min-w-0 flex-1 items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-onyx/[0.04] sm:flex-col sm:items-start sm:gap-4 sm:p-5"
+    >
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-onyx text-lg text-white">
+        <i className={channel.icon} aria-hidden="true" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-subtitle text-sm font-medium text-onyx">{channel.name}</span>
+        <span className="block truncate font-subtitle text-xs text-onyx/55">{channel.detail}</span>
+      </span>
+      <ArrowUpRight
+        size={18}
+        className="shrink-0 text-onyx/40 transition-all duration-300 group-hover:rotate-45 group-hover:text-onyx sm:absolute sm:right-4 sm:top-5"
+        aria-hidden="true"
+      />
+    </a>
+  )
+}
 
 const reveal = (delay: number) => ({
   initial: { opacity: 0, y: 24 },
@@ -28,6 +55,26 @@ const reveal = (delay: number) => ({
 
 export default function Contact() {
   const whatsapp = useWhatsapp()
+  const business = useBusinessInfo()
+  const { status } = useOpeningStatus(business.openingHours)
+  const navigate = useNavigate()
+
+  const channels: Channel[] = [
+    ...(whatsapp.enabled
+      ? [
+          {
+            icon: 'bx bxl-whatsapp',
+            name: 'WhatsApp',
+            detail: business.phone || 'Enviar mensagem',
+            href: whatsapp.url('Olá! Gostaria de marcar uma sessão de tranças.'),
+            external: true,
+          },
+        ]
+      : []),
+    { icon: 'bx bxl-instagram', name: 'Instagram', detail: `@${siteConfig.instagramHandle}`, href: instagramDmUrl(), external: true },
+    { icon: 'bx bx-envelope', name: 'Email', detail: siteConfig.email, href: `mailto:${siteConfig.email}`, external: false },
+  ]
+
   return (
     <section
       id="contacto"
@@ -59,9 +106,9 @@ export default function Contact() {
         {...reveal(0)}
         className="relative z-10 order-1 mx-auto flex w-full max-w-xl flex-col items-center text-center"
       >
-        <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Contacto</p>
-        <h2 className="mt-2 font-logo text-4xl sm:text-5xl">Pronta para a tua transformação?</h2>
-        <p className="mt-4 max-w-md font-subtitle text-base font-light leading-relaxed text-muted-dark">
+        <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-onyx/50">Contacto</p>
+        <h2 className="mt-2 font-logo text-4xl text-onyx sm:text-5xl">Pronta para a tua transformação?</h2>
+        <p className="mt-4 max-w-md font-subtitle text-base font-light leading-relaxed text-onyx/60">
           Marca online em poucos minutos ou fala connosco. Ajudamos-te a escolher o estilo certo para ti.
         </p>
       </motion.div>
@@ -70,39 +117,32 @@ export default function Contact() {
         {...reveal(0.1)}
         className="relative z-10 order-3 mx-auto flex w-full max-w-xl flex-col items-center text-center sm:mt-9"
       >
-        <MotionButton
-          label="Agendar a minha sessão"
-          icon={<i className="bx bx-calendar-plus text-lg" aria-hidden="true" />}
-          href="/agendar"
-        />
+        <ButtonWithIcon solid large label="Agendar a minha sessão" onClick={() => navigate('/agendar')} />
 
-        <div className="mt-8 flex w-full items-center gap-3 font-subtitle text-xs text-muted-dark">
-          <span className="h-px flex-1 bg-gold/25" aria-hidden="true" />
+        <div className="mt-10 flex w-full items-center gap-3 font-subtitle text-xs text-onyx/55">
+          <span className="h-px flex-1 bg-onyx/15" aria-hidden="true" />
           Preferes falar primeiro?
-          <span className="h-px flex-1 bg-gold/25" aria-hidden="true" />
+          <span className="h-px flex-1 bg-onyx/15" aria-hidden="true" />
         </div>
 
-        <div className="mt-5 flex flex-wrap justify-center gap-2">
-          {whatsapp.enabled && (
-            <a
-              href={whatsapp.url('Olá! Gostaria de marcar uma sessão de tranças.')}
-              target="_blank"
-              rel="noreferrer"
-              className={pill}
-            >
-              <i className="bx bxl-whatsapp text-lg text-gold-ink" aria-hidden="true" />
-              WhatsApp
-            </a>
-          )}
-          <a href={instagramDmUrl()} target="_blank" rel="noreferrer" className={pill}>
-            <i className="bx bxl-instagram text-lg text-gold-ink" aria-hidden="true" />
-            Instagram
-          </a>
-          <a href={`mailto:${siteConfig.email}`} className={pill}>
-            <i className="bx bx-envelope text-lg text-gold-ink" aria-hidden="true" />
-            Email
-          </a>
+        {/* The ways to reach us, as one frosted card: side by side from `sm`, stacked on phones. */}
+        <div className="mt-5 flex w-full flex-col divide-y divide-onyx/10 overflow-hidden rounded-3xl border border-onyx/10 bg-white/75 backdrop-blur-md sm:flex-row sm:divide-x sm:divide-y-0 [&>a]:relative">
+          {channels.map((channel) => (
+            <ChannelLink key={channel.name} channel={channel} />
+          ))}
         </div>
+
+        {status && (
+          <p className="mt-6 inline-flex items-center gap-2.5 font-subtitle text-xs text-onyx/60">
+            <span className="relative flex size-2">
+              {status.open && (
+                <span className="absolute inset-0 animate-ping rounded-full bg-emerald-500/70 motion-reduce:animate-none" />
+              )}
+              <span className={`relative size-2 rounded-full ${status.open ? 'bg-emerald-500' : 'bg-onyx/30'}`} />
+            </span>
+            {status.text}
+          </p>
+        )}
       </motion.div>
     </section>
   )
