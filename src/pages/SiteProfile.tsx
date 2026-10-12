@@ -10,7 +10,7 @@ import { bookPath } from '@/lib/app-mode'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { formatPrice } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { bookingName, bookingPrice } from '@/lib/pricing'
+import { bookingName, bookingPrice, bookingExtras } from '@/lib/pricing'
 
 /** Small caps label used over every block of the page. */
 const label = 'font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-onyx/50'
@@ -183,7 +183,7 @@ export default function SiteProfile() {
               </div>
               <div className="min-w-0 flex-1 sm:border-l sm:border-white/15 sm:pl-8">
                 <p className="font-subtitle text-xl font-medium">{next.service.name}</p>
-                {next.optionLabel && <p className="font-subtitle text-sm opacity-70">{next.optionLabel}</p>}
+                {bookingExtras(next) && <p className="font-subtitle text-sm opacity-70">{bookingExtras(next)}</p>}
                 <p className="mt-1 font-subtitle text-sm opacity-70">
                   {longDay(next.slot.startsAt)} às {timeLabel(next.slot.startsAt)}
                   {next.service.durationLabel ? ` · ${next.service.durationLabel}` : ''}

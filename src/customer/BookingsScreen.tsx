@@ -13,7 +13,7 @@ import { useBookingAlerts } from './booking-alerts'
 import { Fact, Facts, labelClass, panelClass, StatusDot } from './panel'
 import { SlotPicker } from './SlotPicker'
 import { usePullToRefresh } from './usePullToRefresh'
-import { bookingPrice } from '@/lib/pricing'
+import { bookingPrice, bookingExtras } from '@/lib/pricing'
 
 const STATUS: Record<Booking['status'], { label: string; chip: string; hint: string }> = {
   PENDING: {
@@ -67,7 +67,7 @@ function BookingCard({ booking, onOpen, isNew }: { booking: Booking; onOpen: () 
       <p className="mt-2 truncate font-subtitle text-xl font-semibold tracking-tight text-onyx">
         {booking.service.name}
       </p>
-      {booking.optionLabel && <p className="mt-0.5 font-subtitle text-sm text-muted-dark">{booking.optionLabel}</p>}
+      {bookingExtras(booking) && <p className="mt-0.5 font-subtitle text-sm text-muted-dark">{bookingExtras(booking)}</p>}
       <Facts columns="2fr 1fr">
         <Fact label="Data">{longDay(booking.slot.startsAt)}</Fact>
         <Fact label="Hora">{timeLabel(booking.slot.startsAt)}</Fact>

@@ -1,4 +1,5 @@
 import { formatPrice, type Booking, type Pricing, type Service } from '@/lib/types'
+import { colorLabel } from '@/lib/braid-colors'
 
 /*
  * Prices by length and/or parting (see the server's lib/pricing.ts). A hairstyle with a price table has its
@@ -41,9 +42,13 @@ export function servicePriceLabel(service: Pick<Service, 'pricing' | 'priceCents
 /** What a booking cost: its own price when it was booked with options, the service's otherwise. */
 export const bookingPrice = (b: Pick<Booking, 'priceCents' | 'service'>) => b.priceCents ?? b.service.priceCents
 
-/** "Box Braids · Longa · Finas", or just the name. */
-export const bookingName = (b: Pick<Booking, 'optionLabel' | 'service'>) =>
-  b.optionLabel ? `${b.service.name} · ${b.optionLabel}` : b.service.name
+/** "Box Braids · Finas · Cor 27 (Loiro)", or just the name. */
+export const bookingName = (b: Pick<Booking, 'optionLabel' | 'colorCode' | 'service'>) =>
+  [b.service.name, b.optionLabel, colorLabel(b.colorCode)].filter(Boolean).join(' · ')
+
+/** "Finas · Cor 27 (Loiro)": what was chosen for a booking, or null. */
+export const bookingExtras = (b: Pick<Booking, 'optionLabel' | 'colorCode'>) =>
+  [b.optionLabel, colorLabel(b.colorCode)].filter(Boolean).join(' · ') || null
 
 /** Every length × parting pair of a table (an empty string where a list is empty). */
 export function combinations(p: Pick<Pricing, 'lengths' | 'partings'>) {

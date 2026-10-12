@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { colorLabel } from './braid-colors.js'
 
 /*
  * Prices by length and/or parting for a hairstyle. Either list may be empty (e.g. cornrows priced by parting
@@ -67,6 +68,8 @@ export function bookingPrice(b: { priceCents: number | null; service: { priceCen
   return b.priceCents ?? b.service.priceCents
 }
 
-export function bookingServiceName(b: { optionLabel: string | null; service: { name: string } }) {
-  return b.optionLabel ? `${b.service.name} (${b.optionLabel})` : b.service.name
+/** "Box Braids (Finas · Cor 27 (Loiro))": the hairstyle with what was chosen for it. */
+export function bookingServiceName(b: { optionLabel: string | null; colorCode?: string | null; service: { name: string } }) {
+  const extras = [b.optionLabel, colorLabel(b.colorCode)].filter(Boolean).join(' · ')
+  return extras ? `${b.service.name} (${extras})` : b.service.name
 }

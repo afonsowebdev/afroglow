@@ -26,7 +26,7 @@ bookingsRouter.post('/', requireCustomer, async (req, res) => {
     return
   }
 
-  const { slotId, serviceId, length, parting, customerName, customerPhone, notes } = parsed.data
+  const { slotId, serviceId, length, parting, color, customerName, customerPhone, notes } = parsed.data
   const customerId = req.customerId!
 
   try {
@@ -56,6 +56,7 @@ bookingsRouter.post('/', requireCustomer, async (req, res) => {
           notes,
           optionLabel: choice.optionLabel,
           priceCents: choice.priceCents,
+          colorCode: color,
         },
       })
 
@@ -134,7 +135,7 @@ adminBookingsRouter.post('/manual', async (req, res) => {
     res.status(400).json({ error: 'Dados da marcação inválidos.' })
     return
   }
-  const { startsAt, serviceId, length, parting, customerId, customerName, customerPhone, notes } = parsed.data
+  const { startsAt, serviceId, length, parting, color, customerId, customerName, customerPhone, notes } = parsed.data
   if (!customerId && (!customerName || !customerPhone)) {
     res.status(400).json({ error: 'Indica o nome e o telemóvel do cliente.' })
     return
@@ -180,6 +181,7 @@ adminBookingsRouter.post('/manual', async (req, res) => {
           notes,
           optionLabel: choice.optionLabel,
           priceCents: choice.priceCents,
+          colorCode: color,
           status: 'ACCEPTED',
         },
         include: { slot: true, service: true },

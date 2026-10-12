@@ -110,6 +110,8 @@ model Booking {
   /// The options chosen for this booking, e.g. "Longa · Finas", and the price they came to.
   optionLabel   String?
   priceCents    Int?
+  /// The braiding-hair colour chosen, by its code (lib/braid-colors), e.g. "27".
+  colorCode     String?
   status        BookingStatus    @default(PENDING)
   reminderSentAt DateTime?
   createdAt     DateTime         @default(now())

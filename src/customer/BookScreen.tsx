@@ -18,11 +18,60 @@ import { VelocityRow } from '@/components/ui/velocity-marquee'
 import { ButtonWithIcon } from '@/components/ui/button-with-icon'
 import { ServicePreview } from './ServicePreview'
 import { SlotPicker } from './SlotPicker'
+import { BRAID_COLORS, colorLabel } from '@/lib/braid-colors'
 
 const STEPS = ['Modelo', 'Data', 'Confirmar'] as const
 
 const fieldClass =
   'w-full rounded-xl border-2 border-onyx/30 bg-white px-4 py-3.5 font-subtitle text-onyx outline-none focus-visible:border-onyx'
+
+/** The braiding-hair colours as swatches with their code; the chosen one is ringed and named below. */
+function ColorPicker({ value, onChange }: { value: string | null; onChange: (code: string) => void }) {
+  const chosen = BRAID_COLORS.find((c) => c.code === value)
+  return (
+    <div className="mt-4">
+      <div className="flex flex-wrap gap-3" role="radiogroup" aria-label="Cor">
+        {BRAID_COLORS.map((c) => {
+          const on = c.code === value
+          return (
+            <button
+              key={c.code}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              aria-label={`Cor ${c.code}, ${c.name}`}
+              title={`${c.code} · ${c.name}`}
+              onClick={() => {
+                void tap()
+                onChange(c.code)
+              }}
+              className="flex w-14 flex-col items-center gap-1.5"
+            >
+              <span
+                className={`size-12 rounded-full shadow-inner ring-offset-2 ring-offset-white transition-shadow ${
+                  on ? 'ring-2 ring-onyx' : 'ring-1 ring-onyx/15'
+                }`}
+                style={{ background: `radial-gradient(circle at 35% 30%, ${c.hex}bb, ${c.hex} 60%)` }}
+              />
+              <span className={`font-subtitle text-xs tabular-nums ${on ? 'font-semibold text-onyx' : 'text-onyx/60'}`}>
+                {c.code}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+      <p className="mt-3 font-subtitle text-sm text-onyx">
+        {chosen ? (
+          <>
+            Cor <strong className="font-semibold">{chosen.code}</strong> · {chosen.name}
+          </>
+        ) : (
+          <span className="text-onyx/55">Nenhuma cor escolhida.</span>
+        )}
+      </p>
+    </div>
+  )
+}
 
 /** One row of options (lengths or partings) as chips; the chosen one is filled. */
 function OptionChips({
@@ -124,6 +173,8 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
   // Length and parting, for hairstyles priced by them (see lib/pricing).
   const [length, setLength] = useState<string | null>(null)
   const [parting, setParting] = useState<string | null>(null)
+  // The braiding-hair colour, by code (lib/braid-colors).
+  const [color, setColor] = useState<string | null>(null)
   const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -185,7 +236,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
     !done &&
     Boolean(services && slots) &&
     ((step === 0 && Boolean(service)) ||
-      (step === 1 && optionsDone && Boolean(slot) && (slots?.length ?? 0) > 0) ||
+      (step === 1 && optionsDone && Boolean(color) && Boolean(slot) && (slots?.length ?? 0) > 0) ||
       (step === 2 && Boolean(customer) && phone.trim().length >= 6))
   useHideNav(ctaVisible)
 
@@ -199,6 +250,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
         serviceId: service.id,
         length: length ?? undefined,
         parting: parting ?? undefined,
+        color: color ?? undefined,
         customerName: customer.name,
         customerPhone: phone.trim(),
         notes: notes.trim() || undefined,
@@ -509,6 +561,15 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                       </p>
                     </section>
                   )}
+                  {service && (
+                    <section className="mb-10">
+                      <h2 className="font-subtitle text-xl text-onyx">Que cor queres?</h2>
+                      <p className="mt-1 font-subtitle text-sm font-light text-onyx/60">
+                        Escolhe pelo código da cor do cabelo.
+                      </p>
+                      <ColorPicker value={color} onChange={setColor} />
+                    </section>
+                  )}
                   <h2 className="font-subtitle text-xl text-onyx">Quando queres vir?</h2>
                   {slots.length === 0 ? (
                     <div className="mt-8 text-center">
@@ -548,7 +609,11 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                       <span className="font-subtitle text-xs text-muted-dark">Por confirmar</span>
                     </div>
                     <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">{service.name}</p>
-                    {chosenLabel && <p className="mt-0.5 font-subtitle text-sm text-muted-dark">{chosenLabel}</p>}
+                    {(chosenLabel || color) && (
+                      <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
+                        {[chosenLabel, colorLabel(color)].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
 
                     <Facts columns="2fr 1fr">
                       <Fact label="Data">{longDay(slot.startsAt)}</Fact>
@@ -648,6 +713,12 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                     <dt className="text-onyx/55">Modelo</dt>
                     <dd className="mt-0.5 text-base font-medium text-onyx">{service?.name ?? 'Por escolher'}</dd>
                   </div>
+                  {service && (
+                    <div>
+                      <dt className="text-onyx/55">Cor</dt>
+                      <dd className="mt-0.5 text-base font-medium text-onyx">{colorLabel(color) ?? 'Por escolher'}</dd>
+                    </div>
+                  )}
                   {service && options.hasOptions && (
                     <div>
                       <dt className="text-onyx/55">Opções</dt>
@@ -689,6 +760,8 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                     ? 'Escolhe um modelo para continuar.'
                     : step === 1 && !optionsDone
                       ? 'Escolhe o comprimento e a repartição.'
+                      : step === 1 && !color
+                      ? 'Escolhe a cor.'
                       : step === 1 && !slot
                       ? 'Escolhe o dia e a hora.'
                       : step === 2 && !customer

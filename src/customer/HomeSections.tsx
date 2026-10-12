@@ -13,7 +13,7 @@ import type { AvailabilitySlot, Booking, Service } from '@/lib/types'
 import { useBookingAlerts } from './booking-alerts'
 import { ServicePreview } from './ServicePreview'
 import { dayKey, dayParts, longDay, timeLabel } from './dates'
-import { servicePriceLabel } from '@/lib/pricing'
+import { servicePriceLabel, bookingExtras } from '@/lib/pricing'
 
 /** Time-of-day greeting plus one line of what matters right now (a decision to look at, or free slots). */
 export function Greeting() {
@@ -270,7 +270,7 @@ export function WelcomeCard() {
         </span>
       </div>
       <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">{next.service.name}</p>
-{next.optionLabel && <p className="font-subtitle text-sm text-muted-dark">{next.optionLabel}</p>}
+{bookingExtras(next) && <p className="font-subtitle text-sm text-muted-dark">{bookingExtras(next)}</p>}
 
       <dl className="mt-4 grid grid-cols-[2fr_1fr] gap-4 border-t border-onyx/15 pt-4">
         <div>

@@ -4,6 +4,7 @@ import { api, ApiError } from '@/lib/api'
 import { formatPrice, type Service } from '@/lib/types'
 import type { AdminCustomer } from '@/pages/admin/admin-types'
 import { choiceComplete, optionsOf, priceFor, servicePriceLabel } from '@/lib/pricing'
+import { BRAID_COLORS } from '@/lib/braid-colors'
 
 function localDateValue(date: Date) {
   const m = String(date.getMonth() + 1).padStart(2, '0')
@@ -40,6 +41,7 @@ export function ManualBookingSheet({
   // For hairstyles priced by length and/or parting.
   const [length, setLength] = useState('')
   const [parting, setParting] = useState('')
+  const [color, setColor] = useState('')
   const [notes, setNotes] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -90,6 +92,7 @@ export function ManualBookingSheet({
         serviceId,
         length: length || undefined,
         parting: parting || undefined,
+        color: color || undefined,
         ...(mode === 'existing' && picked
           ? { customerId: picked.id }
           : { customerName: name.trim(), customerPhone: phone.trim() }),
@@ -217,6 +220,17 @@ export function ManualBookingSheet({
                 {s.name} · {servicePriceLabel(s)}
               </option>
             ))}
+        </select>
+      </SheetField>
+
+      <SheetField label="Cor (opcional)">
+        <select value={color} onChange={(e) => setColor(e.target.value)} className={sheetFieldClass}>
+          <option value="">Sem cor indicada</option>
+          {BRAID_COLORS.map((c) => (
+            <option key={c.code} value={c.code}>
+              {c.code} · {c.name}
+            </option>
+          ))}
         </select>
       </SheetField>
 

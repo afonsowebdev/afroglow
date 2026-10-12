@@ -42,6 +42,8 @@ export interface Booking {
   /** The options chosen ("Longa · Finas") and the price they came to; null for bookings without options. */
   optionLabel?: string | null
   priceCents?: number | null
+  /** The braiding-hair colour chosen, by code (lib/braid-colors). */
+  colorCode?: string | null
   status: BookingStatus
   createdAt: string
   updatedAt: string

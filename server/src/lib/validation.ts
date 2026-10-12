@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { pricingSchema } from './pricing.js'
+import { BRAID_COLORS } from './braid-colors.js'
 
 // Emails are case-insensitive in practice; normalise so "Maria@x.com" at signup
 // and "maria@x.com" at login are the same account.
@@ -45,6 +46,8 @@ export const createBookingSchema = z.object({
   // The options picked when the hairstyle is priced by length and/or parting.
   length: z.string().trim().max(30).optional(),
   parting: z.string().trim().max(30).optional(),
+  // The braiding-hair colour, by code; required for customers' bookings.
+  color: z.string().refine((c) => c in BRAID_COLORS, 'Cor inválida.'),
   customerName: z.string().trim().min(2).max(100),
   customerPhone: z.string().trim().min(6).max(30),
   notes: z.string().trim().max(500).optional(),
@@ -136,6 +139,7 @@ export const manualBookingSchema = z.object({
   serviceId: z.string().min(1),
   length: z.string().trim().max(30).optional(),
   parting: z.string().trim().max(30).optional(),
+  color: z.string().refine((c) => c in BRAID_COLORS, 'Cor inválida.').optional(),
   // Either an existing client, or the name + phone of someone without an account.
   customerId: z.string().min(1).optional(),
   customerName: z.string().trim().min(2).max(100).optional(),

@@ -11,6 +11,7 @@ import { TestimonialForm } from './TestimonialForm'
 import { dayParts, longDay, timeLabel } from './dates'
 import { Fact, Facts, labelClass, panelClass, StatusDot } from './panel'
 import { useProfile } from './use-profile'
+import { bookingExtras } from '@/lib/pricing'
 
 type TabId = 'resumo' | 'historico' | 'testemunho'
 const TABS: Array<{ id: TabId; label: string }> = [
@@ -273,7 +274,7 @@ export default function ProfileScreen() {
                               {parts.day} {parts.month}
                             </p>
                             <p className="mt-0.5 font-subtitle text-base font-semibold text-onyx">{b.service.name}</p>
-{b.optionLabel && <p className="font-subtitle text-sm text-muted-dark">{b.optionLabel}</p>}
+{bookingExtras(b) && <p className="font-subtitle text-sm text-muted-dark">{bookingExtras(b)}</p>}
                             <button
                               type="button"
                               onClick={() => {
