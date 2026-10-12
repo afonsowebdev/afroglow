@@ -24,7 +24,7 @@ import HomeScreen from './HomeScreen'
 import { BookingAlertsProvider, useBookingAlerts } from './booking-alerts'
 import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
 import { NavVisibilityProvider, useAutoHideNav, useNavForcedHidden, useNavHidden } from './nav-visibility'
-import ProfileScreen from './ProfileScreen'
+import SiteProfile from '@/pages/SiteProfile'
 import SettingsScreen from './SettingsScreen'
 import { NotificationBell } from '@/components/layout/NotificationBell'
 
@@ -215,7 +215,7 @@ function CustomerShell() {
               path="/conta"
               element={
                 <RequireAccount>
-                  <ProfileScreen />
+                  <SiteProfile app />
                 </RequireAccount>
               }
             />
@@ -233,8 +233,8 @@ function CustomerShell() {
         </motion.div>
       </AnimatePresence>
 
-      {/* The bell, top right on every screen (the profile has it beside its settings button). */}
-      {customer && !location.pathname.startsWith('/conta') && (
+      {/* The bell, top right on every screen. */}
+      {customer && (
         <div className="fixed right-4 top-[calc(0.75rem+env(safe-area-inset-top))] z-50">
           <NotificationBell tone={overHero ? 'onDark' : 'onLight'} className="size-11" plainBadge />
         </div>

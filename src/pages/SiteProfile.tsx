@@ -50,7 +50,8 @@ function SideLink({
  * column on the left; the numbers, the next session, the history and the testimonial on the right. Black and
  * white only. Same data as the app's profile screen (useProfile); the app keeps its own design.
  */
-export default function SiteProfile() {
+/** `app`: inside the customer app (room for the status bar and the floating bell, the app's tab bar below). */
+export default function SiteProfile({ app = false }: { app?: boolean } = {}) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const { customer, logout } = useCustomerAuth()
@@ -85,7 +86,11 @@ export default function SiteProfile() {
   ]
 
   return (
-    <main className="mx-auto grid max-w-6xl gap-12 px-5 pb-32 pt-6 sm:px-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-16 lg:pt-10">
+    <main
+      className={`mx-auto grid max-w-6xl gap-12 px-5 pb-32 sm:px-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-16 ${
+        app ? 'pt-[calc(4.5rem+env(safe-area-inset-top))]' : 'pt-6 lg:pt-10'
+      }`}
+    >
       {/* Who the customer is, and the account links. Phones: the links move to the end of the page. */}
       <aside className="contents lg:sticky lg:top-28 lg:block lg:self-start">
         <div className="order-1 flex items-center gap-4 lg:flex-col lg:items-start">
