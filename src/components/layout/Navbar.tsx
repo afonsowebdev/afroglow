@@ -243,7 +243,7 @@ export default function Navbar({
 
   // The brand's "A" emblem, then the wordmark: white over the video, black over the light sections. On wide screens it
   // sits inside the one header bar; on smaller ones in a glass pill of its own, beside the tab bar.
-  const logo = (glass: boolean) => (
+  const logo = (
     <a
       href={onHome ? '#top' : '/'}
       onClick={(e) => {
@@ -252,10 +252,10 @@ export default function Navbar({
         navigate('/')
       }}
       aria-label="AFROGLOW, voltar ao início"
-      className={`pointer-events-auto flex items-center gap-3 rounded-full ${glass ? 'liquid-glass h-[56px] pe-5 ps-2' : 'h-9 pe-3 ps-0.5'}`}
+      className={`pointer-events-auto flex items-center gap-3 rounded-full h-9 pe-3 ps-0.5`}
     >
       <span
-        className={`flex shrink-0 ${glass ? 'size-10' : 'size-8'} items-center justify-center rounded-full logo-weight font-logo text-[1.35rem] leading-none shadow-[0_1px_4px_rgba(0,0,0,0.18)] transition-colors duration-500 ${
+        className={`flex shrink-0 size-8 items-center justify-center rounded-full logo-weight font-logo text-[1.35rem] leading-none shadow-[0_1px_4px_rgba(0,0,0,0.18)] transition-colors duration-500 ${
           headerOverHero ? 'bg-[#ffffff] text-[#111111]' : 'bg-onyx text-white'
         }`}
         aria-hidden="true"
@@ -263,11 +263,29 @@ export default function Navbar({
         <span className="translate-y-[2px]">A</span>
       </span>
       <span
-        className={`translate-y-[2px] logo-weight font-logo leading-none tracking-[0.14em] ${glass ? 'text-[1.35rem]' : 'text-[1.1rem]'} transition-colors duration-500 ${
+        className={`translate-y-[2px] logo-weight font-logo leading-none tracking-[0.14em] text-[1.1rem] transition-colors duration-500 ${
           headerOverHero ? 'text-[#ffffff]' : 'text-onyx'
         }`}
       >
         AFROGLOW
+      </span>
+    </a>
+  )
+
+  // Phones and tablets: just the "A", gold on white (white on gold in the dark theme).
+  const mark = (
+    <a
+      href={onHome ? '#top' : '/'}
+      onClick={(e) => {
+        if (onHome) return
+        e.preventDefault()
+        navigate('/')
+      }}
+      aria-label="AFROGLOW, voltar ao início"
+      className="pointer-events-auto flex size-[56px] items-center justify-center rounded-full bg-[#ffffff] font-logo text-[1.75rem] leading-none text-[#c9a84c] shadow-[0_2px_10px_rgba(0,0,0,0.16)] logo-weight dark:bg-[#c9a84c] dark:text-[#ffffff]"
+    >
+      <span className="translate-y-[2px]" aria-hidden="true">
+        A
       </span>
     </a>
   )
@@ -280,7 +298,7 @@ export default function Navbar({
         className="site-header pointer-events-none fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6"
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          <div className="lg:hidden">{logo(true)}</div>
+          <div className="lg:hidden">{mark}</div>
 
           {/* Wide screens: a glass bar with the logo and the sections (centred on the page), then "Agendar" and the
               account, each in its own glass beside it. Always 48px tall. */}
@@ -288,7 +306,7 @@ export default function Navbar({
             <div
               className="liquid-glass pointer-events-auto flex h-12 min-w-0 flex-1 items-center rounded-full px-2"
             >
-              {logo(false)}
+              {logo}
             </div>
             <DesktopNav
               links={DESKTOP_LINKS}
