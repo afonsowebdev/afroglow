@@ -232,7 +232,7 @@ export default function SettingsScreen() {
 
   return (
     <main className="pb-40">
-      <header className="px-5 pb-1 pt-[calc(1.25rem+env(safe-area-inset-top))]">
+      <header className="px-5 pb-1 pt-[calc(4.5rem+env(safe-area-inset-top))]">
         <div className="mx-auto max-w-2xl">
           <button
             type="button"

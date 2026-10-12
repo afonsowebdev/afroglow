@@ -160,6 +160,7 @@ export function FloatingActionMenu({
   dot = false,
   direction = 'up',
   compact = false,
+  small = false,
   PlusIcon = Plus,
 }: {
   actions: MenuAction[]
@@ -169,6 +170,8 @@ export function FloatingActionMenu({
   direction?: 'up' | 'down'
   /** The small round button used in the website header instead of the big glass one. */
   compact?: boolean
+  /** The glass button at 48px instead of 56px (the app's top row, beside the bell). */
+  small?: boolean
   /** A red dot on the button: something in the list needs attention. */
   dot?: boolean
   hidden?: boolean
@@ -284,12 +287,14 @@ export function FloatingActionMenu({
             compact
               ? 'flex size-9 items-center justify-center rounded-full border border-onyx/20 text-onyx/60 transition-colors duration-300 hover:text-onyx'
               : cn(
-                  'liquid-glass flex size-14 items-center justify-center rounded-full transition-colors duration-500 ease-in-out',
+                  'liquid-glass flex items-center justify-center rounded-full',
+                  small ? 'size-12' : 'size-14',
+                  'transition-colors duration-500 ease-in-out',
                   tone === 'onDark' ? 'text-[#ffffff]' : 'text-onyx',
                 )
           }
         >
-          <PlusIcon size={compact ? 18 : 24} strokeWidth={2.6} />
+          <PlusIcon size={compact ? 18 : small ? 22 : 24} strokeWidth={2.6} />
         </motion.button>
         {dot && !open ? (
           <span

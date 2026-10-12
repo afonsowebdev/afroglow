@@ -23,7 +23,7 @@ import BookScreen from './BookScreen'
 import HomeScreen from './HomeScreen'
 import { BookingAlertsProvider, useBookingAlerts } from './booking-alerts'
 import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
-import { NavVisibilityProvider, useAutoHideNav, useNavForcedHidden, useNavHidden } from './nav-visibility'
+import { NavVisibilityProvider, useAutoHideNav, useNavHidden } from './nav-visibility'
 import SiteProfile from '@/pages/SiteProfile'
 import SettingsScreen from './SettingsScreen'
 import { NotificationBell } from '@/components/layout/NotificationBell'
@@ -65,7 +65,6 @@ export default function CustomerApp() {
 
 function CustomerShell() {
   const navHidden = useNavHidden()
-  const menuForcedHidden = useNavForcedHidden()
   const { unseen } = useBookingAlerts()
   const location = useLocation()
   const navigate = useNavigate()
@@ -233,15 +232,36 @@ function CustomerShell() {
         </motion.div>
       </AnimatePresence>
 
-      {/* The bell, top right on every screen. */}
-      {customer && (
-        <div className="fixed right-4 top-[calc(0.75rem+env(safe-area-inset-top))] z-50">
-          <NotificationBell tone={overHero ? 'onDark' : 'onLight'} className="size-11" plainBadge />
+      {/* Top row on every screen: the "A" on the left (home), the bell and the menu on the right. */}
+      <div className="pointer-events-none fixed inset-x-0 top-[calc(0.75rem+env(safe-area-inset-top))] z-50 flex items-start justify-between px-4">
+        <button
+          type="button"
+          onClick={() => {
+            void tap()
+            navigate('/')
+            window.scrollTo({ top: 0 })
+          }}
+          aria-label="AFROGLOW, início"
+          className="pointer-events-auto flex size-12 items-center justify-center rounded-full bg-[#ffffff] font-logo text-[1.6rem] leading-none text-[#c9a84c] shadow-[0_2px_10px_rgba(0,0,0,0.16)] logo-weight dark:bg-[#c9a84c] dark:text-[#ffffff]"
+        >
+          <span className="translate-y-[2px]" aria-hidden="true">
+            A
+          </span>
+        </button>
+        <div className="pointer-events-auto flex items-start gap-2.5">
+          {customer && <NotificationBell tone={overHero ? 'onDark' : 'onLight'} className="size-12" plainBadge />}
+          <FloatingActionMenu
+            actions={menuActions}
+            direction="down"
+            small
+            tone={overHero ? 'onDark' : 'onLight'}
+            PlusIcon={Plus}
+          />
         </div>
-      )}
+      </div>
 
-      {/* Tab bar with the round menu button beside it. */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center gap-2.5 px-3">
+      {/* The tab bar, on its own at the bottom. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center px-3">
         <div className={navHidden ? 'pointer-events-none' : 'pointer-events-auto'}>
           <BottomNavBar
             glass
@@ -265,12 +285,6 @@ function CustomerShell() {
             }))}
           />
         </div>
-        <FloatingActionMenu
-          actions={menuActions}
-          hidden={menuForcedHidden}
-          tone={overHero ? 'onDark' : 'onLight'}
-          PlusIcon={Plus}
-        />
       </div>
     </div>
   )

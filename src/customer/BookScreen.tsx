@@ -329,7 +329,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
 
   return (
     <main
-      className={`px-5 pb-32 ${site ? 'pt-10 sm:pt-14 lg:pt-20' : 'pt-[calc(1.25rem+env(safe-area-inset-top))]'}`}
+      className={`px-5 pb-32 ${site ? 'pt-10 sm:pt-14 lg:pt-20' : 'pt-[calc(4.5rem+env(safe-area-inset-top))]'}`}
     >
       {/* Website: the sliding AFROGLOW behind the page, as on the home page's sections. */}
       {site && (

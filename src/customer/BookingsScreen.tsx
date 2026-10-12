@@ -196,7 +196,7 @@ export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}
   const list = tab === 'next' ? next : past
 
   return (
-    <main className="px-5 pb-40 pt-[calc(1.25rem+env(safe-area-inset-top))]" {...handlers}>
+    <main className="px-5 pb-40 pt-[calc(4.5rem+env(safe-area-inset-top))]" {...handlers}>
       {indicator}
       <div className={wide ? 'mx-auto max-w-6xl sm:px-3' : 'mx-auto max-w-md'}>
         <h1 className="font-subtitle font-semibold tracking-tight text-4xl text-onyx">As minhas marcações</h1>

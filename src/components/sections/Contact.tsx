@@ -1,6 +1,5 @@
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowUpRight } from 'lucide-react'
 import { ImageStreamHero, type StreamImage } from '@/components/ui/image-stream-hero'
 import { ButtonWithIcon } from '@/components/ui/button-with-icon'
 import { useOpeningStatus } from '@/lib/opening-hours'
@@ -19,32 +18,10 @@ const PLACEHOLDER_IMAGES: StreamImage[] = Array.from({ length: 6 }, (_, index) =
   alt: 'Knotless braids com pontas cacheadas',
 }))
 
-type Channel = { icon: string; name: string; detail: string; href: string; external: boolean }
+type Channel = { icon: string; name: string; href: string; external: boolean }
 
-/** One way to reach us: the icon, the channel and its handle or address, and an arrow that turns on hover. */
-function ChannelLink({ channel }: { channel: Channel }) {
-  return (
-    <a
-      href={channel.href}
-      target={channel.external ? '_blank' : undefined}
-      rel={channel.external ? 'noreferrer' : undefined}
-      className="group flex min-w-0 flex-1 items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-onyx/[0.04] sm:flex-col sm:items-start sm:gap-4 sm:p-5"
-    >
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-onyx text-lg text-white">
-        <i className={channel.icon} aria-hidden="true" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block font-subtitle text-sm font-medium text-onyx">{channel.name}</span>
-        <span className="block truncate font-subtitle text-xs text-onyx/55">{channel.detail}</span>
-      </span>
-      <ArrowUpRight
-        size={18}
-        className="shrink-0 text-onyx/40 transition-all duration-300 group-hover:rotate-45 group-hover:text-onyx sm:absolute sm:right-4 sm:top-5"
-        aria-hidden="true"
-      />
-    </a>
-  )
-}
+const pill =
+  'flex h-11 items-center gap-2 rounded-full border border-onyx/15 bg-white/70 px-4 font-subtitle text-sm font-medium text-onyx backdrop-blur-sm transition-colors hover:border-onyx/40'
 
 const reveal = (delay: number) => ({
   initial: { opacity: 0, y: 24 },
@@ -65,14 +42,13 @@ export default function Contact() {
           {
             icon: 'bx bxl-whatsapp',
             name: 'WhatsApp',
-            detail: business.phone || 'Enviar mensagem',
             href: whatsapp.url('Olá! Gostaria de marcar uma sessão de tranças.'),
             external: true,
           },
         ]
       : []),
-    { icon: 'bx bxl-instagram', name: 'Instagram', detail: `@${siteConfig.instagramHandle}`, href: instagramDmUrl(), external: true },
-    { icon: 'bx bx-envelope', name: 'Email', detail: siteConfig.email, href: `mailto:${siteConfig.email}`, external: false },
+    { icon: 'bx bxl-instagram', name: 'Instagram', href: instagramDmUrl(), external: true },
+    { icon: 'bx bx-envelope', name: 'Email', href: `mailto:${siteConfig.email}`, external: false },
   ]
 
   return (
@@ -125,10 +101,18 @@ export default function Contact() {
           <span className="h-px flex-1 bg-onyx/15" aria-hidden="true" />
         </div>
 
-        {/* The ways to reach us, as one frosted card: side by side from `sm`, stacked on phones. */}
-        <div className="mt-5 flex w-full flex-col divide-y divide-onyx/10 overflow-hidden rounded-3xl border border-onyx/10 bg-white/75 backdrop-blur-md sm:flex-row sm:divide-x sm:divide-y-0 [&>a]:relative">
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
           {channels.map((channel) => (
-            <ChannelLink key={channel.name} channel={channel} />
+            <a
+              key={channel.name}
+              href={channel.href}
+              target={channel.external ? '_blank' : undefined}
+              rel={channel.external ? 'noreferrer' : undefined}
+              className={pill}
+            >
+              <i className={`${channel.icon} text-lg`} aria-hidden="true" />
+              {channel.name}
+            </a>
           ))}
         </div>
 
