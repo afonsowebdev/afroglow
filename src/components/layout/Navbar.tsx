@@ -279,11 +279,15 @@ export default function Navbar({
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <div className="lg:hidden">{logo(true)}</div>
 
-          {/* Wide screens: one glass bar, logo on the left, the sections centred, booking and the account on the
-              right. 56px over the video, 48px once the page is scrolled. */}
-          <div className="hidden w-full items-center gap-2.5 lg:flex">
+          {/* Wide screens: one glass bar, logo on the left, the sections centred on the page (not just on the bar, which
+              stops short of the account circle), booking on the right. 56px over the video, 48px once the page is scrolled. */}
           <div
-            className={`liquid-glass pointer-events-auto grid min-w-0 flex-1 grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-full px-2 transition-[height] duration-500 ${
+            className="relative hidden w-full items-center gap-2.5 lg:flex"
+            // The account circle's size, so the sections can be centred on the whole row (see DesktopNav).
+            style={{ '--account-size': headerOverHero ? '3.5rem' : '3rem' } as React.CSSProperties}
+          >
+          <div
+            className={`liquid-glass pointer-events-auto flex min-w-0 flex-1 items-center justify-between gap-4 rounded-full px-2 transition-[height] duration-500 ${
               headerOverHero ? 'h-14' : 'h-12'
             }`}
           >
