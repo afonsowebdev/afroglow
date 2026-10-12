@@ -32,10 +32,9 @@ function Avatar({ review }: { review: Review }) {
 /**
  * What customers say, in black and white like the FAQ: the title, the counter with arrows and the invitation to
  * leave one on the left; one testimonial at a time in large type on the right (stacked on phones). The invitation
- * opens the profile's testimonial form, or sign in first. `app`: the customer app's home, as one more section rather
- * than a whole screen.
+ * opens the profile's testimonial form, or sign in first.
  */
-export default function Testimonials({ app = false }: { app?: boolean }) {
+export default function Testimonials() {
   const navigate = useNavigate()
   const { customer } = useCustomerAuth()
   const [reviews, setReviews] = useState<Review[] | null>(null)
@@ -70,13 +69,8 @@ export default function Testimonials({ app = false }: { app?: boolean }) {
   const long = (review?.quote.length ?? 0) > 280
 
   return (
-    // On the site, a whole screen of its own with the content centred in it.
-    <section
-      id="testemunhos"
-      className={`relative flex items-center overflow-hidden bg-white px-5 ${
-        app ? 'py-16' : 'min-h-[100svh] py-24 sm:px-8 md:py-32'
-      }`}
-    >
+    // A whole screen of its own, content centred in it.
+    <section id="testemunhos" className="relative flex min-h-[100svh] items-center overflow-hidden bg-white px-5 py-24 sm:px-8 md:py-32">
       {/* AFROGLOW sliding across the middle, as on every other section from "Quem somos" down. */}
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-center">
         <VelocityRow direction={1} />
