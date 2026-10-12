@@ -1,3 +1,5 @@
+import { useRef } from 'react'
+import { motion, useScroll, useTransform } from 'motion/react'
 import { instagramDmUrl, siteConfig, useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 
 const EXPLORE_LINKS = [
@@ -17,22 +19,48 @@ const ACCOUNT_LINKS = [
   { label: 'Conhecer a CEO', href: '/ceo' },
 ]
 
-/** The footer's ground: the theme's light (or dark) tone fading into its cream, with a faint grid that fades out. */
+// A fine paper grain, drawn once as an SVG noise tile.
+const GRAIN =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")"
+
+const tint = (percent: number) => `color-mix(in srgb, var(--color-onyx) ${percent}%, transparent)`
+
+/** The footer's ground: the theme's tone deepening into its cream, a soft light behind the brand name and a grain. */
 function FooterBackdrop() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-      <div className="absolute inset-0 bg-gradient-to-b from-white via-cream/60 to-cream" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white via-cream/70 to-cream" />
+      {/* A wide, low glow where the brand name sits, and a darker edge along the very bottom. */}
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage:
-            'linear-gradient(to right, color-mix(in srgb, var(--color-onyx) 6%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--color-onyx) 6%, transparent) 1px, transparent 1px)',
-          backgroundSize: '56px 56px',
-          maskImage: 'radial-gradient(ellipse 80% 70% at 50% 100%, black 20%, transparent 75%)',
-          WebkitMaskImage: 'radial-gradient(ellipse 80% 70% at 50% 100%, black 20%, transparent 75%)',
+          background: `radial-gradient(ellipse 70% 45% at 50% 100%, ${tint(7)}, transparent 70%), linear-gradient(to top, ${tint(5)}, transparent 18%)`,
         }}
       />
-      <div className="absolute inset-x-0 top-0 h-px bg-onyx/10" />
+      <div className="absolute inset-0 opacity-[0.07] mix-blend-multiply dark:opacity-[0.1] dark:mix-blend-screen" style={{ backgroundImage: GRAIN }} />
+      <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${tint(14)}, transparent)` }} />
+    </div>
+  )
+}
+
+/** AFROGLOW rising out of the bottom edge: a soft fill with a fine outline, lifting a little as the footer comes in. */
+function FooterWordmark({ target }: { target: React.RefObject<HTMLElement | null> }) {
+  const { scrollYProgress } = useScroll({ target, offset: ['start end', 'end end'] })
+  const y = useTransform(scrollYProgress, [0, 1], ['45%', '16%'])
+  return (
+    <div aria-hidden="true" className="pointer-events-none relative z-10 mt-8 select-none overflow-hidden md:mt-10">
+      <motion.p
+        style={{
+          y,
+          backgroundImage: `linear-gradient(to bottom, ${tint(18)}, ${tint(4)} 70%, transparent)`,
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          WebkitTextStroke: `1px ${tint(14)}`,
+        }}
+        className="text-center font-logo text-[17.5vw] leading-[0.8] tracking-tight text-transparent"
+      >
+        {siteConfig.name}
+      </motion.p>
     </div>
   )
 }
@@ -90,10 +118,11 @@ export default function Footer() {
   ]
 
   const year = new Date().getFullYear()
+  const footerRef = useRef<HTMLElement>(null)
 
   return (
     // Bottom padding below `md` leaves room for the floating tab bar.
-    <footer className="relative overflow-hidden bg-white pb-24 md:pb-0">
+    <footer ref={footerRef} className="relative overflow-hidden bg-white pb-24 md:pb-0">
       <FooterBackdrop />
 
       {/* Above the wordmark, which tucks up under the last row with a negative margin. */}
@@ -203,19 +232,7 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* The brand name rising out of the bottom edge, part of the background. */}
-      <div aria-hidden="true" className="pointer-events-none relative z-10 mt-6 select-none md:-mt-4 overflow-hidden">
-        <p
-          className="translate-y-[18%] text-center font-logo text-[17.5vw] leading-[0.8] tracking-tight text-transparent"
-          style={{
-            backgroundImage: 'linear-gradient(to bottom, color-mix(in srgb, var(--color-onyx) 16%, transparent), transparent 85%)',
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-          }}
-        >
-          {siteConfig.name}
-        </p>
-      </div>
+      <FooterWordmark target={footerRef} />
     </footer>
   )
 }
