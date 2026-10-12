@@ -51,7 +51,7 @@ export function DesktopNav({
   /** Name shown at the top of the account menu (or how to sign in). */
   accountLabel: string
   accountItems: AccountItem[]
-  /** Inside one header bar (which holds the glass): no glass of their own, booking as a filled button. */
+  /** Only the sections, centred on the header row over the bar; booking and the account sit beside the bar. */
   inBar?: boolean
 }) {
   const onDark = tone === 'onDark'
@@ -60,17 +60,16 @@ export function DesktopNav({
   const ink = onDark ? 'text-[#ffffff] [filter:drop-shadow(0_0_1px_rgba(0,0,0,0.25))]' : 'text-onyx'
 
   return (
-    // In the bar the pieces join it: the sections centred on the header row, booking on the right.
+    // In the bar layout only the sections render here; booking and the account are separate pills beside the bar.
     <div className={inBar ? 'contents' : 'pointer-events-auto flex items-center gap-2.5'}>
       <nav
         onMouseLeave={() => setHovered(null)}
         aria-label="Secções"
         className={cn(
           'flex items-center gap-1 rounded-full',
-          // The bar's glass makes it the positioning box, and the bar stops short of the account circle beside it:
-          // shifting by half that circle (plus the gap) centres the sections on the whole header row.
+          // Placed on the header row itself (outside the bar), so the sections sit at the exact centre of the page.
           inBar
-            ? 'absolute left-[calc(50%+(var(--account-size,3.5rem)+0.625rem)/2)] h-10 -translate-x-1/2 transition-[left] duration-500'
+            ? 'pointer-events-auto absolute left-1/2 top-1/2 h-10 -translate-x-1/2 -translate-y-1/2'
             : 'liquid-glass h-[56px] px-2',
         )}
       >
@@ -116,17 +115,16 @@ export function DesktopNav({
         })}
       </nav>
 
-      <div className={inBar ? 'flex items-center gap-2' : 'contents'}>
+      {!inBar && (
+      <div className="contents">
       {/* The one action of the site, set apart from the sections. */}
       <ButtonWithIcon
         label="Agendar"
         tone={tone}
-        solid={inBar}
         onClick={onBook}
         aria-current={bookingActive ? 'page' : undefined}
       />
 
-      {!inBar && (
       <AccountMenu
         tone={tone}
         avatar={avatar}
@@ -135,8 +133,8 @@ export function DesktopNav({
         label={accountLabel}
         items={accountItems}
       />
-      )}
       </div>
+      )}
     </div>
   )
 }

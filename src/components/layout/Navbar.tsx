@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/apple-icons'
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
 import { AccountMenu, DesktopNav, type AccountItem, type DesktopLink } from '@/components/layout/DesktopNav'
+import { ButtonWithIcon } from '@/components/ui/button-with-icon'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import { loadAvatar, useAvatar } from '@/lib/avatar-store'
 import { useHideOnScroll } from '@/customer/nav-visibility'
@@ -279,48 +280,50 @@ export default function Navbar({
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <div className="lg:hidden">{logo(true)}</div>
 
-          {/* Wide screens: one glass bar, logo on the left, the sections centred on the page (not just on the bar, which
-              stops short of the account circle), booking on the right. 56px over the video, 48px once the page is scrolled. */}
-          <div
-            className="relative hidden w-full items-center gap-2.5 lg:flex"
-            // The account circle's size, so the sections can be centred on the whole row (see DesktopNav).
-            style={{ '--account-size': headerOverHero ? '3.5rem' : '3rem' } as React.CSSProperties}
-          >
-          <div
-            className={`liquid-glass pointer-events-auto flex min-w-0 flex-1 items-center justify-between gap-4 rounded-full px-2 transition-[height] duration-500 ${
-              headerOverHero ? 'h-14' : 'h-12'
-            }`}
-          >
-            {logo(false)}
-            <div className="contents">
-              <DesktopNav
-                links={DESKTOP_LINKS}
-                active={!page && onHome && DESKTOP_LINKS.some((l) => l.id === activeSection) ? activeSection : null}
-                onLink={scrollToSection}
-                onBook={() => navigate('/agendar')}
-                bookingActive={page === 'agendar'}
-                profileActive={page === 'perfil'}
-                tone={headerTone}
-                avatar={customer ? avatar : null}
-                dot={dot}
-                accountLabel={customer ? `Olá, ${firstName}` : 'Ainda não tens conta?'}
-                accountItems={accountItems}
-                inBar
-              />
+          {/* Wide screens: a glass bar with the logo and the sections (centred on the page), then "Agendar" and the
+              account, each in its own glass beside it. 56px over the video, 48px once the page is scrolled. */}
+          <div className="relative hidden w-full items-center gap-2.5 lg:flex">
+            <div
+              className={`liquid-glass pointer-events-auto flex min-w-0 flex-1 items-center rounded-full px-2 transition-[height] duration-500 ${
+                headerOverHero ? 'h-14' : 'h-12'
+              }`}
+            >
+              {logo(false)}
             </div>
-          </div>
-          {/* The account sits apart from the bar, in its own glass circle of the same height. */}
-          <div className="pointer-events-auto">
-            <AccountMenu
+            <DesktopNav
+              links={DESKTOP_LINKS}
+              active={!page && onHome && DESKTOP_LINKS.some((l) => l.id === activeSection) ? activeSection : null}
+              onLink={scrollToSection}
+              onBook={() => navigate('/agendar')}
+              bookingActive={page === 'agendar'}
+              profileActive={page === 'perfil'}
               tone={headerTone}
               avatar={customer ? avatar : null}
               dot={dot}
-              active={page === 'perfil'}
-              label={customer ? `Olá, ${firstName}` : 'Ainda não tens conta?'}
-              items={accountItems}
-              className={`transition-[width,height] duration-500 ${headerOverHero ? '!size-14' : '!size-12'}`}
+              accountLabel={customer ? `Olá, ${firstName}` : 'Ainda não tens conta?'}
+              accountItems={accountItems}
+              inBar
             />
-          </div>
+            <div className="pointer-events-auto">
+              <ButtonWithIcon
+                label="Agendar"
+                tone={headerTone}
+                onClick={() => navigate('/agendar')}
+                aria-current={page === 'agendar' ? 'page' : undefined}
+                className={`transition-[height,padding] duration-500 ${headerOverHero ? '!h-14' : '!h-12'}`}
+              />
+            </div>
+            <div className="pointer-events-auto">
+              <AccountMenu
+                tone={headerTone}
+                avatar={customer ? avatar : null}
+                dot={dot}
+                active={page === 'perfil'}
+                label={customer ? `Olá, ${firstName}` : 'Ainda não tens conta?'}
+                items={accountItems}
+                className={`transition-[width,height] duration-500 ${headerOverHero ? '!size-14' : '!size-12'}`}
+              />
+            </div>
           </div>
 
           {/* Tablets: the app's tab bar and its round menu, which opens downward. Phones: only the menu here. */}
