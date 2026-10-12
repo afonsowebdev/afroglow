@@ -265,7 +265,7 @@ function CustomerShell() {
 
       {/* The tab bar, on its own at the bottom. */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center px-3">
-        <div className={`flex justify-center ${navWide ? 'w-full max-w-xl' : ''} ${navHidden ? 'pointer-events-none' : 'pointer-events-auto'}`}>
+        <div className={`flex justify-center ${navWide ? 'w-[88%] max-w-md' : ''} ${navHidden ? 'pointer-events-none' : 'pointer-events-auto'}`}>
           <BottomNavBar
             glass
             wide={navWide}
