@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Bell } from 'lucide-react'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
+import { tap } from '@/lib/haptics'
 
 interface Notification {
   id: string
@@ -83,6 +84,7 @@ export function NotificationBell({ tone, className }: { tone: 'onLight' | 'onDar
   }, [open])
 
   const toggle = () => {
+    void tap()
     const next = !open
     setOpen(next)
     if (!next) setFresh(new Set())

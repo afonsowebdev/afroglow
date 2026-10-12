@@ -12,6 +12,7 @@ import { dayParts, longDay, timeLabel } from './dates'
 import { Fact, Facts, labelClass, panelClass, StatusDot } from './panel'
 import { useProfile } from './use-profile'
 import { bookingExtras } from '@/lib/pricing'
+import { NotificationBell } from '@/components/layout/NotificationBell'
 
 type TabId = 'resumo' | 'historico' | 'testemunho'
 const TABS: Array<{ id: TabId; label: string }> = [
@@ -88,17 +89,20 @@ export default function ProfileScreen() {
 
         <div className="relative flex items-center justify-between">
           <span className="font-subtitle text-[11px] uppercase tracking-[0.28em] text-muted-dark">O meu perfil</span>
-          <button
-            type="button"
-            aria-label="Definições"
-            onClick={() => {
-              void tap()
-              navigate('/definicoes')
-            }}
-            className="glass-chip flex h-10 w-10 items-center justify-center rounded-full text-xl text-onyx"
-          >
-            <i className="bx bx-cog" aria-hidden="true" />
-          </button>
+          <div className="flex items-center gap-2">
+            <NotificationBell tone="onLight" className="size-10" />
+            <button
+              type="button"
+              aria-label="Definições"
+              onClick={() => {
+                void tap()
+                navigate('/definicoes')
+              }}
+              className="glass-chip flex h-10 w-10 items-center justify-center rounded-full text-xl text-onyx"
+            >
+              <i className="bx bx-cog" aria-hidden="true" />
+            </button>
+          </div>
         </div>
 
         <motion.div

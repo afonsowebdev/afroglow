@@ -26,6 +26,7 @@ import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
 import { NavVisibilityProvider, useAutoHideNav, useNavForcedHidden, useNavHidden } from './nav-visibility'
 import ProfileScreen from './ProfileScreen'
 import SettingsScreen from './SettingsScreen'
+import { NotificationBell } from '@/components/layout/NotificationBell'
 
 type TabId = 'inicio' | 'marcar' | 'marcacoes' | 'conta'
 
@@ -231,6 +232,13 @@ function CustomerShell() {
           </Routes>
         </motion.div>
       </AnimatePresence>
+
+      {/* The bell, top right on every screen (the profile has it beside its settings button). */}
+      {customer && !location.pathname.startsWith('/conta') && (
+        <div className="fixed right-4 top-[calc(0.75rem+env(safe-area-inset-top))] z-50">
+          <NotificationBell tone={overHero ? 'onDark' : 'onLight'} className="size-11" />
+        </div>
+      )}
 
       {/* Tab bar with the round menu button beside it. */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center gap-2.5 px-3">
