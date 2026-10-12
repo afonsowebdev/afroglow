@@ -104,6 +104,7 @@ export function DesktopNav({
         aria-current={bookingActive ? 'page' : undefined}
       />
 
+      {!inBar && (
       <AccountMenu
         tone={tone}
         avatar={avatar}
@@ -111,14 +112,14 @@ export function DesktopNav({
         active={profileActive}
         label={accountLabel}
         items={accountItems}
-        bare={inBar}
       />
+      )}
       </div>
     </div>
   )
 }
 
-function AccountMenu({
+export function AccountMenu({
   tone,
   avatar,
   dot,
@@ -126,10 +127,13 @@ function AccountMenu({
   label,
   items,
   bare = false,
+  className,
 }: {
   tone: 'onDark' | 'onLight'
   /** Without its own glass (inside the header bar). */
   bare?: boolean
+  /** Size override for the round button (e.g. to match the header bar's height). */
+  className?: string
   avatar: string | null
   dot: boolean
   active: boolean
@@ -165,15 +169,16 @@ function AccountMenu({
         className={cn(
           'relative flex items-center justify-center rounded-full transition-colors duration-500',
           bare ? 'size-12' : 'liquid-glass size-[56px]',
+          className,
           tone === 'onDark' ? 'text-[#ffffff]' : 'text-onyx',
           active && 'ring-2 ring-gold/70',
         )}
       >
         {/* The photo or icon fills the circle, leaving only a thin glass rim around it. */}
         {avatar ? (
-          <img src={avatar} alt="" className={cn('rounded-full object-cover', bare ? 'size-10' : 'size-[46px]')} />
+          <img src={avatar} alt="" className={cn('rounded-full object-cover', bare ? 'size-10' : 'size-[84%]')} />
         ) : (
-          <PersonCircleFill className={bare ? 'size-10' : 'size-[46px]'} />
+          <PersonCircleFill className={bare ? 'size-10' : 'size-[84%]'} />
         )}
         {dot && (
           <span

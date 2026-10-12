@@ -21,7 +21,7 @@ import {
   SunFill,
 } from '@/components/ui/apple-icons'
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
-import { DesktopNav, type AccountItem, type DesktopLink } from '@/components/layout/DesktopNav'
+import { AccountMenu, DesktopNav, type AccountItem, type DesktopLink } from '@/components/layout/DesktopNav'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import { loadAvatar, useAvatar } from '@/lib/avatar-store'
 import { useHideOnScroll } from '@/customer/nav-visibility'
@@ -281,8 +281,9 @@ export default function Navbar({
 
           {/* Wide screens: one glass bar, logo on the left, the sections centred, booking and the account on the
               right. Taller over the video, a little slimmer once the page is scrolled. */}
+          <div className="hidden w-full items-center gap-2.5 lg:flex">
           <div
-            className={`liquid-glass pointer-events-auto hidden w-full grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-full px-2 transition-[height] duration-500 lg:grid ${
+            className={`liquid-glass pointer-events-auto grid min-w-0 flex-1 grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-full px-2 transition-[height] duration-500 ${
               headerOverHero ? 'h-16' : 'h-14'
             }`}
           >
@@ -303,6 +304,19 @@ export default function Navbar({
                 inBar
               />
             </div>
+          </div>
+          {/* The account sits apart from the bar, in its own glass circle of the same height. */}
+          <div className="pointer-events-auto">
+            <AccountMenu
+              tone={headerTone}
+              avatar={customer ? avatar : null}
+              dot={dot}
+              active={page === 'perfil'}
+              label={customer ? `Olá, ${firstName}` : 'Ainda não tens conta?'}
+              items={accountItems}
+              className={`transition-[width,height] duration-500 ${headerOverHero ? '!size-16' : '!size-14'}`}
+            />
+          </div>
           </div>
 
           {/* Tablets: the app's tab bar and its round menu, which opens downward. Phones: only the menu here. */}

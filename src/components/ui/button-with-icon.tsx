@@ -31,7 +31,7 @@ export function ButtonWithIcon({
         'group relative w-fit cursor-pointer overflow-hidden rounded-full p-1 font-subtitle text-sm font-normal transition-all duration-500 hover:brightness-100',
         solid
           ? cn(
-              'h-12 ps-5 pe-[3.4rem] hover:ps-[3.4rem] hover:pe-5',
+              'h-10 ps-4 pe-11 text-[13px] hover:ps-11 hover:pe-4',
               onDark ? 'bg-[#ffffff] text-[#111111]' : 'bg-onyx text-white',
             )
           : cn(
@@ -48,7 +48,7 @@ export function ButtonWithIcon({
           'absolute flex items-center justify-center rounded-full transition-all duration-500 group-hover:rotate-45',
           solid
             ? cn(
-                'right-1 size-10 group-hover:right-[calc(100%-44px)]',
+                'right-1 size-8 group-hover:right-[calc(100%-36px)]',
                 onDark ? 'bg-[#111111] text-[#ffffff]' : 'bg-white text-onyx',
               )
             : 'liquid-glass-bubble right-1.5 size-11 group-hover:right-[calc(100%-50px)]',
