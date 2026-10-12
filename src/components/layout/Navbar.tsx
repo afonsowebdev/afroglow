@@ -249,10 +249,10 @@ export default function Navbar({
         navigate('/')
       }}
       aria-label="AFROGLOW, voltar ao início"
-      className={`pointer-events-auto flex items-center gap-3 rounded-full ${glass ? 'liquid-glass h-[56px] pe-5 ps-2' : 'h-10 pe-4 ps-1'}`}
+      className={`pointer-events-auto flex items-center gap-3 rounded-full ${glass ? 'liquid-glass h-[56px] pe-5 ps-2' : 'h-9 pe-3 ps-0.5'}`}
     >
       <span
-        className={`flex shrink-0 ${glass ? 'size-10' : 'size-9'} items-center justify-center rounded-full logo-weight font-logo text-[1.35rem] leading-none shadow-[0_1px_4px_rgba(0,0,0,0.18)] transition-colors duration-500 ${
+        className={`flex shrink-0 ${glass ? 'size-10' : 'size-8'} items-center justify-center rounded-full logo-weight font-logo text-[1.35rem] leading-none shadow-[0_1px_4px_rgba(0,0,0,0.18)] transition-colors duration-500 ${
           headerOverHero ? 'bg-[#ffffff] text-[#111111]' : 'bg-onyx text-white'
         }`}
         aria-hidden="true"
@@ -260,7 +260,7 @@ export default function Navbar({
         <span className="translate-y-[2px]">A</span>
       </span>
       <span
-        className={`translate-y-[2px] logo-weight font-logo leading-none tracking-[0.14em] ${glass ? 'text-[1.35rem]' : 'text-[1.2rem]'} transition-colors duration-500 ${
+        className={`translate-y-[2px] logo-weight font-logo leading-none tracking-[0.14em] ${glass ? 'text-[1.35rem]' : 'text-[1.1rem]'} transition-colors duration-500 ${
           headerOverHero ? 'text-[#ffffff]' : 'text-onyx'
         }`}
       >
@@ -281,11 +281,11 @@ export default function Navbar({
           <div className="lg:hidden">{logo(true)}</div>
 
           {/* Wide screens: a glass bar with the logo and the sections (centred on the page), then "Agendar" and the
-              account, each in its own glass beside it. 56px over the video, 48px once the page is scrolled. */}
+              account, each in its own glass beside it. 48px over the video, 44px once the page is scrolled. */}
           <div className="relative hidden w-full items-center gap-2.5 lg:flex">
             <div
               className={`liquid-glass pointer-events-auto flex min-w-0 flex-1 items-center rounded-full px-2 transition-[height] duration-500 ${
-                headerOverHero ? 'h-14' : 'h-12'
+                headerOverHero ? 'h-12' : 'h-11'
               }`}
             >
               {logo(false)}
@@ -308,9 +308,10 @@ export default function Navbar({
               <ButtonWithIcon
                 label="Agendar"
                 tone={headerTone}
+                compact
                 onClick={() => navigate('/agendar')}
                 aria-current={page === 'agendar' ? 'page' : undefined}
-                className={`transition-[height,padding] duration-500 ${headerOverHero ? '!h-14' : '!h-12'}`}
+                className={`transition-[height,padding] duration-500 ${headerOverHero ? '!h-12' : '!h-11'}`}
               />
             </div>
             <div className="pointer-events-auto">
@@ -321,7 +322,7 @@ export default function Navbar({
                 active={page === 'perfil'}
                 label={customer ? `Olá, ${firstName}` : 'Ainda não tens conta?'}
                 items={accountItems}
-                className={`transition-[width,height] duration-500 ${headerOverHero ? '!size-14' : '!size-12'}`}
+                className={`transition-[width,height] duration-500 ${headerOverHero ? '!size-12' : '!size-11'}`}
               />
             </div>
           </div>

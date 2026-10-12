@@ -69,7 +69,7 @@ export function DesktopNav({
           'flex items-center gap-1 rounded-full',
           // Placed on the header row itself (outside the bar), so the sections sit at the exact centre of the page.
           inBar
-            ? 'pointer-events-auto absolute left-1/2 top-1/2 h-10 -translate-x-1/2 -translate-y-1/2'
+            ? 'pointer-events-auto absolute left-1/2 top-1/2 h-9 -translate-x-1/2 -translate-y-1/2'
             : 'liquid-glass h-[56px] px-2',
         )}
       >
@@ -85,7 +85,7 @@ export function DesktopNav({
               onBlur={() => setHovered(null)}
               aria-current={isActive ? 'true' : undefined}
               className={cn(
-                'relative h-9 whitespace-nowrap rounded-full px-3 font-subtitle text-sm transition-colors duration-500 xl:px-4',
+                'relative h-8 whitespace-nowrap rounded-full px-3 font-subtitle text-[13px] transition-colors duration-500 xl:px-4',
                 ink,
                 isActive ? 'font-semibold' : 'opacity-75 hover:opacity-100',
               )}

@@ -12,6 +12,7 @@ export function ButtonWithIcon({
   onClick,
   tone = 'onLight',
   solid = false,
+  compact = false,
   className,
   ...props
 }: {
@@ -20,6 +21,8 @@ export function ButtonWithIcon({
   tone?: 'onLight' | 'onDark'
   /** Filled (dark over light sections, white over the video) instead of glass, e.g. inside the header bar. */
   solid?: boolean
+  /** Glass but smaller (header beside the bar): less padding, smaller disc and text. */
+  compact?: boolean
   className?: string
 } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onClick'>) {
   const onDark = tone === 'onDark'
@@ -35,7 +38,10 @@ export function ButtonWithIcon({
               onDark ? 'bg-[#ffffff] text-[#111111]' : 'bg-onyx text-white',
             )
           : cn(
-              'liquid-glass h-[56px] bg-transparent ps-6 pe-[3.75rem] hover:ps-[3.75rem] hover:pe-6',
+              'liquid-glass bg-transparent',
+              compact
+                ? 'h-11 ps-4 pe-11 text-[13px] hover:ps-11 hover:pe-4'
+                : 'h-[56px] ps-6 pe-[3.75rem] hover:ps-[3.75rem] hover:pe-6',
               onDark ? 'text-[#ffffff] [filter:drop-shadow(0_0_1px_rgba(0,0,0,0.25))]' : 'text-onyx',
             ),
         className,
@@ -51,7 +57,9 @@ export function ButtonWithIcon({
                 'right-1 size-7 group-hover:right-[calc(100%-32px)]',
                 onDark ? 'bg-[#111111] text-[#ffffff]' : 'bg-white text-onyx',
               )
-            : 'liquid-glass-bubble right-1.5 size-11 group-hover:right-[calc(100%-50px)]',
+            : compact
+              ? 'liquid-glass-bubble right-1 size-9 group-hover:right-[calc(100%-40px)]'
+              : 'liquid-glass-bubble right-1.5 size-11 group-hover:right-[calc(100%-50px)]',
         )}
         aria-hidden="true"
       >
