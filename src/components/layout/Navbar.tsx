@@ -23,6 +23,7 @@ import {
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
 import { AccountMenu, DesktopNav, type AccountItem, type DesktopLink } from '@/components/layout/DesktopNav'
 import { ButtonWithIcon } from '@/components/ui/button-with-icon'
+import { NotificationBell } from '@/components/layout/NotificationBell'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import { loadAvatar, useAvatar } from '@/lib/avatar-store'
 import { useHideOnScroll } from '@/customer/nav-visibility'
@@ -304,6 +305,15 @@ export default function Navbar({
               accountItems={accountItems}
               inBar
             />
+            {/* Signed-in customers: what the app would notify them about, for those who don't use it. */}
+            {customer && (
+              <div className="pointer-events-auto">
+                <NotificationBell
+                  tone={headerTone}
+                  className={`transition-[width,height] duration-500 ${headerOverHero ? 'size-12' : 'size-11'}`}
+                />
+              </div>
+            )}
             <div className="pointer-events-auto">
               <ButtonWithIcon
                 label="Agendar"
@@ -330,6 +340,11 @@ export default function Navbar({
           {/* Tablets: the app's tab bar and its round menu, which opens downward. Phones: only the menu here. */}
           <div className="flex items-center gap-2.5 lg:hidden">
             <div className="pointer-events-auto hidden md:block">{tabBar(headerTone)}</div>
+            {customer && (
+              <div className="pointer-events-auto">
+                <NotificationBell tone={headerTone} className="size-14" />
+              </div>
+            )}
             <FloatingActionMenu actions={menuActions} direction="down" tone={headerTone} PlusIcon={PlusBold} />
           </div>
         </div>

@@ -83,6 +83,15 @@ bookingsRouter.post('/', requireCustomer, async (req, res) => {
         durationLabel: service.durationLabel,
       }),
       sendBookingPushNotification({ customerName, serviceName: bookingServiceName(booking) }),
+      // The first line under the customer's bell on the website.
+      prisma.customerNotification.create({
+        data: {
+          customerId,
+          title: 'Pedido enviado',
+          body: `${bookingServiceName(booking)}. Avisamos-te assim que for confirmado.`,
+          bookingId: booking.id,
+        },
+      }),
     ])
 
     res.status(201).json({ id: booking.id, status: booking.status })

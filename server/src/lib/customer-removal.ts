@@ -33,6 +33,7 @@ export async function removeCustomer(
   })
   await tx.testimonial.deleteMany({ where: { customerId: customer.id } })
   await tx.customerPushToken.deleteMany({ where: { customerId: customer.id } })
+  await tx.customerNotification.deleteMany({ where: { customerId: customer.id } })
   await tx.pendingRegistration.deleteMany({ where: { email: customer.email } })
   await tx.customer.update({
     where: { id: customer.id },

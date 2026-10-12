@@ -79,6 +79,7 @@ model Customer {
   avatarType    String?
   avatarUpdatedAt DateTime?
   pushTokens   CustomerPushToken[]
+  notifications CustomerNotification[]
   createdAt    DateTime      @default(now())
   bookings     Booking[]
   testimonials Testimonial[]
@@ -191,4 +192,19 @@ model PortfolioItem {
   createdAt   DateTime      @default(now())
 
   @@index([position])
+}
+
+/// Every notification sent to a customer (booking confirmed, declined, cancelled, reminder…), kept so the website
+/// can list them under its bell for customers who don't use the app.
+model CustomerNotification {
+  id         String    @id @default(cuid())
+  customerId String
+  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  title      String
+  body       String
+  bookingId  String?
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([customerId, createdAt])
 }

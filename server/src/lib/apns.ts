@@ -165,6 +165,12 @@ export async function sendBookingPushNotification(booking: { customerName: strin
 
 /** Pushes a message to every iPhone a customer has the app on. No-ops when APNs isn't configured. */
 export async function sendCustomerPush(customerId: string, title: string, body: string, data: Record<string, string> = {}) {
+  // Kept for the website's bell, whether or not the customer has the app.
+  try {
+    await prisma.customerNotification.create({ data: { customerId, title, body, bookingId: data.bookingId ?? null } })
+  } catch (error) {
+    console.error('[notifications] Falha ao guardar notificação:', error)
+  }
   if (!teamId || !keyId || !privateKey) return
   try {
     const tokens = await prisma.customerPushToken.findMany({ where: { customerId } })

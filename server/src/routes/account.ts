@@ -82,6 +82,29 @@ accountRouter.get('/me', requireCustomer, async (req, res) => {
 })
 
 // The customer's own profile photo as a data URL (the app can't send its login header with an <img> request).
+// The customer's notifications for the website's bell: the latest 30, newest first, with how many are unread.
+accountRouter.get('/notifications', requireCustomer, async (req, res) => {
+  const [items, unread] = await Promise.all([
+    prisma.customerNotification.findMany({
+      where: { customerId: req.customerId! },
+      orderBy: { createdAt: 'desc' },
+      take: 30,
+      select: { id: true, title: true, body: true, bookingId: true, readAt: true, createdAt: true },
+    }),
+    prisma.customerNotification.count({ where: { customerId: req.customerId!, readAt: null } }),
+  ])
+  res.json({ items, unread })
+})
+
+// Opening the bell marks everything as read.
+accountRouter.post('/notifications/read', requireCustomer, async (req, res) => {
+  await prisma.customerNotification.updateMany({
+    where: { customerId: req.customerId!, readAt: null },
+    data: { readAt: new Date() },
+  })
+  res.status(204).end()
+})
+
 accountRouter.get('/avatar', requireCustomer, async (req, res) => {
   const customer = await prisma.customer.findUnique({
     where: { id: req.customerId },
