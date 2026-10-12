@@ -44,6 +44,7 @@ import { formatPrice, type AvailabilitySlot, type Booking, type Service, type Te
 import { bookingName, bookingPrice } from '@/lib/pricing'
 import { PricingEditor } from './PricingEditor'
 import { draftFromPricing, pricingFromDraft, type PricingDraft } from './pricing-draft'
+import { BookingChoices } from './BookingChoices'
 
 const LISBON_TZ = 'Europe/Lisbon'
 
@@ -570,13 +571,14 @@ function AgendaView({
                               {booking.customerName}
                             </p>
                             <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
-                              {bookingName(booking)} · {formatPrice(bookingPrice(booking))}
+                              {booking.service.name} · {formatPrice(bookingPrice(booking))}
                             </p>
+                            <BookingChoices booking={booking} className="mt-2" />
                           </div>
                           <a
                             href={customerWhatsappUrl(
                               booking.customerPhone,
-                              `Olá ${booking.customerName}! Sobre a tua sessão de ${booking.service.name}...`,
+                              `Olá ${booking.customerName}! Sobre a tua sessão de ${bookingName(booking)}...`,
                             )}
                             target="_blank"
                             rel="noreferrer"
@@ -1371,7 +1373,7 @@ function PendingCard({
           <a
             href={customerWhatsappUrl(
               booking.customerPhone,
-              `Olá ${booking.customerName}! Sobre a tua marcação de ${booking.service.name}...`,
+              `Olá ${booking.customerName}! Sobre a tua marcação de ${bookingName(booking)}...`,
             )}
             target="_blank"
             rel="noreferrer"
@@ -1395,11 +1397,12 @@ function PendingCard({
             </span>
           </div>
           <div className="mt-3 flex items-center justify-between gap-3 border-t border-onyx/10 pt-3 font-subtitle text-sm">
-            <span className="min-w-0 truncate text-onyx">{bookingName(booking)}</span>
+            <span className="min-w-0 truncate text-onyx">{booking.service.name}</span>
             <span className="shrink-0 font-semibold lining-nums text-onyx">
               {formatPrice(bookingPrice(booking))}
             </span>
           </div>
+          <BookingChoices booking={booking} className="mt-2.5" />
           {urgency && (
             <p className={`mt-3 flex items-center gap-2 font-subtitle text-xs font-medium ${urgency.text}`}>
               <span className={`size-2 rounded-full ${urgency.dot}`} aria-hidden="true" />
