@@ -1712,7 +1712,10 @@ function AdminDashboard() {
     async (opts: { silent?: boolean } = {}) => {
       try {
         const [servicesData, slotsData, bookingsData, testimonialsData] = await Promise.all([
-          api.get<Service[]>('/admin/services'),
+          // The admin list includes hidden models; an older server without it falls back to the public list.
+          api.get<Service[]>('/admin/services').catch((err) =>
+            err instanceof ApiError && err.status === 404 ? api.get<Service[]>('/services') : Promise.reject(err),
+          ),
           api.get<AvailabilitySlot[]>('/admin/availability'),
           api.get<Booking[]>('/admin/bookings'),
           api.get<Testimonial[]>('/admin/testimonials'),
