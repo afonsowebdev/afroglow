@@ -13,6 +13,7 @@ import { longDay, timeLabel } from './dates'
 import { useHideNav } from './nav-visibility'
 import { serviceImageUrls } from '@/lib/service-images'
 import { Fact, Facts, labelClass, panelClass } from './panel'
+import { VelocityRow } from '@/components/ui/velocity-marquee'
 import { ServicePreview } from './ServicePreview'
 import { SlotPicker } from './SlotPicker'
 
@@ -210,7 +211,13 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
 
   return (
     <main className="px-5 pb-32 pt-[calc(1.25rem+env(safe-area-inset-top))]">
-      <div className={site ? 'mx-auto max-w-6xl sm:px-3' : 'mx-auto max-w-md'}>
+      {/* Website: the sliding AFROGLOW behind the page, as on the home page's sections. */}
+      {site && (
+        <div className="pointer-events-none fixed inset-0 flex flex-col justify-center">
+          <VelocityRow direction={1} />
+        </div>
+      )}
+      <div className={site ? 'relative mx-auto max-w-6xl sm:px-3' : 'mx-auto max-w-md'}>
         {site ? (
           // The website's heading: the site's display face, aligned left, the back arrow beside it.
           <div className="flex items-center gap-3">
@@ -257,9 +264,9 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
         <div className={`mt-5 flex gap-2 ${site ? 'max-w-xl' : ''}`} aria-label={`Passo ${step + 1} de 3: ${STEPS[step]}`}>
           {STEPS.map((label, i) => (
             <div key={label} className="flex-1">
-              <div className="h-1 overflow-hidden rounded-full bg-gold/20">
+              <div className={`h-1 overflow-hidden rounded-full ${site ? 'bg-onyx/10' : 'bg-gold/20'}`}>
                 <motion.div
-                  className="h-full rounded-full bg-brand"
+                  className={`h-full rounded-full ${site ? 'bg-onyx' : 'bg-brand'}`}
                   initial={false}
                   animate={{ width: i <= step ? '100%' : '0%' }}
                   transition={{ duration: 0.35 }}
@@ -385,7 +392,13 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                               setServiceId(chosen ? null : s.id)
                             }}
                             className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full ${
-                              chosen ? 'glass-chip-on text-onyx' : 'glass-chip text-transparent'
+                              site
+                                ? chosen
+                                  ? 'bg-onyx text-white'
+                                  : 'border border-onyx/15 bg-white/90 text-transparent backdrop-blur-sm'
+                                : chosen
+                                  ? 'glass-chip-on text-onyx'
+                                  : 'glass-chip text-transparent'
                             }`}
                           >
                             <i className="bx bx-check text-xl" aria-hidden="true" />
@@ -530,27 +543,27 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
           {/* Website, wide screens: what has been chosen so far, with the button to go on, beside the steps. */}
           {site && (
             <aside className="mt-8 hidden lg:sticky lg:top-28 lg:block">
-              <div className="rounded-3xl border border-gold/25 bg-cream p-6">
+              <div className="rounded-3xl border border-onyx/10 bg-white p-6 shadow-sm shadow-black/5">
                 <p className={labelClass}>A tua marcação</p>
                 <dl className="mt-4 flex flex-col gap-4 font-subtitle text-sm">
                   <div>
-                    <dt className="text-muted-dark">Modelo</dt>
+                    <dt className="text-onyx/55">Modelo</dt>
                     <dd className="mt-0.5 text-base font-medium text-onyx">{service?.name ?? 'Por escolher'}</dd>
                   </div>
                   <div>
-                    <dt className="text-muted-dark">Data e hora</dt>
+                    <dt className="text-onyx/55">Data e hora</dt>
                     <dd className="mt-0.5 text-base font-medium text-onyx">
                       {slot ? `${longDay(slot.startsAt)}, ${timeLabel(slot.startsAt)}` : 'Por escolher'}
                     </dd>
                   </div>
                   {service && (
-                    <div className="flex justify-between border-t border-gold/25 pt-4">
+                    <div className="flex justify-between border-t border-onyx/10 pt-4">
                       <div>
-                        <dt className="text-muted-dark">Duração</dt>
+                        <dt className="text-onyx/55">Duração</dt>
                         <dd className="mt-0.5 font-medium text-onyx">{service.durationLabel}</dd>
                       </div>
                       <div className="text-right">
-                        <dt className="text-muted-dark">Preço</dt>
+                        <dt className="text-onyx/55">Preço</dt>
                         <dd className="mt-0.5 font-logo text-2xl leading-tight text-onyx">
                           {formatPrice(service.priceCents)}
                         </dd>
@@ -568,7 +581,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                   {submitting ? 'A enviar...' : step === 2 ? 'Enviar pedido' : 'Continuar'}
                   {!submitting && <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />}
                 </button>
-                <p className="mt-3 font-subtitle text-xs font-light text-muted-dark">
+                <p className="mt-3 font-subtitle text-xs font-light text-onyx/55">
                   {step === 0 && !service
                     ? 'Escolhe um modelo para continuar.'
                     : step === 1 && !slot
