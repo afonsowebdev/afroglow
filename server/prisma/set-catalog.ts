@@ -1,9 +1,9 @@
 /*
  * The hairstyle catalogue as defined by the business (October 2026). Run once with `npm run set-catalog`.
  *
- * - Boho, Fulani, Box Braids, Island Twist and Twist (sem caixas): price by length and parting, all included.
- *   Curta 40 €, Média 50 €, Longa 60 €; Finas add 10 €.
- * - Tranças Nagô (the former Cornrows): price by parting only. Grossas 25 €, Médias 30 €, Finas 35 €.
+ * - Boho, Fulani, Island Twist and Twist (sem caixas): Curta 40 €, Média 50 €, Longa e fina 60 €. All included.
+ * - Box Braids: by parting. Grossas and Médias 50 €, Finas 60 €.
+ * - Tranças Nagô (the former Cornrows): by parting. Grossas 25 €, Médias 30 €, Finas 35 €.
  * - Every other hairstyle leaves the booking list: deleted when it has no bookings, hidden otherwise.
  * - The current photos are removed (the business adds its own).
  */
@@ -11,17 +11,13 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-const LENGTHS = ['Curta', 'Média', 'Longa']
 const PARTINGS = ['Grossas', 'Médias', 'Finas']
-const BY_LENGTH: Record<string, number> = { Curta: 4000, Média: 5000, Longa: 6000 }
-const FINE_EXTRA = 1000
 
-const lengthAndParting = {
-  lengths: LENGTHS,
-  partings: PARTINGS,
-  prices: Object.fromEntries(
-    LENGTHS.flatMap((l) => PARTINGS.map((p) => [`${l}|${p}`, BY_LENGTH[l] + (p === 'Finas' ? FINE_EXTRA : 0)])),
-  ),
+// As the business defined it: three sizes, the longest one also fine.
+const bySize = {
+  lengths: ['Curta', 'Média', 'Longa e fina'],
+  partings: [],
+  prices: { 'Curta|': 4000, 'Média|': 5000, 'Longa e fina|': 6000 },
 }
 
 const CATALOG = [
@@ -30,14 +26,14 @@ const CATALOG = [
     match: ['Boho Braids'],
     description: 'Tranças com madeixas soltas e onduladas, um visual leve e natural. Tudo incluído.',
     durationLabel: '4–6h',
-    pricing: lengthAndParting,
+    pricing: bySize,
   },
   {
     name: 'Fulani Braids',
     match: ['Fulani Braids'],
     description: 'Tranças com padrão central e contas decorativas. Tudo incluído.',
     durationLabel: '2–4h',
-    pricing: lengthAndParting,
+    pricing: bySize,
   },
   {
     name: 'Tranças Nagô',
@@ -51,21 +47,21 @@ const CATALOG = [
     match: ['Box Braids'],
     description: 'Tranças quadradas protetoras, clássicas e versáteis. Tudo incluído.',
     durationLabel: '3–5h',
-    pricing: lengthAndParting,
+    pricing: { lengths: [], partings: PARTINGS, prices: { '|Grossas': 5000, '|Médias': 5000, '|Finas': 6000 } },
   },
   {
     name: 'Island Twist',
     match: ['Island Twist'],
     description: 'Twists com pontas cacheadas, leves e com movimento. Tudo incluído.',
     durationLabel: '4–6h',
-    pricing: lengthAndParting,
+    pricing: bySize,
   },
   {
     name: 'Twist (sem caixas)',
     match: ['Twist (sem caixas)', 'Twist'],
     description: 'Twists sem caixas marcadas, para um acabamento mais natural. Tudo incluído.',
     durationLabel: '3–5h',
-    pricing: lengthAndParting,
+    pricing: bySize,
   },
 ]
 
@@ -105,8 +101,11 @@ async function main() {
     }
   }
 
-  const photos = await prisma.serviceImage.deleteMany({ where: { serviceId: { in: [...kept] } } })
-  console.log(`fotos removidas: ${photos.count}`)
+  // Photos are the business's own from now on: only cleared when asked (`-- --clear-photos`).
+  if (process.argv.includes('--clear-photos')) {
+    const photos = await prisma.serviceImage.deleteMany({ where: { serviceId: { in: [...kept] } } })
+    console.log(`fotos removidas: ${photos.count}`)
+  }
 }
 
 main()
