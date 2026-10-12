@@ -64,7 +64,7 @@ export function DesktopNav({
         aria-label="Secções"
         className={cn(
           'flex items-center gap-1 rounded-full',
-          inBar ? 'h-12 justify-self-center' : 'liquid-glass h-[56px] px-2',
+          inBar ? 'h-10 justify-self-center' : 'liquid-glass h-[56px] px-2',
         )}
       >
         {links.map((link) => {
@@ -76,7 +76,7 @@ export function DesktopNav({
               onClick={() => onLink(link.id)}
               aria-current={isActive ? 'true' : undefined}
               className={cn(
-                'relative h-10 whitespace-nowrap rounded-full px-3 font-subtitle text-sm transition-colors duration-500 xl:px-4',
+                'relative h-9 whitespace-nowrap rounded-full px-3 font-subtitle text-sm transition-colors duration-500 xl:px-4',
                 ink,
                 isActive ? 'font-semibold' : 'opacity-80 hover:opacity-100',
               )}

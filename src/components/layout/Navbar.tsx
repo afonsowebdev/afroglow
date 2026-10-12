@@ -248,10 +248,10 @@ export default function Navbar({
         navigate('/')
       }}
       aria-label="AFROGLOW, voltar ao início"
-      className={`pointer-events-auto flex items-center gap-3 rounded-full pe-5 ps-2 ${glass ? 'liquid-glass h-[56px]' : 'h-12'}`}
+      className={`pointer-events-auto flex items-center gap-3 rounded-full ${glass ? 'liquid-glass h-[56px] pe-5 ps-2' : 'h-10 pe-4 ps-1'}`}
     >
       <span
-        className={`flex size-10 shrink-0 items-center justify-center rounded-full logo-weight font-logo text-[1.35rem] leading-none shadow-[0_1px_4px_rgba(0,0,0,0.18)] transition-colors duration-500 ${
+        className={`flex shrink-0 ${glass ? 'size-10' : 'size-9'} items-center justify-center rounded-full logo-weight font-logo text-[1.35rem] leading-none shadow-[0_1px_4px_rgba(0,0,0,0.18)] transition-colors duration-500 ${
           headerOverHero ? 'bg-[#ffffff] text-[#111111]' : 'bg-onyx text-white'
         }`}
         aria-hidden="true"
@@ -259,7 +259,7 @@ export default function Navbar({
         <span className="translate-y-[2px]">A</span>
       </span>
       <span
-        className={`translate-y-[2px] logo-weight font-logo text-[1.35rem] leading-none tracking-[0.14em] transition-colors duration-500 ${
+        className={`translate-y-[2px] logo-weight font-logo leading-none tracking-[0.14em] ${glass ? 'text-[1.35rem]' : 'text-[1.2rem]'} transition-colors duration-500 ${
           headerOverHero ? 'text-[#ffffff]' : 'text-onyx'
         }`}
       >
@@ -280,11 +280,11 @@ export default function Navbar({
           <div className="lg:hidden">{logo(true)}</div>
 
           {/* Wide screens: one glass bar, logo on the left, the sections centred, booking and the account on the
-              right. Taller over the video, a little slimmer once the page is scrolled. */}
+              right. 56px over the video, 48px once the page is scrolled. */}
           <div className="hidden w-full items-center gap-2.5 lg:flex">
           <div
             className={`liquid-glass pointer-events-auto grid min-w-0 flex-1 grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-full px-2 transition-[height] duration-500 ${
-              headerOverHero ? 'h-16' : 'h-14'
+              headerOverHero ? 'h-14' : 'h-12'
             }`}
           >
             {logo(false)}
@@ -314,7 +314,7 @@ export default function Navbar({
               active={page === 'perfil'}
               label={customer ? `Olá, ${firstName}` : 'Ainda não tens conta?'}
               items={accountItems}
-              className={`transition-[width,height] duration-500 ${headerOverHero ? '!size-16' : '!size-14'}`}
+              className={`transition-[width,height] duration-500 ${headerOverHero ? '!size-14' : '!size-12'}`}
             />
           </div>
           </div>
