@@ -1,7 +1,6 @@
 import {
   ContactTiles,
   Visit,
-  ReviewsRow,
   ServiceCarousel,
   StepsRow,
   WelcomeCard,
@@ -15,36 +14,19 @@ import { GlassButton } from '@/components/ui/glass-button'
 import { api } from '@/lib/api'
 import { useWhatsapp } from '@/lib/site-config'
 import { useTheme } from '@/lib/theme'
-import type { Service, Testimonial as ApiTestimonial } from '@/lib/types'
+import type { Service } from '@/lib/types'
+import Testimonials from '@/components/sections/Testimonials'
 
 export default function HomeScreen() {
   const whatsapp = useWhatsapp()
   const { theme } = useTheme()
   const dark = theme === 'dark'
   const [services, setServices] = useState<Service[] | null>(null)
-  const [testimonials, setTestimonials] = useState<
-    Array<{ id: string; quote: string; name: string; date?: string; photo?: number }>
-  >([])
-
   useEffect(() => {
     api
       .get<Service[]>('/services')
       .then(setServices)
       .catch(() => setServices([]))
-    api
-      .get<ApiTestimonial[]>('/testimonials')
-      .then((data) =>
-        setTestimonials(
-          data.map((t) => ({
-            id: t.id,
-            quote: t.content,
-            name: t.customer.name,
-            date: t.createdAt,
-            photo: typeof t.photo === 'number' ? t.photo : undefined,
-          })),
-        ),
-      )
-      .catch(() => setTestimonials([]))
   }, [])
 
   return (
@@ -126,7 +108,7 @@ export default function HomeScreen() {
       <ServiceCarousel services={services} />
       <StepsRow />
       <WorkGrid />
-      <ReviewsRow reviews={testimonials} />
+      <Testimonials app />
 
       <Visit />
 
