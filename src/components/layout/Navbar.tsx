@@ -274,9 +274,8 @@ export default function Navbar({
     <>
       <div
         data-tone={headerTone}
-        className={`site-header pointer-events-none fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6 ${
-          scrolledAway ? '-translate-y-[calc(100%+2.5rem+env(safe-area-inset-top))]' : ''
-        }`}
+        // Always in place and at the same size while scrolling; only the phone tab bar below steps aside.
+        className="site-header pointer-events-none fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6"
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <div className="lg:hidden">{logo(true)}</div>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion } from 'motion/react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ActionButton } from '@/components/ui/action-button'
 import { Sheet } from '@/components/ui/sheet'
 import { api, ApiError } from '@/lib/api'
@@ -146,6 +146,23 @@ export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}
     setError(null)
     setNewSlotId(null)
   }
+
+  // Opened from a notification (/marcacoes?abrir=<id>): show that booking's details straight away, on its tab.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const openId = searchParams.get('abrir')
+  useEffect(() => {
+    if (!openId || !bookings) return
+    const booking = bookings.find((b) => b.id === openId)
+    const timer = window.setTimeout(() => {
+      if (booking) {
+        setTab(past.includes(booking) ? 'past' : 'next')
+        open(booking)
+      }
+      setSearchParams({}, { replace: true })
+    }, 0)
+    return () => window.clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openId, bookings])
 
   async function startReschedule() {
     setMode('reschedule')
@@ -310,6 +327,9 @@ export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}
                   {formatPrice(bookingPrice(selected))}
                 </span>
               </div>
+              {bookingExtras(selected) && (
+                <p className="mt-3 font-subtitle text-sm text-onyx">{bookingExtras(selected)}</p>
+              )}
               <Facts columns="1fr 1fr">
                 <Fact label="Duração">{selected.service.durationLabel}</Fact>
                 <Fact label="Hora">{timeLabel(selected.slot.startsAt)}</Fact>

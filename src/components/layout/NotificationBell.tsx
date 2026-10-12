@@ -36,10 +36,20 @@ export function NotificationBell({ tone, className }: { tone: 'onLight' | 'onDar
   const [unread, setUnread] = useState(0)
   const [open, setOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null)
+  // Ids already shown once, so only notifications that just arrived drop in (and ring the bell).
+  const known = useRef<Set<string> | null>(null)
+  const [fresh, setFresh] = useState<Set<string>>(new Set())
+  const [ring, setRing] = useState(0)
 
   const load = useCallback(async () => {
     try {
       const data = await api.get<{ items: Notification[]; unread: number }>('/account/notifications')
+      const arrived = known.current ? data.items.filter((n) => !known.current!.has(n.id)).map((n) => n.id) : []
+      known.current = new Set(data.items.map((n) => n.id))
+      if (arrived.length) {
+        setFresh(new Set(arrived))
+        setRing((r) => r + 1)
+      }
       setItems(data.items)
       setUnread(data.unread)
     } catch {
@@ -75,6 +85,7 @@ export function NotificationBell({ tone, className }: { tone: 'onLight' | 'onDar
   const toggle = () => {
     const next = !open
     setOpen(next)
+    if (!next) setFresh(new Set())
     if (next && unread > 0) {
       setUnread(0)
       void api.post('/account/notifications/read').catch(() => {})
@@ -94,7 +105,16 @@ export function NotificationBell({ tone, className }: { tone: 'onLight' | 'onDar
           className,
         )}
       >
-        <Bell className="size-[18px]" strokeWidth={1.75} />
+        {/* Swings when a notification arrives. */}
+        <motion.span
+          key={ring}
+          initial={false}
+          animate={ring ? { rotate: [0, -18, 15, -10, 6, 0] } : {}}
+          transition={{ duration: 0.8 }}
+          className="flex origin-top"
+        >
+          <Bell className="size-[18px]" strokeWidth={1.75} />
+        </motion.span>
         {unread > 0 && (
           <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1 font-subtitle text-[10px] font-semibold leading-none text-[#ffffff] ring-2 ring-white">
             {unread > 9 ? '9+' : unread}
@@ -138,13 +158,20 @@ export function NotificationBell({ tone, className }: { tone: 'onLight' | 'onDar
               </div>
             ) : (
               <ul className="max-h-[22rem] divide-y divide-onyx/10 overflow-y-auto">
-                {items.map((n) => (
-                  <li key={n.id}>
+                {items.map((n, i) => (
+                  <motion.li
+                    key={n.id}
+                    // New ones fall in from above, one after another.
+                    initial={fresh.has(n.id) ? { opacity: 0, y: -14 } : false}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                  >
                     <button
                       type="button"
+                      // Opens the booking it is about, with its details (reschedule / cancel) already showing.
                       onClick={() => {
                         setOpen(false)
-                        if (n.bookingId) navigate('/marcacoes')
+                        navigate(n.bookingId ? `/marcacoes?abrir=${n.bookingId}` : '/marcacoes')
                       }}
                       className="flex w-full gap-3 px-4 py-3.5 text-left transition-colors hover:bg-onyx/[0.03]"
                     >
@@ -160,7 +187,7 @@ export function NotificationBell({ tone, className }: { tone: 'onLight' | 'onDar
                         <span className="mt-0.5 block font-subtitle text-xs leading-relaxed text-onyx/60">{n.body}</span>
                       </span>
                     </button>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
             )}
