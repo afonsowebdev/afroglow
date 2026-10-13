@@ -36,6 +36,12 @@ function parseHours(text: string): Interval[] {
   ])
 }
 
+/** "08:00 e 14:00" (the times sessions start, without an end) → minutes since midnight. Only when there are no ranges. */
+function parseStarts(text: string): number[] {
+  if (parseHours(text).length) return []
+  return [...text.matchAll(/(\d{1,2})[:h](\d{2})/g)].map((m) => +m[1] * 60 + +m[2])
+}
+
 const clock = (minutes: number) =>
   `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
 
@@ -67,16 +73,20 @@ export function useOpeningStatus(rows: Array<{ days: string; hours: string }>) {
   }, [])
 
   const week: Interval[][] = Array.from({ length: 7 }, () => [])
+  // Days given as session start times ("08:00 e 14:00") rather than opening ranges.
+  const starts: number[][] = Array.from({ length: 7 }, () => [])
   const todayRows = new Set<number>()
   const listed = new Set<number>()
   let understood = false
   rows.forEach((row, index) => {
     const days = parseDays(row.days)
     const intervals = parseHours(row.hours)
-    if (!days || (!intervals.length && !/fechad/i.test(row.hours))) return
+    const sessions = parseStarts(row.hours)
+    if (!days || (!intervals.length && !sessions.length && !/fechad/i.test(row.hours))) return
     understood = true
     days.forEach((day) => {
       week[day].push(...intervals)
+      starts[day].push(...sessions)
       listed.add(day)
     })
     if (days.includes(now.day)) todayRows.add(index)
@@ -90,17 +100,27 @@ export function useOpeningStatus(rows: Array<{ days: string; hours: string }>) {
 
   const current = week[now.day].find(([open, close]) => now.minutes >= open && now.minutes < close)
   if (current) return { ...base, status: { open: true, text: `Aberto agora · fecha às ${clock(current[1])}` } }
+  const today = [...starts[now.day]].sort((a, b) => a - b)
+  if (today.length) {
+    return { ...base, status: { open: true, text: `Aberto hoje · sessões às ${timeList(today)}` } }
+  }
 
   for (let ahead = 0; ahead < 7; ahead++) {
     const day = (now.day + ahead) % 7
-    const next = week[day]
-      .filter(([open]) => ahead > 0 || open > now.minutes)
-      .sort((a, b) => a[0] - b[0])[0]
-    if (!next) continue
+    const next = [...week[day].map(([open]) => open), ...starts[day]]
+      .filter((open) => ahead > 0 || open > now.minutes)
+      .sort((a, b) => a - b)[0]
+    if (next === undefined) continue
     const when = ahead === 0 ? 'hoje' : ahead === 1 ? 'amanhã' : DAY_NAMES[day]
-    return { ...base, status: { open: false, text: `Fechado · abre ${when} às ${clock(next[0])}` } }
+    return { ...base, status: { open: false, text: `Fechado · abre ${when} às ${clock(next)}` } }
   }
   return { ...base, status: { open: false, text: 'Fechado' } }
+}
+
+/** [480, 840] → "08:00 e 14:00". */
+const timeList = (minutes: number[]) => {
+  const times = minutes.map(clock)
+  return times.length > 1 ? `${times.slice(0, -1).join(', ')} e ${times.at(-1)}` : times[0]
 }
 
 /** [1, 6, 0] → "Segunda, sábado e domingo". */

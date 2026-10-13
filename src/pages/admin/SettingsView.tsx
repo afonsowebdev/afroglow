@@ -119,7 +119,9 @@ export function SettingsView() {
       </label>
 
       <div>
-        <Label>Horário de abertura</Label>
+        <Label hint="as horas a que começam as sessões, ex. 08:00 e 14:00; os dias que não estiverem aqui aparecem como fechados">
+          Horário de abertura
+        </Label>
         <div className="flex flex-col gap-2">
           {form.openingHours.map((row, index) => (
             <div key={index} className="flex gap-2">
@@ -127,7 +129,7 @@ export function SettingsView() {
                 value={row.days}
                 onChange={(e) => updateHours(index, { days: e.target.value })}
                 aria-label="Dias"
-                placeholder="Terça a sábado"
+                placeholder="Quarta-feira"
                 maxLength={60}
                 className={fieldClass}
               />
@@ -135,7 +137,7 @@ export function SettingsView() {
                 value={row.hours}
                 onChange={(e) => updateHours(index, { hours: e.target.value })}
                 aria-label="Horas"
-                placeholder="09:00 – 18:00"
+                placeholder="08:00 e 14:00"
                 maxLength={60}
                 className={fieldClass}
               />
