@@ -92,9 +92,6 @@ export default function Navbar({
   // the way up, near the top, or at the end of the page.
   const hideOnScroll = useHideNavOnScrollSetting()
   const scrolledAway = useHideOnScroll(hideOnScroll, pathname)
-  // Set to stay visible: across most of the width at rest, a pill while scrolling down (as in the customer app).
-  const shrunk = useHideOnScroll(!hideOnScroll, pathname)
-  const phoneBarWide = !hideOnScroll && !shrunk
   // On the home page the sections scroll into view; elsewhere they open the home page at that section.
   const scrollToSection = (id: string) => {
     if (onHome) document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
@@ -193,11 +190,10 @@ export default function Navbar({
     ...(customer ? [{ Icon: LogOut, label: 'Terminar sessão', danger: true, onClick: () => void logout().then(() => navigate('/')) }] : []),
   ]
 
-  const tabBar = (tone: 'onDark' | 'onLight', hide = false, wide = false) => (
+  const tabBar = (tone: 'onDark' | 'onLight', hide = false) => (
     <BottomNavBar
       glass
       compact
-      wide={wide}
       tone={tone}
       hidden={hide}
       value={page ?? (activeSection as TabId)}
@@ -374,12 +370,8 @@ export default function Navbar({
 
       {/* On phones the header has no room for the tabs, so they stay at the bottom, as in the customer app. */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex justify-center px-3 md:hidden">
-        <div
-          className={`flex justify-center ${phoneBarWide ? 'w-[88%] max-w-sm' : ''} ${
-            hidden || scrolledAway ? 'pointer-events-none' : 'pointer-events-auto'
-          }`}
-        >
-          {tabBar(overHero ? 'onDark' : 'onLight', hidden || scrolledAway, phoneBarWide)}
+        <div className={hidden || scrolledAway ? 'pointer-events-none' : 'pointer-events-auto'}>
+          {tabBar(overHero ? 'onDark' : 'onLight', hidden || scrolledAway)}
         </div>
       </div>
     </>

@@ -23,7 +23,7 @@ import BookScreen from './BookScreen'
 import HomeScreen from './HomeScreen'
 import { BookingAlertsProvider, useBookingAlerts } from './booking-alerts'
 import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
-import { NavVisibilityProvider, useAutoHideNav, useHideOnScroll, useNavHidden } from './nav-visibility'
+import { NavVisibilityProvider, useAutoHideNav, useNavHidden } from './nav-visibility'
 import SiteProfile from '@/pages/SiteProfile'
 import SettingsScreen from './SettingsScreen'
 import { NotificationBell } from '@/components/layout/NotificationBell'
@@ -103,9 +103,6 @@ function CustomerShell() {
   const tab = tabFor(location.pathname)
   const hideOnScroll = useHideNavOnScrollSetting()
   useAutoHideNav(hideOnScroll, location.pathname)
-  // With the bar always shown: across the whole width at rest, a pill while scrolling down (as on Instagram).
-  const navShrunk = useHideOnScroll(!hideOnScroll, location.pathname)
-  const navWide = !hideOnScroll && !navShrunk
 
   // White icons while the hero (video) is behind the bar, dark once white pages scroll under it.
   const [overHero, setOverHero] = useState(location.pathname === '/')
@@ -265,10 +262,9 @@ function CustomerShell() {
 
       {/* The tab bar, on its own at the bottom. */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center px-3">
-        <div className={`flex justify-center ${navWide ? 'w-[80%] max-w-sm' : ''} ${navHidden ? 'pointer-events-none' : 'pointer-events-auto'}`}>
+        <div className={navHidden ? 'pointer-events-none' : 'pointer-events-auto'}>
           <BottomNavBar
             glass
-            wide={navWide}
             hidden={navHidden}
             tone={overHero ? 'onDark' : 'onLight'}
             value={tab}
