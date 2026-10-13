@@ -8,7 +8,9 @@ export default function Hero() {
   const dark = theme === 'dark'
 
   return (
-    <section id="top" className="relative flex min-h-screen items-center justify-center overflow-hidden">
+    // The visible screen (svh), not 100vh: on iPhones that also counts the space under Safari's toolbar, which pushed
+    // the bottom of the hero (the "Scroll" cue) behind the tab bar.
+    <section id="top" className="relative flex min-h-[100svh] items-center justify-center overflow-hidden">
       <HeroVideoBackground key={dark ? 'dark' : 'light'} tone={dark ? 'dark' : 'light'} tint={false} />
 
       <div className="relative z-10 flex max-w-3xl flex-col items-center px-6 text-center">
@@ -26,8 +28,9 @@ export default function Hero() {
         </div>
       </div>
 
+      {/* Phones: clear of the tab bar (56px, 12px above the home indicator) with room to spare. */}
       <motion.div
-        className="absolute bottom-28 left-1/2 z-10 flex md:bottom-8 -translate-x-1/2 flex-col items-center gap-1"
+        className="absolute bottom-[calc(6.5rem+env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1 md:bottom-8"
         animate={{ y: [0, 8, 0] }}
         transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
       >
