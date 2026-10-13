@@ -161,6 +161,7 @@ export function FloatingActionMenu({
   direction = 'up',
   compact = false,
   small = false,
+  grid = false,
   PlusIcon = Plus,
 }: {
   actions: MenuAction[]
@@ -170,6 +171,8 @@ export function FloatingActionMenu({
   direction?: 'up' | 'down'
   /** The small round button used in the website header instead of the big glass one. */
   compact?: boolean
+  /** Opening downward: the options in two columns, each a pill with its icon and name, so a long list stays short. */
+  grid?: boolean
   /** The glass button at 48px instead of 56px (the app's top row, beside the bell). */
   small?: boolean
   /** A red dot on the button: something in the list needs attention. */
@@ -201,74 +204,140 @@ export function FloatingActionMenu({
         style={{ pointerEvents: hidden ? 'none' : 'auto' }}
         aria-hidden={hidden || undefined}
       >
-        {/* The column itself never takes taps (it would cover the page above the button); each item does when open. */}
-        <div
-          className={cn(
-            'pointer-events-none absolute right-0 flex items-end gap-2.5',
-            direction === 'up' ? 'bottom-full mb-3 flex-col-reverse' : 'top-full mt-3 flex-col',
-          )}
-        >
-          {ordered.map(({ Icon, iconClass, label, danger, badge, onClick, href }, index) => {
-            const glyph = Icon ? (
-              <Icon size={20} className="text-onyx" />
-            ) : (
-              <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 22 }} aria-hidden="true" />
-            )
-            const circle =
-              'flex size-12 items-center justify-center rounded-full border border-onyx/10 bg-white shadow-md shadow-black/10'
-            const run = () => {
-              onClick?.()
-              close()
-            }
-            return (
-              <motion.div
-                key={label}
-                className="flex items-center gap-3"
-                style={{ pointerEvents: open ? 'auto' : 'none' }}
-                initial={false}
-                animate={{
-                  opacity: open ? 1 : 0,
-                  y: open ? 0 : direction === 'up' ? 24 : -24,
-                  filter: open ? 'blur(0px)' : 'blur(2px)',
-                  scale: open ? 1 : 0.9,
-                  rotate: open ? 0 : 20,
-                }}
-                transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4, delay: open ? index * 0.05 : 0 }}
-              >
-                <span
-                  className={cn(
-                    'flex items-center gap-2 whitespace-nowrap rounded-full border border-onyx/10 bg-white px-3.5 py-1.5 font-subtitle text-xs font-medium shadow-md shadow-black/10',
-                    danger ? 'text-red-700' : 'text-onyx',
-                  )}
-                >
-                  {label}
+        {grid && direction === 'down' ? (
+          // Two columns under the button, read row by row; the panel only takes taps while open.
+          <div
+            className="absolute right-0 top-full mt-3 grid w-[min(calc(100vw-2rem),23rem)] grid-cols-2 gap-2"
+            style={{ pointerEvents: open ? 'auto' : 'none' }}
+          >
+            {ordered.map(({ Icon, iconClass, label, danger, badge, onClick, href }, index) => {
+              const content = (
+                <>
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-onyx/[0.06]">
+                    {Icon ? (
+                      <Icon size={18} className={danger ? 'text-red-700' : 'text-onyx'} />
+                    ) : (
+                      <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 19 }} aria-hidden="true" />
+                    )}
+                  </span>
+                  <span className="line-clamp-2 min-w-0 flex-1 text-left leading-tight">{label}</span>
                   {badge ? (
                     <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none text-[#ffffff]">
                       {badge}
                     </span>
                   ) : null}
-                </span>
-                {href ? (
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={label}
-                    tabIndex={open ? 0 : -1}
-                    onClick={close}
-                    className={circle}
+                </>
+              )
+              const itemClass = cn(
+                'flex h-12 w-full items-center gap-2.5 rounded-full border border-onyx/10 bg-white pl-1.5 pr-3.5 font-subtitle text-[13px] font-medium shadow-md shadow-black/10',
+                danger ? 'text-red-700' : 'text-onyx',
+              )
+              const run = () => {
+                onClick?.()
+                close()
+              }
+              return (
+                <motion.div
+                  key={label}
+                  initial={false}
+                  animate={{
+                    opacity: open ? 1 : 0,
+                    y: open ? 0 : -16,
+                    filter: open ? 'blur(0px)' : 'blur(2px)',
+                    scale: open ? 1 : 0.92,
+                  }}
+                  transition={{ type: 'tween', ease: 'easeInOut', duration: 0.32, delay: open ? index * 0.03 : 0 }}
+                >
+                  {href ? (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      tabIndex={open ? 0 : -1}
+                      onClick={close}
+                      className={itemClass}
+                    >
+                      {content}
+                    </a>
+                  ) : (
+                    <button type="button" tabIndex={open ? 0 : -1} onClick={run} className={itemClass}>
+                      {content}
+                    </button>
+                  )}
+                </motion.div>
+              )
+            })}
+          </div>
+        ) : (
+          // The column itself never takes taps (it would cover the page above the button); each item does when open.
+          <div
+            className={cn(
+              'pointer-events-none absolute right-0 flex items-end gap-2.5',
+              direction === 'up' ? 'bottom-full mb-3 flex-col-reverse' : 'top-full mt-3 flex-col',
+            )}
+          >
+            {ordered.map(({ Icon, iconClass, label, danger, badge, onClick, href }, index) => {
+              const glyph = Icon ? (
+                <Icon size={20} className="text-onyx" />
+              ) : (
+                <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 22 }} aria-hidden="true" />
+              )
+              const circle =
+                'flex size-12 items-center justify-center rounded-full border border-onyx/10 bg-white shadow-md shadow-black/10'
+              const run = () => {
+                onClick?.()
+                close()
+              }
+              return (
+                <motion.div
+                  key={label}
+                  className="flex items-center gap-3"
+                  style={{ pointerEvents: open ? 'auto' : 'none' }}
+                  initial={false}
+                  animate={{
+                    opacity: open ? 1 : 0,
+                    y: open ? 0 : direction === 'up' ? 24 : -24,
+                    filter: open ? 'blur(0px)' : 'blur(2px)',
+                    scale: open ? 1 : 0.9,
+                    rotate: open ? 0 : 20,
+                  }}
+                  transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4, delay: open ? index * 0.05 : 0 }}
+                >
+                  <span
+                    className={cn(
+                      'flex items-center gap-2 whitespace-nowrap rounded-full border border-onyx/10 bg-white px-3.5 py-1.5 font-subtitle text-xs font-medium shadow-md shadow-black/10',
+                      danger ? 'text-red-700' : 'text-onyx',
+                    )}
                   >
-                    {glyph}
-                  </a>
-                ) : (
-                  <button type="button" aria-label={label} tabIndex={open ? 0 : -1} onClick={run} className={circle}>
-                    {glyph}
-                  </button>
-                )}
-              </motion.div>
-            )
-          })}
-        </div>
+                    {label}
+                    {badge ? (
+                      <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none text-[#ffffff]">
+                        {badge}
+                      </span>
+                    ) : null}
+                  </span>
+                  {href ? (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={label}
+                      tabIndex={open ? 0 : -1}
+                      onClick={close}
+                      className={circle}
+                    >
+                      {glyph}
+                    </a>
+                  ) : (
+                    <button type="button" aria-label={label} tabIndex={open ? 0 : -1} onClick={run} className={circle}>
+                      {glyph}
+                    </button>
+                  )}
+                </motion.div>
+              )
+            })}
+          </div>
+        )}
 
         <motion.button
           type="button"

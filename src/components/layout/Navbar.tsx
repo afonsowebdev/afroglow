@@ -367,7 +367,7 @@ export default function Navbar({
                 <NotificationBell tone={headerTone} className="size-14" />
               </div>
             )}
-            <FloatingActionMenu actions={menuActions} direction="down" tone={headerTone} PlusIcon={Plus} />
+            <FloatingActionMenu actions={menuActions} direction="down" grid tone={headerTone} PlusIcon={Plus} />
           </div>
         </div>
       </div>
