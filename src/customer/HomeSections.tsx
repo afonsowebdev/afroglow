@@ -8,7 +8,7 @@ import { api, assetUrl } from '@/lib/api'
 import { tap } from '@/lib/haptics'
 import { serviceImageUrls } from '@/lib/service-images'
 import { useCustomerAuth } from '@/lib/customer-auth'
-import { instagramDmUrl, siteConfig, useBusinessInfo } from '@/lib/site-config'
+import { instagramDmUrl, mapSearchText, siteConfig, useBusinessInfo } from '@/lib/site-config'
 import { useOpeningStatus } from '@/lib/opening-hours'
 import type { AvailabilitySlot, Booking, Service } from '@/lib/types'
 import { useBookingAlerts } from './booking-alerts'
@@ -928,7 +928,7 @@ export function Visit() {
         {(business.mapUrl || business.phone || business.address) && (
           <div className="grid grid-cols-2 gap-2 border-t border-onyx/10 p-3">
             <a
-              href={business.mapUrl || `https://maps.apple.com/?q=${encodeURIComponent(business.address || '')}`}
+              href={business.mapUrl || `https://maps.apple.com/?q=${encodeURIComponent(mapSearchText(business.address || ''))}`}
               target="_blank"
               rel="noreferrer"
               className="glass-chip flex h-11 items-center justify-center gap-2 rounded-full font-subtitle text-sm font-medium text-onyx"

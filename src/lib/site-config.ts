@@ -103,3 +103,16 @@ export function useWhatsapp() {
     url: (message: string) => whatsappLink(whatsappNumber, message),
   }
 }
+
+/**
+ * The address as map services can find it: without the floor and door ("2.º Direito Frente", "1.º andar", "R/C")
+ * or "n.º", which make them miss the street. "Avenida X, n.º 47, 2.º Direito, 5300 Bragança" → "Avenida X 47, 5300 Bragança".
+ */
+export function mapSearchText(address: string) {
+  const parts = address
+    .split(',')
+    .map((part) => part.trim())
+    .filter((part) => part && !/\b(andar|direito|esquerdo|frente|tr[aá]s|r\/?c|cave|loja|fra[cç][aã]o|apartamento|apt)\b/i.test(part))
+  const joined = parts.join(', ').replace(/,?\s*n\.?\s*[ºo°]\s*/gi, ' ')
+  return /portugal/i.test(joined) ? joined : `${joined}, Portugal`
+}

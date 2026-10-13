@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Link } from 'react-router-dom'
 import { dayList, useOpeningStatus } from '@/lib/opening-hours'
-import { useBusinessInfo } from '@/lib/site-config'
+import { mapSearchText, useBusinessInfo } from '@/lib/site-config'
 import { VelocityRow } from '@/components/ui/velocity-marquee'
 
 const reveal = (delay: number) => ({
@@ -13,7 +13,7 @@ const reveal = (delay: number) => ({
 })
 
 // The address on Google Maps: embedded (no key needed) and as a link for phones' map apps.
-const mapsQuery = (address: string) => encodeURIComponent(`${address}, Portugal`)
+const mapsQuery = (address: string) => encodeURIComponent(mapSearchText(address))
 const mapsEmbed = (address: string) => `https://www.google.com/maps?q=${mapsQuery(address)}&output=embed`
 const mapsLink = (address: string) => `https://www.google.com/maps/search/?api=1&query=${mapsQuery(address)}`
 
