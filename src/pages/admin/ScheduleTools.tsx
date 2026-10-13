@@ -28,19 +28,19 @@ interface Pattern {
 }
 
 const STORAGE_KEY = 'afroglow-admin-schedule-week'
-// The studio's usual week: Monday, Tuesday and Friday closed; Wednesday and Saturday morning and afternoon;
-// Thursday morning only; Sunday afternoon only.
+// The studio's usual week: Monday to Wednesday and Saturday morning and afternoon; Thursday morning only; Friday off;
+// Sunday afternoon only.
 const DEFAULT_PATTERN: Pattern = {
   week: {
-    1: { am: false, pm: false },
-    2: { am: false, pm: false },
+    1: { am: true, pm: true },
+    2: { am: true, pm: true },
     3: { am: true, pm: true },
     4: { am: true, pm: false },
     5: { am: false, pm: false },
     6: { am: true, pm: true },
     0: { am: false, pm: true },
   },
-  amTime: '08:00',
+  amTime: '09:00',
   pmTime: '14:00',
   weeks: 4,
 }
