@@ -78,7 +78,8 @@ export function TeamMemberCard({
           onPointerLeave={() => setPaused(false)}
           onClick={() => setCurrent((i) => (i + 1) % slideCount)}
           className={cn(
-            'relative h-[min(480px,28dvh)] w-[min(100%,calc(28dvh*0.8))] shrink-0 cursor-pointer overflow-hidden rounded-2xl bg-cream sm:h-[min(640px,56dvh)] sm:w-[460px]',
+            // Phones: a proper portrait (4:5) most of the width; from `sm` the tall photo beside the text.
+            'relative aspect-[4/5] w-[min(80vw,340px)] shrink-0 cursor-pointer overflow-hidden rounded-2xl bg-cream sm:aspect-auto sm:h-[min(640px,56dvh)] sm:w-[460px]',
             isPositionRight && 'sm:order-1',
           )}
         >
@@ -144,7 +145,7 @@ export function TeamMemberCard({
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 className={cn(
-                  'group flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center rounded-full border border-onyx/20 transition-colors duration-300 hover:border-onyx hover:bg-onyx sm:h-20 sm:w-20',
+                  'group hidden h-20 w-20 shrink-0 cursor-pointer items-center justify-center rounded-full border border-onyx/20 transition-colors duration-300 hover:border-onyx hover:bg-onyx sm:flex',
                   isPositionRight && 'sm:order-1',
                 )}
               >
@@ -160,13 +161,26 @@ export function TeamMemberCard({
 
             <p
               className={cn(
-                'flex-1 font-subtitle text-sm leading-[1.8] text-muted-dark',
+                'flex-1 text-center font-subtitle text-sm leading-[1.8] text-muted-dark sm:text-left',
                 isPositionRight && 'text-right',
               )}
             >
               {description}
             </p>
           </div>
+
+          {/* Phones: the Instagram link says what it is, instead of the bare arrow used beside the text on wider screens. */}
+          {instagramUrl && (
+            <a
+              href={instagramUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex h-11 items-center gap-2 rounded-full border border-onyx/15 px-5 font-subtitle text-sm font-medium text-onyx sm:hidden"
+            >
+              <i className="bx bxl-instagram text-lg" aria-hidden="true" />
+              Instagram
+            </a>
+          )}
         </motion.div>
       </div>
     </motion.div>
