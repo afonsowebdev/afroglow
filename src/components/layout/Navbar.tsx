@@ -1,44 +1,49 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { CalendarCheck, LogIn, LogOut, Moon, Settings, Sparkles, Sun, UserRound } from 'lucide-react'
 import {
-  CalendarCheckFill,
-  CalendarPlusFill,
-  GearFill,
-  HouseFill,
-  InfoCircleFill,
-  ListRectangleFill,
-  MoonFill,
-  PersonCircleFill,
-  PhoneFill,
-  PhotoStackFill,
-  PlusBold,
-  QuoteBubbleFill,
-  SignOutFill,
-  SparklesFill,
-  SunFill,
-} from '@/components/ui/apple-icons'
+  CalendarCheck,
+  CalendarPlus,
+  CircleHelp,
+  House,
+  Images,
+  Info,
+  LayoutList,
+  LogIn,
+  LogOut,
+  MessageSquareQuote,
+  Moon,
+  PanelTop,
+  PanelTopClose,
+  Phone,
+  Plus,
+  Settings,
+  Sparkles,
+  Sun,
+  UserRound,
+} from 'lucide-react'
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
 import { AccountMenu, DesktopNav, type AccountItem, type DesktopLink } from '@/components/layout/DesktopNav'
 import { ButtonWithIcon } from '@/components/ui/button-with-icon'
 import { NotificationBell } from '@/components/layout/NotificationBell'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import { loadAvatar, useAvatar } from '@/lib/avatar-store'
+import { useHideOnScroll } from '@/customer/nav-visibility'
 import { useCustomerAuth } from '@/lib/customer-auth'
+import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
 import { useTheme } from '@/lib/theme'
 import { instagramDmUrl, useWhatsapp } from '@/lib/site-config'
 
 type TabId = 'top' | 'servicos' | 'galeria' | 'agendar' | 'contacto' | 'perfil'
 
-// The same floating tab bar as the customer app: sections of the page, plus booking, which opens its own page.
-// Icons in the style of Apple's SF Symbols (see apple-icons); `icon` stays as the Boxicons fallback.
+// The same floating tab bar as the customer app, with its outline icons: sections of the page, plus booking and the
+// profile, which open their own pages. `icon` stays as the Boxicons fallback.
 const TABS: Array<BottomNavItem<TabId>> = [
-  { id: 'top', label: 'Início', icon: 'bx bx-home-alt', Icon: HouseFill },
-  { id: 'servicos', label: 'Serviços', icon: 'bx bx-list-ul', Icon: ListRectangleFill },
-  { id: 'agendar', label: 'Agendar', icon: 'bx bx-calendar-plus', Icon: CalendarPlusFill },
-  { id: 'galeria', label: 'Galeria', icon: 'bx bx-images', Icon: PhotoStackFill },
-  { id: 'contacto', label: 'Contacto', icon: 'bx bx-phone', Icon: PhoneFill },
-  { id: 'perfil', label: 'Perfil', icon: 'bx bx-user', Icon: PersonCircleFill },
+  { id: 'top', label: 'Início', icon: 'bx bx-home-alt', Icon: House },
+  { id: 'servicos', label: 'Serviços', icon: 'bx bx-list-ul', Icon: LayoutList },
+  { id: 'agendar', label: 'Agendar', icon: 'bx bx-calendar-plus', Icon: CalendarPlus },
+  { id: 'galeria', label: 'Galeria', icon: 'bx bx-images', Icon: Images },
+  { id: 'contacto', label: 'Contacto', icon: 'bx bx-phone', Icon: Phone },
+  { id: 'perfil', label: 'Perfil', icon: 'bx bx-user', Icon: UserRound },
 ]
 
 // Tabs that open their own page rather than a section of this one.
@@ -64,22 +69,32 @@ const SECTION_IDS = [
 
 /**
  * The website menu. Wide screens: the AFROGLOW logo, the sections as words, an "Agendar" button and the account
- * menu (DesktopNav). Tablets: the customer app's "liquid glass" tab bar in the header (the active item shows its
- * name) with the round "+" for everything else. Phones: only the "A" and the "+", which holds the whole menu. The same menu shows on the customer pages, with `page` keeping
+ * menu (DesktopNav). Tablets and phones: the customer app's floating "liquid glass" tab bar (the active item shows
+ * its name) with the round "+" for everything else. The same menu shows on the customer pages, with `page` keeping
  * their tab selected; its sections then lead back to the home page.
  */
 export default function Navbar({
   page,
+  hidden = false,
   dot = false,
 }: {
   /** On a page of its own (booking, profile): the tab kept selected. */
   page?: 'agendar' | 'perfil'
+  /** Slides the phone tab bar away (a screen showing its own bottom button). */
+  hidden?: boolean
   /** A red dot on the profile tab: a booking decision the customer hasn't seen. */
   dot?: boolean
 } = {}) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const onHome = pathname === '/'
+  // As in the apps (same setting, in the "+" menu): the menu slides away while scrolling down and comes back on
+  // the way up, near the top, or at the end of the page.
+  const hideOnScroll = useHideNavOnScrollSetting()
+  const scrolledAway = useHideOnScroll(hideOnScroll, pathname)
+  // Set to stay visible: across most of the width at rest, a pill while scrolling down (as in the customer app).
+  const shrunk = useHideOnScroll(!hideOnScroll, pathname)
+  const phoneBarWide = !hideOnScroll && !shrunk
   // On the home page the sections scroll into view; elsewhere they open the home page at that section.
   const scrollToSection = (id: string) => {
     if (onHome) document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
@@ -94,6 +109,7 @@ export default function Navbar({
     if (customer) void loadAvatar()
   }, [customer])
   const [activeSection, setActiveSection] = useState<string>('top')
+  const [overHero, setOverHero] = useState(true)
   const [headerOverHero, setHeaderOverHero] = useState(true)
 
   // Highlights the tab of the section on screen. The sections load lazily after the first paint, so they are
@@ -130,10 +146,11 @@ export default function Navbar({
     }
   }, [])
 
-  // White header icons while the hero video is behind it, dark once the white sections scroll under it.
+  // White icons while the hero video is behind the bar, dark once the white sections scroll under it.
   useEffect(() => {
     const update = () => {
       const hero = document.getElementById('top')
+      setOverHero(!!hero && hero.getBoundingClientRect().bottom > window.innerHeight - 60)
       setHeaderOverHero(!!hero && hero.getBoundingClientRect().bottom > 80)
     }
     update()
@@ -145,25 +162,24 @@ export default function Navbar({
     }
   }, [])
 
-  // Everything on the round "+" (on phones it is the only menu): the sections first, then booking and the
-  // account, then the rest.
   const menuActions: MenuAction[] = [
-    { Icon: HouseFill, label: 'Início', onClick: () => scrollToSection('top') },
-    { Icon: InfoCircleFill, label: 'Sobre nós', onClick: () => scrollToSection('sobre') },
-    { Icon: ListRectangleFill, label: 'Serviços', onClick: () => scrollToSection('servicos') },
-    { Icon: PhotoStackFill, label: 'Galeria', onClick: () => scrollToSection('galeria') },
-    { Icon: QuoteBubbleFill, label: 'Testemunhos', onClick: () => scrollToSection('testemunhos') },
-    { Icon: InfoCircleFill, label: 'Perguntas frequentes', onClick: () => scrollToSection('perguntas-frequentes') },
-    { Icon: PhoneFill, label: 'Contacto', onClick: () => scrollToSection('contacto') },
-    { Icon: CalendarPlusFill, label: 'Agendar', onClick: () => navigate('/agendar') },
+    { Icon: theme === 'dark' ? Sun : Moon, label: theme === 'dark' ? 'Tema claro' : 'Tema escuro', onClick: toggleTheme },
+    {
+      Icon: hideOnScroll ? PanelTop : PanelTopClose,
+      label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
+      onClick: () => setHideNavOnScroll(!hideOnScroll),
+    },
+    { Icon: Info, label: 'Sobre nós', onClick: () => scrollToSection('sobre') },
+    { Icon: MessageSquareQuote, label: 'Testemunhos', onClick: () => scrollToSection('testemunhos') },
+    { Icon: CircleHelp, label: 'Perguntas frequentes', onClick: () => scrollToSection('perguntas-frequentes') },
+    { Icon: Sparkles, label: 'Conhecer a CEO', onClick: () => navigate('/ceo') },
+    { Icon: CalendarPlus, label: 'Agendar', onClick: () => navigate('/agendar') },
     ...(customer
       ? [
-          { Icon: PersonCircleFill, label: 'O meu perfil', badge: dot ? 1 : undefined, onClick: () => navigate('/conta') },
-          { Icon: CalendarCheckFill, label: 'As minhas marcações', onClick: () => navigate('/marcacoes') },
-          { Icon: GearFill, label: 'Definições', onClick: () => navigate('/definicoes') },
+          { Icon: CalendarCheck, label: 'As minhas marcações', onClick: () => navigate('/marcacoes') },
+          { Icon: Settings, label: 'Definições', onClick: () => navigate('/definicoes') },
         ]
-      : [{ Icon: PersonCircleFill, label: 'Entrar ou criar conta', onClick: () => navigate('/entrar') }]),
-    { Icon: SparklesFill, label: 'Conhecer a CEO', onClick: () => navigate('/ceo') },
+      : []),
     { iconClass: 'bx bxl-instagram', label: 'Instagram', href: instagramDmUrl() },
     ...(whatsapp.enabled
       ? [
@@ -174,15 +190,16 @@ export default function Navbar({
           },
         ]
       : []),
-    { Icon: theme === 'dark' ? SunFill : MoonFill, label: theme === 'dark' ? 'Tema claro' : 'Tema escuro', onClick: toggleTheme },
-    ...(customer ? [{ Icon: SignOutFill, label: 'Terminar sessão', danger: true, onClick: () => void logout().then(() => navigate('/')) }] : []),
+    ...(customer ? [{ Icon: LogOut, label: 'Terminar sessão', danger: true, onClick: () => void logout().then(() => navigate('/')) }] : []),
   ]
 
-  const tabBar = (tone: 'onDark' | 'onLight') => (
+  const tabBar = (tone: 'onDark' | 'onLight', hide = false, wide = false) => (
     <BottomNavBar
       glass
       compact
+      wide={wide}
       tone={tone}
+      hidden={hide}
       value={page ?? (activeSection as TabId)}
       onChange={(id) => {
         if (id === 'agendar') navigate('/agendar')
@@ -218,6 +235,11 @@ export default function Navbar({
       label: theme === 'dark' ? 'Tema claro' : 'Tema escuro',
       onClick: toggleTheme,
       divider: true,
+    },
+    {
+      Icon: hideOnScroll ? PanelTop : PanelTopClose,
+      label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
+      onClick: () => setHideNavOnScroll(!hideOnScroll),
     },
     ...(customer
       ? [{ Icon: LogOut, label: 'Terminar sessão', danger: true, divider: true, onClick: () => void logout().then(() => navigate('/')) }]
@@ -277,7 +299,7 @@ export default function Navbar({
     <>
       <div
         data-tone={headerTone}
-        // Always in place and at the same size while scrolling.
+        // Always in place and at the same size while scrolling; only the phone tab bar below steps aside.
         className="site-header pointer-events-none fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6"
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
@@ -345,18 +367,21 @@ export default function Navbar({
                 <NotificationBell tone={headerTone} className="size-14" />
               </div>
             )}
-            <FloatingActionMenu
-              actions={menuActions}
-              direction="down"
-              keepOrder
-              dot={dot}
-              tone={headerTone}
-              PlusIcon={PlusBold}
-            />
+            <FloatingActionMenu actions={menuActions} direction="down" tone={headerTone} PlusIcon={Plus} />
           </div>
         </div>
       </div>
 
+      {/* On phones the header has no room for the tabs, so they stay at the bottom, as in the customer app. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex justify-center px-3 md:hidden">
+        <div
+          className={`flex justify-center ${phoneBarWide ? 'w-[88%] max-w-sm' : ''} ${
+            hidden || scrolledAway ? 'pointer-events-none' : 'pointer-events-auto'
+          }`}
+        >
+          {tabBar(overHero ? 'onDark' : 'onLight', hidden || scrolledAway, phoneBarWide)}
+        </div>
+      </div>
     </>
   )
 }
