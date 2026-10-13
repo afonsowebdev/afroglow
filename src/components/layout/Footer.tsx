@@ -73,8 +73,7 @@ export default function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    // Bottom padding below `md` leaves room for the floating tab bar.
-    <footer className="relative overflow-hidden border-t border-onyx/10 bg-white pb-24 md:pb-0">
+    <footer className="relative overflow-hidden border-t border-onyx/10 bg-white">
       {/* AFROGLOW sliding across the middle, as on the sections above. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 flex flex-col justify-center">
         <VelocityRow direction={-1} />

@@ -2,7 +2,7 @@ import { useEffect, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Navbar from '@/components/layout/Navbar'
 import { BookingAlertsProvider, useBookingAlerts } from '@/customer/booking-alerts'
-import { NavVisibilityProvider, useNavHidden } from '@/customer/nav-visibility'
+import { NavVisibilityProvider } from '@/customer/nav-visibility'
 import { useCustomerAuth } from '@/lib/customer-auth'
 
 /** The AFROGLOW logo in its glass pill, as in the site header. */
@@ -29,12 +29,11 @@ export function SiteLogo() {
 function Shell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
   const { unseen } = useBookingAlerts()
-  const navHidden = useNavHidden()
 
   return (
     <div className="min-h-screen bg-white">
       {/* The same menu as the home page, with this page's tab kept selected. */}
-      <Navbar page={pathname.startsWith('/agendar') ? 'agendar' : 'perfil'} hidden={navHidden} dot={unseen.size > 0} />
+      <Navbar page={pathname.startsWith('/agendar') ? 'agendar' : 'perfil'} dot={unseen.size > 0} />
 
       {/* Room for the header; the screens keep their own layout from the app. */}
       <div className="pt-[calc(4.5rem+env(safe-area-inset-top))] sm:pt-[calc(5.5rem+env(safe-area-inset-top))]">

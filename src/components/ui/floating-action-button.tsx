@@ -161,6 +161,7 @@ export function FloatingActionMenu({
   direction = 'up',
   compact = false,
   small = false,
+  keepOrder = false,
   PlusIcon = Plus,
 }: {
   actions: MenuAction[]
@@ -170,6 +171,8 @@ export function FloatingActionMenu({
   direction?: 'up' | 'down'
   /** The small round button used in the website header instead of the big glass one. */
   compact?: boolean
+  /** The options in the order given (e.g. grouped) instead of A to Z. */
+  keepOrder?: boolean
   /** The glass button at 48px instead of 56px (the app's top row, beside the bell). */
   small?: boolean
   /** A red dot on the button: something in the list needs attention. */
@@ -180,8 +183,8 @@ export function FloatingActionMenu({
   const [open, setOpen] = useState(false)
   const close = () => setOpen(false)
   // A to Z, read from top to bottom. A column that opens upward is built from the bottom, so it is reversed.
-  const alphabetical = [...actions].sort((a, b) => a.label.localeCompare(b.label, 'pt'))
-  const ordered = direction === 'up' ? alphabetical.reverse() : alphabetical
+  const listed = keepOrder ? [...actions] : [...actions].sort((a, b) => a.label.localeCompare(b.label, 'pt'))
+  const ordered = direction === 'up' ? listed.reverse() : listed
 
   return (
     <>
@@ -205,8 +208,12 @@ export function FloatingActionMenu({
         <div
           className={cn(
             'pointer-events-none absolute right-0 flex items-end gap-2.5',
-            direction === 'up' ? 'bottom-full mb-3 flex-col-reverse' : 'top-full mt-3 flex-col',
+            direction === 'up'
+              ? 'bottom-full mb-3 flex-col-reverse'
+              : // Opening downward, a long list scrolls within the screen instead of running off it.
+                '-mr-2 top-full mt-1 max-h-[calc(100dvh-6.5rem-env(safe-area-inset-top))] flex-col overflow-y-auto overscroll-contain p-2 pb-10 [mask-image:linear-gradient(to_bottom,black_calc(100%-3rem),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
           )}
+          style={direction === 'down' && open ? { pointerEvents: 'auto' } : undefined}
         >
           {ordered.map(({ Icon, iconClass, label, danger, badge, onClick, href }, index) => {
             const glyph = Icon ? (
