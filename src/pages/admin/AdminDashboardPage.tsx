@@ -45,6 +45,7 @@ import { bookingName, bookingPrice } from '@/lib/pricing'
 import { PricingEditor } from './PricingEditor'
 import { draftFromPricing, pricingFromDraft, type PricingDraft } from './pricing-draft'
 import { BookingChoices } from './BookingChoices'
+import { BrandLogo } from '@/components/ui/brand-logo'
 
 const LISBON_TZ = 'Europe/Lisbon'
 
@@ -2093,8 +2094,8 @@ function AdminDashboard() {
       {/* Not fixed: the header scrolls away with the page. */}
       <div className="absolute inset-x-0 top-0 z-40 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-5xl items-center justify-center">
-          <div className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
-            <span className="font-logo text-2xl leading-none tracking-wide text-onyx">AFROGLOW</span>
+          <div className={`h-12 ps-2 pe-5 ${pillClasses}`}>
+            <BrandLogo size="sm" />
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { MotionButton } from '@/components/ui/motion-button'
+import { BrandLogo } from '@/components/ui/brand-logo'
 
 export default function NotFoundPage() {
   return (
@@ -11,8 +12,8 @@ export default function NotFoundPage() {
         AFROGLOW
       </span>
       <div className="relative">
-        <Link to="/" className="font-logo text-3xl leading-none tracking-wide text-gold-ink">
-          AFROGLOW
+        <Link to="/" aria-label="AFROGLOW, voltar ao início" className="inline-flex">
+          <BrandLogo size="lg" />
         </Link>
         <h1 className="mt-8 font-logo text-5xl text-onyx sm:text-6xl">404</h1>
         <p className="mt-4 font-subtitle text-lg font-light text-muted-dark">Esta página não existe.</p>

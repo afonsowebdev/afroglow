@@ -244,7 +244,7 @@ function CustomerShell() {
           aria-label="AFROGLOW, início"
           className="pointer-events-auto flex size-12 items-center justify-center rounded-full bg-[#ffffff] font-logo text-[1.6rem] leading-none text-[#c9a84c] shadow-[0_2px_10px_rgba(0,0,0,0.16)] logo-weight dark:bg-[#2b1d12] dark:text-[#ffffff] dark:ring-1 dark:ring-[#ffffff]/15"
         >
-          <span className="translate-y-[2px]" aria-hidden="true">
+          <span className="translate-y-[0.1em]" aria-hidden="true">
             A
           </span>
         </button>

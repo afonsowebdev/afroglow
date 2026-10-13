@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BrandMarquee } from '@/components/ui/brand-marquee'
 import { TeamMemberCard } from '@/components/ui/team-member-card'
+import { BrandLogo } from '@/components/ui/brand-logo'
 
 // The CEO's photos, in the order they appear: web versions in public/images/ceo/ (portrait works best), the
 // phone's originals kept beside them in public/images/ceo/originais/. To add one, put it there and list it here.
@@ -27,13 +28,13 @@ export default function CeoPage() {
       <BrandMarquee />
       <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          <Link to="/" className={`px-5 py-3 sm:px-6 ${pillClasses}`}>
-            <span className="font-logo text-2xl leading-none tracking-wide text-gold-ink">AFROGLOW</span>
+          <Link to="/" aria-label="AFROGLOW, voltar ao início" className={`h-12 ps-2 pe-5 ${pillClasses}`}>
+            <BrandLogo size="sm" />
           </Link>
 
           <Link
             to="/"
-            className={`gap-2 px-5 py-3 text-sm text-onyx transition-colors duration-300 hover:text-gold-ink sm:px-6 ${pillClasses}`}
+            className={`h-12 gap-2 px-5 text-sm text-onyx transition-colors duration-300 hover:text-gold-ink sm:px-6 ${pillClasses}`}
           >
             <span>Sair</span>
             <i className="bx bx-x text-xl" aria-hidden="true" />

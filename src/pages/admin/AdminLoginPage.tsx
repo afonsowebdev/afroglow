@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { MotionButton } from '@/components/ui/motion-button'
 import { ScrollMorphHero } from '@/components/ui/scroll-morph-hero'
 import { adminToken, api, ApiError } from '@/lib/api'
+import { BrandLogo } from '@/components/ui/brand-logo'
 
 export default function AdminLoginPage() {
   const navigate = useNavigate()
@@ -33,8 +34,8 @@ export default function AdminLoginPage() {
     <div className="app-neutral relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-cream px-5 py-16">
       <ScrollMorphHero className="absolute inset-0" />
 
-      <Link to="/" className="relative z-10 mb-8 font-logo text-3xl leading-none tracking-wide text-onyx">
-        AFROGLOW
+      <Link to="/" aria-label="AFROGLOW, site" className="relative z-10 mb-8">
+        <BrandLogo size="lg" />
       </Link>
 
       <form

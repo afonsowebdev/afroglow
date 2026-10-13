@@ -1,0 +1,47 @@
+import { cn } from '@/lib/utils'
+
+const SIZES = {
+  sm: { mark: 'size-8 text-[1.35rem]', word: 'text-[1.1rem]', gap: 'gap-3' },
+  md: { mark: 'size-10 text-[1.35rem]', word: 'text-[1.35rem]', gap: 'gap-3' },
+  lg: { mark: 'size-12 text-[1.75rem]', word: 'text-[1.75rem]', gap: 'gap-3.5' },
+}
+
+/**
+ * The one AFROGLOW logo of the site and the admin: the "A" in a circle, then the wordmark, both in the logo's
+ * weight and spacing. The typeface sits high in its line, so the letters are nudged down by 0.1em to look centred
+ * (in the circle and against it). `onMedia`: white, over the hero video.
+ */
+export function BrandLogo({
+  size = 'md',
+  onMedia = false,
+  className,
+}: {
+  size?: keyof typeof SIZES
+  onMedia?: boolean
+  className?: string
+}) {
+  const s = SIZES[size]
+  return (
+    <span className={cn('flex items-center', s.gap, className)}>
+      <span
+        aria-hidden="true"
+        className={cn(
+          'flex shrink-0 items-center justify-center rounded-full logo-weight font-logo leading-none shadow-[0_1px_4px_rgba(0,0,0,0.18)] transition-colors duration-500',
+          s.mark,
+          onMedia ? 'bg-[#ffffff] text-[#111111]' : 'bg-onyx text-white',
+        )}
+      >
+        <span className="translate-y-[0.1em]">A</span>
+      </span>
+      <span
+        className={cn(
+          'translate-y-[0.1em] logo-weight font-logo leading-none tracking-[0.14em] transition-colors duration-500',
+          s.word,
+          onMedia ? 'text-[#ffffff]' : 'text-onyx',
+        )}
+      >
+        AFROGLOW
+      </span>
+    </span>
+  )
+}

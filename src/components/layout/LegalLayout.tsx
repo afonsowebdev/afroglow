@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { usePageTitle } from '@/lib/page-title'
+import { BrandLogo } from '@/components/ui/brand-logo'
 
 /** Shared page frame for the legal texts (privacy policy, terms). */
 export function LegalLayout({ title, updated, children }: { title: string; updated: string; children: ReactNode }) {
@@ -9,8 +10,8 @@ export function LegalLayout({ title, updated, children }: { title: string; updat
     <div className="min-h-screen bg-white">
       <header className="border-b border-gold/20">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4 sm:px-8">
-          <Link to="/" className="font-logo text-2xl leading-none tracking-wide text-gold-ink">
-            AFROGLOW
+          <Link to="/" aria-label="AFROGLOW, voltar ao início">
+            <BrandLogo size="sm" />
           </Link>
           <Link to="/" className="font-subtitle text-sm text-muted-dark hover:text-onyx">
             Voltar ao site

@@ -32,6 +32,7 @@ import { useCustomerAuth } from '@/lib/customer-auth'
 import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
 import { useTheme } from '@/lib/theme'
 import { instagramDmUrl, useWhatsapp } from '@/lib/site-config'
+import { BrandLogo } from '@/components/ui/brand-logo'
 
 type TabId = 'top' | 'servicos' | 'galeria' | 'agendar' | 'contacto' | 'perfil'
 
@@ -255,21 +256,7 @@ export default function Navbar({
       aria-label="AFROGLOW, voltar ao início"
       className={`pointer-events-auto flex items-center gap-3 rounded-full h-9 pe-3 ps-0.5`}
     >
-      <span
-        className={`flex shrink-0 size-8 items-center justify-center rounded-full logo-weight font-logo text-[1.35rem] leading-none shadow-[0_1px_4px_rgba(0,0,0,0.18)] transition-colors duration-500 ${
-          headerOverHero ? 'bg-[#ffffff] text-[#111111]' : 'bg-onyx text-white'
-        }`}
-        aria-hidden="true"
-      >
-        <span className="translate-y-[2px]">A</span>
-      </span>
-      <span
-        className={`translate-y-[2px] logo-weight font-logo leading-none tracking-[0.14em] text-[1.1rem] transition-colors duration-500 ${
-          headerOverHero ? 'text-[#ffffff]' : 'text-onyx'
-        }`}
-      >
-        AFROGLOW
-      </span>
+      <BrandLogo size="sm" onMedia={headerOverHero} />
     </a>
   )
 
@@ -285,7 +272,7 @@ export default function Navbar({
       aria-label="AFROGLOW, voltar ao início"
       className="pointer-events-auto flex size-[56px] items-center justify-center rounded-full bg-[#ffffff] font-logo text-[1.75rem] leading-none text-[#c9a84c] shadow-[0_2px_10px_rgba(0,0,0,0.16)] logo-weight dark:bg-[#2b1d12] dark:text-[#ffffff] dark:ring-1 dark:ring-[#ffffff]/15"
     >
-      <span className="translate-y-[2px]" aria-hidden="true">
+      <span className="translate-y-[0.1em]" aria-hidden="true">
         A
       </span>
     </a>
