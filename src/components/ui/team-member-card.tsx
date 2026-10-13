@@ -34,8 +34,8 @@ export function TeamMemberCard({
   const fullName = `${firstName} ${lastName}`
   const isPositionRight = position === 'right'
   const reduceMotion = useReducedMotion()
-  // With no photos yet, three placeholder slides show how the change will look.
-  const slideCount = Math.max(photos.length, 3)
+  // One slide per photo; with none yet, three placeholder slides show how the change will look.
+  const slideCount = photos.length || 3
   const [current, setCurrent] = useState(0)
   const [paused, setPaused] = useState(false)
 
