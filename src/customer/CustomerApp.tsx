@@ -25,6 +25,7 @@ import { BookingAlertsProvider, useBookingAlerts } from './booking-alerts'
 import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
 import { NavVisibilityProvider, useAutoHideNav, useNavHidden } from './nav-visibility'
 import ProfileScreen from './ProfileScreen'
+import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 import SettingsScreen from './SettingsScreen'
 import { NotificationBell } from '@/components/layout/NotificationBell'
 
@@ -243,18 +244,19 @@ function CustomerShell() {
             window.scrollTo({ top: 0 })
           }}
           aria-label="AFROGLOW, início"
-          className="pointer-events-auto flex size-12 items-center justify-center rounded-full bg-[#ffffff] font-logo text-[1.6rem] leading-none text-[#c9a84c] shadow-[0_2px_10px_rgba(0,0,0,0.16)] logo-weight dark:bg-[#2b1d12] dark:text-[#ffffff] dark:ring-1 dark:ring-[#ffffff]/15"
+          className={`pointer-events-auto flex size-12 items-center justify-center rounded-full font-logo text-[1.6rem] leading-none logo-weight ${BRAND_CIRCLE}`}
         >
           <span className="translate-y-[0.1em]" aria-hidden="true">
             A
           </span>
         </button>
         <div className="pointer-events-auto flex items-start gap-2.5">
-          {customer && <NotificationBell tone={overHero ? 'onDark' : 'onLight'} className="size-12" plainBadge />}
+          {customer && <NotificationBell tone={overHero ? 'onDark' : 'onLight'} className="size-12" plainBadge brand />}
           <FloatingActionMenu
             actions={menuActions}
             direction="down"
             small
+            brand
             tone={overHero ? 'onDark' : 'onLight'}
             PlusIcon={Plus}
           />

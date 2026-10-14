@@ -1,5 +1,12 @@
 import { cn } from '@/lib/utils'
 
+/**
+ * The round buttons beside the "A" on phones and in the app (the "A", the bell, the "+"): the logo's colours, gold
+ * on white, and white on the dark background in the dark theme.
+ */
+export const BRAND_CIRCLE =
+  'bg-[#ffffff] text-[#c9a84c] shadow-[0_2px_10px_rgba(0,0,0,0.16)] dark:bg-[#2b1d12] dark:text-[#ffffff] dark:ring-1 dark:ring-[#ffffff]/15'
+
 const SIZES = {
   sm: { mark: 'size-8 text-[1.35rem]', word: 'text-[1.1rem]', gap: 'gap-3' },
   md: { mark: 'size-10 text-[1.35rem]', word: 'text-[1.35rem]', gap: 'gap-3' },

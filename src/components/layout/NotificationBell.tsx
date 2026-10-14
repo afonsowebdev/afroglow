@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Bell, X } from 'lucide-react'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
+import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 import { tap } from '@/lib/haptics'
 
 interface Notification {
@@ -51,8 +52,11 @@ export function NotificationBell({
   tone,
   className,
   plainBadge = false,
+  brand = false,
 }: {
   tone: 'onLight' | 'onDark'
+  /** In the logo's colours (BRAND_CIRCLE) instead of glass, beside the "A". */
+  brand?: boolean
   className?: string
   /** The count without the white ring around it (the customer app). */
   plainBadge?: boolean
@@ -178,8 +182,8 @@ export function NotificationBell({
         aria-label={unread ? `Notificações, ${unread} por ler` : 'Notificações'}
         aria-expanded={open}
         className={cn(
-          'liquid-glass relative flex items-center justify-center rounded-full transition-colors duration-500',
-          tone === 'onDark' ? 'text-[#ffffff]' : 'text-onyx',
+          'relative flex items-center justify-center rounded-full transition-colors duration-500',
+          brand ? BRAND_CIRCLE : cn('liquid-glass', tone === 'onDark' ? 'text-[#ffffff]' : 'text-onyx'),
           className,
         )}
       >

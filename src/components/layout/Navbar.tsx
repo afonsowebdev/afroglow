@@ -32,7 +32,7 @@ import { useCustomerAuth } from '@/lib/customer-auth'
 import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
 import { useTheme } from '@/lib/theme'
 import { instagramDmUrl, useWhatsapp } from '@/lib/site-config'
-import { BrandLogo } from '@/components/ui/brand-logo'
+import { BRAND_CIRCLE, BrandLogo } from '@/components/ui/brand-logo'
 
 type TabId = 'top' | 'servicos' | 'galeria' | 'agendar' | 'contacto' | 'perfil'
 
@@ -270,7 +270,7 @@ export default function Navbar({
         navigate('/')
       }}
       aria-label="AFROGLOW, voltar ao início"
-      className="pointer-events-auto flex size-[56px] items-center justify-center rounded-full bg-[#ffffff] font-logo text-[1.75rem] leading-none text-[#c9a84c] shadow-[0_2px_10px_rgba(0,0,0,0.16)] logo-weight dark:bg-[#2b1d12] dark:text-[#ffffff] dark:ring-1 dark:ring-[#ffffff]/15"
+      className={`pointer-events-auto flex size-[56px] items-center justify-center rounded-full font-logo text-[1.75rem] leading-none logo-weight ${BRAND_CIRCLE}`}
     >
       <span className="translate-y-[0.1em]" aria-hidden="true">
         A
@@ -347,10 +347,10 @@ export default function Navbar({
             <div className="pointer-events-auto hidden md:block">{tabBar(headerTone)}</div>
             {customer && (
               <div className="pointer-events-auto">
-                <NotificationBell tone={headerTone} className="size-14" />
+                <NotificationBell tone={headerTone} className="size-14" brand />
               </div>
             )}
-            <FloatingActionMenu actions={menuActions} direction="down" grid tone={headerTone} PlusIcon={Plus} />
+            <FloatingActionMenu actions={menuActions} direction="down" grid brand tone={headerTone} PlusIcon={Plus} />
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { Plus, type LucideIcon } from 'lucide-react'
 import { useState, type ComponentType } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 
 export interface ActionIcon {
   /** A lucide icon... */
@@ -162,6 +163,7 @@ export function FloatingActionMenu({
   compact = false,
   small = false,
   grid = false,
+  brand = false,
   PlusIcon = Plus,
 }: {
   actions: MenuAction[]
@@ -173,6 +175,8 @@ export function FloatingActionMenu({
   compact?: boolean
   /** Opening downward: the options in two columns, each a pill with its icon and name, so a long list stays short. */
   grid?: boolean
+  /** In the logo's colours (BRAND_CIRCLE) instead of glass, beside the "A". */
+  brand?: boolean
   /** The glass button at 48px instead of 56px (the app's top row, beside the bell). */
   small?: boolean
   /** A red dot on the button: something in the list needs attention. */
@@ -348,7 +352,7 @@ export function FloatingActionMenu({
           transition={{ type: 'tween', ease: 'easeInOut', duration: 0.5 }}
           // Apps: only the thin rim, no shadow under the button.
           style={
-            compact
+            compact || brand
               ? undefined
               : { boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 0 0 0.5px rgba(0, 0, 0, 0.1)' }
           }
@@ -356,10 +360,10 @@ export function FloatingActionMenu({
             compact
               ? 'flex size-9 items-center justify-center rounded-full border border-onyx/20 text-onyx/60 transition-colors duration-300 hover:text-onyx'
               : cn(
-                  'liquid-glass flex items-center justify-center rounded-full',
+                  'flex items-center justify-center rounded-full',
                   small ? 'size-12' : 'size-14',
                   'transition-colors duration-500 ease-in-out',
-                  tone === 'onDark' ? 'text-[#ffffff]' : 'text-onyx',
+                  brand ? BRAND_CIRCLE : cn('liquid-glass', tone === 'onDark' ? 'text-[#ffffff]' : 'text-onyx'),
                 )
           }
         >
