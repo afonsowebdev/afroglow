@@ -19,21 +19,8 @@ const SAMPLE_WORK: WorkItem[] = [
   { src: '/images/hero/hero-5.jpg', alt: 'Detalhe do couro cabeludo com repartição triangular' },
 ].map((photo) => ({ key: photo.src, kind: 'IMAGE', ...photo }))
 
-// How many pieces show before "Ver tudo": with the Instagram card, three per column of the mosaic.
-const FIRST_BATCH = 8
-
-// Heights alternate down the mosaic so it never reads as a plain grid. Picked so that eight pieces plus the
-// Instagram card (4/5) end level: every column of three adds up to the same height.
-const SHAPES = [
-  'aspect-[4/5]',
-  'aspect-[3/4]',
-  'aspect-square',
-  'aspect-[3/4]',
-  'aspect-[4/5]',
-  'aspect-square',
-  'aspect-[3/4]',
-  'aspect-square',
-]
+// The mosaic at the top: one large piece and four smaller ones; the rest open below it.
+const FEATURED = 5
 
 type Filter = 'todos' | 'IMAGE' | 'VIDEO'
 const FILTERS: Array<{ id: Filter; label: string }> = [
@@ -62,8 +49,9 @@ function AutoVideo({ src, className }: { src: string; className?: string }) {
 }
 
 /**
- * The studio's work: its photos and videos from the admin app in a mosaic (two columns on phones, three on wide
- * screens), filters once there are both photos and videos, and a full-screen viewer (arrows, keyboard and swipe).
+ * The studio's work, from the admin app's Portfólio: a compact mosaic of five (a large piece and four smaller ones,
+ * the last one saying how many more there are), the rest in an even grid when asked, filters once there are both
+ * photos and videos, and a full-screen viewer (arrows, keyboard and swipe).
  */
 export default function Gallery() {
   const [items, setItems] = useState<WorkItem[]>(SAMPLE_WORK)
@@ -94,7 +82,8 @@ export default function Gallery() {
   // The viewer moves through what is shown by the filter.
   const shown = filter === 'todos' ? items : items.filter((i) => i.kind === filter)
   const total = shown.length
-  const visible = showAll ? shown : shown.slice(0, FIRST_BATCH)
+  const featured = shown.slice(0, FEATURED)
+  const rest = shown.slice(FEATURED)
   const photoCount = items.filter((i) => i.kind === 'IMAGE').length
   const videoCount = items.length - photoCount
   const countLabel = [
@@ -147,7 +136,17 @@ export default function Gallery() {
             Tranças feitas no nosso espaço. Toca numa foto para a veres em ecrã inteiro.
           </p>
         </div>
-        <p className="font-subtitle text-sm text-onyx/50">{countLabel}</p>
+        <div className="flex items-center gap-4 font-subtitle text-sm">
+          <span className="text-onyx/50">{countLabel}</span>
+          <a
+            href={instagramDmUrl()}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-onyx underline underline-offset-4 hover:no-underline"
+          >
+            <i className="bx bxl-instagram text-base" aria-hidden="true" />@{siteConfig.instagramHandle}
+          </a>
+        </div>
       </div>
 
       {hasBoth && (
@@ -172,66 +171,105 @@ export default function Gallery() {
         </div>
       )}
 
-      {/* Mosaic: columns fill top to bottom, each piece keeps its own height. */}
-      <div className={`relative mx-auto max-w-6xl columns-2 gap-3 px-5 sm:px-8 md:columns-3 md:gap-4 ${hasBoth ? 'mt-6' : 'mt-12'}`}>
-        {visible.map((item, i) => (
-          <motion.button
-            key={item.key}
-            type="button"
-            aria-label={`Ver ${item.kind === 'VIDEO' ? 'vídeo' : 'foto'} ${i + 1} em ecrã inteiro`}
-            onClick={() => setViewer(i)}
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.5, delay: (i % 3) * 0.06, ease: 'easeOut' }}
-            className={`group relative mb-3 block w-full break-inside-avoid overflow-hidden rounded-2xl bg-black/5 md:mb-4 ${
-              SHAPES[i % SHAPES.length]
-            }`}
-          >
-            {item.kind === 'VIDEO' ? (
-              <AutoVideo src={item.src} className="h-full w-full object-cover" />
-            ) : (
-              <img
-                src={item.src}
-                alt={item.alt}
-                loading="lazy"
-                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-            )}
-            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-            <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-[#ffffff] opacity-100 backdrop-blur-md transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100">
-              <i className={item.kind === 'VIDEO' ? 'bx bx-play' : 'bx bx-expand-alt'} aria-hidden="true" />
-            </span>
-          </motion.button>
-        ))}
-
-        {/* The last piece of the mosaic points to the newest work on Instagram. */}
-        <a
-          href={instagramDmUrl()}
-          target="_blank"
-          rel="noreferrer"
-          className="group mb-3 flex aspect-[4/5] w-full break-inside-avoid flex-col items-center justify-center gap-3 rounded-2xl border border-onyx/10 bg-white px-4 text-center transition-colors duration-300 hover:border-onyx/40 md:mb-4"
-        >
-          <span className="flex size-14 items-center justify-center rounded-full bg-onyx/5 text-3xl text-onyx transition-colors duration-300 group-hover:bg-onyx group-hover:text-white">
-            <i className="bx bxl-instagram" aria-hidden="true" />
-          </span>
-          <span className="font-logo text-xl text-onyx sm:text-2xl">Mais no Instagram</span>
-          <span className="font-subtitle text-xs text-onyx/55 sm:text-sm">
-            Vídeos e trabalhos recentes em @{siteConfig.instagramHandle}
-          </span>
-        </a>
+      {/* Mosaic: phones, a large piece across the top and four below in two columns; wide screens, the large piece
+          on the left and the four in two rows on the right. The last one says how many more there are. */}
+      <div
+        className={`relative mx-auto grid max-w-6xl grid-cols-2 gap-2.5 px-5 sm:px-8 md:h-[min(76vh,680px)] md:grid-cols-4 md:grid-rows-2 md:gap-3 ${
+          hasBoth ? 'mt-6' : 'mt-12'
+        }`}
+      >
+        {featured.map((item, i) => {
+          const more = !showAll && i === FEATURED - 1 && rest.length > 0
+          return (
+            <motion.button
+              key={item.key}
+              type="button"
+              aria-label={
+                more
+                  ? `Ver todos os trabalhos (${total})`
+                  : `Ver ${item.kind === 'VIDEO' ? 'vídeo' : 'foto'} ${i + 1} em ecrã inteiro`
+              }
+              onClick={() => (more ? setShowAll(true) : setViewer(i))}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.5, delay: i * 0.06, ease: 'easeOut' }}
+              className={`group relative block w-full overflow-hidden rounded-2xl bg-onyx/5 ${
+                i === 0
+                  ? 'col-span-2 aspect-[4/5] md:row-span-2 md:aspect-auto'
+                  : 'aspect-square md:aspect-auto'
+              }`}
+            >
+              {item.kind === 'VIDEO' ? (
+                <AutoVideo src={item.src} className="absolute inset-0 h-full w-full object-cover" />
+              ) : (
+                <img
+                  src={item.src}
+                  alt={item.alt}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                />
+              )}
+              {more ? (
+                <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/45 text-[#ffffff] transition-colors duration-300 group-hover:bg-black/55">
+                  <span className="font-logo text-4xl leading-none sm:text-5xl">+{rest.length}</span>
+                  <span className="font-subtitle text-xs uppercase tracking-[0.18em]">Ver todos</span>
+                </span>
+              ) : (
+                <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-[#ffffff] backdrop-blur-md transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100">
+                  <i className={item.kind === 'VIDEO' ? 'bx bx-play' : 'bx bx-expand-alt'} aria-hidden="true" />
+                </span>
+              )}
+            </motion.button>
+          )
+        })}
       </div>
 
-      {total > FIRST_BATCH && (
-        <div className="relative mt-10 flex justify-center">
-          <button
-            type="button"
-            onClick={() => setShowAll((v) => !v)}
-            className="h-11 rounded-full border border-onyx px-6 font-subtitle text-sm font-medium text-onyx transition-colors hover:bg-onyx hover:text-white"
-          >
-            {showAll ? 'Ver menos' : `Ver tudo (${total})`}
-          </button>
-        </div>
+      {/* The rest, in an even grid, once asked for. */}
+      {showAll && rest.length > 0 && (
+        <>
+          <div className="relative mx-auto mt-2.5 grid max-w-6xl grid-cols-2 gap-2.5 px-5 sm:px-8 md:mt-3 md:grid-cols-4 md:gap-3">
+            {rest.map((item, j) => {
+              const i = FEATURED + j
+              return (
+                <motion.button
+                  key={item.key}
+                  type="button"
+                  aria-label={`Ver ${item.kind === 'VIDEO' ? 'vídeo' : 'foto'} ${i + 1} em ecrã inteiro`}
+                  onClick={() => setViewer(i)}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-20px' }}
+                  transition={{ duration: 0.4, delay: (j % 4) * 0.04, ease: 'easeOut' }}
+                  className="group relative block aspect-[4/5] w-full overflow-hidden rounded-2xl bg-onyx/5"
+                >
+                  {item.kind === 'VIDEO' ? (
+                    <AutoVideo src={item.src} className="absolute inset-0 h-full w-full object-cover" />
+                  ) : (
+                    <img
+                      src={item.src}
+                      alt={item.alt}
+                      loading="lazy"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                    />
+                  )}
+                </motion.button>
+              )
+            })}
+          </div>
+          <div className="relative mt-10 flex justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                setShowAll(false)
+                document.getElementById('galeria')?.scrollIntoView({ behavior: 'smooth' })
+              }}
+              className="h-11 rounded-full border border-onyx px-6 font-subtitle text-sm font-medium text-onyx transition-colors hover:bg-onyx hover:text-white"
+            >
+              Ver menos
+            </button>
+          </div>
+        </>
       )}
 
       <AnimatePresence>
