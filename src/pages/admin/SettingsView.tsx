@@ -1,17 +1,32 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { MotionButton } from '@/components/ui/motion-button'
 import { api, ApiError } from '@/lib/api'
-import { loadBusinessInfo, type BusinessInfo } from '@/lib/site-config'
+import { loadBusinessInfo, mapSearchText, type BusinessInfo } from '@/lib/site-config'
 
-const fieldClass =
-  'w-full rounded-xl border border-onyx/15 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-onyx'
+// Fields inside the grouped lists: no box of their own.
+const plain =
+  'field-plain block w-full min-w-0 bg-transparent font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35'
+const group =
+  'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
 
-function Label({ children, hint }: { children: string; hint?: string }) {
+function Section({ title, note, children }: { title: string; note?: string; children: React.ReactNode }) {
   return (
-    <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
+    <section>
+      <h2 className="mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">
+        {title}
+      </h2>
       {children}
-      {hint && <span className="ml-2 normal-case tracking-normal text-muted-dark/70">{hint}</span>}
-    </span>
+      {note && <p className="mt-2 px-1 font-subtitle text-xs text-muted-dark">{note}</p>}
+    </section>
+  )
+}
+
+/** A label on the left and its field on the right, as in the iPhone's settings. */
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="flex items-center gap-3 px-4">
+      <span className="w-24 shrink-0 font-subtitle text-[15px] text-onyx">{label}</span>
+      {children}
+    </label>
   )
 }
 
@@ -20,6 +35,8 @@ export function SettingsView() {
   const [form, setForm] = useState<BusinessInfo | null>(null)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
+  // Something changed since it was loaded or saved: the save button shows.
+  const [dirty, setDirty] = useState(false)
 
   useEffect(() => {
     api
@@ -35,6 +52,7 @@ export function SettingsView() {
   function update(patch: Partial<BusinessInfo>) {
     setForm((current) => (current ? { ...current, ...patch } : current))
     setMessage(null)
+    setDirty(true)
   }
 
   function updateHours(index: number, patch: Partial<BusinessInfo['openingHours'][number]>) {
@@ -54,8 +72,9 @@ export function SettingsView() {
         openingHours: form.openingHours.filter((row) => row.days.trim() && row.hours.trim()),
       })
       setForm(saved)
+      setDirty(false)
       loadBusinessInfo(true)
-      setMessage({ ok: true, text: 'Guardado. O site e a app já mostram estes dados.' })
+      setMessage({ ok: true, text: 'Guardado. O site e a app já mostram isto.' })
     } catch (err) {
       setMessage({ ok: false, text: err instanceof ApiError ? err.message : 'Erro inesperado. Tenta novamente.' })
     } finally {
@@ -63,67 +82,107 @@ export function SettingsView() {
     }
   }
 
+  const digits = form.whatsappNumber.replace(/\D/g, '')
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="mt-6 flex flex-col gap-5 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5 sm:p-6"
-    >
-      <div>
-        <p className="font-subtitle text-sm font-light text-muted-dark">
-          Aparecem no site e na app dos clientes. O que ficar vazio não é mostrado.
+    <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-7">
+      <p className="px-1 font-subtitle text-sm text-muted-dark">
+        Aparecem no site e na app dos clientes. O que ficar vazio não é mostrado.
+      </p>
+
+      <Section title="Contactos">
+        <div className={group}>
+          <Row label="WhatsApp">
+            <input
+              value={form.whatsappNumber}
+              onChange={(e) => update({ whatsappNumber: e.target.value })}
+              inputMode="numeric"
+              placeholder="351912345678"
+              maxLength={20}
+              className={`${plain} h-[52px] text-right`}
+            />
+          </Row>
+          <Row label="Telefone">
+            <input
+              value={form.phone}
+              onChange={(e) => update({ phone: e.target.value })}
+              type="tel"
+              placeholder="+351 912 345 678"
+              maxLength={30}
+              className={`${plain} h-[52px] text-right`}
+            />
+          </Row>
+        </div>
+        {/* A way to check the numbers before saving. */}
+        <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 px-1 font-subtitle text-xs">
+          {digits.length >= 9 && (
+            <a
+              href={`https://wa.me/${digits}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-onyx underline underline-offset-4"
+            >
+              Testar WhatsApp
+            </a>
+          )}
+          {form.phone.replace(/[^+\d]/g, '').length >= 9 && (
+            <a href={`tel:${form.phone.replace(/[^+\d]/g, '')}`} className="text-onyx underline underline-offset-4">
+              Testar chamada
+            </a>
+          )}
+          <span className="text-muted-dark">WhatsApp com indicativo, só números (ex. 351…).</span>
+        </div>
+      </Section>
+
+      <Section title="Localização">
+        <div className={group}>
+          <label className="block px-4 pb-2.5 pt-2">
+            <span className="block font-subtitle text-[11px] text-muted-dark">Morada</span>
+            <textarea
+              value={form.address}
+              onChange={(e) => update({ address: e.target.value })}
+              placeholder="Rua Exemplo 12, 4000-000 Porto"
+              maxLength={200}
+              rows={2}
+              className={`${plain} mt-0.5 resize-none leading-snug`}
+            />
+          </label>
+          <label className="block px-4 pb-2.5 pt-2">
+            <span className="block font-subtitle text-[11px] text-muted-dark">Link do mapa (opcional)</span>
+            <input
+              value={form.mapUrl}
+              onChange={(e) => update({ mapUrl: e.target.value })}
+              type="url"
+              placeholder="https://maps.app.goo.gl/..."
+              maxLength={500}
+              className={`${plain} mt-0.5 h-7`}
+            />
+          </label>
+        </div>
+        <p className="mt-2 px-1 font-subtitle text-xs text-muted-dark">
+          Sem link, o mapa procura a morada.{' '}
+          {(form.mapUrl || form.address) && (
+            <a
+              href={
+                form.mapUrl ||
+                `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapSearchText(form.address))}`
+              }
+              target="_blank"
+              rel="noreferrer"
+              className="text-onyx underline underline-offset-4"
+            >
+              Ver no mapa
+            </a>
+          )}
         </p>
-      </div>
+      </Section>
 
-      <label>
-        <Label hint="com indicativo, só números">WhatsApp</Label>
-        <input
-          value={form.whatsappNumber}
-          onChange={(e) => update({ whatsappNumber: e.target.value })}
-          inputMode="numeric"
-          placeholder="351912345678"
-          maxLength={20}
-          className={fieldClass}
-        />
-      </label>
-      <label>
-        <Label>Telefone</Label>
-        <input
-          value={form.phone}
-          onChange={(e) => update({ phone: e.target.value })}
-          type="tel"
-          placeholder="+351 912 345 678"
-          maxLength={30}
-          className={fieldClass}
-        />
-      </label>
-      <label>
-        <Label>Morada</Label>
-        <input
-          value={form.address}
-          onChange={(e) => update({ address: e.target.value })}
-          placeholder="Rua Exemplo 12, 4000-000 Porto"
-          maxLength={200}
-          className={fieldClass}
-        />
-      </label>
-      <label>
-        <Label hint="link de partilha do Google Maps ou Apple Maps">Mapa</Label>
-        <input
-          value={form.mapUrl}
-          onChange={(e) => update({ mapUrl: e.target.value })}
-          type="url"
-          placeholder="https://maps.app.goo.gl/..."
-          maxLength={500}
-          className={fieldClass}
-        />
-      </label>
-
-      <div>
-        <Label hint="as horas a que começam as sessões, ex. 08:00 e 14:00; os dias que não estiverem aqui aparecem como fechados">
-          Horário de abertura
-        </Label>
-        {/* One grouped list, a row per day: the day, the hours beside it, and remove. Nothing gets cut. */}
-        <div className="divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
+      <Section
+        title="Horário"
+        note="As horas a que começam as sessões (ex. 09:00 e 14:00). Os dias que não estiverem aqui aparecem como fechados."
+      >
+        {/* One grouped list, a row per day: the day, the hours beside it, and remove. */}
+        <div className={group}>
           {form.openingHours.map((row, index) => (
             <div key={index} className="flex items-center">
               <input
@@ -152,37 +211,54 @@ export function SettingsView() {
               </button>
             </div>
           ))}
+          {form.openingHours.length < 10 && (
+            <button
+              type="button"
+              onClick={() => update({ openingHours: [...form.openingHours, { days: '', hours: '' }] })}
+              className="flex h-[52px] w-full items-center gap-2 px-4 font-subtitle text-[15px] text-onyx"
+            >
+              <i className="bx bx-plus-circle text-lg" aria-hidden="true" />
+              Adicionar dia
+            </button>
+          )}
         </div>
-        {form.openingHours.length < 10 && (
-          <button
-            type="button"
-            onClick={() => update({ openingHours: [...form.openingHours, { days: '', hours: '' }] })}
-            className="mt-3 inline-flex items-center gap-1.5 font-subtitle text-sm font-medium text-onyx"
+      </Section>
+
+      <Section title="Cancelamento" note="Mostrada às clientes antes de confirmarem e quando cancelam.">
+        <div className={group}>
+          <label className="block px-4 py-3">
+            <textarea
+              value={form.cancellationPolicy}
+              onChange={(e) => update({ cancellationPolicy: e.target.value })}
+              rows={3}
+              maxLength={600}
+              placeholder="Ex.: Cancelamentos com menos de 24 horas de antecedência..."
+              className={`${plain} resize-none leading-snug`}
+              aria-label="Política de cancelamento"
+            />
+          </label>
+        </div>
+      </Section>
+
+      {/* Saving stays in reach above the tab bar while there are changes. */}
+      <div className="sticky bottom-[calc(6.5rem+env(safe-area-inset-bottom))] z-10 flex flex-col items-center gap-2">
+        {message && (
+          <p
+            role={message.ok ? 'status' : 'alert'}
+            className={`rounded-full px-4 py-1.5 font-subtitle text-sm shadow-sm ${
+              message.ok ? 'bg-white text-onyx' : 'bg-white text-red-700'
+            }`}
           >
-            <i className="bx bx-plus-circle text-lg" aria-hidden="true" />
-            Adicionar dia
-          </button>
+            {message.text}
+          </p>
         )}
-      </div>
-
-      <label>
-        <Label hint="mostrada antes de confirmar e ao cancelar">Política de cancelamento</Label>
-        <textarea
-          value={form.cancellationPolicy}
-          onChange={(e) => update({ cancellationPolicy: e.target.value })}
-          rows={3}
-          maxLength={600}
-          placeholder="Ex.: Cancelamentos com menos de 24 horas de antecedência..."
-          className={fieldClass}
-        />
-      </label>
-
-      {message && (
-        <p className={`font-subtitle text-sm ${message.ok ? 'text-onyx' : 'text-red-700'}`}>{message.text}</p>
-      )}
-
-      <div>
-        <MotionButton label={saving ? 'A guardar...' : 'Guardar'} type="submit" disabled={saving} />
+        <button
+          type="submit"
+          disabled={saving || !dirty}
+          className="h-12 w-full max-w-xs rounded-full bg-onyx font-subtitle text-sm font-medium text-white shadow-lg shadow-black/15 transition-opacity disabled:opacity-0"
+        >
+          {saving ? 'A guardar…' : 'Guardar alterações'}
+        </button>
       </div>
     </form>
   )
