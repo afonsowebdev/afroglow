@@ -233,7 +233,7 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
           onEnded={() => {
             if (slot === activeRef.current) crossfade()
           }}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="background-video pointer-events-none absolute inset-0 h-full w-full object-cover"
           style={{
             opacity: active === slot ? 1 : 0,
             // In the app the portrait video is zoomed in and lifted, so the model's face sits above the headline,

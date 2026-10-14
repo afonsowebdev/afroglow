@@ -312,3 +312,17 @@
 .dark .site-header[data-tone='onLight'] .liquid-glass-bubble {
   background: rgba(255, 255, 255, 0.1);
 }
+
+/*
+ * Background videos (the hero) are decoration: never show the iPhone's own play button or controls over them,
+ * not even while the video is still starting or when iOS won't autoplay it (e.g. Low Power Mode) and the still
+ * shows instead.
+ */
+.background-video::-webkit-media-controls,
+.background-video::-webkit-media-controls-panel,
+.background-video::-webkit-media-controls-overlay-play-button,
+.background-video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none;
+  opacity: 0 !important;
+}

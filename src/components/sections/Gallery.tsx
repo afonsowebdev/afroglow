@@ -45,7 +45,9 @@ function AutoVideo({ src, className }: { src: string; className?: string }) {
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
-  return <video ref={ref} src={src} muted loop playsInline preload="metadata" className={className} />
+  return (
+    <video ref={ref} src={src} muted loop playsInline preload="metadata" className={`background-video ${className ?? ''}`} />
+  )
 }
 
 /**
