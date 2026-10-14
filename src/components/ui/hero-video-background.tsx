@@ -212,6 +212,7 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
           // One file that already contains the transitions: the browser's own loop restarts it seamlessly.
           loop={videos.length === 1}
           playsInline
+          poster={slot === 0 ? POSTER_BY_TONE[tone] : undefined}
           preload={slot === 0 || firstPlaying ? 'auto' : 'none'}
           onPlaying={(e) => {
             // Autoplay starts at normal speed: set the theme's speed here too.
@@ -243,8 +244,8 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
           }}
           className="background-video pointer-events-none absolute inset-0 h-full w-full object-cover"
           style={{
-            // Only once it is actually playing: until then (or if iOS refuses it) the still behind shows instead.
-            opacity: active === slot && firstPlaying && !blocked ? 1 : 0,
+            // Visible from the first frame, as before; hidden only if iOS refuses to play it, so the still shows instead.
+            opacity: active === slot && !blocked ? 1 : 0,
             // In the app the portrait video is zoomed in and lifted, so the model's face sits above the headline,
             // with a light blur that softens the mirror's marks.
             ...(isApp ? { transform: 'translateY(-7%) scale(1.3)', filter: 'blur(0.25px)' } : {}),
