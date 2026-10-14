@@ -24,7 +24,7 @@ import HomeScreen from './HomeScreen'
 import { BookingAlertsProvider, useBookingAlerts } from './booking-alerts'
 import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
 import { NavVisibilityProvider, useAutoHideNav, useNavHidden } from './nav-visibility'
-import SiteProfile from '@/pages/SiteProfile'
+import ProfileScreen from './ProfileScreen'
 import SettingsScreen from './SettingsScreen'
 import { NotificationBell } from '@/components/layout/NotificationBell'
 
@@ -214,7 +214,7 @@ function CustomerShell() {
               path="/conta"
               element={
                 <RequireAccount>
-                  <SiteProfile app />
+                  <ProfileScreen />
                 </RequireAccount>
               }
             />
