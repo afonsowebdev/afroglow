@@ -2,6 +2,7 @@ import { type FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ActionButton } from '@/components/ui/action-button'
 import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
+import { ForgotPasswordSheet } from '@/components/ui/forgot-password-sheet'
 import { Group, PasswordInput, fieldClass } from '@/components/ui/grouped-fields'
 import { VelocityRow } from '@/components/ui/velocity-marquee'
 import { adminToken, api, ApiError } from '@/lib/api'
@@ -16,6 +17,7 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [forgotOpen, setForgotOpen] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -83,6 +85,12 @@ export default function AdminLoginPage() {
             />
           </Group>
 
+          <div className="flex justify-end px-1 pt-4">
+            <button type="button" onClick={() => setForgotOpen(true)} className="font-subtitle text-sm text-onyx/60">
+              Esqueci-me da password
+            </button>
+          </div>
+
           {error && (
             <p role="alert" className="px-1 pt-4 text-center font-subtitle text-sm text-red-700">
               {error}
@@ -98,6 +106,8 @@ export default function AdminLoginPage() {
           </div>
         </form>
       </main>
+
+      <ForgotPasswordSheet admin open={forgotOpen} initialEmail={email} onClose={() => setForgotOpen(false)} />
     </div>
   )
 }

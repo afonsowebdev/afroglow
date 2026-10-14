@@ -1,27 +1,46 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
-import { ApiError } from '@/lib/api'
+import { api, ApiError } from '@/lib/api'
 import { useCustomerAuth } from '@/lib/customer-auth'
 
 const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$/
 
-/** "Esqueci-me da password": email → code from the email + new password → done. */
+/** "Esqueci-me da password": email → code from the email + new password → done. `admin`: for the admin's account. */
 export function ForgotPasswordSheet({
   open,
   initialEmail = '',
   onClose,
+  admin = false,
 }: {
   open: boolean
   initialEmail?: string
   onClose: () => void
+  admin?: boolean
 }) {
-  const { forgotPassword, resetPassword } = useCustomerAuth()
+  const customerAuth = useCustomerAuth()
+  const forgotPassword = admin
+    ? async (email: string) => {
+        await api.post('/auth/forgot-password', { email })
+      }
+    : customerAuth.forgotPassword
+  const resetPassword = admin
+    ? async (email: string, code: string, newPassword: string) => {
+        await api.post('/auth/reset-password', { email, code, newPassword })
+      }
+    : customerAuth.resetPassword
   const [step, setStep] = useState<'email' | 'reset' | 'done'>('email')
   const [email, setEmail] = useState(initialEmail)
   const [code, setCode] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Each time it opens, start from the email already typed on the sign-in (the sheet stays mounted in between).
+  useEffect(() => {
+    if (open) setEmail(initialEmail)
+    // Only on opening: later typing in the sheet is the person's own.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   function close() {
     onClose()
@@ -47,7 +66,8 @@ export function ForgotPasswordSheet({
     }
   }
 
-  const passwordValid = PASSWORD_RULE.test(password)
+  // The admin's password follows the admin rule (8 characters or more); customers' the stronger one.
+  const passwordValid = admin ? password.length >= 8 : PASSWORD_RULE.test(password)
 
   return (
     <Sheet
@@ -110,7 +130,9 @@ export function ForgotPasswordSheet({
             />
             {password.length > 0 && !passwordValid && (
               <span className="mt-1.5 block font-subtitle text-xs text-muted-dark">
-                Pelo menos 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial.
+                {admin
+                  ? 'Pelo menos 8 caracteres.'
+                  : 'Pelo menos 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial.'}
               </span>
             )}
           </SheetField>
@@ -118,7 +140,7 @@ export function ForgotPasswordSheet({
             type="button"
             onClick={() => void run(() => forgotPassword(email.trim()), 'reset')}
             disabled={busy}
-            className="self-start font-subtitle text-sm text-gold-deep underline-offset-4 hover:underline disabled:opacity-50"
+            className="self-start font-subtitle text-sm text-onyx underline underline-offset-4 disabled:opacity-50"
           >
             Reenviar código
           </button>

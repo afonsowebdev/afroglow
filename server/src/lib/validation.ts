@@ -155,6 +155,12 @@ export const customerNotesSchema = z.object({
   adminNotes: z.string().trim().max(1000),
 })
 
+export const adminResetPasswordSchema = z.object({
+  email: emailSchema,
+  code: z.string().regex(/^\d{6}$/, 'O código deve ter exatamente 6 dígitos.'),
+  newPassword: z.string().min(8, 'A nova password deve ter pelo menos 8 caracteres.').max(100),
+})
+
 export const adminChangePasswordSchema = z.object({
   currentPassword: z.string().min(1),
   newPassword: z.string().min(8).max(100),
