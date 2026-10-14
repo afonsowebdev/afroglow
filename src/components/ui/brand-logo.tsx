@@ -30,32 +30,31 @@ export function BrandLogo({
 }) {
   const s = SIZES[size]
   return (
-    // The whole logo in liquid particles, as the big word in the contact section.
-    <LiquidLogo inkKey={onMedia ? 'media' : 'page'} className={cn('items-center', s.gap, className)}>
+    <span className={cn('flex items-center', s.gap, className)}>
       <span
         aria-hidden="true"
-        data-liquid="circle"
         className={cn(
-          'flex shrink-0 items-center justify-center rounded-full logo-weight font-logo leading-none shadow-[0_1px_4px_rgba(0,0,0,0.18)]',
+          'flex shrink-0 items-center justify-center rounded-full logo-weight font-logo leading-none shadow-[0_1px_4px_rgba(0,0,0,0.18)] transition-colors duration-500',
           s.mark,
           onMedia ? 'bg-[#ffffff] text-[#111111]' : 'bg-onyx text-white',
         )}
       >
-        <span data-liquid="text" className="translate-y-[0.1em] text-center">
-          A
+        <span className="translate-y-[0.1em]">A</span>
+      </span>
+      {/* Only the written AFROGLOW in liquid particles, as the big word in the contact section. No colour transition:
+          the particles are drawn in the colour the word has at that moment. */}
+      <LiquidLogo inkKey={onMedia ? 'media' : 'page'}>
+        <span
+          data-liquid="text"
+          className={cn(
+            'translate-y-[0.1em] logo-weight font-logo leading-none tracking-[0.14em]',
+            s.word,
+            onMedia ? 'text-[#ffffff]' : 'text-onyx',
+          )}
+        >
+          AFROGLOW
         </span>
-      </span>
-      {/* No colour transitions: the particles are drawn in the colours the logo has at that moment. */}
-      <span
-        data-liquid="text"
-        className={cn(
-          'translate-y-[0.1em] logo-weight font-logo leading-none tracking-[0.14em]',
-          s.word,
-          onMedia ? 'text-[#ffffff]' : 'text-onyx',
-        )}
-      >
-        AFROGLOW
-      </span>
-    </LiquidLogo>
+      </LiquidLogo>
+    </span>
   )
 }
