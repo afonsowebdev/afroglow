@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { LiquidInlineWord } from '@/components/ui/liquid-wordmark'
 
 /**
  * The round buttons beside the "A" on phones and in the app (the "A", the bell, the "+"): the logo's colours, gold
@@ -40,15 +41,17 @@ export function BrandLogo({
       >
         <span className="translate-y-[0.1em]">A</span>
       </span>
-      <span
+      {/* The wordmark in liquid particles (as in the contact section): it turns liquid under the pointer. */}
+      <LiquidInlineWord
+        text="AFROGLOW"
+        inkKey={onMedia ? 'media' : 'page'}
         className={cn(
-          'translate-y-[0.1em] logo-weight font-logo leading-none tracking-[0.14em] transition-colors duration-500',
+          // No colour transition: the particles are drawn in the colour the word has at that moment.
+          'translate-y-[0.1em] logo-weight font-logo leading-none tracking-[0.14em]',
           s.word,
           onMedia ? 'text-[#ffffff]' : 'text-onyx',
         )}
-      >
-        AFROGLOW
-      </span>
+      />
     </span>
   )
 }
