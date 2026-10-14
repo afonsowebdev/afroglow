@@ -1475,14 +1475,91 @@ function PendingCard({
   )
 }
 
+/** "Pedidos" with nothing waiting: says all is answered, what comes next, and the two things worth doing now. */
+function PendingEmpty({
+  nextSession,
+  openSlotsWeek,
+  onAgenda,
+  onOpenSlots,
+}: {
+  nextSession: Booking | null
+  openSlotsWeek: number
+  onAgenda: () => void
+  onOpenSlots: () => void
+}) {
+  const when = nextSession
+    ? new Date(nextSession.slot.startsAt).toLocaleString('pt-PT', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : null
+  return (
+    <div className="mt-6 flex flex-col gap-4">
+      <div className="flex flex-col items-center rounded-3xl bg-onyx/[0.04] px-6 py-10 text-center">
+        <span className="flex size-16 items-center justify-center rounded-full bg-onyx text-3xl text-white">
+          <i className="bx bx-check" aria-hidden="true" />
+        </span>
+        <p className="mt-5 font-subtitle text-xl font-semibold tracking-tight text-onyx">Tudo em dia</p>
+        <p className="mt-1.5 max-w-xs font-subtitle text-sm text-muted-dark">
+          Não há pedidos à espera de resposta. Quando chegar um novo, recebes uma notificação e ele aparece aqui.
+        </p>
+      </div>
+
+      <div className="divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl border border-onyx/10">
+        <button type="button" onClick={onAgenda} className="flex w-full items-center gap-4 p-4 text-left active:bg-onyx/[0.04]">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-onyx/[0.06] text-xl text-onyx">
+            <i className="bx bx-calendar-check" aria-hidden="true" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-subtitle text-xs uppercase tracking-wide text-muted-dark">Próxima sessão</span>
+            {nextSession && when ? (
+              <>
+                <span className="mt-0.5 block truncate font-subtitle text-base font-semibold text-onyx">
+                  {nextSession.customerName}
+                </span>
+                <span className="block truncate font-subtitle text-sm text-muted-dark">{bookingName(nextSession)}</span>
+                <span className="block font-subtitle text-sm text-onyx first-letter:uppercase">{when}</span>
+              </>
+            ) : (
+              <span className="mt-0.5 block font-subtitle text-base text-onyx">Nenhuma sessão confirmada</span>
+            )}
+          </span>
+          <i className="bx bx-chevron-right text-xl text-onyx/30" aria-hidden="true" />
+        </button>
+
+        <button type="button" onClick={onOpenSlots} className="flex w-full items-center gap-4 p-4 text-left active:bg-onyx/[0.04]">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-onyx/[0.06] text-xl text-onyx">
+            <i className="bx bx-time-five" aria-hidden="true" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-subtitle text-xs uppercase tracking-wide text-muted-dark">Vagas nos próximos 7 dias</span>
+            <span className="mt-0.5 block font-subtitle text-base font-semibold text-onyx">
+              {openSlotsWeek === 0 ? 'Nenhuma vaga livre' : `${openSlotsWeek} ${openSlotsWeek === 1 ? 'vaga livre' : 'vagas livres'}`}
+            </span>
+            <span className="block font-subtitle text-sm text-muted-dark">
+              {openSlotsWeek === 0 ? 'Abre horários para as clientes poderem marcar.' : 'Abre mais horários se precisares.'}
+            </span>
+          </span>
+          <i className="bx bx-chevron-right text-xl text-onyx/30" aria-hidden="true" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function PendingView({
   bookings,
   busyId,
   onDecision,
+  empty,
 }: {
   bookings: Booking[]
   busyId: string | null
   onDecision: (id: string, decision: 'accept' | 'reject', reason?: string) => void
+  empty: React.ComponentProps<typeof PendingEmpty>
 }) {
   const [order, setOrder] = useState<'sessao' | 'recebido'>('sessao')
   const [showPast, setShowPast] = useState(false)
@@ -1500,15 +1577,7 @@ function PendingView({
   }).length
   const totalCents = bookings.reduce((sum, b) => sum + bookingPrice(b), 0)
 
-  if (bookings.length === 0) {
-    return (
-      <div className="mt-16 flex flex-col items-center text-center">
-        <i className="bx bx-bell-off text-5xl text-onyx/25" aria-hidden="true" />
-        <p className="mt-3 font-subtitle text-base font-semibold text-onyx">Sem pedidos pendentes</p>
-        <p className="mt-1 font-subtitle text-sm text-muted-dark">Os novos pedidos aparecem aqui logo que chegam.</p>
-      </div>
-    )
-  }
+  if (bookings.length === 0) return <PendingEmpty {...empty} />
 
   return (
     <div>
@@ -2499,6 +2568,26 @@ function AdminDashboard() {
                 bookings={pendingBookings}
                 busyId={busyId}
                 onDecision={(id, decision, reason) => handleBookingDecision(id, decision, reason)}
+                empty={{
+                  // Across all months, not just the one being viewed.
+                  nextSession:
+                    bookings
+                      .filter((b) => b.status === 'ACCEPTED' && new Date(b.slot.startsAt).getTime() >= nowMs)
+                      .sort((a, b) => new Date(a.slot.startsAt).getTime() - new Date(b.slot.startsAt).getTime())[0] ??
+                    null,
+                  openSlotsWeek: slots.filter((s) => {
+                    const t = new Date(s.startsAt).getTime()
+                    return s.status === 'OPEN' && t >= nowMs && t < nowMs + 7 * 86_400_000
+                  }).length,
+                  onAgenda: () => {
+                    setTab('agenda')
+                    window.scrollTo({ top: 0 })
+                  },
+                  onOpenSlots: () => {
+                    setTab('disponibilidade')
+                    window.scrollTo({ top: 0 })
+                  },
+                }}
               />
             )}
 
