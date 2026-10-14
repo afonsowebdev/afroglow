@@ -74,7 +74,7 @@ export default function AuthScreen({ stay = false }: { stay?: boolean } = {}) {
   ]
 
   return (
-    <main className="mx-auto flex min-h-[100svh] max-w-md flex-col px-5 pb-36 pt-[calc(5.5rem+env(safe-area-inset-top))]">
+    <main className="mx-auto flex min-h-[100svh] max-w-md flex-col justify-center px-5 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(5rem+env(safe-area-inset-top))]">
       <header className="text-center">
         <h1 className="font-subtitle text-2xl font-semibold tracking-tight text-onyx">{copy.title}</h1>
         <p className="mx-auto mt-1.5 max-w-xs font-subtitle text-sm text-onyx/55">
