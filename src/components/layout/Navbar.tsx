@@ -282,8 +282,8 @@ export default function Navbar({
     <>
       <div
         data-tone={headerTone}
-        // Always in place and at the same size while scrolling; only the phone tab bar below steps aside.
-        className="site-header pointer-events-none fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6"
+        // At the top of the page, scrolling away with it (not pinned to the screen).
+        className="site-header pointer-events-none absolute inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6"
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <div className="lg:hidden">{mark}</div>

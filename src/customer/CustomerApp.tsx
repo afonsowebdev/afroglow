@@ -232,8 +232,9 @@ function CustomerShell() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Top row on every screen: the "A" on the left (home), the bell and the menu on the right. */}
-      <div className="pointer-events-none fixed inset-x-0 top-[calc(0.75rem+env(safe-area-inset-top))] z-50 flex items-start justify-between px-4">
+      {/* Top row on every screen: the "A" on the left (home), the bell and the menu on the right. At the top of the
+          page, scrolling away with it. */}
+      <div className="pointer-events-none absolute inset-x-0 top-[calc(0.75rem+env(safe-area-inset-top))] z-50 flex items-start justify-between px-4">
         <button
           type="button"
           onClick={() => {
