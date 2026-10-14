@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { ImageStreamHero, type StreamImage } from '@/components/ui/image-stream-hero'
 import { ButtonWithIcon } from '@/components/ui/button-with-icon'
+import { api, assetUrl } from '@/lib/api'
 import { useOpeningStatus } from '@/lib/opening-hours'
 import { instagramDmUrl, siteConfig, useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 
@@ -17,6 +19,28 @@ const PLACEHOLDER_IMAGES: StreamImage[] = Array.from({ length: 6 }, (_, index) =
   src: HERO_PHOTOS[index % HERO_PHOTOS.length],
   alt: 'Knotless braids com pontas cacheadas',
 }))
+
+// The corridor shows nine photos a side. Taken evenly across the gallery, so it runs through different clients
+// rather than several shots of the same one.
+const CORRIDOR_PHOTOS = 9
+
+/** The gallery's photos (admin app, Portfólio) for the corridor; the hero photos until they load or if there are none. */
+function useGalleryPhotos() {
+  const [images, setImages] = useState<StreamImage[]>(PLACEHOLDER_IMAGES)
+  useEffect(() => {
+    api
+      .get<Array<{ id: string; kind: 'IMAGE' | 'VIDEO' }>>('/portfolio')
+      .then((list) => {
+        const photos = list.filter((item) => item.kind === 'IMAGE')
+        if (photos.length === 0) return
+        const count = Math.min(CORRIDOR_PHOTOS, photos.length)
+        const picked = Array.from({ length: count }, (_, k) => photos[Math.floor((k * photos.length) / count)])
+        setImages(picked.map((item) => ({ src: assetUrl(`/portfolio/${item.id}/file`), alt: 'Foto do nosso trabalho' })))
+      })
+      .catch(() => {})
+  }, [])
+  return images
+}
 
 type Channel = { icon: string; name: string; href: string; external: boolean }
 
@@ -35,6 +59,7 @@ export default function Contact() {
   const business = useBusinessInfo()
   const { status } = useOpeningStatus(business.openingHours)
   const navigate = useNavigate()
+  const corridorImages = useGalleryPhotos()
 
   const channels: Channel[] = [
     ...(whatsapp.enabled
@@ -63,7 +88,7 @@ export default function Contact() {
       */}
       <div className="relative order-2 -mx-5 my-4 h-52 w-screen overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_18%,black_82%,transparent)] sm:absolute sm:inset-0 sm:m-0 sm:h-auto sm:w-auto sm:[mask-image:none]">
         <ImageStreamHero
-          images={PLACEHOLDER_IMAGES}
+          images={corridorImages}
           className="absolute inset-y-0 left-1/2 w-[320%] -translate-x-1/2 sm:w-[130%] lg:w-full"
         />
       </div>
