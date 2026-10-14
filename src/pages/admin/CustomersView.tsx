@@ -249,10 +249,17 @@ export function CustomersView({
       )}
       {!customers && !loadError && <p className="mt-6 font-subtitle text-muted-dark">A carregar...</p>}
       {customers && filtered.length === 0 && (
-        <div className="mt-12 flex flex-col items-center text-center">
-          <i className="bx bx-user text-5xl text-onyx/25" aria-hidden="true" />
-          <p className="mt-3 font-subtitle text-base text-onyx">
+        <div className="mt-6 flex flex-col items-center rounded-3xl bg-onyx/[0.04] px-6 py-10 text-center">
+          <span className="flex size-16 items-center justify-center rounded-full bg-onyx text-3xl text-white">
+            <i className={search ? 'bx bx-search' : 'bx bx-user'} aria-hidden="true" />
+          </span>
+          <p className="mt-5 font-subtitle text-xl font-semibold tracking-tight text-onyx">
             {search ? 'Nenhum cliente encontrado' : 'Ainda sem clientes'}
+          </p>
+          <p className="mt-1.5 max-w-xs font-subtitle text-sm text-muted-dark">
+            {search
+              ? `Nenhum nome ou telemóvel corresponde a "${search}".`
+              : 'As clientes aparecem aqui quando criam conta na app ou no site, ou quando marcas uma sessão por elas.'}
           </p>
         </div>
       )}

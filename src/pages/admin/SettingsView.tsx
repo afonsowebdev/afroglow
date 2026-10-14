@@ -122,32 +122,33 @@ export function SettingsView() {
         <Label hint="as horas a que começam as sessões, ex. 08:00 e 14:00; os dias que não estiverem aqui aparecem como fechados">
           Horário de abertura
         </Label>
-        <div className="flex flex-col gap-2">
+        {/* One grouped list, a row per day: the day, the hours beside it, and remove. Nothing gets cut. */}
+        <div className="divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
           {form.openingHours.map((row, index) => (
-            <div key={index} className="flex gap-2">
+            <div key={index} className="flex items-center">
               <input
                 value={row.days}
                 onChange={(e) => updateHours(index, { days: e.target.value })}
-                aria-label="Dias"
+                aria-label="Dia"
                 placeholder="Quarta-feira"
                 maxLength={60}
-                className={fieldClass}
+                className="field-plain h-[52px] min-w-0 flex-1 bg-transparent pl-4 font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35"
               />
               <input
                 value={row.hours}
                 onChange={(e) => updateHours(index, { hours: e.target.value })}
                 aria-label="Horas"
-                placeholder="08:00 e 14:00"
+                placeholder="09:00 e 14:00"
                 maxLength={60}
-                className={fieldClass}
+                className="field-plain h-[52px] w-[7.25rem] shrink-0 bg-transparent px-1 text-right font-subtitle text-base text-onyx/70 outline-none placeholder:text-onyx/35"
               />
               <button
                 type="button"
-                aria-label="Remover linha"
+                aria-label={`Remover ${row.days || 'linha'}`}
                 onClick={() => update({ openingHours: form.openingHours.filter((_, i) => i !== index) })}
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl glass-chip text-muted-dark hover:text-red-700"
+                className="flex h-[52px] w-11 shrink-0 items-center justify-center text-lg text-onyx/35 hover:text-red-700"
               >
-                <i className="bx bx-trash" aria-hidden="true" />
+                <i className="bx bx-minus-circle" aria-hidden="true" />
               </button>
             </div>
           ))}
@@ -156,9 +157,10 @@ export function SettingsView() {
           <button
             type="button"
             onClick={() => update({ openingHours: [...form.openingHours, { days: '', hours: '' }] })}
-            className="mt-3 font-subtitle text-sm text-onyx underline"
+            className="mt-3 inline-flex items-center gap-1.5 font-subtitle text-sm font-medium text-onyx"
           >
-            + Adicionar linha
+            <i className="bx bx-plus-circle text-lg" aria-hidden="true" />
+            Adicionar dia
           </button>
         )}
       </div>

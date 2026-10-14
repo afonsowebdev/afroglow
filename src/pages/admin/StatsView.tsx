@@ -55,7 +55,7 @@ export function StatsView() {
       <ProgressMetricCard
         title="Receita"
         size="sm"
-        accent="gold"
+        accent="ink"
         data={revenueSeries}
         defaultIndex={revenueSeries.length - 1}
         period="Últimos 6 meses"
@@ -67,6 +67,7 @@ export function StatsView() {
       <ProgressMetricCard
         title="Sessões"
         size="sm"
+        accent="ink"
         unit="sessões"
         data={sessionsSeries}
         defaultIndex={sessionsSeries.length - 1}

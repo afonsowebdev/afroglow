@@ -536,13 +536,11 @@ function AgendaView({
 
       {view === 'proximas' &&
         (upcoming.length === 0 ? (
-          <div className="mt-12 flex flex-col items-center text-center">
-            <i className="bx bx-calendar text-5xl text-onyx/25" aria-hidden="true" />
-            <p className="mt-3 font-subtitle text-base text-onyx">Sem sessões marcadas</p>
-            <p className="mt-1 font-subtitle text-sm text-muted-dark">
-              As sessões confirmadas deste mês aparecem aqui.
-            </p>
-          </div>
+          <EmptyState
+            icon="bx bx-calendar"
+            title="Sem sessões marcadas"
+            text="As sessões confirmadas deste mês aparecem aqui. Muda de mês em cima para ver outros."
+          />
         ) : (
           groupByDay(upcoming).map((dayBookings) => {
             const heading = dayHeading(dayBookings[0].slot.startsAt)
@@ -1246,11 +1244,7 @@ function TestimonialsView({
       </div>
 
       {current.length === 0 ? (
-        <div className="mt-12 flex flex-col items-center text-center">
-          <i className={`${emptyText[0]} text-5xl text-onyx/25`} aria-hidden="true" />
-          <p className="mt-3 font-subtitle text-base text-onyx">{emptyText[1]}</p>
-          <p className="mt-1 font-subtitle text-sm text-muted-dark">{emptyText[2]}</p>
-        </div>
+        <EmptyState icon={emptyText[0]} title={emptyText[1]} text={emptyText[2]} />
       ) : (
         <div className="mt-6 flex flex-col gap-4">
           {current.map((testimonial) => (
@@ -1475,6 +1469,19 @@ function PendingCard({
   )
 }
 
+/** The admin's empty states, all alike: a dark circle with an icon, a title and a line. */
+function EmptyState({ icon, title, text }: { icon: string; title: string; text: string }) {
+  return (
+    <div className="mt-6 flex flex-col items-center rounded-3xl bg-onyx/[0.04] px-6 py-10 text-center">
+      <span className="flex size-16 items-center justify-center rounded-full bg-onyx text-3xl text-white">
+        <i className={icon} aria-hidden="true" />
+      </span>
+      <p className="mt-5 font-subtitle text-xl font-semibold tracking-tight text-onyx">{title}</p>
+      <p className="mt-1.5 max-w-xs font-subtitle text-sm text-muted-dark">{text}</p>
+    </div>
+  )
+}
+
 /** "Pedidos" with nothing waiting: says all is answered, what comes next, and the two things worth doing now. */
 function PendingEmpty({
   nextSession,
@@ -1498,14 +1505,12 @@ function PendingEmpty({
     : null
   return (
     <div className="mt-6 flex flex-col gap-4">
-      <div className="flex flex-col items-center rounded-3xl bg-onyx/[0.04] px-6 py-10 text-center">
-        <span className="flex size-16 items-center justify-center rounded-full bg-onyx text-3xl text-white">
-          <i className="bx bx-check" aria-hidden="true" />
-        </span>
-        <p className="mt-5 font-subtitle text-xl font-semibold tracking-tight text-onyx">Tudo em dia</p>
-        <p className="mt-1.5 max-w-xs font-subtitle text-sm text-muted-dark">
-          Não há pedidos à espera de resposta. Quando chegar um novo, recebes uma notificação e ele aparece aqui.
-        </p>
+      <div className="-mt-6">
+        <EmptyState
+          icon="bx bx-check"
+          title="Tudo em dia"
+          text="Não há pedidos à espera de resposta. Quando chegar um novo, recebes uma notificação e ele aparece aqui."
+        />
       </div>
 
       <div className="divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl border border-onyx/10">
@@ -2499,13 +2504,11 @@ function AdminDashboard() {
                 </form>
 
                 {slotsByDate.length === 0 ? (
-                  <div className="mt-12 flex flex-col items-center text-center">
-                    <i className="bx bx-time-five text-5xl text-onyx/25" aria-hidden="true" />
-                    <p className="mt-3 font-subtitle text-base text-onyx">Sem horários neste mês</p>
-                    <p className="mt-1 font-subtitle text-sm text-muted-dark">
-                      Cria vagas acima para as clientes poderem marcar.
-                    </p>
-                  </div>
+                  <EmptyState
+                    icon="bx bx-time-five"
+                    title="Sem horários neste mês"
+                    text="Abre vagas em “Criar horários” ou “Horário semanal”, acima, para as clientes poderem marcar."
+                  />
                 ) : (
                   <SlotsDayView
                     slotsByDate={slotsByDate}
@@ -2516,36 +2519,39 @@ function AdminDashboard() {
                   />
                 )}
 
-                <div className="mt-12">
-                  <div className="flex items-center gap-3">
-                    <span className="h-px flex-1 bg-onyx/10" />
-                    <span className="flex items-center gap-1.5 font-subtitle text-[11px] uppercase tracking-[0.18em] text-muted-dark">
-                      <i className="bx bx-error text-sm text-red-700" aria-hidden="true" />
-                      Zona de perigo
-                    </span>
-                    <span className="h-px flex-1 bg-onyx/10" />
-                  </div>
+                {/* Only when the month has something to clear. */}
+                {monthSlots.length > 0 && (
+                  <div className="mt-12">
+                    <div className="flex items-center gap-3">
+                      <span className="h-px flex-1 bg-onyx/10" />
+                      <span className="flex items-center gap-1.5 font-subtitle text-[11px] uppercase tracking-[0.18em] text-muted-dark">
+                        <i className="bx bx-error text-sm text-red-700" aria-hidden="true" />
+                        Zona de perigo
+                      </span>
+                      <span className="h-px flex-1 bg-onyx/10" />
+                    </div>
 
-                  <div className="relative mt-4 overflow-hidden rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5">
-                    <span className="absolute inset-y-0 left-0 w-1 bg-red-700" aria-hidden="true" />
-                    <div className="pl-2">
-                      <p className="font-subtitle font-semibold lining-nums tracking-tight text-lg text-onyx">
-                        Limpar {formatMonthLabel(viewMonth)}
-                      </p>
-                      <p className="mt-1 font-subtitle text-sm text-muted-dark">
-                        Apaga todas as vagas e marcações deste mês, incluindo as já aceites. Não pode ser desfeito.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={openClearPanel}
-                        className="mt-4 inline-flex items-center gap-2 rounded-full border border-red-700/40 px-5 py-2.5 font-subtitle text-sm font-semibold text-red-700 transition-colors hover:bg-red-700 hover:text-[#ffffff]"
-                      >
-                        <i className="bx bx-trash text-base" aria-hidden="true" />
-                        Limpar mês
-                      </button>
+                    <div className="relative mt-4 overflow-hidden rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5">
+                      <span className="absolute inset-y-0 left-0 w-1 bg-red-700" aria-hidden="true" />
+                      <div className="pl-2">
+                        <p className="font-subtitle font-semibold lining-nums tracking-tight text-lg text-onyx">
+                          Limpar {formatMonthLabel(viewMonth)}
+                        </p>
+                        <p className="mt-1 font-subtitle text-sm text-muted-dark">
+                          Apaga todas as vagas e marcações deste mês, incluindo as já aceites. Não pode ser desfeito.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={openClearPanel}
+                          className="mt-4 inline-flex items-center gap-2 rounded-full border border-red-700/40 px-5 py-2.5 font-subtitle text-sm font-semibold text-red-700 transition-colors hover:bg-red-700 hover:text-[#ffffff]"
+                        >
+                          <i className="bx bx-trash text-base" aria-hidden="true" />
+                          Limpar mês
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 <ClearMonthDialog
                   open={clearingOpen}

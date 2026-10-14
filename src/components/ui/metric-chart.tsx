@@ -5,7 +5,7 @@ export interface SeriesPoint {
   date: string
 }
 
-export type MetricAccent = 'emerald' | 'rose' | 'neutral' | 'gold' | 'blue'
+export type MetricAccent = 'emerald' | 'rose' | 'neutral' | 'gold' | 'blue' | 'ink'
 export type ChartView = 'curve' | 'bars'
 
 export interface MetricSeries {
@@ -27,6 +27,8 @@ export const ACCENTS: Record<MetricAccent, { stroke: string; text: string }> = {
   neutral: { stroke: '#8e8e93', text: '#636366' },
   gold: { stroke: '#c9a84c', text: '#8a6d14' },
   blue: { stroke: '#3b82f6', text: '#1d4ed8' },
+  // The page's own ink (black, or light in the dark theme): for black and white screens.
+  ink: { stroke: 'var(--color-onyx)', text: 'var(--color-onyx)' },
 }
 
 export const SERIES_COLORS = ['#c9a84c', '#3b82f6', '#10b981', '#f43f5e']
