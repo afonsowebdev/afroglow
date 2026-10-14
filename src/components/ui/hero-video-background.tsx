@@ -143,6 +143,50 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldReduceMotion])
 
+  // Keeps the video moving. A single play() on mount can be refused or interrupted (in the iPhone app while the
+  // splash screen is still up, or when the app comes back from the background), which left it frozen on its first
+  // frame. So: try again when the page is shown again, and every 1.5s check that the playing clip is advancing.
+  useEffect(() => {
+    if (shouldReduceMotion) return
+    const current = () => videoRefs[activeRef.current].current
+    const resume = () => {
+      if (document.visibilityState === 'visible') play(current())
+    }
+    let lastTime = -1
+    let stuckChecks = 0
+    const watchdog = window.setInterval(() => {
+      const video = current()
+      if (!video || document.visibilityState !== 'visible' || switching.current) return
+      if (video.paused || video.ended) {
+        play(video)
+      } else if (video.currentTime === lastTime) {
+        // Says it is playing but the picture hasn't moved: nudge it, and reload the file if that doesn't help.
+        stuckChecks += 1
+        if (stuckChecks >= 2) {
+          const at = video.currentTime
+          video.load()
+          video.currentTime = at
+          stuckChecks = 0
+        }
+        play(video)
+      } else {
+        stuckChecks = 0
+      }
+      lastTime = video.currentTime
+    }, 1500)
+    document.addEventListener('visibilitychange', resume)
+    window.addEventListener('pageshow', resume)
+    window.addEventListener('focus', resume)
+    return () => {
+      window.clearInterval(watchdog)
+      document.removeEventListener('visibilitychange', resume)
+      window.removeEventListener('pageshow', resume)
+      window.removeEventListener('focus', resume)
+    }
+    // videoRefs are stable ref objects
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldReduceMotion])
+
   return (
     <div
       className="absolute inset-0 overflow-hidden bg-[#1a1008] bg-cover bg-center"
@@ -157,10 +201,18 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
           // One file that already contains the transitions: the browser's own loop restarts it seamlessly.
           loop={videos.length === 1}
           playsInline
+          // The browser's own autoplay as well as play(): the first is what iOS honours most reliably.
+          autoPlay={slot === 0 && !shouldReduceMotion}
           poster={slot === 0 ? POSTER_BY_TONE[tone] : undefined}
           preload={slot === 0 || firstPlaying ? 'auto' : 'none'}
-          onPlaying={() => {
+          onPlaying={(e) => {
+            // Autoplay starts at normal speed: set the theme's speed here too.
+            e.currentTarget.playbackRate = playbackRateFor(tone)
             if (slot === 0) setFirstPlaying(true)
+          }}
+          // Ready (again) after loading or a stall: make sure the visible clip is the one playing.
+          onCanPlay={(e) => {
+            if (slot === activeRef.current && !shouldReduceMotion && e.currentTarget.paused) play(e.currentTarget)
           }}
           // If the 4K file isn't on the server yet (or fails), fall back to the regular 1080p one.
           onError={(e) => {
