@@ -108,3 +108,16 @@ adminPortfolioRouter.post('/:id/first', async (req, res) => {
   }
   res.status(204).end()
 })
+
+// Saves the whole order at once (the admin's "Organizar"): the items in the order given, first to last.
+adminPortfolioRouter.put('/order', async (req, res) => {
+  const ids = (req.body as { ids?: unknown })?.ids
+  if (!Array.isArray(ids) || ids.length > 500 || !ids.every((id) => typeof id === 'string')) {
+    res.status(400).json({ error: 'Ordem inválida.' })
+    return
+  }
+  await prisma.$transaction(
+    (ids as string[]).map((id, position) => prisma.portfolioItem.updateMany({ where: { id }, data: { position } })),
+  )
+  res.status(204).end()
+})

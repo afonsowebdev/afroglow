@@ -398,7 +398,7 @@ const PAGE: Record<AdminTab, { title: string; hint: string }> = {
   clientes: { title: 'Clientes', hint: 'Quem já marcou contigo.' },
   mais: { title: 'Mais', hint: 'Outras opções do painel.' },
   servicos: { title: 'Serviços', hint: 'Modelos, duração e preços.' },
-  portfolio: { title: 'Portfólio', hint: 'As fotos do trabalho na app dos clientes.' },
+  portfolio: { title: 'Portfólio', hint: 'As fotos do teu trabalho, na galeria do site e na app.' },
   testemunhos: { title: 'Testemunhos', hint: 'Aprovar ou recusar o que os clientes escrevem.' },
   estatisticas: { title: 'Estatísticas', hint: 'Receita, sessões e clientes.' },
   definicoes: { title: 'Definições do negócio', hint: 'Contactos, morada, horário e cancelamento.' },
