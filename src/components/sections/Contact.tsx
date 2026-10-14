@@ -23,6 +23,7 @@ const PLACEHOLDER_IMAGES: StreamImage[] = Array.from({ length: 6 }, (_, index) =
 // The corridor shows nine photos a side. Taken evenly across the gallery, so it runs through different clients
 // rather than several shots of the same one.
 const CORRIDOR_PHOTOS = 9
+const CORRIDOR_PATH = { birthHeight: 3.4, exitHeight: 60, railExit: 50 }
 
 /** The gallery's photos (admin app, Portfólio) for the corridor; the hero photos until they load or if there are none. */
 function useGalleryPhotos() {
@@ -86,10 +87,13 @@ export default function Contact() {
         From `sm` it fills the section behind the text, as before. Wider than its box so the photos keep a
         readable size; the box crops the overflow.
       */}
-      <div className="relative order-2 -mx-5 my-4 h-52 w-screen overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_18%,black_82%,transparent)] sm:absolute sm:inset-0 sm:m-0 sm:h-auto sm:w-auto sm:[mask-image:none]">
+      <div className="relative order-2 -mx-5 my-4 h-72 w-screen overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_18%,black_82%,transparent)] sm:absolute sm:inset-0 sm:m-0 sm:h-auto sm:w-auto sm:[mask-image:none]">
         <ImageStreamHero
           images={corridorImages}
-          className="absolute inset-y-0 left-1/2 w-[320%] -translate-x-1/2 sm:w-[130%] lg:w-full"
+          // Slower than the default (18s a pass) and larger photos, the rails a little wider apart to keep the text clear.
+          speed={30}
+          path={CORRIDOR_PATH}
+          className="absolute inset-y-0 left-1/2 w-[420%] -translate-x-1/2 sm:w-[130%] lg:w-full"
         />
       </div>
       {/* Fades the corridor into the sections above and below, and a soft frosted veil behind the text only:
