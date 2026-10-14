@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
+import { motion } from 'motion/react'
 import { api } from '@/lib/api'
 import { formatPrice } from '@/lib/types'
 import type { AdminStats } from '@/pages/admin/admin-types'
 import { MonthBarsCard } from './MonthBarsCard'
+
+const RING = 2 * Math.PI * 52
 
 export function StatsView() {
   const [stats, setStats] = useState<AdminStats | null>(null)
@@ -27,6 +30,9 @@ export function StatsView() {
   const [year, month] = stats.currentMonth.split('-').map(Number)
   const monthLabel = new Date(year, month - 1, 15).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' })
   const euros = (cents: number) => formatPrice(cents).replace(/,00/, '')
+  // The month's goal: the average revenue of the months before that had any.
+  const earlier = stats.months.filter((m) => m.key < stats.currentMonth && m.revenueCents > 0)
+  const goal = earlier.length ? Math.round(earlier.reduce((sum, m) => sum + m.revenueCents, 0) / earlier.length) : 0
   const topMax = Math.max(1, ...stats.topServices.map((x) => x.count))
   const topTotal = stats.topServices.reduce((sum, x) => sum + x.count, 0)
   const { newThisMonth, returning, total: clientsTotal } = stats.clients
@@ -37,51 +43,66 @@ export function StatsView() {
 
   return (
     <div className="mt-6 flex flex-col gap-7">
-      {/* This month at a glance: the revenue and how it moved, then three small figures. */}
+      {/* This month against its goal: a ring filling up to the average of the months before, the figures beside. */}
       <section>
         <h2 className={section}>Este mês · {monthLabel}</h2>
         <div className={card}>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="font-subtitle text-xs text-muted-dark">Receita</p>
-              <p className="mt-0.5 font-subtitle text-4xl font-semibold lining-nums tracking-tight text-onyx">
-                {euros(revenue)}
-              </p>
+          <div className="flex items-center gap-5">
+            <div className="relative size-36 shrink-0">
+              <svg viewBox="0 0 120 120" className="size-full -rotate-90" aria-hidden="true">
+                <circle cx="60" cy="60" r="52" fill="none" strokeWidth="10" className="stroke-onyx/[0.07]" />
+                {goal > 0 && (
+                  <motion.circle
+                    cx="60"
+                    cy="60"
+                    r="52"
+                    fill="none"
+                    strokeWidth="10"
+                    strokeLinecap="round"
+                    className="stroke-onyx"
+                    strokeDasharray={RING}
+                    initial={{ strokeDashoffset: RING }}
+                    animate={{ strokeDashoffset: RING * (1 - Math.min(1, revenue / goal)) }}
+                    transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+                  />
+                )}
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span className="font-subtitle text-2xl font-semibold lining-nums leading-none text-onyx">
+                  {euros(revenue)}
+                </span>
+                <span className="mt-1 font-subtitle text-[11px] text-muted-dark">
+                  {goal > 0 ? `de ${euros(goal)}` : 'receita'}
+                </span>
+                {goal > 0 && (
+                  <span className="mt-0.5 font-subtitle text-xs font-semibold lining-nums text-onyx">
+                    {revenue >= goal ? 'Meta batida ✓' : `${Math.round((revenue / goal) * 100)}%`}
+                  </span>
+                )}
+              </div>
             </div>
-            {revenueDiff !== null && (
-              <span
-                className={`mt-1 inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 font-subtitle text-xs font-medium lining-nums ${
-                  revenueDiff > 0
-                    ? 'bg-emerald-600/10 text-emerald-700 dark:text-emerald-400'
-                    : revenueDiff < 0
-                      ? 'bg-red-600/10 text-red-700 dark:text-red-400'
-                      : 'bg-onyx/[0.06] text-onyx/70'
-                }`}
-              >
-                <i
-                  className={`bx ${revenueDiff > 0 ? 'bx-trending-up' : revenueDiff < 0 ? 'bx-trending-down' : 'bx-minus'} text-sm`}
-                  aria-hidden="true"
-                />
-                {revenueDiff === 0 ? 'Igual' : `${revenueDiff > 0 ? '+' : '−'}${euros(Math.abs(revenueDiff))}`}
+            <dl className="flex min-w-0 flex-1 flex-col gap-3">
+              {[
+                [String(sessions), sessions === 1 ? 'sessão' : 'sessões'],
+                [sessions ? euros(ticket) : '—', 'por sessão'],
+                [String(newThisMonth), newThisMonth === 1 ? 'cliente nova' : 'clientes novas'],
+              ].map(([value, label]) => (
+                <div key={label}>
+                  <dd className="font-subtitle text-xl font-semibold lining-nums leading-none text-onyx">{value}</dd>
+                  <dt className="mt-0.5 font-subtitle text-xs text-muted-dark">{label}</dt>
+                </div>
+              ))}
+            </dl>
+          </div>
+          <p className="mt-4 border-t border-onyx/10 pt-3 font-subtitle text-xs text-muted-dark">
+            {goal > 0 ? 'A meta é a média dos meses anteriores. ' : ''}
+            {revenueDiff !== null && revenueDiff !== 0 && (
+              <span className="font-medium text-onyx">
+                {revenueDiff > 0 ? '↑ +' : '↓ −'}
+                {euros(Math.abs(revenueDiff))} vs. o mês anterior
               </span>
             )}
-          </div>
-          <p className="mt-1 font-subtitle text-xs text-muted-dark">
-            {revenueDiff === null ? 'Das sessões confirmadas.' : 'Comparado com o mês anterior.'}
           </p>
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            {[
-              ['bx bx-calendar-check', String(sessions), sessions === 1 ? 'Sessão' : 'Sessões'],
-              ['bx bx-receipt', sessions ? euros(ticket) : '—', 'Por sessão'],
-              ['bx bx-user-plus', String(newThisMonth), newThisMonth === 1 ? 'Cliente nova' : 'Clientes novas'],
-            ].map(([icon, value, label]) => (
-              <div key={label} className="rounded-xl bg-onyx/[0.04] p-3">
-                <i className={`${icon} text-lg text-onyx/70`} aria-hidden="true" />
-                <p className="mt-1 font-subtitle text-lg font-semibold lining-nums leading-tight text-onyx">{value}</p>
-                <p className="font-subtitle text-[11px] text-muted-dark">{label}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
