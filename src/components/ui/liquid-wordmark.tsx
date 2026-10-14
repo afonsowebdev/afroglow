@@ -236,27 +236,72 @@ export function LiquidWordmark({
 }
 
 const EDGE_FADE =
-  'linear-gradient(to right, transparent, black 14px, black calc(100% - 14px), transparent), linear-gradient(to bottom, transparent, black 12px, black calc(100% - 12px), transparent)'
+  'linear-gradient(to right, transparent, black 22px, black calc(100% - 22px), transparent), linear-gradient(to bottom, transparent, black 18px, black calc(100% - 18px), transparent)'
 
-/** Room around a small word for its particles to spill into while liquid. */
-const BLEED = 26
+/** Room around the logo for its particles to spill into while liquid. */
+const BLEED = 40
+
+/** Draws one marked element (`data-liquid="circle"` or `"text"`) as it looks on the page, `k`× larger, at (ox, oy). */
+function drawPart(ctx: CanvasRenderingContext2D, el: HTMLElement, ox: number, oy: number, k: number) {
+  const r = el.getBoundingClientRect()
+  const style = getComputedStyle(el)
+  const x = (r.left - ox) * k
+  const y = (r.top - oy) * k
+  if (el.dataset.liquid === 'circle') {
+    ctx.fillStyle = style.backgroundColor
+    ctx.beginPath()
+    ctx.ellipse(x + (r.width * k) / 2, y + (r.height * k) / 2, (r.width * k) / 2, (r.height * k) / 2, 0, 0, Math.PI * 2)
+    ctx.fill()
+    return
+  }
+  const text = el.textContent ?? ''
+  const fontSize = parseFloat(style.fontSize)
+  ctx.font = `${style.fontWeight} ${fontSize * k}px ${style.fontFamily}`
+  const spacing = parseFloat(style.letterSpacing)
+  ;(ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = Number.isNaN(spacing)
+    ? '0px'
+    : `${spacing * k}px`
+  const m = ctx.measureText(text)
+  // Where the browser puts the baseline in a one-line box: the content area centred in the line.
+  const baseline =
+    y + (r.height * k - (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent)) / 2 + m.fontBoundingBoxAscent
+  // Centred text (the "A" in its circle) is placed by its own width.
+  const left = style.textAlign === 'center' ? x + (r.width * k - m.width) / 2 : x
+  const stroke = parseFloat(style.getPropertyValue('-webkit-text-stroke-width')) || 0
+  ctx.fillStyle = style.color
+  ctx.strokeStyle = style.color
+  ctx.lineJoin = 'round'
+  if (stroke > 0) {
+    ctx.lineWidth = stroke * k
+    ctx.strokeText(text, left, baseline)
+  }
+  ctx.fillText(text, left, baseline)
+}
 
 /**
- * The same liquid particles for a word set inline (the logo's AFROGLOW): it keeps the exact size, spacing, weight
- * and colour the text has where it sits (the text itself stays in place, hidden, holding the layout), assembles
- * when it first comes into view and turns liquid under the pointer. Fewer, larger particles to read at this size,
- * and no motion at rest, so it costs nothing while untouched. `inkKey`: changes when the colour changes (e.g. over
- * the video), to redraw.
+ * The same liquid particles as the contact section for a logo set inline (the "A" in its circle and AFROGLOW): the
+ * pieces marked `data-liquid` inside are drawn exactly as they sit (size, spacing, colours; the real ones stay in
+ * place, hidden, holding the layout). It assembles when it first comes into view, flows gently at rest and turns
+ * liquid under the pointer, as the big word does; fewer, larger particles to read at this size. `inkKey`: changes
+ * when the colours change (e.g. over the video), to redraw.
  */
-export function LiquidInlineWord({ text, className, inkKey }: { text: string; className?: string; inkKey?: string }) {
+export function LiquidLogo({
+  children,
+  className,
+  inkKey,
+}: {
+  children: React.ReactNode
+  className?: string
+  inkKey?: string
+}) {
   const { theme } = useTheme()
-  const word = useRef<HTMLSpanElement>(null)
+  const root = useRef<HTMLSpanElement>(null)
   // The canvas is made anew each time the engine starts (see LiquidWordmark).
   const canvasHost = useRef<HTMLSpanElement>(null)
   const [live, setLive] = useState(false)
 
   useEffect(() => {
-    const el = word.current
+    const el = root.current
     const host = canvasHost.current
     if (!el || !host) return
     const cv = document.createElement('canvas')
@@ -265,21 +310,8 @@ export function LiquidInlineWord({ text, className, inkKey }: { text: string; cl
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     let engine: LiquidEngine
     try {
-      engine = new LiquidEngine(
-        cv,
-        {
-          ...OPTIONS,
-          reducedMotion,
-          // Gentler than the big word: at this size the particles stay close to the letters.
-          radius: 55,
-          strength: 0.6,
-          density: 0.15,
-          dotSize: 2.4,
-          spread: 0.4,
-          turbulence: 0.5,
-          ambient: false,
-        },
-        () => setLive(false),
+      engine = new LiquidEngine(cv, { ...OPTIONS, reducedMotion, radius: 70, density: 0.15, dotSize: 2.4 }, () =>
+        setLive(false),
       )
     } catch {
       cv.remove()
@@ -287,50 +319,30 @@ export function LiquidInlineWord({ text, className, inkKey }: { text: string; cl
     }
     let cancelled = false
     let seen = false
-    let drawn = false
 
-    // The text as it is on the page, drawn 8× larger so the particles are sampled from a crisp image.
+    // The logo as it is on the page, drawn 8× larger so the particles are sampled from a crisp image.
     const draw = async () => {
       await document.fonts.ready
       if (cancelled) return
-      const style = getComputedStyle(el)
-      const w = el.offsetWidth
-      const h = el.offsetHeight
+      const box = el.getBoundingClientRect()
+      const w = box.width
+      const h = box.height
       if (!w || !h) return
       const k = 8
-      const fontSize = parseFloat(style.fontSize)
       const c = document.createElement('canvas')
       c.width = Math.ceil(w * k)
       c.height = Math.ceil(h * k)
       const ctx = c.getContext('2d')!
-      ctx.font = `${style.fontWeight} ${fontSize * k}px ${style.fontFamily}`
-      const spacing = parseFloat(style.letterSpacing)
-      if (!Number.isNaN(spacing))
-        (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = `${spacing * k}px`
-      const m = ctx.measureText(text)
-      // Where the browser puts the baseline in a one-line box: the content area centred in the line.
-      const ascent = m.fontBoundingBoxAscent
-      const descent = m.fontBoundingBoxDescent
-      const baseline = (c.height - (ascent + descent)) / 2 + ascent
-      const stroke = parseFloat(style.getPropertyValue('-webkit-text-stroke-width')) || 0
-      ctx.fillStyle = style.color
-      ctx.strokeStyle = style.color
-      ctx.lineJoin = 'round'
-      if (stroke > 0) {
-        ctx.lineWidth = stroke * k
-        ctx.strokeText(text, 0, baseline)
-      }
-      ctx.fillText(text, 0, baseline)
+      el.querySelectorAll<HTMLElement>('[data-liquid]').forEach((part) => drawPart(ctx, part, box.left, box.top, k))
       const img = new Image()
       img.onload = () => {
         if (cancelled) return
-        engine.resize(w + BLEED * 2, h + BLEED * 2, { x: BLEED, y: BLEED, w, h })
+        const size = [w + BLEED * 2, h + BLEED * 2, { x: BLEED, y: BLEED, w, h }] as const
+        engine.resize(...size)
         engine.onFirstFrame = () => setLive(true)
         engine.setImage(img)
-        if (!drawn) engine.setVisible(false)
-        drawn = true
-        engine.resize(w + BLEED * 2, h + BLEED * 2, { x: BLEED, y: BLEED, w, h })
-        if (seen) engine.setVisible(true)
+        engine.resize(...size)
+        engine.setVisible(seen)
       }
       img.src = c.toDataURL('image/png')
     }
@@ -346,7 +358,7 @@ export function LiquidInlineWord({ text, className, inkKey }: { text: string; cl
       { threshold: 0.5 },
     )
     io.observe(el)
-    // Draws on first layout and again whenever the word's size changes.
+    // Draws on first layout and again whenever the logo's size changes.
     const ro = new ResizeObserver(() => void draw())
     ro.observe(el)
 
@@ -376,26 +388,28 @@ export function LiquidInlineWord({ text, className, inkKey }: { text: string; cl
       cv.remove()
       setLive(false)
     }
-  }, [text, theme, inkKey])
+  }, [theme, inkKey])
 
   return (
-    <span ref={word} className={cn('relative inline-block', className)}>
+    <span ref={root} className={cn('relative inline-flex', className)}>
       {/* Keeps the layout and is what shows until the particles are drawn (or without WebGL2). */}
-      <span className={cn('transition-opacity duration-300', live && 'opacity-0')}>{text}</span>
+      <span className={cn('contents [&>*]:transition-opacity [&>*]:duration-300', live && '[&>*]:opacity-0')}>
+        {children}
+      </span>
       <span
         ref={canvasHost}
         aria-hidden="true"
         className="pointer-events-none absolute"
         // The edges fade out, so particles that stray far vanish softly instead of being cut by the canvas.
         style={{
-          maskImage: EDGE_FADE,
-          WebkitMaskImage: EDGE_FADE,
-          maskComposite: 'intersect',
-          WebkitMaskComposite: 'source-in',
           left: -BLEED,
           top: -BLEED,
           width: `calc(100% + ${BLEED * 2}px)`,
           height: `calc(100% + ${BLEED * 2}px)`,
+          maskImage: EDGE_FADE,
+          WebkitMaskImage: EDGE_FADE,
+          maskComposite: 'intersect',
+          WebkitMaskComposite: 'source-in',
         }}
       />
     </span>

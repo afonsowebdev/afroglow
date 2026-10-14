@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { LiquidInlineWord } from '@/components/ui/liquid-wordmark'
+import { LiquidLogo } from '@/components/ui/liquid-wordmark'
 
 /**
  * The round buttons beside the "A" on phones and in the app (the "A", the bell, the "+"): the logo's colours, gold
@@ -30,28 +30,32 @@ export function BrandLogo({
 }) {
   const s = SIZES[size]
   return (
-    <span className={cn('flex items-center', s.gap, className)}>
+    // The whole logo in liquid particles, as the big word in the contact section.
+    <LiquidLogo inkKey={onMedia ? 'media' : 'page'} className={cn('items-center', s.gap, className)}>
       <span
         aria-hidden="true"
+        data-liquid="circle"
         className={cn(
-          'flex shrink-0 items-center justify-center rounded-full logo-weight font-logo leading-none shadow-[0_1px_4px_rgba(0,0,0,0.18)] transition-colors duration-500',
+          'flex shrink-0 items-center justify-center rounded-full logo-weight font-logo leading-none shadow-[0_1px_4px_rgba(0,0,0,0.18)]',
           s.mark,
           onMedia ? 'bg-[#ffffff] text-[#111111]' : 'bg-onyx text-white',
         )}
       >
-        <span className="translate-y-[0.1em]">A</span>
+        <span data-liquid="text" className="translate-y-[0.1em] text-center">
+          A
+        </span>
       </span>
-      {/* The wordmark in liquid particles (as in the contact section): it turns liquid under the pointer. */}
-      <LiquidInlineWord
-        text="AFROGLOW"
-        inkKey={onMedia ? 'media' : 'page'}
+      {/* No colour transitions: the particles are drawn in the colours the logo has at that moment. */}
+      <span
+        data-liquid="text"
         className={cn(
-          // No colour transition: the particles are drawn in the colour the word has at that moment.
           'translate-y-[0.1em] logo-weight font-logo leading-none tracking-[0.14em]',
           s.word,
           onMedia ? 'text-[#ffffff]' : 'text-onyx',
         )}
-      />
-    </span>
+      >
+        AFROGLOW
+      </span>
+    </LiquidLogo>
   )
 }
