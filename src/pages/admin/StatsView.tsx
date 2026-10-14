@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
-import ProgressMetricCard, { type SeriesPoint } from '@/components/ui/progress-metric-card'
 import { api } from '@/lib/api'
 import { formatPrice } from '@/lib/types'
 import type { AdminStats } from '@/pages/admin/admin-types'
-
-const PERIODS = [{ label: 'Últimos 3 meses', points: 3 }, { label: 'Últimos 6 meses' }]
+import { MonthBarsCard } from './MonthBarsCard'
 
 export function StatsView() {
   const [stats, setStats] = useState<AdminStats | null>(null)
@@ -21,16 +19,6 @@ export function StatsView() {
   if (!stats) return <p className="mt-8 font-subtitle text-muted-dark">A carregar...</p>
 
   const current = stats.months.find((m) => m.key === stats.currentMonth)
-  const monthName = (key: string) => {
-    const [year, month] = key.split('-').map(Number)
-    const label = new Date(year, month - 1, 15).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' })
-    return label.charAt(0).toUpperCase() + label.slice(1)
-  }
-  const revenueSeries: SeriesPoint[] = stats.months.map((m) => ({
-    value: m.revenueCents / 100,
-    date: monthName(m.key),
-  }))
-  const sessionsSeries: SeriesPoint[] = stats.months.map((m) => ({ value: m.bookings, date: monthName(m.key) }))
   const cards = [
     { icon: 'bx bx-euro', label: 'Receita do mês', value: formatPrice(current?.revenueCents ?? 0) },
     { icon: 'bx bx-calendar-check', label: 'Sessões do mês', value: String(current?.bookings ?? 0) },
@@ -52,33 +40,22 @@ export function StatsView() {
         ))}
       </div>
 
-      <ProgressMetricCard
+      <MonthBarsCard
         title="Receita"
-        size="sm"
-        accent="ink"
-        data={revenueSeries}
-        defaultIndex={revenueSeries.length - 1}
-        period="Últimos 6 meses"
-        periodOptions={PERIODS}
-        deltaLabel="vs. mês anterior"
-        valueFormatter={(euros) => formatPrice(Math.round(euros * 100)).replace(/,00/, '')}
+        icon="bx bx-euro"
+        points={stats.months.map((m) => ({ key: m.key, value: m.revenueCents }))}
+        format={(cents) => formatPrice(cents).replace(/,00/, '')}
       />
 
-      <ProgressMetricCard
+      <MonthBarsCard
         title="Sessões"
-        size="sm"
-        accent="ink"
-        unit="sessões"
-        data={sessionsSeries}
-        defaultIndex={sessionsSeries.length - 1}
-        period="Últimos 6 meses"
-        periodOptions={PERIODS}
-        deltaLabel="vs. mês anterior"
-        defaultView="bars"
+        icon="bx bx-calendar-check"
+        points={stats.months.map((m) => ({ key: m.key, value: m.bookings }))}
+        format={(n) => `${n} ${n === 1 ? 'sessão' : 'sessões'}`}
       />
 
       <p className="px-1 font-subtitle text-xs text-muted-dark">
-        Só conta sessões confirmadas, no mês da sessão. Toca no gráfico para ver cada mês.
+        Só conta sessões confirmadas, no mês da sessão. Toca num mês para o ver.
       </p>
 
       <section className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5">
