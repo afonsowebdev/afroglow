@@ -240,7 +240,9 @@
 
 /* Fields inside a grouped list (the app's sign-in): the group is the shape, so no border of their own. */
 .app-neutral input.field-plain,
-.app-neutral input.field-plain:focus-visible {
+.app-neutral input.field-plain:focus-visible,
+.app-neutral textarea.field-plain,
+.app-neutral textarea.field-plain:focus-visible {
   border-width: 0;
   outline: none;
   box-shadow: none;

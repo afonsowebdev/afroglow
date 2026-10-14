@@ -851,7 +851,13 @@ function ServiceDialog({
 
   const isNew = form?.id === null
   const fieldClass =
-    'w-full rounded-xl border border-onyx/15 bg-white px-3 py-2.5 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/30 focus-visible:border-onyx'
+    'w-full rounded-xl border border-onyx/15 bg-white px-3 py-2.5 font-subtitle text-base text-onyx outline-none placeholder:text-onyx/30 focus-visible:border-onyx'
+  // A field inside a grouped list: no box of its own.
+  const plain =
+    'field-plain block w-full min-w-0 bg-transparent font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35'
+  const section = 'mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark'
+  const group =
+    'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
 
   return (
     <AnimatePresence>
@@ -874,134 +880,181 @@ function ServiceDialog({
               e.preventDefault()
               onSave()
             }}
-            className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl"
+            className="relative flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           >
-            <div className="flex items-center gap-4">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-xl text-onyx">
-                <i className={`bx ${isNew ? 'bx-plus' : 'bx-pencil'}`} aria-hidden="true" />
-              </span>
-              <div>
-                <h2 className="font-subtitle text-xl font-semibold tracking-tight text-onyx">
-                  {isNew ? 'Novo modelo' : 'Editar modelo'}
-                </h2>
-                <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
-                  {isNew ? 'Aparece no site assim que guardares.' : 'As alterações aparecem logo no site.'}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5 flex flex-col gap-4">
-              <label>
-                <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">Nome</span>
-                <input
-                  value={form.name}
-                  onChange={(e) => onChange({ ...form, name: e.target.value })}
-                  placeholder="Ex: Twist Braids"
-                  maxLength={80}
-                  className={fieldClass}
-                />
-              </label>
-              <label>
-                <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                  Descrição
-                </span>
-                <textarea
-                  value={form.description}
-                  onChange={(e) => onChange({ ...form, description: e.target.value })}
-                  placeholder="Breve descrição para as clientes"
-                  maxLength={300}
-                  rows={3}
-                  className={`${fieldClass} resize-none`}
-                />
-                <span className="mt-1 block text-right font-subtitle text-[11px] text-muted-dark">
-                  {form.description.length}/300
-                </span>
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <label>
-                  <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                    Duração
-                  </span>
-                  <input
-                    value={form.duration}
-                    onChange={(e) => onChange({ ...form, duration: e.target.value })}
-                    placeholder="Ex: 3-5h"
-                    maxLength={40}
-                    className={fieldClass}
-                  />
-                </label>
-                <label>
-                  <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                    {form.pricing.on ? 'Preço (usa a tabela)' : 'Preço'}
-                  </span>
-                  <span className="relative block">
-                    <input
-                      value={form.price}
-                      disabled={form.pricing.on}
-                      onChange={(e) => onChange({ ...form, price: e.target.value })}
-                      inputMode="decimal"
-                      placeholder="65"
-                      className={`${fieldClass} pr-8`}
-                    />
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-subtitle text-sm text-muted-dark">
-                      €
-                    </span>
-                  </span>
-                </label>
-              </div>
-
-              <PricingEditor
-                draft={form.pricing}
-                onChange={(pricing) => onChange({ ...form, pricing })}
-                fieldClass={fieldClass}
-              />
-
-              <label className="flex items-center justify-between gap-3 rounded-2xl border border-onyx/15 p-4">
-                <span>
-                  <span className="block font-subtitle text-sm font-medium text-onyx">Disponível para marcar</span>
-                  <span className="block font-subtitle text-xs text-muted-dark">
-                    Desligado, o modelo deixa de aparecer no site e na app, mas as marcações feitas com ele mantêm-se.
-                  </span>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={form.active}
-                  onChange={(e) => onChange({ ...form, active: e.target.checked })}
-                  className="size-5 shrink-0 accent-[#1a1008]"
-                />
-              </label>
-
-              {form.id ? (
-                <ServicePhotos serviceId={form.id} images={images} onChanged={onImagesChanged} />
-              ) : (
-                <p className="rounded-xl bg-onyx/5 px-3 py-2.5 font-subtitle text-xs text-muted-dark">
-                  Guarda o modelo primeiro. Depois podes voltar a abri-lo para adicionar fotos.
-                </p>
-              )}
-            </div>
-
-            {error && <p className="mt-4 font-subtitle text-sm text-red-700">{error}</p>}
-
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            {/* Cancel and save always in reach, as in the iPhone's own sheets. */}
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-onyx/10 px-4 py-3">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={busy}
-                className="rounded-full glass-chip py-3 font-subtitle text-sm text-onyx transition-colors disabled:opacity-50"
+                className="min-w-20 text-left font-subtitle text-[15px] text-onyx/60 disabled:opacity-50"
               >
                 Cancelar
               </button>
+              <h2 className="truncate font-subtitle text-base font-semibold text-onyx">
+                {isNew ? 'Novo modelo' : form.name || 'Editar modelo'}
+              </h2>
               <button
                 type="submit"
                 disabled={busy}
-                className="glass-chip rounded-full py-3 font-subtitle text-sm text-onyx transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="min-w-20 text-right font-subtitle text-[15px] font-semibold text-onyx disabled:opacity-50"
               >
-                {busy ? 'A guardar...' : 'Guardar'}
+                {busy ? 'A guardar…' : 'Guardar'}
               </button>
+            </div>
+
+            <div className="flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto overscroll-contain px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-5">
+              {error && (
+                <p role="alert" className="rounded-xl bg-red-700/10 px-4 py-3 font-subtitle text-sm text-red-700">
+                  {error}
+                </p>
+              )}
+
+              {/* Photos first: what the customers see. */}
+              <section>
+                {form.id ? (
+                  <ServicePhotos serviceId={form.id} images={images} onChanged={onImagesChanged} />
+                ) : (
+                  <>
+                    <h3 className={section}>Fotos</h3>
+                    <p className="rounded-2xl bg-onyx/[0.04] px-4 py-3 font-subtitle text-sm text-muted-dark">
+                      Guarda o modelo primeiro. Depois abre-o de novo para juntar fotos.
+                    </p>
+                  </>
+                )}
+              </section>
+
+              <section>
+                <h3 className={section}>Informação</h3>
+                <div className={group}>
+                  <label className="block px-4 pb-3 pt-2.5">
+                    <span className="block font-subtitle text-[11px] text-muted-dark">Nome</span>
+                    <input
+                      value={form.name}
+                      onChange={(e) => onChange({ ...form, name: e.target.value })}
+                      placeholder="Ex: Twist Braids"
+                      maxLength={80}
+                      className={`${plain} mt-0.5 h-7`}
+                    />
+                  </label>
+                  <label className="block px-4 pb-3 pt-2.5">
+                    <span className="flex justify-between font-subtitle text-[11px] text-muted-dark">
+                      Descrição <span>{form.description.length}/300</span>
+                    </span>
+                    <textarea
+                      value={form.description}
+                      onChange={(e) => onChange({ ...form, description: e.target.value })}
+                      placeholder="Breve descrição para as clientes"
+                      maxLength={300}
+                      rows={3}
+                      className={`${plain} mt-0.5 resize-none leading-snug`}
+                    />
+                  </label>
+                  <label className="flex items-center justify-between gap-3 px-4 py-3">
+                    <span className="font-subtitle text-[15px] text-onyx">Duração</span>
+                    <input
+                      value={form.duration}
+                      onChange={(e) => onChange({ ...form, duration: e.target.value })}
+                      placeholder="Ex: 3–5h"
+                      maxLength={40}
+                      className={`${plain} w-32 text-right`}
+                    />
+                  </label>
+                </div>
+              </section>
+
+              {/* One price, or a price per length / parting. */}
+              <section>
+                <h3 className={section}>Preço</h3>
+                <div className="grid grid-cols-2 rounded-xl bg-onyx/[0.06] p-1" role="tablist" aria-label="Tipo de preço">
+                  {(
+                    [
+                      [false, 'Preço único'],
+                      [true, 'Por opções'],
+                    ] as const
+                  ).map(([on, text]) => (
+                    <button
+                      key={text}
+                      type="button"
+                      role="tab"
+                      aria-selected={form.pricing.on === on}
+                      onClick={() => onChange({ ...form, pricing: { ...form.pricing, on } })}
+                      className={`h-9 rounded-[9px] font-subtitle text-sm transition-colors ${
+                        form.pricing.on === on ? 'bg-white font-medium text-onyx shadow-sm shadow-black/10 dark:bg-onyx/[0.14]' : 'text-onyx/55'
+                      }`}
+                    >
+                      {text}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-3">
+                  {form.pricing.on ? (
+                    <>
+                      <PricingEditor
+                        bare
+                        draft={form.pricing}
+                        onChange={(pricing) => onChange({ ...form, pricing })}
+                        fieldClass={fieldClass}
+                      />
+                      <p className="mt-3 px-1 font-subtitle text-xs text-muted-dark">
+                        A cliente escolhe ao marcar. O site mostra “a partir de” o preço mais baixo.
+                      </p>
+                    </>
+                  ) : (
+                    <div className={group}>
+                      <label className="flex items-center justify-between gap-3 px-4 py-3">
+                        <span className="font-subtitle text-[15px] text-onyx">Preço</span>
+                        <span className="flex items-center gap-1">
+                          <input
+                            value={form.price}
+                            onChange={(e) => onChange({ ...form, price: e.target.value })}
+                            inputMode="decimal"
+                            placeholder="65"
+                            className={`${plain} w-24 text-right`}
+                          />
+                          <span className="font-subtitle text-base text-muted-dark">€</span>
+                        </span>
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Open for booking, as an iPhone switch. */}
+              <section>
+                <h3 className={section}>Visibilidade</h3>
+                <label className={`${group} flex cursor-pointer items-center justify-between gap-4 px-4 py-3`}>
+                  <span>
+                    <span className="block font-subtitle text-[15px] text-onyx">Disponível para marcar</span>
+                    <span className="mt-0.5 block font-subtitle text-xs text-muted-dark">
+                      Desligado, deixa de aparecer no site e na app; as marcações feitas mantêm-se.
+                    </span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={form.active}
+                    onChange={(e) => onChange({ ...form, active: e.target.checked })}
+                    className="peer sr-only"
+                  />
+                  <span
+                    aria-hidden="true"
+                    className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
+                      form.active ? 'bg-onyx' : 'bg-onyx/20'
+                    } peer-focus-visible:ring-2 peer-focus-visible:ring-onyx/40`}
+                  >
+                    <span
+                      className={`absolute top-0.5 size-6 rounded-full bg-white shadow transition-all ${
+                        form.active ? 'left-[1.375rem]' : 'left-0.5'
+                      }`}
+                    />
+                  </span>
+                </label>
+              </section>
             </div>
           </motion.form>
         </div>
@@ -1009,6 +1062,8 @@ function ServiceDialog({
     </AnimatePresence>
   )
 }
+
+
 
 interface ServiceUsage {
   total: number
