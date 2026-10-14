@@ -29,6 +29,8 @@ export interface EngineOptions {
   imgBg: [number, number, number] | null
   /** 0 – 2: how much the whole image flows while the pointer is over it */
   liquid: number
+  /** Highest pixel density to draw at (default 2, 1.5 on low-power devices); small sharp images want the screen's. */
+  maxDpr?: number
 }
 
 function clamp(v: number, a: number, b: number) {
@@ -681,7 +683,7 @@ export class LiquidEngine {
     this.cssW = Math.max(1, cssW)
     this.cssH = Math.max(1, cssH)
     this.rect = rect
-    let dpr = Math.min(window.devicePixelRatio || 1, this.lowPower ? 1.5 : 2)
+    let dpr = Math.min(window.devicePixelRatio || 1, this.opts.maxDpr ?? (this.lowPower ? 1.5 : 2))
     const px = this.cssW * this.cssH * dpr * dpr
     if (px > 4.5e6) dpr = Math.max(1, Math.sqrt(4.5e6 / (this.cssW * this.cssH)))
     const w = Math.round(this.cssW * dpr)

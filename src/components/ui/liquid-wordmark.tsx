@@ -281,8 +281,8 @@ function drawPart(ctx: CanvasRenderingContext2D, el: HTMLElement, ox: number, oy
 /**
  * The same liquid particles as the contact section for a logo set inline (the "A" in its circle and AFROGLOW): the
  * pieces marked `data-liquid` inside are drawn exactly as they sit (size, spacing, colours; the real ones stay in
- * place, hidden, holding the layout). It assembles when it first comes into view, flows gently at rest and turns
- * liquid under the pointer, as the big word does; fewer, larger particles to read at this size. `inkKey`: changes
+ * place, hidden, holding the layout). It assembles when it first comes into view, stays still and sharp at rest and
+ * turns liquid under the pointer, as the big word does; fewer, larger particles to read at this size. `inkKey`: changes
  * when the colours change (e.g. over the video), to redraw.
  */
 export function LiquidLogo({
@@ -310,8 +310,19 @@ export function LiquidLogo({
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     let engine: LiquidEngine
     try {
-      engine = new LiquidEngine(cv, { ...OPTIONS, reducedMotion, radius: 70, density: 0.15, dotSize: 2.4 }, () =>
-        setLive(false),
+      engine = new LiquidEngine(
+        cv,
+        {
+          ...OPTIONS,
+          reducedMotion,
+          radius: 70,
+          density: 0.15,
+          dotSize: 2.4,
+          // Still and sharp at rest, exactly over the real letters: it only moves under the pointer (and on arrival).
+          ambient: false,
+          maxDpr: 3,
+        },
+        () => setLive(false),
       )
     } catch {
       cv.remove()
