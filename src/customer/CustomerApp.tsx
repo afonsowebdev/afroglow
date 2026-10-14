@@ -4,7 +4,7 @@ import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Bell, BellOff, CalendarCheck, CalendarPlus, House, LogOut, Moon, PanelTop, PanelTopClose, Plus, Settings, Sun, UserRound } from 'lucide-react'
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
-import AccountAuthPage from '@/pages/AccountAuthPage'
+import AuthScreen from './AuthScreen'
 import { api } from '@/lib/api'
 import { clearAvatar, loadAvatar, useAvatar } from '@/lib/avatar-store'
 import { useCustomerAuth } from '@/lib/customer-auth'
@@ -51,7 +51,7 @@ function tabFor(pathname: string): TabId {
 function RequireAccount({ children }: { children: React.ReactNode }) {
   const { customer, loading } = useCustomerAuth()
   if (loading) return <div className="min-h-screen bg-white" />
-  return <>{customer ? children : <AccountAuthPage embedded />}</>
+  return <>{customer ? children : <AuthScreen stay />}</>
 }
 
 export default function CustomerApp() {
@@ -227,7 +227,7 @@ function CustomerShell() {
                 </RequireAccount>
               }
             />
-            <Route path="/entrar" element={<AccountAuthPage embedded />} />
+            <Route path="/entrar" element={<AuthScreen />} />
             <Route path="*" element={<HomeScreen />} />
           </Routes>
         </motion.div>

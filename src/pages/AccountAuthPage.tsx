@@ -6,7 +6,7 @@ import AuthSwitch from '@/components/ui/auth-switch'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { usePageTitle } from '@/lib/page-title'
 
-export default function AccountAuthPage({ embedded = false }: { embedded?: boolean } = {}) {
+export default function AccountAuthPage() {
   usePageTitle('Entrar', { noindex: true })
   const { customer, loading } = useCustomerAuth()
   const navigate = useNavigate()
@@ -28,7 +28,6 @@ export default function AccountAuthPage({ embedded = false }: { embedded?: boole
         AFROGLOW
       </motion.span>
 
-      {!embedded && (
       <div className="fixed inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <SiteLogo />
@@ -42,9 +41,8 @@ export default function AccountAuthPage({ embedded = false }: { embedded?: boole
           </Link>
         </div>
       </div>
-      )}
 
-      <main className={`relative mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-5 pb-8 ${embedded ? 'pt-[calc(4.5rem+env(safe-area-inset-top))]' : 'pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pt-[calc(6.5rem+env(safe-area-inset-top))]'} sm:px-8`}>
+      <main className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-5 pb-8 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(6.5rem+env(safe-area-inset-top))]">
         <AuthSwitch onSuccess={() => navigate('/conta')} />
       </main>
     </div>

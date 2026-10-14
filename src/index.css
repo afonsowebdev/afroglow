@@ -237,6 +237,14 @@
   border-color: var(--color-onyx);
 }
 
+/* Fields inside a grouped list (the app's sign-in): the group is the shape, so no border of their own. */
+.app-neutral input.field-plain,
+.app-neutral input.field-plain:focus-visible {
+  border-width: 0;
+  outline: none;
+  box-shadow: none;
+}
+
 /* iPhone date and time fields have a wide built-in width and spill over their neighbours: let them shrink to the cell. */
 .app-neutral input[type='date'],
 .app-neutral input[type='time'] {
