@@ -41,7 +41,8 @@ import { useTheme } from '@/lib/theme'
 import { NavVisibilityProvider, useAutoHideNav, useNavForcedHidden, useNavHidden } from '@/customer/nav-visibility'
 import { customerWhatsappUrl } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service, type Testimonial } from '@/lib/types'
-import { bookingName, bookingPrice } from '@/lib/pricing'
+import { bookingName, bookingPrice, optionsOf } from '@/lib/pricing'
+import { serviceImageUrls } from '@/lib/service-images'
 import { PricingEditor } from './PricingEditor'
 import { draftFromPricing, pricingFromDraft, type PricingDraft } from './pricing-draft'
 import { BookingChoices } from './BookingChoices'
@@ -2225,97 +2226,121 @@ function AdminDashboard() {
                     </button>
                   </div>
                 )}
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { label: 'Modelos', value: String(services.length) },
-                    {
-                      label: 'Desde',
-                      value: services.length ? formatPrice(Math.min(...services.map((x) => x.priceCents))) : '—',
-                    },
-                    {
-                      label: 'Até',
-                      value: services.length ? formatPrice(Math.max(...services.map((x) => x.priceCents))) : '—',
-                    },
-                  ].map((stat) => (
-                    <div key={stat.label} className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
-                      <p className="font-subtitle font-semibold lining-nums tracking-tight text-lg leading-none text-onyx">
-                        {stat.value}
+                {/* The catalogue at a glance, and adding one. */}
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <p className="font-subtitle text-2xl font-semibold lining-nums tracking-tight text-onyx">
+                      {services.length} {services.length === 1 ? 'modelo' : 'modelos'}
+                    </p>
+                    {services.length > 0 && (
+                      <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
+                        De {formatPrice(Math.min(...services.map((x) => x.priceCents))).replace(/,00/, '')} a{' '}
+                        {formatPrice(Math.max(...services.map((x) => x.priceCents))).replace(/,00/, '')}
+                        {(() => {
+                          const hiddenCount = services.filter((x) => x.active === false).length
+                          return hiddenCount ? ` · ${hiddenCount} ${hiddenCount === 1 ? 'escondido' : 'escondidos'}` : ''
+                        })()}
                       </p>
-                      <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
-                        {stat.label}
-                      </p>
-                    </div>
-                  ))}
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={openNewService}
+                    className="flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-onyx px-4 font-subtitle text-sm font-medium text-white"
+                  >
+                    <i className="bx bx-plus text-lg" aria-hidden="true" />
+                    Novo modelo
+                  </button>
                 </div>
 
-                <div className="mt-6 flex flex-col gap-3">
-                  {services.map((service) => (
-                    <article key={service.id} className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                          <h3 className="font-subtitle text-lg font-semibold tracking-tight text-onyx">
-                            {service.name}
-                          </h3>
-                          {service.active === false && (
-                            <span className="mt-1 inline-block rounded-full bg-onyx/10 px-2 py-0.5 font-subtitle text-[11px] text-onyx/70">
-                              Escondido · não aparece para marcar
-                            </span>
-                          )}
-                          <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-onyx/5 px-2.5 py-1 font-subtitle text-[11px] text-onyx">
-                            <i className="bx bx-time-five text-sm" aria-hidden="true" />
-                            {service.durationLabel}
-                          </span>
-                        </div>
-                        <p className="shrink-0 text-right font-subtitle font-semibold lining-nums tracking-tight text-2xl leading-none text-onyx">
-                          {service.pricing && (
-                            <span className="block text-[11px] font-normal tracking-normal text-muted-dark">a partir de</span>
-                          )}
-                          {formatPrice(service.priceCents)}
-                        </p>
-                      </div>
-                      <p className="mt-3 line-clamp-2 font-subtitle text-sm text-muted-dark">{service.description}</p>
-                      <div className="mt-4 flex items-center justify-between gap-3 border-t border-onyx/10 pt-3">
-                        <button
-                          type="button"
-                          onClick={() => openDeleteService(service)}
-                          className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 font-subtitle text-sm text-muted-dark transition-colors hover:bg-red-700/10 hover:text-red-700"
-                        >
-                          <i className="bx bx-trash text-base" aria-hidden="true" />
-                          Eliminar
-                        </button>
+                {/* One row per model: its photo, name, price and options; tap to edit. */}
+                <div className="mt-5 flex flex-col gap-3">
+                  {services.map((service) => {
+                    const photos = serviceImageUrls(service)
+                    const photo = photos[0]
+                    const { lengths, partings } = optionsOf(service)
+                    const options = [...lengths, ...partings]
+                    const hidden = service.active === false
+                    return (
+                      <article
+                        key={service.id}
+                        className={`overflow-hidden rounded-2xl border border-onyx/10 bg-white shadow-sm shadow-black/5 ${
+                          hidden ? 'opacity-70' : ''
+                        }`}
+                      >
                         <button
                           type="button"
                           onClick={() => openEditService(service)}
-                          className="inline-flex items-center gap-1.5 rounded-full glass-chip px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:text-onyx"
+                          className="flex w-full items-stretch gap-4 p-3 text-left active:bg-onyx/[0.03]"
                         >
-                          <i className="bx bx-pencil text-base" aria-hidden="true" />
-                          Editar
+                          <span className="relative size-24 shrink-0 overflow-hidden rounded-xl bg-onyx/[0.06]">
+                            {photo ? (
+                              <img src={photo} alt="" loading="lazy" className="size-full object-cover" />
+                            ) : (
+                              <span className="flex size-full flex-col items-center justify-center gap-1 text-onyx/35">
+                                <i className="bx bx-image-add text-2xl" aria-hidden="true" />
+                                <span className="font-subtitle text-[10px]">Sem foto</span>
+                              </span>
+                            )}
+                            {photos.length > 1 && (
+                              <span className="absolute bottom-1 left-1 rounded-full bg-black/55 px-1.5 py-0.5 font-subtitle text-[10px] text-[#ffffff]">
+                                {photos.length} fotos
+                              </span>
+                            )}
+                          </span>
+                          <span className="flex min-w-0 flex-1 flex-col py-0.5">
+                            <span className="flex items-start justify-between gap-2">
+                              <span className="truncate font-subtitle text-base font-semibold tracking-tight text-onyx">
+                                {service.name}
+                              </span>
+                              <i className="bx bx-chevron-right shrink-0 text-xl text-onyx/30" aria-hidden="true" />
+                            </span>
+                            <span className="font-subtitle text-sm text-onyx">
+                              {service.pricing ? 'a partir de ' : ''}
+                              <strong className="font-semibold lining-nums">
+                                {formatPrice(service.priceCents).replace(/,00/, '')}
+                              </strong>
+                              <span className="text-muted-dark"> · {service.durationLabel}</span>
+                            </span>
+                            {options.length > 0 && (
+                              <span className="mt-1 truncate font-subtitle text-xs text-muted-dark">{options.join(' · ')}</span>
+                            )}
+                            <span className="mt-auto flex items-center gap-1.5 pt-2 font-subtitle text-[11px]">
+                              <span className={`size-1.5 rounded-full ${hidden ? 'bg-onyx/30' : 'bg-emerald-500'}`} />
+                              <span className="text-muted-dark">{hidden ? 'Escondido' : 'Disponível para marcar'}</span>
+                            </span>
+                          </span>
                         </button>
-                      </div>
-                    </article>
-                  ))}
+                        <div className="flex border-t border-onyx/10">
+                          <button
+                            type="button"
+                            onClick={() => openEditService(service)}
+                            className="flex flex-1 items-center justify-center gap-1.5 py-2.5 font-subtitle text-sm text-onyx active:bg-onyx/[0.04]"
+                          >
+                            <i className="bx bx-pencil text-base" aria-hidden="true" />
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openDeleteService(service)}
+                            className="flex flex-1 items-center justify-center gap-1.5 border-l border-onyx/10 py-2.5 font-subtitle text-sm text-muted-dark active:bg-red-700/10 active:text-red-700"
+                          >
+                            <i className="bx bx-trash text-base" aria-hidden="true" />
+                            Eliminar
+                          </button>
+                        </div>
+                      </article>
+                    )
+                  })}
                 </div>
 
-                <motion.button
-                  type="button"
-                  onClick={openNewService}
-                  whileTap={{ scale: 0.98 }}
-                  className="group mt-4 flex w-full items-center gap-4 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-onyx/5 p-4 text-left transition-colors duration-300 hover:border-onyx/40 hover:bg-onyx/5"
-                >
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-2xl text-onyx transition-transform duration-300 group-hover:rotate-90">
-                    <i className="bx bx-plus" aria-hidden="true" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-subtitle text-base font-semibold text-onyx">Adicionar modelo</span>
-                    <span className="block font-subtitle text-xs text-muted-dark">
-                      Cria uma nova trança no catálogo do site
-                    </span>
-                  </span>
-                  <i
-                    className="bx bx-chevron-right text-2xl text-onyx transition-transform duration-300 group-hover:translate-x-0.5"
-                    aria-hidden="true"
+                {services.length === 0 && (
+                  <EmptyState
+                    icon="bx bx-cut"
+                    title="Ainda sem modelos"
+                    text="Cria o primeiro modelo em “Novo modelo”: nome, duração, preço e fotos."
                   />
-                </motion.button>
+                )}
 
                 <DeleteServiceDialog
                   service={deleteTarget}
