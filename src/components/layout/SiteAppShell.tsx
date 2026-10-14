@@ -1,23 +1,9 @@
 import { useEffect, type ReactNode } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Navbar from '@/components/layout/Navbar'
 import { BookingAlertsProvider, useBookingAlerts } from '@/customer/booking-alerts'
 import { NavVisibilityProvider, useNavHidden } from '@/customer/nav-visibility'
 import { useCustomerAuth } from '@/lib/customer-auth'
-import { BrandLogo } from '@/components/ui/brand-logo'
-
-/** The AFROGLOW logo in its glass pill, as in the site header. */
-export function SiteLogo() {
-  return (
-    <Link
-      to="/"
-      aria-label="AFROGLOW, voltar ao início"
-      className="liquid-glass pointer-events-auto flex h-[56px] items-center gap-3 rounded-full pe-5 ps-2"
-    >
-      <BrandLogo size="md" />
-    </Link>
-  )
-}
 
 function Shell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()

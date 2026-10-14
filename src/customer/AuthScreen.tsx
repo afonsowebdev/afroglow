@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { Check } from 'lucide-react'
 import { ActionButton } from '@/components/ui/action-button'
@@ -8,6 +8,7 @@ import { useAccountAuthForm, type AuthMode } from '@/components/ui/account-auth-
 import { ForgotPasswordSheet } from '@/components/ui/forgot-password-sheet'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { cn } from '@/lib/utils'
+import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 import { Group, PasswordInput, fieldClass } from '@/components/ui/grouped-fields'
 import { VelocityRow } from '@/components/ui/velocity-marquee'
 
@@ -24,6 +25,8 @@ const COPY: Record<AuthMode, { title: string; text: string }> = {
 }
 
 const EASE = [0.22, 1, 0.36, 1] as const
+
+const markClass = `flex size-14 shrink-0 items-center justify-center rounded-full font-logo text-[1.75rem] leading-none logo-weight ${BRAND_CIRCLE}`
 
 /** Opens and closes with a smooth height and fade, so the form reflows instead of jumping (as on the website). */
 function Collapse({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -78,8 +81,8 @@ export default function AuthScreen({ stay = false, site = false }: { stay?: bool
         'relative isolate mx-auto flex min-h-[100svh] w-full max-w-md flex-col justify-center px-5',
         // `site`: the website's page, under its header; otherwise between the app's top row and tab bar.
         site
-          ? 'pb-16 pt-[calc(6.5rem+env(safe-area-inset-top))]'
-          : 'pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(5rem+env(safe-area-inset-top))]',
+          ? 'pb-16 pt-[calc(3rem+env(safe-area-inset-top))]'
+          : 'pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(3rem+env(safe-area-inset-top))]',
       )}
     >
       {/* AFROGLOW sliding behind everything, as on the website's sections. Full width of the screen. */}
@@ -93,6 +96,17 @@ export default function AuthScreen({ stay = false, site = false }: { stay?: bool
       >
         <VelocityRow direction={-1} />
       </div>
+
+      {/* The "A" at the top, as on the admin's sign-in (no header on this screen). On the website it leads home. */}
+      {site ? (
+        <Link to="/" aria-label="AFROGLOW, voltar ao início" className={`${markClass} mx-auto mb-5`}>
+          <span className="translate-y-[0.1em]">A</span>
+        </Link>
+      ) : (
+        <span aria-hidden="true" className={`${markClass} mx-auto mb-5`}>
+          <span className="translate-y-[0.1em]">A</span>
+        </span>
+      )}
 
       {/* The title and line fade from one to the other, as on the website. */}
       <AnimatePresence mode="wait" initial={false}>

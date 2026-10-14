@@ -69,7 +69,7 @@ function CustomerShell() {
   const { unseen } = useBookingAlerts()
   const location = useLocation()
   const navigate = useNavigate()
-  const { customer, logout } = useCustomerAuth()
+  const { customer, loading, logout } = useCustomerAuth()
   const avatar = useAvatar()
 
   // The profile photo also marks the Conta tab; fetched once per sign-in.
@@ -102,6 +102,9 @@ function CustomerShell() {
   }, [navigate])
 
   const tab = tabFor(location.pathname)
+  // The sign-in screen: /entrar, or a page that needs an account opened without one.
+  const needsAccount = ['/marcacoes', '/conta', '/definicoes'].some((p) => location.pathname.startsWith(p))
+  const onSignIn = !loading && (location.pathname.startsWith('/entrar') || (needsAccount && !customer))
   const hideOnScroll = useHideNavOnScrollSetting()
   useAutoHideNav(hideOnScroll, location.pathname)
 
@@ -234,7 +237,8 @@ function CustomerShell() {
       </AnimatePresence>
 
       {/* Top row on every screen: the "A" on the left (home), the bell and the menu on the right. At the top of the
-          page, scrolling away with it. */}
+          page, scrolling away with it. Not on the sign-in screen, which has its own "A" in the middle. */}
+      {!onSignIn && (
       <div className="pointer-events-none absolute inset-x-0 top-[calc(0.75rem+env(safe-area-inset-top))] z-50 flex items-start justify-between px-4">
         <button
           type="button"
@@ -262,6 +266,7 @@ function CustomerShell() {
           />
         </div>
       </div>
+      )}
 
       {/* The tab bar, on its own at the bottom. */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center px-3">
