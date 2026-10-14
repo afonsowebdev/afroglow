@@ -103,11 +103,10 @@ function OptionChips({
                 void tap()
                 onChange(v)
               }}
+              // Chosen: filled solid (light on dark in the dark theme), so it can't be mistaken for the others.
               className={`h-11 rounded-full px-5 font-subtitle text-sm transition-colors ${
                 on
-                  ? site
-                    ? 'bg-onyx text-white'
-                    : 'glass-chip-on font-medium text-onyx'
+                  ? 'bg-onyx font-medium text-white'
                   : site
                     ? 'border border-onyx/15 bg-white text-onyx hover:border-onyx/40'
                     : 'glass-chip text-onyx/70'
@@ -511,14 +510,11 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                               void tap()
                               setServiceId(chosen ? null : s.id)
                             }}
-                            className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full ${
-                              site
-                                ? chosen
-                                  ? 'bg-onyx text-white'
-                                  : 'border border-onyx/15 bg-white/90 text-transparent backdrop-blur-sm'
-                                : chosen
-                                  ? 'glass-chip-on text-onyx'
-                                  : 'glass-chip text-transparent'
+                            // Over the photo: solid, with a shadow, so it reads on any picture and in both themes.
+                            className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full shadow-md shadow-black/20 transition-colors ${
+                              chosen
+                                ? 'bg-onyx text-white'
+                                : 'border border-onyx/15 bg-white/90 text-transparent backdrop-blur-sm'
                             }`}
                           >
                             <i className="bx bx-check text-xl" aria-hidden="true" />
