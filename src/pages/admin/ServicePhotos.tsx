@@ -68,9 +68,10 @@ export function ServicePhotos({
           {images.length}/{PHOTOS_PER_PACKAGE}
         </span>
       </div>
-      <div className="grid grid-cols-3 gap-2">
+      {/* One row that scrolls sideways, so the sheet stays short. */}
+      <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {images.map((image, index) => (
-          <div key={image.id} className="relative aspect-square overflow-hidden rounded-xl glass-chip">
+          <div key={image.id} className="relative size-[5.5rem] shrink-0 overflow-hidden rounded-xl glass-chip">
             <img src={serviceImageUrl(serviceId, image.id)} alt="" className="h-full w-full object-cover" />
             {index === 0 ? (
               <span className="absolute left-1 top-1 rounded-full bg-onyx px-2 py-0.5 font-subtitle text-[10px] text-[#ffffff]">
@@ -85,7 +86,7 @@ export function ServicePhotos({
                 }
                 className="absolute left-1 top-1 rounded-full bg-black/55 px-2 py-0.5 font-subtitle text-[10px] text-[#ffffff]"
               >
-                Tornar capa
+                Pôr capa
               </button>
             )}
             <button
@@ -93,24 +94,24 @@ export function ServicePhotos({
               aria-label="Remover foto"
               disabled={busy !== null}
               onClick={() => run('A remover...', () => api.delete(`/admin/services/${serviceId}/images/${image.id}`))}
-              className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-[#ffffff]"
+              className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-black/55 text-[#ffffff]"
             >
-              <i className="bx bx-x text-lg" aria-hidden="true" />
+              <i className="bx bx-x text-base" aria-hidden="true" />
             </button>
           </div>
         ))}
-        {Array.from({ length: free }, (_, i) => (
+        {free > 0 && (
           <button
-            key={`free-${i}`}
+            key="add"
             type="button"
             disabled={busy !== null}
             onClick={() => input.current?.click()}
-            className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-onyx/25 text-muted-dark disabled:opacity-50"
+            className="flex size-[5.5rem] shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-onyx/25 text-muted-dark disabled:opacity-50"
           >
             <i className="bx bx-image-add text-2xl" aria-hidden="true" />
-            <span className="font-subtitle text-[11px]">Foto {images.length + i + 1}</span>
+            <span className="font-subtitle text-[11px]">Juntar</span>
           </button>
-        ))}
+        )}
       </div>
       <input
         ref={input}

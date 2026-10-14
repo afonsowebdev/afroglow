@@ -23,26 +23,26 @@ export function PricingEditor({
   const cols = partings.length ? partings : ['']
 
   const body = (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2.5">
       <label>
         <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-          Comprimentos (separados por vírgula, vazio se não se aplica)
+          Comprimentos
         </span>
         <input
           value={draft.lengths}
           onChange={(e) => onChange({ ...draft, lengths: e.target.value })}
-          placeholder="Curta, Média, Longa"
+          placeholder="Ex: Curta, Média, Longa (ou vazio)"
           className={fieldClass}
         />
       </label>
       <label>
         <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-          Repartições (separadas por vírgula, vazio se não se aplica)
+          Repartições
         </span>
         <input
           value={draft.partings}
           onChange={(e) => onChange({ ...draft, partings: e.target.value })}
-          placeholder="Grossas, Médias, Finas"
+          placeholder="Ex: Grossas, Médias, Finas (ou vazio)"
           className={fieldClass}
         />
       </label>
@@ -69,14 +69,14 @@ export function PricingEditor({
                   {cols.map((c) => {
                     const key = priceKey(r, c)
                     return (
-                      <td key={key} className="p-1">
+                      <td key={key} className="p-0.5">
                         <span className="relative block">
                           <input
                             value={draft.prices[key] ?? ''}
                             onChange={(e) => onChange({ ...draft, prices: { ...draft.prices, [key]: e.target.value } })}
                             inputMode="decimal"
                             aria-label={`Preço ${[r, c].filter(Boolean).join(' · ')}`}
-                            className={`${fieldClass} min-w-[4.5rem] pr-6`}
+                            className={`${fieldClass} !h-10 min-w-[4.5rem] !py-1.5 pr-6`}
                           />
                           <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-dark">
                             €

@@ -908,7 +908,7 @@ function ServiceDialog({
               </button>
             </div>
 
-            <div className="flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto overscroll-contain px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-5">
+            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-5">
               {error && (
                 <p role="alert" className="rounded-xl bg-red-700/10 px-4 py-3 font-subtitle text-sm text-red-700">
                   {error}
@@ -932,7 +932,7 @@ function ServiceDialog({
               <section>
                 <h3 className={section}>Informação</h3>
                 <div className={group}>
-                  <label className="block px-4 pb-3 pt-2.5">
+                  <label className="block px-4 pb-2 pt-2">
                     <span className="block font-subtitle text-[11px] text-muted-dark">Nome</span>
                     <input
                       value={form.name}
@@ -942,7 +942,7 @@ function ServiceDialog({
                       className={`${plain} mt-0.5 h-7`}
                     />
                   </label>
-                  <label className="block px-4 pb-3 pt-2.5">
+                  <label className="block px-4 pb-2 pt-2">
                     <span className="flex justify-between font-subtitle text-[11px] text-muted-dark">
                       Descrição <span>{form.description.length}/300</span>
                     </span>
@@ -951,7 +951,7 @@ function ServiceDialog({
                       onChange={(e) => onChange({ ...form, description: e.target.value })}
                       placeholder="Breve descrição para as clientes"
                       maxLength={300}
-                      rows={3}
+                      rows={2}
                       className={`${plain} mt-0.5 resize-none leading-snug`}
                     />
                   </label>
@@ -992,7 +992,7 @@ function ServiceDialog({
                     </button>
                   ))}
                 </div>
-                <div className="mt-3">
+                <div className="mt-2.5">
                   {form.pricing.on ? (
                     <>
                       <PricingEditor
@@ -1001,8 +1001,8 @@ function ServiceDialog({
                         onChange={(pricing) => onChange({ ...form, pricing })}
                         fieldClass={fieldClass}
                       />
-                      <p className="mt-3 px-1 font-subtitle text-xs text-muted-dark">
-                        A cliente escolhe ao marcar. O site mostra “a partir de” o preço mais baixo.
+                      <p className="mt-2 px-1 font-subtitle text-xs text-muted-dark">
+                        A cliente escolhe ao marcar; o site mostra “a partir de” o mais baixo.
                       </p>
                     </>
                   ) : (
@@ -1032,7 +1032,7 @@ function ServiceDialog({
                   <span>
                     <span className="block font-subtitle text-[15px] text-onyx">Disponível para marcar</span>
                     <span className="mt-0.5 block font-subtitle text-xs text-muted-dark">
-                      Desligado, deixa de aparecer no site e na app; as marcações feitas mantêm-se.
+                      Desligado, fica escondido; as marcações mantêm-se.
                     </span>
                   </span>
                   <input
