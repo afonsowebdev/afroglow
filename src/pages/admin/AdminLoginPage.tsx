@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
           >
             <span className="translate-y-[0.1em]">A</span>
           </span>
-          <h1 className="mt-5 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Área de Admin</h1>
+          <h1 className="mt-5 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Painel AFROGLOW</h1>
           <p className="mt-1.5 font-subtitle text-sm text-onyx/55">Marcações, clientes e agenda da AFROGLOW.</p>
         </header>
 
