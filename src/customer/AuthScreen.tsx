@@ -18,6 +18,23 @@ const COPY: Record<AuthMode, { title: string; text: string }> = {
 const fieldClass =
   'field-plain block h-[52px] w-full min-w-0 bg-transparent px-4 font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35'
 
+const EASE = [0.22, 1, 0.36, 1] as const
+
+/** Opens and closes with a smooth height and fade, so the form reflows instead of jumping (as on the website). */
+function Collapse({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <motion.div
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: 'auto', opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      transition={{ duration: 0.4, ease: EASE }}
+      className="overflow-hidden"
+    >
+      <div className={className}>{children}</div>
+    </motion.div>
+  )
+}
+
 /** Fields stacked in one rounded group with hairlines between them, as in the iPhone's settings. */
 function Group({ children }: { children: React.ReactNode }) {
   return <div className="divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-onyx/[0.04]">{children}</div>
@@ -75,60 +92,75 @@ export default function AuthScreen({ stay = false }: { stay?: boolean } = {}) {
 
   return (
     <main className="mx-auto flex min-h-[100svh] max-w-md flex-col justify-center px-5 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(5rem+env(safe-area-inset-top))]">
-      <header className="text-center">
-        <h1 className="font-subtitle text-2xl font-semibold tracking-tight text-onyx">{copy.title}</h1>
-        <p className="mx-auto mt-1.5 max-w-xs font-subtitle text-sm text-onyx/55">
-          {mode === 'verify' ? (
-            <>
-              Enviámos um código de 6 dígitos para <span className="text-onyx">{form.email}</span>.
-            </>
-          ) : (
-            copy.text
-          )}
-        </p>
-      </header>
-
-      {mode !== 'verify' && (
-        // iPhone-style switch between signing in and creating an account.
-        <div className="mt-7 grid grid-cols-2 rounded-xl bg-onyx/[0.06] p-1" role="tablist" aria-label="Conta">
-          {(
-            [
-              ['login', 'Entrar'],
-              ['register', 'Criar conta'],
-            ] as const
-          ).map(([value, text]) => (
-            <button
-              key={value}
-              type="button"
-              role="tab"
-              aria-selected={mode === value}
-              onClick={() => switchTo(value)}
-              className="relative h-9 font-subtitle text-sm"
-            >
-              {mode === value && (
-                <motion.span
-                  layoutId="auth-switch"
-                  className="absolute inset-0 rounded-[9px] bg-white shadow-sm shadow-black/10 dark:bg-onyx/[0.14]"
-                  transition={{ type: 'spring', stiffness: 420, damping: 36 }}
-                />
-              )}
-              <span className={cn('relative', mode === value ? 'font-medium text-onyx' : 'text-onyx/55')}>{text}</span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      <form onSubmit={form.handleSubmit} className="mt-6 flex flex-col gap-4">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={mode}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            className="flex flex-col gap-4"
-          >
+      {/* The title and line fade from one to the other, as on the website. */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.header
+          key={mode}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.25 }}
+          className="text-center"
+        >
+          <h1 className="font-subtitle text-2xl font-semibold tracking-tight text-onyx">{copy.title}</h1>
+          <p className="mx-auto mt-1.5 max-w-xs font-subtitle text-sm text-onyx/55">
             {mode === 'verify' ? (
+              <>
+                Enviámos um código de 6 dígitos para <span className="text-onyx">{form.email}</span>.
+              </>
+            ) : (
+              copy.text
+            )}
+          </p>
+        </motion.header>
+      </AnimatePresence>
+
+      <AnimatePresence initial={false}>
+        {mode !== 'verify' && (
+          <Collapse key="switch">
+            {/* iPhone-style switch between signing in and creating an account. */}
+            <div className="mt-7 grid grid-cols-2 rounded-xl bg-onyx/[0.06] p-1" role="tablist" aria-label="Conta">
+              {(
+                [
+                  ['login', 'Entrar'],
+                  ['register', 'Criar conta'],
+                ] as const
+              ).map(([value, text]) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === value}
+                  onClick={() => switchTo(value)}
+                  className="relative h-9 font-subtitle text-sm"
+                >
+                  {mode === value && (
+                    <motion.span
+                      layoutId="auth-switch"
+                      className="absolute inset-0 rounded-[9px] bg-white shadow-sm shadow-black/10 dark:bg-onyx/[0.14]"
+                      transition={{ type: 'spring', stiffness: 420, damping: 36 }}
+                    />
+                  )}
+                  <span className={cn('relative', mode === value ? 'font-medium text-onyx' : 'text-onyx/55')}>
+                    {text}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </Collapse>
+        )}
+      </AnimatePresence>
+
+      <form onSubmit={form.handleSubmit} className="mt-6 flex flex-col">
+        <AnimatePresence mode="wait" initial={false}>
+          {mode === 'verify' ? (
+            <motion.div
+              key="verify"
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 24 }}
+              transition={{ duration: 0.35, ease: EASE }}
+            >
               <Group>
                 <div>
                   <input
@@ -144,109 +176,138 @@ export default function AuthScreen({ stay = false }: { stay?: boolean } = {}) {
                   />
                 </div>
               </Group>
-            ) : (
-              <>
+            </motion.div>
+          ) : (
+            // Signing in and creating an account share the email and password; the extra fields open and close
+            // around them, so switching never jumps.
+            <motion.div
+              key="main"
+              initial={{ opacity: 0, x: -24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -24 }}
+              transition={{ duration: 0.35, ease: EASE }}
+            >
+              <AnimatePresence initial={false}>
                 {mode === 'register' && (
-                  <Group>
-                    <div>
-                      <input
-                        aria-label="Nome"
-                        type="text"
-                        autoComplete="name"
-                        value={form.name}
-                        onChange={(e) => form.setName(e.target.value)}
-                        placeholder="Nome"
-                        className={fieldClass}
-                      />
-                    </div>
-                    <div>
-                      <input
-                        aria-label="Telemóvel"
-                        type="tel"
-                        autoComplete="tel"
-                        value={form.phone}
-                        onChange={(e) => form.setPhone(e.target.value)}
-                        placeholder="Telemóvel"
-                        className={fieldClass}
-                      />
-                    </div>
-                  </Group>
+                  <Collapse key="identity" className="pb-4">
+                    <Group>
+                      <div>
+                        <input
+                          aria-label="Nome"
+                          type="text"
+                          autoComplete="name"
+                          value={form.name}
+                          onChange={(e) => form.setName(e.target.value)}
+                          placeholder="Nome"
+                          className={fieldClass}
+                        />
+                      </div>
+                      <div>
+                        <input
+                          aria-label="Telemóvel"
+                          type="tel"
+                          autoComplete="tel"
+                          value={form.phone}
+                          onChange={(e) => form.setPhone(e.target.value)}
+                          placeholder="Telemóvel"
+                          className={fieldClass}
+                        />
+                      </div>
+                    </Group>
+                  </Collapse>
                 )}
-                <Group>
-                  <div>
-                    <input
-                      aria-label="Email"
-                      type="email"
-                      inputMode="email"
-                      autoComplete="email"
-                      autoCapitalize="none"
-                      value={form.email}
-                      onChange={(e) => form.setEmail(e.target.value)}
-                      placeholder="Email"
-                      className={fieldClass}
-                    />
-                  </div>
-                  <PasswordInput
-                    aria-label="Password"
-                    autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-                    value={form.password}
-                    onChange={(e) => form.setPassword(e.target.value)}
-                    placeholder="Password"
+              </AnimatePresence>
+
+              <Group>
+                <div>
+                  <input
+                    aria-label="Email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    autoCapitalize="none"
+                    value={form.email}
+                    onChange={(e) => form.setEmail(e.target.value)}
+                    placeholder="Email"
+                    className={fieldClass}
                   />
+                </div>
+                <PasswordInput
+                  aria-label="Password"
+                  autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                  value={form.password}
+                  onChange={(e) => form.setPassword(e.target.value)}
+                  placeholder="Password"
+                />
+                <AnimatePresence initial={false}>
                   {mode === 'register' && (
-                    <PasswordInput
-                      aria-label="Confirmar password"
-                      autoComplete="new-password"
-                      value={form.confirmPassword}
-                      onChange={(e) => form.setConfirmPassword(e.target.value)}
-                      placeholder="Confirmar password"
-                    />
+                    <Collapse key="confirm">
+                      <PasswordInput
+                        aria-label="Confirmar password"
+                        autoComplete="new-password"
+                        value={form.confirmPassword}
+                        onChange={(e) => form.setConfirmPassword(e.target.value)}
+                        placeholder="Confirmar password"
+                      />
+                    </Collapse>
                   )}
-                </Group>
+                </AnimatePresence>
+              </Group>
 
+              <AnimatePresence initial={false}>
                 {mode === 'register' && form.password.length > 0 && (
-                  <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5 px-1">
-                    {rules.map((rule) => (
-                      <li
-                        key={rule.text}
-                        className={cn(
-                          'flex items-center gap-1.5 font-subtitle text-xs',
-                          rule.ok ? 'text-onyx' : 'text-onyx/45',
-                        )}
-                      >
-                        <Check className={cn('size-3.5', rule.ok ? 'opacity-100' : 'opacity-30')} strokeWidth={2.5} />
-                        {rule.text}
-                      </li>
-                    ))}
-                  </ul>
+                  <Collapse key="rules" className="px-1 pt-4">
+                    <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                      {rules.map((rule) => (
+                        <li
+                          key={rule.text}
+                          className={cn(
+                            'flex items-center gap-1.5 font-subtitle text-xs',
+                            rule.ok ? 'text-onyx' : 'text-onyx/45',
+                          )}
+                        >
+                          <Check
+                            className={cn('size-3.5', rule.ok ? 'opacity-100' : 'opacity-30')}
+                            strokeWidth={2.5}
+                          />
+                          {rule.text}
+                        </li>
+                      ))}
+                    </ul>
+                  </Collapse>
                 )}
-                {mode === 'register' &&
-                  form.confirmPassword.length > 0 &&
-                  form.confirmPassword !== form.password && (
-                    <p className="px-1 font-subtitle text-xs text-red-700">As passwords não coincidem.</p>
-                  )}
-
+                {mode === 'register' && form.confirmPassword.length > 0 && form.confirmPassword !== form.password && (
+                  <Collapse key="mismatch" className="px-1 pt-3">
+                    <p className="font-subtitle text-xs text-red-700">As passwords não coincidem.</p>
+                  </Collapse>
+                )}
                 {mode === 'login' && (
-                  <button
-                    type="button"
-                    onClick={() => form.setForgotOpen(true)}
-                    className="self-end px-1 font-subtitle text-sm text-onyx/60"
-                  >
-                    Esqueci-me da password
-                  </button>
+                  <Collapse key="forgot" className="flex justify-end px-1 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => form.setForgotOpen(true)}
+                      className="font-subtitle text-sm text-onyx/60"
+                    >
+                      Esqueci-me da password
+                    </button>
+                  </Collapse>
                 )}
-              </>
-            )}
-          </motion.div>
+              </AnimatePresence>
+            </motion.div>
+          )}
         </AnimatePresence>
 
-        {form.error && (
-          <p role="alert" className="px-1 text-center font-subtitle text-sm text-red-700">
-            {form.error}
-          </p>
-        )}
+        <AnimatePresence initial={false}>
+          {form.error && (
+            <Collapse key="error" className="px-1 pt-4">
+              <p role="alert" className="text-center font-subtitle text-sm text-red-700">
+                {form.error}
+              </p>
+            </Collapse>
+          )}
+        </AnimatePresence>
 
-        <div className="mt-2 flex justify-center">
+        <div className="mt-6 flex justify-center">
           <ActionButton
             type="submit"
             disabled={!form.canSubmit || form.submitting}
