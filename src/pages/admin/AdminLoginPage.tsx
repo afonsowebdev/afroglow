@@ -1,10 +1,15 @@
 import { type FormEvent, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { MotionButton } from '@/components/ui/motion-button'
-import { ScrollMorphHero } from '@/components/ui/scroll-morph-hero'
+import { useNavigate } from 'react-router-dom'
+import { ActionButton } from '@/components/ui/action-button'
+import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
+import { Group, PasswordInput, fieldClass } from '@/components/ui/grouped-fields'
+import { VelocityRow } from '@/components/ui/velocity-marquee'
 import { adminToken, api, ApiError } from '@/lib/api'
-import { BrandLogo } from '@/components/ui/brand-logo'
 
+/**
+ * The admin's sign-in, in the same simple black and white as the customer app's: the "A", the title, email and
+ * password grouped in one list (with the iPhone's autofill), the app's button, and AFROGLOW sliding behind.
+ */
 export default function AdminLoginPage() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
@@ -31,50 +36,68 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="app-neutral relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-cream px-5 py-16">
-      <ScrollMorphHero className="absolute inset-0" />
-
-      <Link to="/" aria-label="AFROGLOW, site" className="relative z-10 mb-8">
-        <BrandLogo size="lg" />
-      </Link>
-
-      <form
-        onSubmit={handleSubmit}
-        className="relative z-10 w-full max-w-sm rounded-3xl border border-onyx/10 shadow-sm shadow-black/5 bg-white/95 p-8 backdrop-blur-sm"
+    <div className="app-neutral relative isolate flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-white px-5 pb-[calc(3rem+env(safe-area-inset-bottom))] pt-[calc(3rem+env(safe-area-inset-top))]">
+      {/* AFROGLOW sliding behind, in the free space under the form. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] -z-10"
       >
-        <h1 className="font-subtitle text-2xl font-semibold tracking-tight text-onyx">Área de Admin</h1>
-        <div className="mt-6 flex flex-col gap-4">
-          <label className="flex flex-col gap-1.5">
-            <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Email</span>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="rounded-xl border border-onyx/15 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-onyx"
-            />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="font-subtitle text-xs uppercase tracking-wide text-muted-dark">Password</span>
-            <input
-              type="password"
+        <VelocityRow direction={-1} />
+      </div>
+
+      <main className="w-full max-w-md">
+        <header className="flex flex-col items-center text-center">
+          <span
+            aria-hidden="true"
+            className={`flex size-14 items-center justify-center rounded-full font-logo text-[1.75rem] leading-none logo-weight ${BRAND_CIRCLE}`}
+          >
+            <span className="translate-y-[0.1em]">A</span>
+          </span>
+          <h1 className="mt-5 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Área de Admin</h1>
+          <p className="mt-1.5 font-subtitle text-sm text-onyx/55">Marcações, clientes e agenda da AFROGLOW.</p>
+        </header>
+
+        <form onSubmit={handleSubmit} className="mt-8 flex flex-col">
+          <Group>
+            <div>
+              <input
+                aria-label="Email"
+                type="email"
+                inputMode="email"
+                autoComplete="username"
+                autoCapitalize="none"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                className={fieldClass}
+              />
+            </div>
+            <PasswordInput
+              aria-label="Password"
+              autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="rounded-xl border border-onyx/15 bg-white px-4 py-3 font-subtitle text-onyx outline-none transition-colors duration-300 focus-visible:border-onyx"
+              placeholder="Password"
             />
-          </label>
-        </div>
-        {error && <p className="mt-4 font-subtitle text-sm text-red-700">{error}</p>}
-        <div className="mt-6 flex justify-center">
-          <MotionButton
-            label={loading ? 'A entrar...' : 'Entrar'}
-            disabled={loading}
-            type="submit"
-            className="w-full justify-between"
-          />
-        </div>
-      </form>
+          </Group>
+
+          {error && (
+            <p role="alert" className="px-1 pt-4 text-center font-subtitle text-sm text-red-700">
+              {error}
+            </p>
+          )}
+
+          <div className="mt-6 flex justify-center">
+            <ActionButton
+              type="submit"
+              disabled={loading || !email || !password}
+              label={loading ? 'A entrar...' : 'Entrar'}
+            />
+          </div>
+        </form>
+      </main>
     </div>
   )
 }
