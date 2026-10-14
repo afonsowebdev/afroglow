@@ -1,47 +1,9 @@
-import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
-import { ImageStreamHero, type StreamImage } from '@/components/ui/image-stream-hero'
 import { ButtonWithIcon } from '@/components/ui/button-with-icon'
-import { api, assetUrl } from '@/lib/api'
+import { LiquidWordmark } from '@/components/ui/liquid-wordmark'
 import { useOpeningStatus } from '@/lib/opening-hours'
 import { instagramDmUrl, siteConfig, useBusinessInfo, useWhatsapp } from '@/lib/site-config'
-
-const HERO_PHOTOS = [
-  '/images/hero/hero-1.jpg',
-  '/images/hero/hero-2.jpg',
-  '/images/hero/hero-3.jpg',
-  '/images/hero/hero-4.jpg',
-  '/images/hero/hero-5.jpg',
-]
-
-const PLACEHOLDER_IMAGES: StreamImage[] = Array.from({ length: 6 }, (_, index) => ({
-  src: HERO_PHOTOS[index % HERO_PHOTOS.length],
-  alt: 'Knotless braids com pontas cacheadas',
-}))
-
-// The corridor shows nine photos a side. Taken evenly across the gallery, so it runs through different clients
-// rather than several shots of the same one.
-const CORRIDOR_PHOTOS = 9
-const CORRIDOR_PATH = { birthHeight: 3.4, exitHeight: 60, railExit: 50 }
-
-/** The gallery's photos (admin app, Portfólio) for the corridor; the hero photos until they load or if there are none. */
-function useGalleryPhotos() {
-  const [images, setImages] = useState<StreamImage[]>(PLACEHOLDER_IMAGES)
-  useEffect(() => {
-    api
-      .get<Array<{ id: string; kind: 'IMAGE' | 'VIDEO' }>>('/portfolio')
-      .then((list) => {
-        const photos = list.filter((item) => item.kind === 'IMAGE')
-        if (photos.length === 0) return
-        const count = Math.min(CORRIDOR_PHOTOS, photos.length)
-        const picked = Array.from({ length: count }, (_, k) => photos[Math.floor((k * photos.length) / count)])
-        setImages(picked.map((item) => ({ src: assetUrl(`/portfolio/${item.id}/file`), alt: 'Foto do nosso trabalho' })))
-      })
-      .catch(() => {})
-  }, [])
-  return images
-}
 
 type Channel = { icon: string; name: string; href: string; external: boolean }
 
@@ -60,7 +22,6 @@ export default function Contact() {
   const business = useBusinessInfo()
   const { status } = useOpeningStatus(business.openingHours)
   const navigate = useNavigate()
-  const corridorImages = useGalleryPhotos()
 
   const channels: Channel[] = [
     ...(whatsapp.enabled
@@ -80,33 +41,8 @@ export default function Contact() {
   return (
     <section
       id="contacto"
-      className="relative flex flex-col items-center overflow-hidden bg-white px-5 py-24 sm:min-h-[760px] sm:justify-center sm:px-8 sm:py-40 md:py-48"
+      className="relative flex flex-col items-center overflow-hidden bg-white px-5 py-24 sm:px-8 md:py-32"
     >
-      {/*
-        Phones: the corridor is its own band between the title and the buttons, so the photos are seen whole.
-        From `sm` it fills the section behind the text, as before. Wider than its box so the photos keep a
-        readable size; the box crops the overflow.
-      */}
-      <div className="relative order-2 -mx-5 my-4 h-72 w-screen overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_18%,black_82%,transparent)] sm:absolute sm:inset-0 sm:m-0 sm:h-auto sm:w-auto sm:[mask-image:none]">
-        <ImageStreamHero
-          images={corridorImages}
-          // Slower than the default (18s a pass) and larger photos, the rails a little wider apart to keep the text clear.
-          speed={30}
-          path={CORRIDOR_PATH}
-          className="absolute inset-y-0 left-1/2 w-[420%] -translate-x-1/2 sm:w-[130%] lg:w-full"
-        />
-      </div>
-      {/* Fades the corridor into the sections above and below, and a soft frosted veil behind the text only:
-          its edges fade out so the photos stay in view around it. */}
-      <div
-        className="pointer-events-none absolute inset-0 hidden bg-[linear-gradient(to_bottom,var(--color-white)_0%,transparent_22%,transparent_78%,var(--color-white)_100%)] sm:block"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[600px] w-[640px] -translate-x-1/2 lg:h-[640px] lg:w-[820px] -translate-y-1/2 bg-white/60 backdrop-blur-md [mask-image:radial-gradient(closest-side,black_55%,transparent)] sm:block"
-        aria-hidden="true"
-      />
-
       <motion.div
         {...reveal(0)}
         className="relative z-10 order-1 mx-auto flex w-full max-w-xl flex-col items-center text-center"
@@ -118,9 +54,12 @@ export default function Contact() {
         </p>
       </motion.div>
 
+      {/* AFROGLOW made of particles: a finger or the pointer turns it liquid, and it settles back. */}
+      <LiquidWordmark className="order-2 my-6 h-[clamp(120px,24vw,320px)] w-full max-w-6xl sm:my-10" />
+
       <motion.div
         {...reveal(0.1)}
-        className="relative z-10 order-3 mx-auto flex w-full max-w-xl flex-col items-center text-center sm:mt-9"
+        className="relative z-10 order-3 mx-auto flex w-full max-w-xl flex-col items-center text-center"
       >
         <ButtonWithIcon solid large label="Agendar a minha sessão" onClick={() => navigate('/agendar')} />
 
