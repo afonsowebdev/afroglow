@@ -193,6 +193,10 @@ function CustomerShell() {
       : []),
   ]
 
+  // The app opens on the sign-in: everything in it is for customers with an account (create one there if needed).
+  if (loading) return <div className="min-h-screen bg-white" />
+  if (!customer) return <AuthScreen gate />
+
   return (
     <div className="app-neutral min-h-screen bg-white">
       <AnimatePresence mode="wait" initial={false}>

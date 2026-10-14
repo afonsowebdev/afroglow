@@ -9,6 +9,7 @@ import { ForgotPasswordSheet } from '@/components/ui/forgot-password-sheet'
 import { useCustomerAuth } from '@/lib/customer-auth'
 import { cn } from '@/lib/utils'
 import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
+import { HERO_READY_EVENT } from '@/lib/capacitor-bootstrap'
 import { Group, PasswordInput, fieldClass } from '@/components/ui/grouped-fields'
 import { VelocityRow } from '@/components/ui/velocity-marquee'
 
@@ -48,20 +49,35 @@ function Collapse({ children, className }: { children: React.ReactNode; classNam
  * switch between the two, the fields grouped in one list (with the iPhone's autofill for email, passwords and the
  * emailed code), and the app's button. The logic is the website's (useAccountAuthForm); only the looks differ.
  */
-export default function AuthScreen({ stay = false, site = false }: { stay?: boolean; site?: boolean } = {}) {
+export default function AuthScreen({
+  stay = false,
+  site = false,
+  gate = false,
+}: {
+  stay?: boolean
+  site?: boolean
+  /** The app's opening screen for anyone signed out: the whole screen (no tab bar), staying where it is on success. */
+  gate?: boolean
+} = {}) {
+  const staysHere = stay || gate
   const navigate = useNavigate()
   const { customer, loading } = useCustomerAuth()
   const [mode, setMode] = useState<AuthMode>('login')
-  // `stay`: shown in place of a screen that needs an account, which then simply appears; otherwise on to the profile.
+  // `staysHere`: shown in place of a screen that needs an account, which then simply appears; otherwise on to the profile.
   const goOn = () => {
-    if (!stay) navigate('/conta', { replace: true })
+    if (!staysHere) navigate('/conta', { replace: true })
   }
   const form = useAccountAuthForm({ mode, setMode, onSuccess: goOn })
   const copy = COPY[mode]
 
+  // As the app's first screen, it is what the splash waits for (instead of the start screen's video).
   useEffect(() => {
-    if (!stay && !loading && customer) navigate('/conta', { replace: true })
-  }, [stay, loading, customer, navigate])
+    if (gate) window.dispatchEvent(new Event(HERO_READY_EVENT))
+  }, [gate])
+
+  useEffect(() => {
+    if (!staysHere && !loading && customer) navigate('/conta', { replace: true })
+  }, [staysHere, loading, customer, navigate])
 
   const switchTo = (next: AuthMode) => {
     setMode(next)
@@ -82,7 +98,9 @@ export default function AuthScreen({ stay = false, site = false }: { stay?: bool
         // `site`: the website's page, under its header; otherwise between the app's top row and tab bar.
         site
           ? 'pb-16 pt-[calc(3rem+env(safe-area-inset-top))]'
-          : 'pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(3rem+env(safe-area-inset-top))]',
+          : gate
+            ? 'pb-[calc(3rem+env(safe-area-inset-bottom))] pt-[calc(3rem+env(safe-area-inset-top))]'
+            : 'pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(3rem+env(safe-area-inset-top))]',
       )}
     >
       {/* AFROGLOW sliding behind everything, as on the website's sections. Full width of the screen. */}
@@ -91,7 +109,11 @@ export default function AuthScreen({ stay = false, site = false }: { stay?: bool
         className={cn(
           'pointer-events-none absolute inset-y-0 left-1/2 -z-10 flex w-screen -translate-x-1/2 flex-col',
           // Site: across the middle. App: lower down, in the free space above the tab bar, where the form doesn't cover it.
-          site ? 'justify-center' : 'justify-end pb-[calc(7.5rem+env(safe-area-inset-bottom))]',
+          site
+            ? 'justify-center'
+            : gate
+              ? 'justify-end pb-[calc(2.5rem+env(safe-area-inset-bottom))]'
+              : 'justify-end pb-[calc(7.5rem+env(safe-area-inset-bottom))]',
         )}
       >
         <VelocityRow direction={-1} />
