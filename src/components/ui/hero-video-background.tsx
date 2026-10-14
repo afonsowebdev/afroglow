@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'motion/react'
+import { HERO_READY_EVENT } from '@/lib/capacitor-bootstrap'
 
 interface Clip {
   /** 720p rendition, used on phones and when data saving is on. */
@@ -215,6 +216,11 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
           poster={slot === 0 ? POSTER_BY_TONE[tone] : undefined}
           preload={slot === 0 || firstPlaying ? 'auto' : 'none'}
           onPlaying={(e) => {
+            // Tell the app its video is moving (it holds the splash until then): on the first frame actually drawn.
+            const video = e.currentTarget as HTMLVideoElement & { requestVideoFrameCallback?: (cb: () => void) => number }
+            const announce = () => window.dispatchEvent(new Event(HERO_READY_EVENT))
+            if (video.requestVideoFrameCallback) video.requestVideoFrameCallback(() => video.requestVideoFrameCallback?.(announce))
+            else window.setTimeout(announce, 120)
             // Autoplay starts at normal speed: set the theme's speed here too.
             e.currentTarget.playbackRate = playbackRateFor(tone)
             if (slot === 0) setFirstPlaying(true)

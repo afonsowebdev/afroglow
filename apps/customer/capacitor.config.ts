@@ -17,6 +17,10 @@ const config: CapacitorConfig = {
     CapacitorHttp: {
       enabled: true,
     },
+    // The app hides the splash itself, once the start screen's video is moving (see capacitor-bootstrap).
+    SplashScreen: {
+      launchAutoHide: false,
+    },
     // Show the banner even while the app is open.
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
