@@ -464,46 +464,81 @@ function AgendaView({
   const historyAll = history
   upcoming = upcomingAll.filter(matches)
   history = historyAll.filter(matches)
-  const stats = [
-    { icon: 'bx bx-time-five', label: 'Pendentes', value: String(pendingCount) },
-    { icon: 'bx bx-calendar-check', label: 'Confirmadas', value: String(confirmedCount) },
-    { icon: 'bx bx-euro', label: 'Receita', value: formatPrice(revenueCents) },
-  ]
+  const next = upcomingAll[0]
+  const nextWhen = next ? relativeWhen(next.slot.startsAt) : null
 
   return (
     <div>
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        {stats.map((stat) => (
-          <div key={stat.label} className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
-            <i className={`${stat.icon} text-lg text-onyx`} aria-hidden="true" />
-            <p className="mt-2 font-subtitle font-semibold lining-nums tracking-tight text-lg leading-none text-onyx">
-              {stat.value}
-            </p>
-            <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{stat.label}</p>
-          </div>
-        ))}
-      </div>
+      {/* The month in one line. */}
+      <p className="mt-4 px-1 font-subtitle text-sm text-muted-dark">
+        <strong className="font-semibold text-onyx">{confirmedCount}</strong>{' '}
+        {confirmedCount === 1 ? 'sessão confirmada' : 'sessões confirmadas'} ·{' '}
+        <strong className="font-semibold lining-nums text-onyx">{formatPrice(revenueCents).replace(/,00/, '')}</strong>
+        {pendingCount > 0 && (
+          <>
+            {' '}
+            · <strong className="font-semibold text-onyx">{pendingCount}</strong> por responder
+          </>
+        )}
+      </p>
 
-      <div className="mt-6 flex gap-2">
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Pesquisar cliente ou modelo"
-          aria-label="Pesquisar na agenda"
-          className="min-w-0 flex-1 rounded-full border border-onyx/15 bg-white px-5 py-3 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/40 focus-visible:border-onyx"
-        />
+      {/* The next session, large. */}
+      {next && nextWhen && (
+        <section className="mt-4 rounded-3xl bg-onyx p-5 text-white">
+          <p className="font-subtitle text-xs uppercase tracking-[0.14em] opacity-60">A seguir · {nextWhen}</p>
+          <div className="mt-2 flex items-end justify-between gap-4">
+            <div className="min-w-0">
+              <p className="truncate font-subtitle text-2xl font-semibold tracking-tight">{next.customerName}</p>
+              <p className="mt-0.5 truncate font-subtitle text-sm opacity-70">{bookingName(next)}</p>
+            </div>
+            <p className="shrink-0 font-subtitle text-3xl font-semibold lining-nums leading-none">
+              {dateParts(next.slot.startsAt).time}
+            </p>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <a
+              href={customerWhatsappUrl(next.customerPhone, `Olá ${next.customerName}! Sobre a tua sessão de ${bookingName(next)}...`)}
+              target="_blank"
+              rel="noreferrer"
+              className="flex h-10 items-center justify-center gap-1.5 rounded-full bg-white/15 font-subtitle text-sm"
+            >
+              <i className="bx bxl-whatsapp text-lg" aria-hidden="true" />
+              WhatsApp
+            </a>
+            <a
+              href={`tel:${next.customerPhone.replace(/[^+\d]/g, '')}`}
+              className="flex h-10 items-center justify-center gap-1.5 rounded-full bg-white/15 font-subtitle text-sm"
+            >
+              <i className="bx bx-phone text-lg" aria-hidden="true" />
+              Ligar
+            </a>
+          </div>
+        </section>
+      )}
+
+      <div className="mt-5 flex gap-2">
+        <label className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-onyx/[0.06] px-4">
+          <i className="bx bx-search text-lg text-onyx/40" aria-hidden="true" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Pesquisar"
+            aria-label="Pesquisar cliente ou modelo na agenda"
+            className="field-plain h-11 min-w-0 flex-1 bg-transparent font-subtitle text-base text-onyx outline-none placeholder:text-onyx/40"
+          />
+        </label>
         <button
           type="button"
           onClick={onNew}
           aria-label="Nova marcação"
-          className="flex shrink-0 items-center gap-2 glass-chip rounded-full px-5 py-3 font-subtitle text-sm text-onyx transition-opacity hover:opacity-90"
+          className="flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-onyx px-4 font-subtitle text-sm font-medium text-white"
         >
           <i className="bx bx-plus text-lg" aria-hidden="true" />
-          <span className="hidden sm:inline">Nova marcação</span>
+          Nova
         </button>
       </div>
 
-      <div className="mt-4 flex glass-chip rounded-full p-1">
+      <div className="mt-4 grid grid-cols-2 rounded-xl bg-onyx/[0.06] p-1" role="tablist" aria-label="Agenda">
         {(
           [
             ['proximas', 'Próximas', upcoming.length],
@@ -513,24 +548,20 @@ function AgendaView({
           <button
             key={id}
             type="button"
+            role="tab"
+            aria-selected={view === id}
             onClick={() => setView(id)}
-            className="relative flex flex-1 items-center justify-center gap-2 rounded-full py-2.5 font-subtitle text-sm"
+            className="relative flex h-9 items-center justify-center gap-1.5 rounded-[9px] font-subtitle text-sm"
           >
             {view === id && (
               <motion.span
                 layoutId="agenda-segment"
-                className="glass-chip-on absolute inset-0 rounded-full"
-                transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                className="absolute inset-0 rounded-[9px] bg-white shadow-sm shadow-black/10 dark:bg-onyx/[0.14]"
+                transition={{ type: 'spring', stiffness: 420, damping: 36 }}
               />
             )}
-            <span className={`relative transition-colors ${view === id ? 'text-onyx' : 'text-onyx/70'}`}>{label}</span>
-            <span
-              className={`relative rounded-full px-2 py-0.5 text-[11px] leading-none transition-colors ${
-                view === id ? 'bg-onyx/10 text-onyx' : 'bg-onyx/5 text-onyx'
-              }`}
-            >
-              {count}
-            </span>
+            <span className={`relative ${view === id ? 'font-medium text-onyx' : 'text-onyx/55'}`}>{label}</span>
+            <span className={`relative text-xs lining-nums ${view === id ? 'text-onyx/60' : 'text-onyx/40'}`}>{count}</span>
           </button>
         ))}
       </div>
@@ -539,75 +570,33 @@ function AgendaView({
         (upcoming.length === 0 ? (
           <EmptyState
             icon="bx bx-calendar"
-            title="Sem sessões marcadas"
-            text="As sessões confirmadas deste mês aparecem aqui. Muda de mês em cima para ver outros."
+            title={needle ? 'Nada encontrado' : 'Sem sessões marcadas'}
+            text={
+              needle
+                ? `Nenhuma sessão corresponde a "${search.trim()}".`
+                : 'As sessões confirmadas deste mês aparecem aqui. Muda de mês em cima para ver outros.'
+            }
           />
         ) : (
           groupByDay(upcoming).map((dayBookings) => {
             const heading = dayHeading(dayBookings[0].slot.startsAt)
             return (
-              <section key={dateKey(dayBookings[0].slot.startsAt)} className="mt-7">
-                <div className="flex items-baseline gap-3">
-                  <h3 className="font-subtitle font-semibold lining-nums tracking-tight text-lg text-onyx">
+              <section key={dateKey(dayBookings[0].slot.startsAt)} className="mt-6">
+                <div className="flex items-baseline justify-between gap-3 px-1">
+                  <h3 className="font-subtitle text-base font-semibold tracking-tight text-onyx">
                     {heading.title}
+                    {heading.sub && <span className="ml-2 text-xs font-normal text-muted-dark">{heading.sub}</span>}
                   </h3>
-                  {heading.sub && <span className="font-subtitle text-xs text-muted-dark">{heading.sub}</span>}
+                  <span className="font-subtitle text-xs text-muted-dark">
+                    {dayBookings.length} {dayBookings.length === 1 ? 'sessão' : 'sessões'}
+                  </span>
                 </div>
-                <div className="mt-3 flex flex-col gap-3">
+                {/* The day as a timeline: the time on the left, the session on the right. */}
+                <ol className="mt-2.5 flex flex-col gap-2.5">
                   {dayBookings.map((booking) => (
-                    <article
-                      key={booking.id}
-                      className="flex overflow-hidden rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white"
-                    >
-                      <div className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-onyx/10 bg-onyx/5 py-4">
-                        <span className="font-subtitle text-xl font-semibold lining-nums leading-none tracking-tight text-onyx">
-                          {dateParts(booking.slot.startsAt).time}
-                        </span>
-                      </div>
-                      <div className="min-w-0 flex-1 p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="truncate font-subtitle text-base font-semibold text-onyx">
-                              {booking.customerName}
-                            </p>
-                            <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
-                              {booking.service.name} · {formatPrice(bookingPrice(booking))}
-                            </p>
-                            <BookingChoices booking={booking} className="mt-2" />
-                          </div>
-                          <a
-                            href={customerWhatsappUrl(
-                              booking.customerPhone,
-                              `Olá ${booking.customerName}! Sobre a tua sessão de ${bookingName(booking)}...`,
-                            )}
-                            target="_blank"
-                            rel="noreferrer"
-                            aria-label={`WhatsApp de ${booking.customerName}`}
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full glass-chip text-lg text-onyx transition-colors hover:text-onyx"
-                          >
-                            <i className="bx bxl-whatsapp" aria-hidden="true" />
-                          </a>
-                        </div>
-                        {booking.notes && (
-                          <p className="mt-2 rounded-lg bg-onyx/5 px-3 py-2 font-subtitle text-xs italic text-muted-dark">
-                            "{booking.notes}"
-                          </p>
-                        )}
-                        <div className="mt-3 flex items-center justify-between gap-3">
-                          <span className="font-subtitle text-xs text-muted-dark">{booking.customerPhone}</span>
-                          <button
-                            type="button"
-                            disabled={busyId === booking.id}
-                            onClick={() => onCancel(booking.id)}
-                            className="font-subtitle text-sm text-muted-dark underline-offset-4 transition-colors hover:text-red-700 hover:underline disabled:opacity-50"
-                          >
-                            Cancelar sessão
-                          </button>
-                        </div>
-                      </div>
-                    </article>
+                    <AgendaSession key={booking.id} booking={booking} busy={busyId === booking.id} onCancel={onCancel} />
                   ))}
-                </div>
+                </ol>
               </section>
             )
           })
@@ -615,32 +604,28 @@ function AgendaView({
 
       {view === 'historico' &&
         (history.length === 0 ? (
-          <div className="mt-12 flex flex-col items-center text-center">
-            <i className="bx bx-history text-5xl text-onyx/25" aria-hidden="true" />
-            <p className="mt-3 font-subtitle text-base text-onyx">Sem histórico</p>
-            <p className="mt-1 font-subtitle text-sm text-muted-dark">As sessões passadas aparecem aqui.</p>
-          </div>
+          <EmptyState
+            icon="bx bx-history"
+            title={needle ? 'Nada encontrado' : 'Sem histórico'}
+            text={needle ? `Nenhuma sessão corresponde a "${search.trim()}".` : 'As sessões passadas deste mês aparecem aqui.'}
+          />
         ) : (
-          <div className="mt-6 divide-y divide-onyx/10 overflow-hidden rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white">
+          <div className="mt-5 divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
             {history.map((booking) => {
               const { day, month, time } = dateParts(booking.slot.startsAt)
               return (
-                <div key={booking.id} className="flex items-center gap-4 px-4 py-3.5">
-                  <div className="w-12 shrink-0 text-center">
-                    <p className="font-subtitle font-semibold lining-nums tracking-tight text-lg leading-none text-onyx">
-                      {day}
-                    </p>
-                    <p className="mt-1 font-subtitle text-[10px] uppercase text-muted-dark">{month}</p>
+                <div key={booking.id} className="flex items-center gap-4 px-4 py-3">
+                  <div className="w-10 shrink-0 text-center">
+                    <p className="font-subtitle text-lg font-semibold lining-nums leading-none text-onyx">{day}</p>
+                    <p className="mt-0.5 font-subtitle text-[10px] uppercase text-muted-dark">{month}</p>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-subtitle text-sm font-semibold text-onyx">{booking.customerName}</p>
+                    <p className="truncate font-subtitle text-[15px] font-medium text-onyx">{booking.customerName}</p>
                     <p className="truncate font-subtitle text-xs text-muted-dark">
                       {bookingName(booking)} · {time}
                     </p>
                   </div>
-                  <span
-                    className={`shrink-0 rounded-full px-2.5 py-1 font-subtitle text-[11px] ${HISTORY_CHIP[booking.status]}`}
-                  >
+                  <span className={`shrink-0 rounded-full px-2.5 py-1 font-subtitle text-[11px] ${HISTORY_CHIP[booking.status]}`}>
                     {HISTORY_STATUS_LABEL[booking.status]}
                   </span>
                 </div>
@@ -649,6 +634,92 @@ function AgendaView({
           </div>
         ))}
     </div>
+  )
+}
+
+/** "hoje às 14:00", "amanhã às 09:00", "em 3 dias". */
+function relativeWhen(iso: string) {
+  const { time } = dateParts(iso)
+  const key = dateKey(iso)
+  if (key === dateKey(new Date().toISOString())) return `hoje às ${time}`
+  if (key === dateKey(new Date(Date.now() + 86_400_000).toISOString())) return `amanhã às ${time}`
+  const days = Math.round((new Date(iso).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86_400_000)
+  return `em ${days} dias`
+}
+
+/** One confirmed session: time, customer, model and choices, price, note; WhatsApp, call, and cancel (tap twice). */
+function AgendaSession({
+  booking,
+  busy,
+  onCancel,
+}: {
+  booking: Booking
+  busy: boolean
+  onCancel: (id: string) => void
+}) {
+  const [confirming, setConfirming] = useState(false)
+  return (
+    <li className="flex gap-3">
+      <div className="flex w-14 shrink-0 flex-col items-center pt-4">
+        <span className="font-subtitle text-base font-semibold lining-nums leading-none text-onyx">
+          {dateParts(booking.slot.startsAt).time}
+        </span>
+        <span className="mt-2 w-px flex-1 bg-onyx/15" aria-hidden="true" />
+      </div>
+      <article className="min-w-0 flex-1 overflow-hidden rounded-2xl border border-onyx/10 bg-white shadow-sm shadow-black/5">
+        <div className="p-4">
+          <div className="flex items-start justify-between gap-3">
+            <p className="min-w-0 truncate font-subtitle text-base font-semibold text-onyx">{booking.customerName}</p>
+            <p className="shrink-0 font-subtitle text-sm font-semibold lining-nums text-onyx">
+              {formatPrice(bookingPrice(booking)).replace(/,00/, '')}
+            </p>
+          </div>
+          <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
+            {booking.service.name}
+            {booking.service.durationLabel ? ` · ${booking.service.durationLabel}` : ''}
+          </p>
+          <BookingChoices booking={booking} className="mt-2" />
+          {booking.notes && (
+            <p className="mt-2.5 rounded-lg bg-onyx/[0.05] px-3 py-2 font-subtitle text-xs italic text-muted-dark">
+              “{booking.notes}”
+            </p>
+          )}
+        </div>
+        <div className="grid grid-cols-3 border-t border-onyx/10 font-subtitle text-xs">
+          <a
+            href={customerWhatsappUrl(
+              booking.customerPhone,
+              `Olá ${booking.customerName}! Sobre a tua sessão de ${bookingName(booking)}...`,
+            )}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-center gap-1 py-2.5 text-onyx active:bg-onyx/[0.04]"
+          >
+            <i className="bx bxl-whatsapp text-base" aria-hidden="true" />
+            WhatsApp
+          </a>
+          <a
+            href={`tel:${booking.customerPhone.replace(/[^+\d]/g, '')}`}
+            className="flex items-center justify-center gap-1 border-l border-onyx/10 py-2.5 text-onyx active:bg-onyx/[0.04]"
+          >
+            <i className="bx bx-phone text-base" aria-hidden="true" />
+            Ligar
+          </a>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => (confirming ? onCancel(booking.id) : setConfirming(true))}
+            onBlur={() => setConfirming(false)}
+            className={`flex items-center justify-center gap-1 border-l border-onyx/10 py-2.5 disabled:opacity-50 ${
+              confirming ? 'bg-red-600 font-medium text-[#ffffff]' : 'text-muted-dark'
+            }`}
+          >
+            <i className="bx bx-x text-base" aria-hidden="true" />
+            {confirming ? 'Confirmar' : 'Cancelar'}
+          </button>
+        </div>
+      </article>
+    </li>
   )
 }
 
