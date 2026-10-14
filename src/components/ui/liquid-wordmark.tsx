@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
  * The wordmark drawn in the logo's typeface and the theme's ink, on a transparent canvas, as an image: what the
  * particles are sampled from (and the still shown without WebGL2).
  */
-async function drawWordmark(text: string) {
+async function drawWordmark(lines: string[]) {
   const probe = document.createElement('span')
   probe.className = 'font-logo'
   document.body.appendChild(probe)
@@ -15,29 +15,34 @@ async function drawWordmark(text: string) {
   probe.remove()
   const size = 320
   try {
-    await document.fonts.load(`${size}px ${family}`, text)
+    await document.fonts.load(`${size}px ${family}`, lines.join(''))
   } catch {
     // the fallback face is fine
   }
   const ink = getComputedStyle(document.documentElement).getPropertyValue('--color-onyx').trim() || '#1a1008'
   const measure = document.createElement('canvas').getContext('2d')!
   measure.font = `${size}px ${family}`
-  const metrics = measure.measureText(text)
+  const width = Math.max(...lines.map((line) => measure.measureText(line).width))
   const pad = size * 0.12
+  // Lines set close, as a block.
+  const lineHeight = size * 0.98
   const canvas = document.createElement('canvas')
-  canvas.width = Math.ceil(metrics.width + pad * 2)
-  canvas.height = Math.ceil(size * 1.2)
+  canvas.width = Math.ceil(width + pad * 2)
+  canvas.height = Math.ceil(lineHeight * lines.length + size * 0.22)
   const ctx = canvas.getContext('2d')!
   ctx.font = `${size}px ${family}`
   ctx.textBaseline = 'middle'
+  ctx.textAlign = 'center'
   ctx.fillStyle = ink
   ctx.strokeStyle = ink
   // The logo's weight (see .logo-weight): a thin stroke under the fill.
   ctx.lineWidth = size * 0.035
   ctx.lineJoin = 'round'
-  const y = canvas.height / 2 + size * 0.04
-  ctx.strokeText(text, pad, y)
-  ctx.fillText(text, pad, y)
+  lines.forEach((line, i) => {
+    const y = size * 0.11 + lineHeight * (i + 0.5) + size * 0.04
+    ctx.strokeText(line, canvas.width / 2, y)
+    ctx.fillText(line, canvas.width / 2, y)
+  })
   return canvas.toDataURL('image/png')
 }
 
@@ -66,7 +71,16 @@ const OPTIONS: Omit<EngineOptions, 'reducedMotion'> = {
  * settles back into the crisp word. It assembles when it first comes into view, in the logo's typeface and the
  * theme's colour. Without WebGL2 the still word shows instead.
  */
-export function LiquidWordmark({ text = 'AFROGLOW', className }: { text?: string; className?: string }) {
+export function LiquidWordmark({
+  text = 'AFROGLOW',
+  stacked,
+  className,
+}: {
+  text?: string
+  /** Lines to use on narrow screens instead of one (e.g. ['AFRO', 'GLOW']), so the word can be larger there. */
+  stacked?: string[]
+  className?: string
+}) {
   const { theme } = useTheme()
   const box = useRef<HTMLDivElement>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
@@ -74,17 +88,27 @@ export function LiquidWordmark({ text = 'AFROGLOW', className }: { text?: string
   const [live, setLive] = useState(false)
   const [touched, setTouched] = useState(false)
   const touch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+  // Narrow screens (under 640px) take the stacked lines, when there are some.
+  const [narrow, setNarrow] = useState(() => typeof window !== 'undefined' && window.innerWidth < 640)
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 639px)')
+    const onChange = () => setNarrow(query.matches)
+    query.addEventListener('change', onChange)
+    return () => query.removeEventListener('change', onChange)
+  }, [])
+  const lines = narrow && stacked ? stacked : [text]
+  const linesKey = lines.join('|')
 
   // Redrawn with the theme's ink whenever the theme changes.
   useEffect(() => {
     let cancelled = false
-    void drawWordmark(text).then((url) => {
+    void drawWordmark(linesKey.split('|')).then((url) => {
       if (!cancelled) setStill(url)
     })
     return () => {
       cancelled = true
     }
-  }, [text, theme])
+  }, [linesKey, theme])
 
   useEffect(() => {
     const el = box.current

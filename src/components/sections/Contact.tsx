@@ -38,64 +38,62 @@ export default function Contact() {
     { icon: 'bx bx-envelope', name: 'Email', href: `mailto:${siteConfig.email}`, external: false },
   ]
 
+  const statusLine = status && (
+    <p className="inline-flex items-center gap-2.5 font-subtitle text-xs text-onyx/60">
+      <span className="relative flex size-2">
+        {status.open && (
+          <span className="absolute inset-0 animate-ping rounded-full bg-emerald-500/70 motion-reduce:animate-none" />
+        )}
+        <span className={`relative size-2 rounded-full ${status.open ? 'bg-emerald-500' : 'bg-onyx/30'}`} />
+      </span>
+      {status.text}
+    </p>
+  )
+
   return (
-    <section
-      id="contacto"
-      className="relative flex flex-col items-center overflow-hidden bg-white px-5 py-24 sm:px-8 md:py-32"
-    >
-      <motion.div
-        {...reveal(0)}
-        className="relative z-10 order-1 mx-auto flex w-full max-w-xl flex-col items-center text-center"
-      >
+    // A whole screen: a thin line with the label and today's status, AFROGLOW in particles across the whole width
+    // (two lines on phones, so it can be larger), then the headline on the left and the ways to book on the right.
+    <section id="contacto" className="relative flex min-h-[100svh] flex-col overflow-hidden bg-white py-20 md:py-24">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 border-b border-onyx/10 px-5 pb-4 sm:px-8">
         <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-onyx/50">Contacto</p>
-        <h2 className="mt-2 font-logo text-4xl text-onyx sm:text-5xl">Pronta para a tua transformação?</h2>
-        <p className="mt-4 max-w-md font-subtitle text-base font-light leading-relaxed text-onyx/60">
-          Marca online em poucos minutos ou fala connosco. Ajudamos-te a escolher o estilo certo para ti.
-        </p>
-      </motion.div>
+        {statusLine}
+      </div>
 
       {/* AFROGLOW made of particles: a finger or the pointer turns it liquid, and it settles back. */}
-      <LiquidWordmark className="order-2 my-6 h-[clamp(120px,24vw,320px)] w-full max-w-6xl sm:my-10" />
+      <LiquidWordmark
+        stacked={['AFRO', 'GLOW']}
+        className="my-8 h-[min(84vw,26rem)] w-full shrink-0 px-2 sm:my-10 sm:h-[clamp(220px,30vw,520px)]"
+      />
 
-      <motion.div
-        {...reveal(0.1)}
-        className="relative z-10 order-3 mx-auto flex w-full max-w-xl flex-col items-center text-center"
-      >
-        <ButtonWithIcon solid large label="Agendar a minha sessão" onClick={() => navigate('/agendar')} />
+      <div className="mx-auto grid w-full max-w-6xl items-end gap-10 px-5 sm:px-8 lg:grid-cols-[1.4fr_1fr] lg:gap-16">
+        <motion.h2 {...reveal(0)} className="font-logo text-4xl leading-[1.05] text-onyx sm:text-6xl">
+          Pronta para a tua transformação?
+        </motion.h2>
 
-        <div className="mt-10 flex w-full items-center gap-3 font-subtitle text-xs text-onyx/55">
-          <span className="h-px flex-1 bg-onyx/15" aria-hidden="true" />
-          Preferes falar primeiro?
-          <span className="h-px flex-1 bg-onyx/15" aria-hidden="true" />
-        </div>
-
-        <div className="mt-5 flex flex-wrap justify-center gap-2">
-          {channels.map((channel) => (
-            <a
-              key={channel.name}
-              href={channel.href}
-              target={channel.external ? '_blank' : undefined}
-              rel={channel.external ? 'noreferrer' : undefined}
-              className={pill}
-            >
-              <i className={`${channel.icon} text-lg`} aria-hidden="true" />
-              {channel.name}
-            </a>
-          ))}
-        </div>
-
-        {status && (
-          <p className="mt-6 inline-flex items-center gap-2.5 font-subtitle text-xs text-onyx/60">
-            <span className="relative flex size-2">
-              {status.open && (
-                <span className="absolute inset-0 animate-ping rounded-full bg-emerald-500/70 motion-reduce:animate-none" />
-              )}
-              <span className={`relative size-2 rounded-full ${status.open ? 'bg-emerald-500' : 'bg-onyx/30'}`} />
-            </span>
-            {status.text}
+        <motion.div {...reveal(0.1)} className="flex flex-col gap-6">
+          <p className="max-w-md font-subtitle text-base font-light leading-relaxed text-onyx/60">
+            Marca online em poucos minutos ou fala connosco. Ajudamos-te a escolher o estilo certo para ti.
           </p>
-        )}
-      </motion.div>
+          <ButtonWithIcon solid large label="Agendar a minha sessão" onClick={() => navigate('/agendar')} />
+          <div>
+            <p className="font-subtitle text-xs text-onyx/55">Preferes falar primeiro?</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {channels.map((channel) => (
+                <a
+                  key={channel.name}
+                  href={channel.href}
+                  target={channel.external ? '_blank' : undefined}
+                  rel={channel.external ? 'noreferrer' : undefined}
+                  className={pill}
+                >
+                  <i className={`${channel.icon} text-lg`} aria-hidden="true" />
+                  {channel.name}
+                </a>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      </div>
     </section>
   )
 }
