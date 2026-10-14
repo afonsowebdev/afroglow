@@ -402,7 +402,7 @@ const PAGE: Record<AdminTab, { title: string; hint: string }> = {
   testemunhos: { title: 'Testemunhos', hint: 'Aprovar ou recusar o que os clientes escrevem.' },
   estatisticas: { title: 'Estatísticas', hint: 'Receita, sessões e clientes.' },
   definicoes: { title: 'Definições do negócio', hint: 'Contactos, morada, horário e cancelamento.' },
-  seguranca: { title: 'Segurança', hint: 'Alterar a password do admin.' },
+  seguranca: { title: 'Segurança', hint: 'A tua conta, a password e este aparelho.' },
 }
 
 function dayHeading(iso: string) {
@@ -2619,7 +2619,7 @@ function AdminDashboard() {
 
             {tab === 'estatisticas' && <StatsView />}
             {tab === 'portfolio' && <PortfolioView />}
-            {tab === 'seguranca' && <SecurityView />}
+            {tab === 'seguranca' && <SecurityView onLogout={() => void handleLogout()} />}
             {tab === 'definicoes' && <SettingsView />}
 
             {tab === 'testemunhos' && (
