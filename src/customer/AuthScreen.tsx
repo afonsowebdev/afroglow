@@ -1,79 +1,67 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { AnimatePresence, motion } from "motion/react";
-import { Check, Eye, EyeOff } from "lucide-react";
-import { ActionButton } from "@/components/ui/action-button";
-import { ButtonWithIcon } from "@/components/ui/button-with-icon";
-import {
-  useAccountAuthForm,
-  type AuthMode,
-} from "@/components/ui/account-auth-form";
-import { ForgotPasswordSheet } from "@/components/ui/forgot-password-sheet";
-import { useCustomerAuth } from "@/lib/customer-auth";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { AnimatePresence, motion } from 'motion/react'
+import { Check, Eye, EyeOff } from 'lucide-react'
+import { ActionButton } from '@/components/ui/action-button'
+import { ButtonWithIcon } from '@/components/ui/button-with-icon'
+import { useAccountAuthForm, type AuthMode } from '@/components/ui/account-auth-form'
+import { ForgotPasswordSheet } from '@/components/ui/forgot-password-sheet'
+import { useCustomerAuth } from '@/lib/customer-auth'
+import { cn } from '@/lib/utils'
+import { VelocityRow } from '@/components/ui/velocity-marquee'
 
 const COPY: Record<AuthMode, { title: string; text: string }> = {
   login: {
-    title: "Entrar",
-    text: "Entra para marcares e acompanhares as tuas sessões.",
+    title: 'Entrar',
+    text: 'Entra para marcares e acompanhares as tuas sessões.',
   },
   register: {
-    title: "Criar conta",
-    text: "Marca, reagenda e acompanha as tuas sessões num só sítio.",
+    title: 'Criar conta',
+    text: 'Marca, reagenda e acompanha as tuas sessões num só sítio.',
   },
-  verify: { title: "Confirma o teu email", text: "" },
-};
+  verify: { title: 'Confirma o teu email', text: '' },
+}
 
 /** A field inside a grouped list: no box of its own, just the row. 16px text so iOS doesn't zoom in on focus. */
 const fieldClass =
-  "field-plain block h-[52px] w-full min-w-0 bg-transparent px-4 font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35";
+  'field-plain block h-[52px] w-full min-w-0 bg-transparent px-4 font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35'
 
-const EASE = [0.22, 1, 0.36, 1] as const;
+const EASE = [0.22, 1, 0.36, 1] as const
 
 /** Opens and closes with a smooth height and fade, so the form reflows instead of jumping (as on the website). */
-function Collapse({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+function Collapse({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <motion.div
       initial={{ height: 0, opacity: 0 }}
-      animate={{ height: "auto", opacity: 1 }}
+      animate={{ height: 'auto', opacity: 1 }}
       exit={{ height: 0, opacity: 0 }}
       transition={{ duration: 0.4, ease: EASE }}
       className="overflow-hidden"
     >
       <div className={className}>{children}</div>
     </motion.div>
-  );
+  )
 }
 
 /** Fields stacked in one rounded group with hairlines between them, as in the iPhone's settings. */
 function Group({ children }: { children: React.ReactNode }) {
   return (
-    <div className="divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-onyx/[0.04]">
+    <div className="divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
       {children}
     </div>
-  );
+  )
 }
 
 function PasswordInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(false)
   return (
     <span className="relative block">
-      <input
-        {...props}
-        type={visible ? "text" : "password"}
-        className={cn(fieldClass, "pr-12")}
-      />
+      <input {...props} type={visible ? 'text' : 'password'} className={cn(fieldClass, 'pr-12')} />
       <button
         type="button"
         tabIndex={-1}
         onClick={() => setVisible((v) => !v)}
-        aria-label={visible ? "Esconder password" : "Mostrar password"}
+        aria-label={visible ? 'Esconder password' : 'Mostrar password'}
         className="absolute right-3 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center text-onyx/40"
       >
         {visible ? (
@@ -83,7 +71,7 @@ function PasswordInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
         )}
       </button>
     </span>
-  );
+  )
 }
 
 /**
@@ -91,46 +79,55 @@ function PasswordInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
  * switch between the two, the fields grouped in one list (with the iPhone's autofill for email, passwords and the
  * emailed code), and the app's button. The logic is the website's (useAccountAuthForm); only the looks differ.
  */
-export default function AuthScreen({
-  stay = false,
-  site = false,
-}: { stay?: boolean; site?: boolean } = {}) {
-  const navigate = useNavigate();
-  const { customer, loading } = useCustomerAuth();
-  const [mode, setMode] = useState<AuthMode>("login");
+export default function AuthScreen({ stay = false, site = false }: { stay?: boolean; site?: boolean } = {}) {
+  const navigate = useNavigate()
+  const { customer, loading } = useCustomerAuth()
+  const [mode, setMode] = useState<AuthMode>('login')
   // `stay`: shown in place of a screen that needs an account, which then simply appears; otherwise on to the profile.
   const goOn = () => {
-    if (!stay) navigate("/conta", { replace: true });
-  };
-  const form = useAccountAuthForm({ mode, setMode, onSuccess: goOn });
-  const copy = COPY[mode];
+    if (!stay) navigate('/conta', { replace: true })
+  }
+  const form = useAccountAuthForm({ mode, setMode, onSuccess: goOn })
+  const copy = COPY[mode]
 
   useEffect(() => {
-    if (!stay && !loading && customer) navigate("/conta", { replace: true });
-  }, [stay, loading, customer, navigate]);
+    if (!stay && !loading && customer) navigate('/conta', { replace: true })
+  }, [stay, loading, customer, navigate])
 
   const switchTo = (next: AuthMode) => {
-    setMode(next);
-    form.setError(null);
-  };
+    setMode(next)
+    form.setError(null)
+  }
 
   const rules = [
-    { ok: form.password.length >= 8, text: "8 ou mais caracteres" },
-    { ok: /[A-Z]/.test(form.password), text: "Uma maiúscula" },
-    { ok: /[0-9]/.test(form.password), text: "Um número" },
-    { ok: /[^A-Za-z0-9]/.test(form.password), text: "Um carácter especial" },
-  ];
+    { ok: form.password.length >= 8, text: '8 ou mais caracteres' },
+    { ok: /[A-Z]/.test(form.password), text: 'Uma maiúscula' },
+    { ok: /[0-9]/.test(form.password), text: 'Um número' },
+    { ok: /[^A-Za-z0-9]/.test(form.password), text: 'Um carácter especial' },
+  ]
 
   return (
     <main
       className={cn(
-        "mx-auto flex min-h-[100svh] w-full max-w-md flex-col justify-center px-5",
+        'relative isolate mx-auto flex min-h-[100svh] w-full max-w-md flex-col justify-center px-5',
         // `site`: the website's page, under its header; otherwise between the app's top row and tab bar.
         site
-          ? "pb-16 pt-[calc(6.5rem+env(safe-area-inset-top))]"
-          : "pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(5rem+env(safe-area-inset-top))]",
+          ? 'pb-16 pt-[calc(6.5rem+env(safe-area-inset-top))]'
+          : 'pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(5rem+env(safe-area-inset-top))]',
       )}
     >
+      {/* AFROGLOW sliding behind everything, as on the website's sections. Full width of the screen. */}
+      <div
+        aria-hidden="true"
+        className={cn(
+          'pointer-events-none absolute inset-y-0 left-1/2 -z-10 flex w-screen -translate-x-1/2 flex-col',
+          // Site: across the middle. App: lower down, in the free space above the tab bar, where the form doesn't cover it.
+          site ? 'justify-center' : 'justify-end pb-[calc(7.5rem+env(safe-area-inset-bottom))]',
+        )}
+      >
+        <VelocityRow direction={-1} />
+      </div>
+
       {/* The title and line fade from one to the other, as on the website. */}
       <AnimatePresence mode="wait" initial={false}>
         <motion.header
@@ -141,14 +138,11 @@ export default function AuthScreen({
           transition={{ duration: 0.25 }}
           className="text-center"
         >
-          <h1 className="font-subtitle text-2xl font-semibold tracking-tight text-onyx">
-            {copy.title}
-          </h1>
+          <h1 className="font-subtitle text-2xl font-semibold tracking-tight text-onyx">{copy.title}</h1>
           <p className="mx-auto mt-1.5 max-w-xs font-subtitle text-sm text-onyx/55">
-            {mode === "verify" ? (
+            {mode === 'verify' ? (
               <>
-                Enviámos um código de 6 dígitos para{" "}
-                <span className="text-onyx">{form.email}</span>.
+                Enviámos um código de 6 dígitos para <span className="text-onyx">{form.email}</span>.
               </>
             ) : (
               copy.text
@@ -158,18 +152,18 @@ export default function AuthScreen({
       </AnimatePresence>
 
       <AnimatePresence initial={false}>
-        {mode !== "verify" && (
+        {mode !== 'verify' && (
           <Collapse key="switch">
             {/* iPhone-style switch between signing in and creating an account. */}
             <div
-              className="mt-7 grid grid-cols-2 rounded-xl bg-onyx/[0.06] p-1"
+              className="mt-7 grid grid-cols-2 rounded-xl bg-[color-mix(in_srgb,var(--color-onyx)_6%,var(--color-white))] p-1"
               role="tablist"
               aria-label="Conta"
             >
               {(
                 [
-                  ["login", "Entrar"],
-                  ["register", "Criar conta"],
+                  ['login', 'Entrar'],
+                  ['register', 'Criar conta'],
                 ] as const
               ).map(([value, text]) => (
                 <button
@@ -185,18 +179,13 @@ export default function AuthScreen({
                       layoutId="auth-switch"
                       className="absolute inset-0 rounded-[9px] bg-white shadow-sm shadow-black/10 dark:bg-onyx/[0.14]"
                       transition={{
-                        type: "spring",
+                        type: 'spring',
                         stiffness: 420,
                         damping: 36,
                       }}
                     />
                   )}
-                  <span
-                    className={cn(
-                      "relative",
-                      mode === value ? "font-medium text-onyx" : "text-onyx/55",
-                    )}
-                  >
+                  <span className={cn('relative', mode === value ? 'font-medium text-onyx' : 'text-onyx/55')}>
                     {text}
                   </span>
                 </button>
@@ -208,7 +197,7 @@ export default function AuthScreen({
 
       <form onSubmit={form.handleSubmit} className="mt-6 flex flex-col">
         <AnimatePresence mode="wait" initial={false}>
-          {mode === "verify" ? (
+          {mode === 'verify' ? (
             <motion.div
               key="verify"
               initial={{ opacity: 0, x: 24 }}
@@ -225,16 +214,9 @@ export default function AuthScreen({
                     autoComplete="one-time-code"
                     maxLength={6}
                     value={form.code}
-                    onChange={(e) =>
-                      form.setCode(
-                        e.target.value.replace(/\D/g, "").slice(0, 6),
-                      )
-                    }
+                    onChange={(e) => form.setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="000000"
-                    className={cn(
-                      fieldClass,
-                      "h-14 text-center text-2xl tracking-[0.5em]",
-                    )}
+                    className={cn(fieldClass, 'h-14 text-center text-2xl tracking-[0.5em]')}
                   />
                 </div>
               </Group>
@@ -250,7 +232,7 @@ export default function AuthScreen({
               transition={{ duration: 0.35, ease: EASE }}
             >
               <AnimatePresence initial={false}>
-                {mode === "register" && (
+                {mode === 'register' && (
                   <Collapse key="identity" className="pb-4">
                     <Group>
                       <div>
@@ -296,23 +278,19 @@ export default function AuthScreen({
                 </div>
                 <PasswordInput
                   aria-label="Password"
-                  autoComplete={
-                    mode === "register" ? "new-password" : "current-password"
-                  }
+                  autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
                   value={form.password}
                   onChange={(e) => form.setPassword(e.target.value)}
                   placeholder="Password"
                 />
                 <AnimatePresence initial={false}>
-                  {mode === "register" && (
+                  {mode === 'register' && (
                     <Collapse key="confirm">
                       <PasswordInput
                         aria-label="Confirmar password"
                         autoComplete="new-password"
                         value={form.confirmPassword}
-                        onChange={(e) =>
-                          form.setConfirmPassword(e.target.value)
-                        }
+                        onChange={(e) => form.setConfirmPassword(e.target.value)}
                         placeholder="Confirmar password"
                       />
                     </Collapse>
@@ -321,40 +299,30 @@ export default function AuthScreen({
               </Group>
 
               <AnimatePresence initial={false}>
-                {mode === "register" && form.password.length > 0 && (
+                {mode === 'register' && form.password.length > 0 && (
                   <Collapse key="rules" className="px-1 pt-4">
                     <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5">
                       {rules.map((rule) => (
                         <li
                           key={rule.text}
                           className={cn(
-                            "flex items-center gap-1.5 font-subtitle text-xs",
-                            rule.ok ? "text-onyx" : "text-onyx/45",
+                            'flex items-center gap-1.5 font-subtitle text-xs',
+                            rule.ok ? 'text-onyx' : 'text-onyx/45',
                           )}
                         >
-                          <Check
-                            className={cn(
-                              "size-3.5",
-                              rule.ok ? "opacity-100" : "opacity-30",
-                            )}
-                            strokeWidth={2.5}
-                          />
+                          <Check className={cn('size-3.5', rule.ok ? 'opacity-100' : 'opacity-30')} strokeWidth={2.5} />
                           {rule.text}
                         </li>
                       ))}
                     </ul>
                   </Collapse>
                 )}
-                {mode === "register" &&
-                  form.confirmPassword.length > 0 &&
-                  form.confirmPassword !== form.password && (
-                    <Collapse key="mismatch" className="px-1 pt-3">
-                      <p className="font-subtitle text-xs text-red-700">
-                        As passwords não coincidem.
-                      </p>
-                    </Collapse>
-                  )}
-                {mode === "login" && (
+                {mode === 'register' && form.confirmPassword.length > 0 && form.confirmPassword !== form.password && (
+                  <Collapse key="mismatch" className="px-1 pt-3">
+                    <p className="font-subtitle text-xs text-red-700">As passwords não coincidem.</p>
+                  </Collapse>
+                )}
+                {mode === 'login' && (
                   <Collapse key="forgot" className="flex justify-end px-1 pt-4">
                     <button
                       type="button"
@@ -373,10 +341,7 @@ export default function AuthScreen({
         <AnimatePresence initial={false}>
           {form.error && (
             <Collapse key="error" className="px-1 pt-4">
-              <p
-                role="alert"
-                className="text-center font-subtitle text-sm text-red-700"
-              >
+              <p role="alert" className="text-center font-subtitle text-sm text-red-700">
                 {form.error}
               </p>
             </Collapse>
@@ -392,12 +357,12 @@ export default function AuthScreen({
               disabled={!form.canSubmit || form.submitting}
               label={
                 form.submitting
-                  ? "A processar..."
-                  : mode === "login"
-                    ? "Entrar"
-                    : mode === "register"
-                      ? "Criar conta"
-                      : "Confirmar"
+                  ? 'A processar...'
+                  : mode === 'login'
+                    ? 'Entrar'
+                    : mode === 'register'
+                      ? 'Criar conta'
+                      : 'Confirmar'
               }
               className="disabled:opacity-40"
             />
@@ -407,18 +372,18 @@ export default function AuthScreen({
               disabled={!form.canSubmit || form.submitting}
               label={
                 form.submitting
-                  ? "A processar..."
-                  : mode === "login"
-                    ? "Entrar"
-                    : mode === "register"
-                      ? "Criar conta"
-                      : "Confirmar"
+                  ? 'A processar...'
+                  : mode === 'login'
+                    ? 'Entrar'
+                    : mode === 'register'
+                      ? 'Criar conta'
+                      : 'Confirmar'
               }
             />
           )}
         </div>
 
-        {mode === "verify" && (
+        {mode === 'verify' && (
           <div className="flex flex-col items-center gap-2 font-subtitle text-sm">
             <button
               type="button"
@@ -426,26 +391,16 @@ export default function AuthScreen({
               disabled={form.resendCooldown > 0 || form.submitting}
               className="text-onyx underline underline-offset-4 disabled:text-onyx/40 disabled:no-underline"
             >
-              {form.resendCooldown > 0
-                ? `Reenviar código (${form.resendCooldown}s)`
-                : "Reenviar código"}
+              {form.resendCooldown > 0 ? `Reenviar código (${form.resendCooldown}s)` : 'Reenviar código'}
             </button>
-            <button
-              type="button"
-              onClick={() => switchTo("register")}
-              className="text-onyx/55"
-            >
+            <button type="button" onClick={() => switchTo('register')} className="text-onyx/55">
               Alterar email
             </button>
           </div>
         )}
       </form>
 
-      <ForgotPasswordSheet
-        open={form.forgotOpen}
-        initialEmail={form.email}
-        onClose={() => form.setForgotOpen(false)}
-      />
+      <ForgotPasswordSheet open={form.forgotOpen} initialEmail={form.email} onClose={() => form.setForgotOpen(false)} />
     </main>
-  );
+  )
 }
