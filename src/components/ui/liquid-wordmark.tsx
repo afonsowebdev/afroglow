@@ -187,7 +187,10 @@ export function LiquidWordmark({ text = 'AFROGLOW', className }: { text?: string
       <canvas
         ref={canvas}
         aria-hidden="true"
-        className={cn('absolute inset-0 h-full w-full transition-opacity duration-500', live ? 'opacity-100' : 'opacity-0')}
+        className={cn(
+          'absolute inset-0 h-full w-full transition-opacity duration-500',
+          live ? 'opacity-100' : 'opacity-0',
+        )}
       />
       {/* Says it can be played with, until it has been. */}
       <p
