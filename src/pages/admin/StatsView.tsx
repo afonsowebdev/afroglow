@@ -37,29 +37,52 @@ export function StatsView() {
 
   return (
     <div className="mt-6 flex flex-col gap-7">
-      {/* This month at a glance. */}
-      <section className="rounded-3xl bg-onyx p-5 text-white">
-        <p className="font-subtitle text-xs uppercase tracking-[0.14em] opacity-60">Este mês · {monthLabel}</p>
-        <p className="mt-2 font-subtitle text-4xl font-semibold lining-nums tracking-tight">{euros(revenue)}</p>
-        <p className="mt-1 font-subtitle text-sm opacity-70">
-          {revenueDiff === null
-            ? 'Receita das sessões confirmadas'
-            : revenueDiff === 0
-              ? 'Igual ao mês anterior'
-              : `${revenueDiff > 0 ? '↑ +' : '↓ −'}${euros(Math.abs(revenueDiff))} vs. o mês anterior`}
-        </p>
-        <dl className="mt-5 grid grid-cols-3 border-t border-white/15 pt-4">
-          {[
-            ['Sessões', String(sessions)],
-            ['Por sessão', sessions ? euros(ticket) : '—'],
-            ['Clientes novas', String(newThisMonth)],
-          ].map(([label, value], i) => (
-            <div key={label} className={i ? 'border-l border-white/15 pl-3' : ''}>
-              <dd className="font-subtitle text-xl font-semibold lining-nums">{value}</dd>
-              <dt className="mt-0.5 font-subtitle text-[11px] uppercase tracking-wide opacity-60">{label}</dt>
+      {/* This month at a glance: the revenue and how it moved, then three small figures. */}
+      <section>
+        <h2 className={section}>Este mês · {monthLabel}</h2>
+        <div className={card}>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-subtitle text-xs text-muted-dark">Receita</p>
+              <p className="mt-0.5 font-subtitle text-4xl font-semibold lining-nums tracking-tight text-onyx">
+                {euros(revenue)}
+              </p>
             </div>
-          ))}
-        </dl>
+            {revenueDiff !== null && (
+              <span
+                className={`mt-1 inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 font-subtitle text-xs font-medium lining-nums ${
+                  revenueDiff > 0
+                    ? 'bg-emerald-600/10 text-emerald-700 dark:text-emerald-400'
+                    : revenueDiff < 0
+                      ? 'bg-red-600/10 text-red-700 dark:text-red-400'
+                      : 'bg-onyx/[0.06] text-onyx/70'
+                }`}
+              >
+                <i
+                  className={`bx ${revenueDiff > 0 ? 'bx-trending-up' : revenueDiff < 0 ? 'bx-trending-down' : 'bx-minus'} text-sm`}
+                  aria-hidden="true"
+                />
+                {revenueDiff === 0 ? 'Igual' : `${revenueDiff > 0 ? '+' : '−'}${euros(Math.abs(revenueDiff))}`}
+              </span>
+            )}
+          </div>
+          <p className="mt-1 font-subtitle text-xs text-muted-dark">
+            {revenueDiff === null ? 'Das sessões confirmadas.' : 'Comparado com o mês anterior.'}
+          </p>
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            {[
+              ['bx bx-calendar-check', String(sessions), sessions === 1 ? 'Sessão' : 'Sessões'],
+              ['bx bx-receipt', sessions ? euros(ticket) : '—', 'Por sessão'],
+              ['bx bx-user-plus', String(newThisMonth), newThisMonth === 1 ? 'Cliente nova' : 'Clientes novas'],
+            ].map(([icon, value, label]) => (
+              <div key={label} className="rounded-xl bg-onyx/[0.04] p-3">
+                <i className={`${icon} text-lg text-onyx/70`} aria-hidden="true" />
+                <p className="mt-1 font-subtitle text-lg font-semibold lining-nums leading-tight text-onyx">{value}</p>
+                <p className="font-subtitle text-[11px] text-muted-dark">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Month by month: bars, growth or round (MonthBarsCard). */}
