@@ -1266,117 +1266,162 @@ function TestimonialsView({
 
   return (
     <div>
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        {tabs.map((tab) => (
-          <div key={tab.id} className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
-            <p className="font-subtitle font-semibold lining-nums tracking-tight text-2xl leading-none text-onyx">
-              {lists[tab.id].length}
-            </p>
-            <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">{tab.label}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-6 flex glass-chip rounded-full p-1">
+      {/* One switch with the counts, as in the rest of the app. */}
+      <div className="mt-5 grid grid-cols-3 rounded-xl bg-onyx/[0.06] p-1" role="tablist" aria-label="Testemunhos">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             type="button"
+            role="tab"
+            aria-selected={view === tab.id}
             onClick={() => setView(tab.id)}
-            className="relative flex-1 rounded-full py-2.5 font-subtitle text-xs sm:text-sm"
+            className="relative flex h-12 flex-col items-center justify-center rounded-[9px] font-subtitle"
           >
             {view === tab.id && (
               <motion.span
                 layoutId="testimonials-segment"
-                className="glass-chip-on absolute inset-0 rounded-full"
-                transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                className="absolute inset-0 rounded-[9px] bg-white shadow-sm shadow-black/10 dark:bg-onyx/[0.14]"
+                transition={{ type: 'spring', stiffness: 420, damping: 36 }}
               />
             )}
-            <span className={`relative transition-colors ${view === tab.id ? 'text-onyx' : 'text-onyx/70'}`}>
-              {tab.label}
+            <span className={`relative text-base font-semibold leading-none lining-nums ${view === tab.id ? 'text-onyx' : 'text-onyx/50'}`}>
+              {lists[tab.id].length}
             </span>
+            <span className={`relative mt-1 text-[11px] ${view === tab.id ? 'text-onyx' : 'text-onyx/55'}`}>{tab.label}</span>
           </button>
         ))}
       </div>
 
+      {view === 'PENDING' && current.length > 0 && (
+        <p className="mt-4 px-1 font-subtitle text-xs text-muted-dark">
+          Ao aprovar, o testemunho aparece no site e na app com o nome da cliente.
+        </p>
+      )}
+
       {current.length === 0 ? (
         <EmptyState icon={emptyText[0]} title={emptyText[1]} text={emptyText[2]} />
       ) : (
-        <div className="mt-6 flex flex-col gap-4">
-          {current.map((testimonial) => (
-            <article key={testimonial.id} className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5">
-              <div className="flex items-center gap-3">
-                <AuthorAvatar testimonial={testimonial} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-subtitle text-base font-semibold text-onyx">
-                    {testimonial.customer.name}
-                  </p>
-                  <p className="font-subtitle text-xs text-muted-dark">
-                    {timeAgo(testimonial.createdAt)}
-                    {testimonial.photo === true && ' · quer mostrar a foto'}
-                  </p>
-                </div>
-                {view !== 'PENDING' && (
-                  <span
-                    className={`shrink-0 rounded-full px-2.5 py-1 font-subtitle text-[11px] ${
-                      view === 'APPROVED' ? 'bg-onyx/5 text-onyx' : 'bg-red-700/10 text-red-700'
-                    }`}
-                  >
-                    {view === 'APPROVED' ? 'Publicado' : 'Recusado'}
-                  </span>
-                )}
-              </div>
-
-              <p className="mt-4 border-l-2 border-onyx/25 pl-4 font-subtitle text-[15px] leading-relaxed text-onyx">
-                {testimonial.content}
-              </p>
-
-              <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-onyx/10 pt-4">
-                {view === 'PENDING' && (
-                  <>
-                    <MotionButton
-                      label="Recusar"
-                      size="sm"
-                      variant="secondary"
-                      disabled={busyId === testimonial.id}
-                      onClick={() => onDecision(testimonial.id, 'reject')}
-                      icon={<i className="bx bx-x text-lg" aria-hidden="true" />}
-                    />
-                    <MotionButton
-                      label="Aprovar"
-                      size="sm"
-                      disabled={busyId === testimonial.id}
-                      onClick={() => onDecision(testimonial.id, 'approve')}
-                      icon={<i className="bx bx-check text-lg" aria-hidden="true" />}
-                    />
-                  </>
-                )}
-                {view === 'APPROVED' && (
-                  <button
-                    type="button"
-                    disabled={busyId === testimonial.id}
-                    onClick={() => onDecision(testimonial.id, 'reject')}
-                    className="rounded-full glass-chip px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:text-red-700 disabled:opacity-50"
-                  >
-                    Retirar do site
-                  </button>
-                )}
-                {view === 'REJECTED' && (
-                  <button
-                    type="button"
-                    disabled={busyId === testimonial.id}
-                    onClick={() => onDecision(testimonial.id, 'approve')}
-                    className="rounded-full glass-chip px-4 py-2 font-subtitle text-sm text-onyx transition-colors hover:text-onyx disabled:opacity-50"
-                  >
-                    Publicar
-                  </button>
-                )}
-              </div>
-            </article>
-          ))}
+        <div className="mt-4 flex flex-col gap-3">
+          <AnimatePresence initial={false}>
+            {current.map((testimonial) => (
+              <TestimonialCard
+                key={testimonial.id}
+                testimonial={testimonial}
+                view={view}
+                busy={busyId === testimonial.id}
+                onDecision={onDecision}
+              />
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </div>
+  )
+}
+
+/** One testimonial: the author, the words as a quote (long ones fold), and what can be done with it. */
+function TestimonialCard({
+  testimonial,
+  view,
+  busy,
+  onDecision,
+}: {
+  testimonial: Testimonial
+  view: 'PENDING' | 'APPROVED' | 'REJECTED'
+  busy: boolean
+  onDecision: (id: string, decision: 'approve' | 'reject') => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const long = testimonial.content.length > 220
+  return (
+    <motion.article
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -24 }}
+      className="overflow-hidden rounded-2xl border border-onyx/10 bg-white shadow-sm shadow-black/5"
+    >
+      <div className="p-5">
+        <div className="flex items-center gap-3">
+          <AuthorAvatar testimonial={testimonial} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-subtitle text-base font-semibold text-onyx">{testimonial.customer.name}</p>
+            <p className="font-subtitle text-xs text-muted-dark">
+              {timeAgo(testimonial.createdAt)}
+              {testimonial.photo === true && ' · quer mostrar a foto'}
+            </p>
+          </div>
+          {view !== 'PENDING' && (
+            <span
+              className={`flex shrink-0 items-center gap-1.5 font-subtitle text-[11px] ${
+                view === 'APPROVED' ? 'text-onyx' : 'text-red-700'
+              }`}
+            >
+              <span className={`size-1.5 rounded-full ${view === 'APPROVED' ? 'bg-emerald-500' : 'bg-red-600'}`} />
+              {view === 'APPROVED' ? 'No site' : 'Recusado'}
+            </span>
+          )}
+        </div>
+
+        <div className="relative mt-4">
+          <span className="absolute -left-1 -top-4 font-display text-5xl leading-none text-onyx/15" aria-hidden="true">
+            “
+          </span>
+          <p
+            className={`relative pl-4 font-subtitle text-[15px] leading-relaxed text-onyx ${
+              long && !expanded ? 'line-clamp-5' : ''
+            }`}
+          >
+            {testimonial.content}
+          </p>
+          {long && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="mt-1.5 pl-4 font-subtitle text-sm font-medium text-onyx underline underline-offset-4"
+            >
+              {expanded ? 'Ler menos' : 'Ler tudo'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Its actions, across the bottom. */}
+      {view === 'PENDING' ? (
+        <div className="grid grid-cols-2 gap-2 border-t border-onyx/10 p-3">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onDecision(testimonial.id, 'reject')}
+            className="flex h-11 items-center justify-center gap-1.5 rounded-full border border-onyx/15 font-subtitle text-sm text-onyx disabled:opacity-50"
+          >
+            <i className="bx bx-x text-lg" aria-hidden="true" />
+            Recusar
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onDecision(testimonial.id, 'approve')}
+            className="flex h-11 items-center justify-center gap-1.5 rounded-full bg-onyx font-subtitle text-sm font-medium text-white disabled:opacity-50"
+          >
+            <i className="bx bx-check text-lg" aria-hidden="true" />
+            {busy ? 'A guardar…' : 'Aprovar'}
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onDecision(testimonial.id, view === 'APPROVED' ? 'reject' : 'approve')}
+          className={`flex w-full items-center justify-center gap-1.5 border-t border-onyx/10 py-3 font-subtitle text-sm disabled:opacity-50 ${
+            view === 'APPROVED' ? 'text-muted-dark active:text-red-700' : 'text-onyx'
+          }`}
+        >
+          <i className={`bx ${view === 'APPROVED' ? 'bx-hide' : 'bx-show'} text-base`} aria-hidden="true" />
+          {view === 'APPROVED' ? 'Retirar do site' : 'Publicar no site'}
+        </button>
+      )}
+    </motion.article>
   )
 }
 
