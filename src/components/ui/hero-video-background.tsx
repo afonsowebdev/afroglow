@@ -84,6 +84,9 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
   const videoRefs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)]
 
   const [active, setActive] = useState(0)
+  // iOS refused to start the video (e.g. Low Power Mode): the videos are hidden so only the still shows, never a
+  // paused frame with the system's play button over it. The first touch anywhere tries again.
+  const [blocked, setBlocked] = useState(false)
   // The waiting slot only starts downloading once the first clip is actually playing, so it
   // never competes with the first paint for bandwidth.
   const [firstPlaying, setFirstPlaying] = useState(false)
@@ -102,9 +105,13 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
   const play = (video: HTMLVideoElement | null) => {
     if (!video) return
     video.playbackRate = playbackRateFor(tone)
-    video.play().catch(() => {
-      // Autoplay refused (e.g. data-saver): the poster colour simply stays.
-    })
+    video
+      .play()
+      .then(() => setBlocked(false))
+      .catch((error: unknown) => {
+        // Refused by the system (not just interrupted by a newer play()): show the still instead.
+        if (error instanceof DOMException && error.name === 'NotAllowedError') setBlocked(true)
+      })
   }
 
   const crossfade = useCallback(() => {
@@ -174,10 +181,14 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
       }
       lastTime = video.currentTime
     }, 1500)
+    // A touch counts as the person's go-ahead, which iOS accepts even when it refused to autoplay.
+    const onTouch = () => play(current())
     document.addEventListener('visibilitychange', resume)
     window.addEventListener('pageshow', resume)
     window.addEventListener('focus', resume)
+    window.addEventListener('pointerdown', onTouch, { passive: true })
     return () => {
+      window.removeEventListener('pointerdown', onTouch)
       window.clearInterval(watchdog)
       document.removeEventListener('visibilitychange', resume)
       window.removeEventListener('pageshow', resume)
@@ -201,9 +212,6 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
           // One file that already contains the transitions: the browser's own loop restarts it seamlessly.
           loop={videos.length === 1}
           playsInline
-          // The browser's own autoplay as well as play(): the first is what iOS honours most reliably.
-          autoPlay={slot === 0 && !shouldReduceMotion}
-          poster={slot === 0 ? POSTER_BY_TONE[tone] : undefined}
           preload={slot === 0 || firstPlaying ? 'auto' : 'none'}
           onPlaying={(e) => {
             // Autoplay starts at normal speed: set the theme's speed here too.
@@ -235,7 +243,8 @@ export function HeroVideoBackground({ tone = 'dark', tint = true }: { tone?: 'da
           }}
           className="background-video pointer-events-none absolute inset-0 h-full w-full object-cover"
           style={{
-            opacity: active === slot ? 1 : 0,
+            // Only once it is actually playing: until then (or if iOS refuses it) the still behind shows instead.
+            opacity: active === slot && firstPlaying && !blocked ? 1 : 0,
             // In the app the portrait video is zoomed in and lifted, so the model's face sits above the headline,
             // with a light blur that softens the mirror's marks.
             ...(isApp ? { transform: 'translateY(-7%) scale(1.3)', filter: 'blur(0.25px)' } : {}),
