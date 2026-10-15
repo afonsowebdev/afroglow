@@ -15,6 +15,10 @@ const config: CapacitorConfig = {
     CapacitorHttp: {
       enabled: true,
     },
+    // The app hides the splash itself, once the opening's AFROGLOW is on screen (see capacitor-bootstrap).
+    SplashScreen: {
+      launchAutoHide: false,
+    },
   },
 }
 

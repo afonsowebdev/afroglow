@@ -1,27 +1,19 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { LiquidWordmark } from '@/components/ui/liquid-wordmark'
+import { INTRO_READY_EVENT, INTRO_SEEN_KEY as SEEN_KEY, introWillShow } from '@/lib/capacitor-bootstrap'
 
-const SEEN_KEY = 'afroglow-intro-seen'
 /** How long the word takes to assemble (liquid-engine's intro is about 3.2s), and the longest it may hold the site. */
 const ASSEMBLE_MS = 2800
 const MAX_MS = 6000
 
-function alreadySeen() {
-  try {
-    return sessionStorage.getItem(SEEN_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
 /**
- * The site's opening: the whole screen in the theme's colour with AFROGLOW assembling from particles (as in the
+ * The site's and the apps' opening: the whole screen in the theme's colour with AFROGLOW assembling from particles (as in the
  * contact section); once the word has formed and the page has loaded, it fades away and the site shows. Once per
- * visit (this browser tab), shorter for those who prefer less motion, and never longer than a few seconds.
+ * visit (this browser tab; in the apps, once per launch), shorter for those who prefer less motion, and never longer than a few seconds.
  */
 export function SiteIntro() {
-  const [show, setShow] = useState(() => !alreadySeen())
+  const [show, setShow] = useState(introWillShow)
   const [shownAt, setShownAt] = useState<number | null>(null)
 
   // Nothing under it moves while it is up.
@@ -74,7 +66,10 @@ export function SiteIntro() {
             stacked={['AFRO', 'GLOW']}
             hint={false}
             stillFirst={false}
-            onShown={() => setShownAt((t) => t ?? performance.now())}
+            onShown={() => {
+              setShownAt((t) => t ?? performance.now())
+              window.dispatchEvent(new Event(INTRO_READY_EVENT))
+            }}
             className="h-[min(84vw,26rem)] w-full max-w-5xl sm:h-[clamp(200px,24vw,420px)]"
           />
         </motion.div>

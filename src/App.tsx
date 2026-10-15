@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core'
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { SiteIntro } from '@/components/ui/site-intro'
 import LandingPage from '@/pages/LandingPage'
 
 const AccountAuthPage = lazy(() => import('@/pages/AccountAuthPage'))
@@ -18,6 +19,8 @@ const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage')
 export default function App() {
   return (
     <Suspense fallback={null}>
+      {/* The admin app opens with AFROGLOW too (the site shows it from LandingPage). */}
+      {Capacitor.isNativePlatform() && <SiteIntro />}
       <Routes>
         <Route path="/" element={Capacitor.isNativePlatform() ? <Navigate to="/admin" replace /> : <LandingPage />} />
         <Route path="/agendar" element={<BookingPage />} />

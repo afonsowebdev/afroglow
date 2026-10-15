@@ -1,7 +1,21 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { Bell, BellOff, CalendarCheck, CalendarPlus, House, LogOut, Moon, PanelTop, PanelTopClose, Plus, Settings, Sun, UserRound } from 'lucide-react'
+import {
+  Bell,
+  BellOff,
+  CalendarCheck,
+  CalendarPlus,
+  House,
+  LogOut,
+  Moon,
+  PanelTop,
+  PanelTopClose,
+  Plus,
+  Settings,
+  Sun,
+  UserRound,
+} from 'lucide-react'
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import AuthScreen from './AuthScreen'
@@ -27,6 +41,7 @@ import { NavVisibilityProvider, useAutoHideNav, useNavHidden } from './nav-visib
 import ProfileScreen from './ProfileScreen'
 import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 import SettingsScreen from './SettingsScreen'
+import { SiteIntro } from '@/components/ui/site-intro'
 import { NotificationBell } from '@/components/layout/NotificationBell'
 
 type TabId = 'inicio' | 'marcar' | 'marcacoes' | 'conta'
@@ -58,6 +73,7 @@ export default function CustomerApp() {
   return (
     <NavVisibilityProvider>
       <BookingAlertsProvider>
+        <SiteIntro />
         <CustomerShell />
       </BookingAlertsProvider>
     </NavVisibilityProvider>
@@ -243,33 +259,35 @@ function CustomerShell() {
       {/* Top row on every screen: the "A" on the left (home), the bell and the menu on the right. At the top of the
           page, scrolling away with it. Not on the sign-in screen, which has its own "A" in the middle. */}
       {!onSignIn && (
-      <div className="pointer-events-none absolute inset-x-0 top-[calc(0.75rem+env(safe-area-inset-top))] z-50 flex items-start justify-between px-4">
-        <button
-          type="button"
-          onClick={() => {
-            void tap()
-            navigate('/')
-            window.scrollTo({ top: 0 })
-          }}
-          aria-label="AFROGLOW, início"
-          className={`pointer-events-auto flex size-12 items-center justify-center rounded-full font-logo text-[1.6rem] leading-none logo-weight ${BRAND_CIRCLE}`}
-        >
-          <span className="translate-y-[0.1em]" aria-hidden="true">
-            A
-          </span>
-        </button>
-        <div className="pointer-events-auto flex items-start gap-2.5">
-          {customer && <NotificationBell tone={overHero ? 'onDark' : 'onLight'} className="size-12" plainBadge brand />}
-          <FloatingActionMenu
-            actions={menuActions}
-            direction="down"
-            small
-            brand
-            tone={overHero ? 'onDark' : 'onLight'}
-            PlusIcon={Plus}
-          />
+        <div className="pointer-events-none absolute inset-x-0 top-[calc(0.75rem+env(safe-area-inset-top))] z-50 flex items-start justify-between px-4">
+          <button
+            type="button"
+            onClick={() => {
+              void tap()
+              navigate('/')
+              window.scrollTo({ top: 0 })
+            }}
+            aria-label="AFROGLOW, início"
+            className={`pointer-events-auto flex size-12 items-center justify-center rounded-full font-logo text-[1.6rem] leading-none logo-weight ${BRAND_CIRCLE}`}
+          >
+            <span className="translate-y-[0.1em]" aria-hidden="true">
+              A
+            </span>
+          </button>
+          <div className="pointer-events-auto flex items-start gap-2.5">
+            {customer && (
+              <NotificationBell tone={overHero ? 'onDark' : 'onLight'} className="size-12" plainBadge brand />
+            )}
+            <FloatingActionMenu
+              actions={menuActions}
+              direction="down"
+              small
+              brand
+              tone={overHero ? 'onDark' : 'onLight'}
+              PlusIcon={Plus}
+            />
+          </div>
         </div>
-      </div>
       )}
 
       {/* The tab bar, on its own at the bottom. */}
