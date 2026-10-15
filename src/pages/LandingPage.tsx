@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import Navbar from '@/components/layout/Navbar'
 import Hero from '@/components/sections/Hero'
 import StructuredData from '@/components/sections/StructuredData'
+import { SiteIntro } from '@/components/ui/site-intro'
 
 // Only the navbar and hero are in the first download; the rest loads right after the first
 // paint, so the page becomes visible sooner on slow phones.
@@ -58,6 +59,7 @@ export default function LandingPage() {
 
   return (
     <>
+      <SiteIntro />
       <Navbar />
       <StructuredData />
       <main>

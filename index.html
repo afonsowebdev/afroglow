@@ -103,12 +103,22 @@
       @media(min-width:640px){.boot-title{font-size:7vw}.boot-sub{font-size:18px}}
       @media(min-width:768px){.boot-title{font-size:6vw}}
       html[data-boot="off"] #boot{display:none}
+      /* The site's opening (SiteIntro) is about to show: only the theme's colour until it does. */
+      html[data-boot="intro"] #boot{background:#fff}
+      html.dark[data-boot="intro"] #boot{background:#2b1d12}
+      html[data-boot="intro"] #boot::before,html[data-boot="intro"] .boot-copy{display:none}
     </style>
     <script>
       (function () {
         var c = window.Capacitor
         var native = c && c.isNativePlatform && c.isNativePlatform()
         if (location.pathname !== '/' || native) document.documentElement.setAttribute('data-boot', 'off')
+        else {
+          try {
+            if (sessionStorage.getItem('afroglow-intro-seen') !== '1')
+              document.documentElement.setAttribute('data-boot', 'intro')
+          } catch (e) {}
+        }
       })()
     </script>
   </head>

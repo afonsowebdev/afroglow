@@ -75,11 +75,20 @@ export function LiquidWordmark({
   text = 'AFROGLOW',
   stacked,
   className,
+  hint = true,
+  stillFirst = true,
+  onShown,
 }: {
   text?: string
   /** Lines to use on narrow screens instead of one (e.g. ['AFRO', 'GLOW']), so the word can be larger there. */
   stacked?: string[]
   className?: string
+  /** The "pass over the word" line under it. */
+  hint?: boolean
+  /** Shows the still word until the particles come; false keeps it hidden unless there is no WebGL2. */
+  stillFirst?: boolean
+  /** Called once the particles are on screen (or at once without WebGL2, where the still word shows). */
+  onShown?: (live: boolean) => void
 }) {
   const { theme } = useTheme()
   const box = useRef<HTMLDivElement>(null)
@@ -88,7 +97,10 @@ export function LiquidWordmark({
   const canvasHost = useRef<HTMLDivElement>(null)
   const [still, setStill] = useState<string | null>(null)
   const [live, setLive] = useState(false)
+  const [failed, setFailed] = useState(false)
   const [touched, setTouched] = useState(false)
+  const onShownRef = useRef(onShown)
+  onShownRef.current = onShown
   const touch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
   // Narrow screens (under 640px) take the stacked lines, when there are some.
   const [narrow, setNarrow] = useState(() => typeof window !== 'undefined' && window.innerWidth < 640)
@@ -126,6 +138,8 @@ export function LiquidWordmark({
     } catch {
       cv.remove()
       setLive(false)
+      setFailed(true)
+      onShownRef.current?.(false)
       return
     }
     const img = new Image()
@@ -156,7 +170,10 @@ export function LiquidWordmark({
       try {
         engine.setVisible(false)
         layout()
-        engine.onFirstFrame = () => setLive(true)
+        engine.onFirstFrame = () => {
+          setLive(true)
+          onShownRef.current?.(true)
+        }
         engine.setImage(img)
         layout()
         ro.observe(el)
@@ -211,7 +228,7 @@ export function LiquidWordmark({
           draggable={false}
           className={cn(
             'pointer-events-none absolute inset-0 m-auto max-h-[92%] max-w-[96%] object-contain transition-opacity duration-500',
-            live ? 'opacity-0' : 'opacity-100',
+            live || !(stillFirst || failed) ? 'opacity-0' : 'opacity-100',
           )}
         />
       )}
@@ -221,16 +238,18 @@ export function LiquidWordmark({
         className={cn('absolute inset-0 transition-opacity duration-500', live ? 'opacity-100' : 'opacity-0')}
       />
       {/* Says it can be played with, until it has been. */}
-      <p
-        aria-hidden="true"
-        className={cn(
-          'pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 font-subtitle text-[11px] uppercase tracking-[0.16em] text-onyx/45 transition-opacity duration-700',
-          touched || !live ? 'opacity-0' : 'opacity-100',
-        )}
-      >
-        <span className="size-1.5 animate-pulse rounded-full bg-current" />
-        {touch ? 'Passa o dedo pela palavra' : 'Passa o rato pela palavra'}
-      </p>
+      {hint && (
+        <p
+          aria-hidden="true"
+          className={cn(
+            'pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 font-subtitle text-[11px] uppercase tracking-[0.16em] text-onyx/45 transition-opacity duration-700',
+            touched || !live ? 'opacity-0' : 'opacity-100',
+          )}
+        >
+          <span className="size-1.5 animate-pulse rounded-full bg-current" />
+          {touch ? 'Passa o dedo pela palavra' : 'Passa o rato pela palavra'}
+        </p>
+      )}
     </div>
   )
 }
