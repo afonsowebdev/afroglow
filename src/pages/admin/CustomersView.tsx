@@ -17,6 +17,11 @@ function formatDate(iso: string) {
   })
 }
 
+/** "5 out". */
+function shortDate(iso: string) {
+  return new Date(iso).toLocaleDateString('pt-PT', { timeZone: LISBON_TZ, day: 'numeric', month: 'short' }).replace('.', '')
+}
+
 function formatDateTime(iso: string) {
   return `${formatDate(iso)} · ${new Date(iso).toLocaleTimeString('pt-PT', { timeZone: LISBON_TZ, hour: '2-digit', minute: '2-digit' })}`
 }
@@ -151,50 +156,42 @@ export function CustomersView({
   const totalSpent = customers?.reduce((sum, c) => sum + c.spentCents, 0) ?? 0
 
   return (
-    <section className="mt-6">
-      <div className="grid grid-cols-3 divide-x divide-onyx/15 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white py-4">
-        {[
-          [customers ? String(customers.length) : '–', 'Clientes'],
-          [customers ? String(totalSessions) : '–', 'Sessões'],
-          [customers ? formatPrice(totalSpent).replace(/,00/, '') : '–', 'Receita'],
-        ].map(([value, label]) => (
-          <div key={label} className="px-2 text-center">
-            <p className="font-subtitle text-xl font-semibold lining-nums leading-none tracking-tight text-onyx">
-              {value}
-            </p>
-            <p className="mt-1.5 font-subtitle text-[10px] uppercase tracking-[0.14em] text-muted-dark">{label}</p>
-          </div>
-        ))}
-      </div>
+    <section className="mt-5">
+      {/* All the clients in one line. */}
+      <p className="px-1 font-subtitle text-sm text-muted-dark">
+        <strong className="font-semibold lining-nums text-onyx">{customers ? customers.length : '–'}</strong>{' '}
+        {customers?.length === 1 ? 'cliente' : 'clientes'} ·{' '}
+        <strong className="font-semibold lining-nums text-onyx">{customers ? totalSessions : '–'}</strong> sessões ·{' '}
+        <strong className="font-semibold lining-nums text-onyx">
+          {customers ? formatPrice(totalSpent).replace(/,00/, '') : '–'}
+        </strong>
+      </p>
 
       <div className="mt-4 flex items-center gap-2">
-        <div className="relative min-w-0 flex-1">
-          <i
-            className="bx bx-search pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg text-onyx/40"
-            aria-hidden="true"
-          />
+        <label className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-onyx/[0.06] px-4">
+          <i className="bx bx-search text-lg text-onyx/40" aria-hidden="true" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Pesquisar cliente"
+            placeholder="Nome ou telemóvel"
             aria-label="Pesquisar clientes"
-            className="w-full rounded-2xl border-2 border-onyx/30 bg-white py-3 pl-11 pr-4 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/40 focus-visible:border-onyx"
+            className="field-plain h-11 min-w-0 flex-1 bg-transparent font-subtitle text-base text-onyx outline-none placeholder:text-onyx/40"
           />
-        </div>
+        </label>
         <button
           type="button"
           onClick={() => (selecting ? stopSelecting() : setSelecting(true))}
-          className={`shrink-0 rounded-full px-4 py-3 font-subtitle text-sm text-onyx ${selecting ? 'glass-chip-on' : 'glass-chip'}`}
+          className="h-11 shrink-0 px-2 font-subtitle text-sm font-medium text-onyx"
         >
           {selecting ? 'Cancelar' : 'Selecionar'}
         </button>
       </div>
 
-      <div className="mt-3 flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <span className="shrink-0 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">Ordenar</span>
+      {/* How to sort, as an iPhone switch. */}
+      <div className="mt-3 grid grid-cols-3 rounded-xl bg-onyx/[0.06] p-1" role="tablist" aria-label="Ordenar">
         {(
           [
-            ['recent', 'Mais recentes'],
+            ['recent', 'Recentes'],
             ['sessions', 'Mais sessões'],
             ['name', 'A–Z'],
           ] as const
@@ -202,10 +199,11 @@ export function CustomersView({
           <button
             key={id}
             type="button"
-            aria-pressed={sort === id}
+            role="tab"
+            aria-selected={sort === id}
             onClick={() => setSort(id)}
-            className={`shrink-0 rounded-full px-3.5 py-2 font-subtitle text-xs text-onyx ${
-              sort === id ? 'glass-chip-on font-semibold' : 'glass-chip'
+            className={`h-8 rounded-[9px] font-subtitle text-xs ${
+              sort === id ? 'bg-white font-medium text-onyx shadow-sm shadow-black/10 dark:bg-onyx/[0.14]' : 'text-onyx/55'
             }`}
           >
             {label}
@@ -264,74 +262,61 @@ export function CustomersView({
         </div>
       )}
 
-      <div className="mt-4 flex flex-col gap-3">
-        {sorted.map((customer) => {
-          const isPicked = picked.has(customer.id)
-          const fresh = Date.now() - new Date(customer.createdAt).getTime() < 14 * 86_400_000
-          const badge = !customer.hasAccount ? 'Sem conta' : fresh ? 'Nova' : customer.bookingCount >= 3 ? 'Fiel' : null
-          return (
-            <div
-              key={customer.id}
-              className={`flex items-stretch overflow-hidden rounded-2xl border-[1.5px] bg-white ${
-                isPicked ? 'border-onyx' : 'border-onyx/25'
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => (selecting ? togglePick(customer.id) : setSelected(customer))}
-                className="flex min-w-0 flex-1 items-center gap-3.5 p-4 text-left"
-              >
-                {selecting && (
-                  <i
-                    className={`bx ${isPicked ? 'bxs-check-square text-onyx' : 'bx-square text-onyx/40'} shrink-0 text-2xl`}
-                    aria-hidden="true"
-                  />
-                )}
-                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-xl text-onyx">
-                  {customer.name.trim().charAt(0).toUpperCase()}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-2">
-                    <span className="truncate font-subtitle text-base font-semibold tracking-tight text-onyx">
-                      {customer.name}
-                    </span>
-                    {badge && (
-                      <span className="shrink-0 rounded-full bg-onyx/10 px-2 py-0.5 font-subtitle text-[10px] font-medium text-onyx">
-                        {badge}
-                      </span>
-                    )}
-                  </span>
-                  <span className="mt-0.5 block truncate font-subtitle text-xs text-muted-dark">{customer.phone}</span>
-                  <span className="mt-1.5 flex items-center gap-3 font-subtitle text-xs text-onyx">
-                    <span className="font-semibold lining-nums">
-                      {customer.bookingCount} {customer.bookingCount === 1 ? 'sessão' : 'sessões'}
-                    </span>
-                    <span className="text-muted-dark lining-nums">
-                      {formatPrice(customer.spentCents).replace(/,00/, '')}
-                    </span>
-                  </span>
-                  <span className="mt-0.5 block font-subtitle text-[11px] text-muted-dark">
-                    {customer.lastBookingAt
-                      ? `Última marcação: ${formatDate(customer.lastBookingAt)}`
-                      : 'Ainda sem marcações'}
-                  </span>
-                </span>
-              </button>
-              {!selecting && (
-                <a
-                  href={customerWhatsappUrl(customer.phone, `Olá ${customer.name}! `)}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={`WhatsApp de ${customer.name}`}
-                  className="flex w-14 shrink-0 items-center justify-center border-l border-onyx/10 bg-onyx/5 text-2xl text-onyx active:opacity-60"
+      {sorted.length > 0 && (
+        <ul className="mt-4 divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
+          {sorted.map((customer) => {
+            const isPicked = picked.has(customer.id)
+            const fresh = Date.now() - new Date(customer.createdAt).getTime() < 14 * 86_400_000
+            const badge = !customer.hasAccount ? 'Sem conta' : fresh ? 'Nova' : customer.bookingCount >= 3 ? 'Fiel' : null
+            return (
+              <li key={customer.id} className={`flex items-center ${isPicked ? 'bg-onyx/[0.06]' : ''}`}>
+                <button
+                  type="button"
+                  onClick={() => (selecting ? togglePick(customer.id) : setSelected(customer))}
+                  className="flex min-w-0 flex-1 items-center gap-3 py-3 pl-4 pr-2 text-left active:bg-onyx/[0.04]"
                 >
-                  <i className="bx bxl-whatsapp" aria-hidden="true" />
-                </a>
-              )}
-            </div>
-          )
-        })}
-      </div>
+                  {selecting && (
+                    <i
+                      className={`bx ${isPicked ? 'bxs-check-circle text-onyx' : 'bx-circle text-onyx/30'} shrink-0 text-2xl`}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-onyx font-subtitle text-base font-semibold text-white">
+                    {customer.name.trim().charAt(0).toUpperCase()}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-2">
+                      <span className="truncate font-subtitle text-[15px] font-semibold text-onyx">{customer.name}</span>
+                      {badge && (
+                        <span className="shrink-0 rounded-full bg-onyx/10 px-2 py-0.5 font-subtitle text-[10px] font-medium text-onyx">
+                          {badge}
+                        </span>
+                      )}
+                    </span>
+                    <span className="mt-0.5 block truncate font-subtitle text-xs text-muted-dark">
+                      {customer.bookingCount} {customer.bookingCount === 1 ? 'sessão' : 'sessões'} ·{' '}
+                      {formatPrice(customer.spentCents).replace(/,00/, '')}
+                      {customer.lastBookingAt ? ` · última ${shortDate(customer.lastBookingAt)}` : ''}
+                    </span>
+                  </span>
+                  {!selecting && <i className="bx bx-chevron-right shrink-0 text-xl text-onyx/25" aria-hidden="true" />}
+                </button>
+                {!selecting && (
+                  <a
+                    href={customerWhatsappUrl(customer.phone, `Olá ${customer.name}! `)}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`WhatsApp de ${customer.name}`}
+                    className="mr-3 flex size-9 shrink-0 items-center justify-center rounded-full bg-onyx/[0.07] text-lg text-onyx active:opacity-60"
+                  >
+                    <i className="bx bxl-whatsapp" aria-hidden="true" />
+                  </a>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      )}
 
       <Sheet
         open={Boolean(selected)}
