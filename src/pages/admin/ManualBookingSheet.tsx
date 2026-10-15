@@ -142,6 +142,9 @@ export function ManualBookingSheet({
     'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
   const plain =
     'field-plain block w-full min-w-0 bg-transparent font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35'
+  // Date and time fields: the value against the right edge, on the iPhone (its own value box) as elsewhere.
+  const dateTimeField =
+    'h-[52px] flex-1 text-right [&::-webkit-date-and-time-value]:text-right [&::-webkit-datetime-edit]:justify-end [&::-webkit-datetime-edit]:flex [&::-webkit-calendar-picker-indicator]:ml-2'
   const chip = (on: boolean) =>
     cn(
       'h-10 shrink-0 rounded-full px-4 font-subtitle text-sm transition-colors',
@@ -425,22 +428,22 @@ export function ManualBookingSheet({
                   </>
                 )}
                 <div className={group}>
-                  <label className="flex items-center justify-between gap-3 px-4">
-                    <span className="font-subtitle text-[15px] text-onyx">Data</span>
+                  <label className="flex items-center gap-3 px-4">
+                    <span className="w-14 shrink-0 font-subtitle text-[15px] text-onyx">Data</span>
                     <input
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className={`${plain} h-[52px] w-auto text-right`}
+                      className={`${plain} ${dateTimeField}`}
                     />
                   </label>
-                  <label className="flex items-center justify-between gap-3 px-4">
-                    <span className="font-subtitle text-[15px] text-onyx">Hora</span>
+                  <label className="flex items-center gap-3 px-4">
+                    <span className="w-14 shrink-0 font-subtitle text-[15px] text-onyx">Hora</span>
                     <input
                       type="time"
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
-                      className={`${plain} h-[52px] w-auto text-right`}
+                      className={`${plain} ${dateTimeField}`}
                     />
                   </label>
                 </div>
