@@ -21,7 +21,9 @@ function write(key: string, value: string | null) {
   }
 }
 
-export const pushSupported = () => Capacitor.isNativePlatform()
+// iPhone only for now: Android needs Firebase Cloud Messaging set up (google-services.json and the server sending
+// through FCM); without it, registering crashes the Android app.
+export const pushSupported = () => Capacitor.getPlatform() === 'ios'
 
 /** True unless the customer switched notifications off inside the app. */
 export const pushWanted = () => read(ENABLED_KEY) !== 'off'

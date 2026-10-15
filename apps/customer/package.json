@@ -1,8 +1,8 @@
 {
-  "name": "afroglow-customer-ios",
+  "name": "afroglow-customer-app",
   "private": true,
   "version": "0.0.0",
-  "description": "Capacitor shell for the AFROGLOW customer iPhone app. The web code lives in ../../src (built with `npm run build:customer`).",
+  "description": "Capacitor shell for the AFROGLOW customer app (iPhone and Android). The web code lives in ../../src (built with `npm run build:customer`).",
   "dependencies": {
     "@capacitor/app": "^8.1.1",
     "@capacitor/core": "^8.5.2",
@@ -10,7 +10,8 @@
     "@capacitor/ios": "^8.5.2",
     "@capacitor/push-notifications": "^8.1.2",
     "@capacitor/splash-screen": "^8.0.2",
-    "@capacitor/status-bar": "^8.0.3"
+    "@capacitor/status-bar": "^8.0.3",
+    "@capacitor/android": "^8.5.2"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.2",
