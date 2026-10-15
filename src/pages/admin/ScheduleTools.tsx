@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import { cn } from '@/lib/utils'
 import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
 import { api, ApiError } from '@/lib/api'
 import type { AvailabilitySlot } from '@/lib/types'
@@ -26,6 +28,8 @@ interface Pattern {
   pmTime: string
   weeks: number
 }
+
+const DAY_NAMES = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado']
 
 const STORAGE_KEY = 'afroglow-admin-schedule-week'
 // The studio's usual week: Monday to Wednesday and Saturday morning and afternoon; Thursday morning only; Friday off;
@@ -89,32 +93,6 @@ function buildTimes(pattern: Pattern, daysOff: string[]) {
   return times
 }
 
-const miniLabel = 'mb-1.5 block font-subtitle text-[11px] uppercase tracking-wide text-muted-dark'
-
-/** A titled card that groups related fields. */
-function Group({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 p-4">
-      <h3 className="mb-3 font-subtitle text-sm font-semibold tracking-tight text-onyx">{title}</h3>
-      {children}
-    </section>
-  )
-}
-
-/** One choice out of a few, as a glass chip. */
-function Option({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={`h-10 rounded-full font-subtitle text-sm text-onyx ${active ? 'glass-chip-on font-semibold' : 'glass-chip'}`}
-    >
-      {label}
-    </button>
-  )
-}
-
 /** Opens a repeating weekly pattern in one go (e.g. Tuesday to Saturday, 09:00–18:00, every 2h). */
 export function GenerateSlotsSheet({
   open,
@@ -127,7 +105,6 @@ export function GenerateSlotsSheet({
 }) {
   const [pattern, setPattern] = useState<Pattern>(DEFAULT_PATTERN)
   const [daysOff, setDaysOff] = useState<string[]>([])
-  const [offInput, setOffInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -172,132 +149,220 @@ export function GenerateSlotsSheet({
   const toggleShift = (day: number, shift: 'am' | 'pm') =>
     setPattern((p) => ({ ...p, week: { ...p.week, [day]: { ...p.week[day], [shift]: !p.week[day]?.[shift] } } }))
 
+  const lastDay = times.length ? times[times.length - 1] : null
+  const section = 'mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark'
+  const group =
+    'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
+  const openDays = WEEKDAYS.filter((d) => pattern.week[d.id]?.am || pattern.week[d.id]?.pm).length
+
   return (
-    <Sheet
-      open={open}
-      title="Horário semanal"
-      description="Abre as semanas seguintes com a tua rotina. Os horários que já existem não são tocados."
-      icon="bx bx-calendar-week"
-      busy={busy}
-      error={error}
-      submitLabel={times.length ? `Criar ${times.length} horários` : 'Criar horários'}
-      submitDisabled={times.length === 0}
-      onSubmit={submit}
-      onClose={onClose}
-    >
-      <Group title="Horas do dia">
-        <div className="grid grid-cols-2 gap-2.5">
-          <label className="block min-w-0">
-            <span className={miniLabel}>Manhã</span>
-            <input
-              type="time"
-              value={pattern.amTime}
-              onChange={(e) => setPattern({ ...pattern, amTime: e.target.value })}
-              className={`${sheetFieldClass} h-11 w-full min-w-0 appearance-none px-3 text-sm`}
-            />
-          </label>
-          <label className="block min-w-0">
-            <span className={miniLabel}>Tarde</span>
-            <input
-              type="time"
-              value={pattern.pmTime}
-              onChange={(e) => setPattern({ ...pattern, pmTime: e.target.value })}
-              className={`${sheetFieldClass} h-11 w-full min-w-0 appearance-none px-3 text-sm`}
-            />
-          </label>
-        </div>
-        <p className="mt-2 font-subtitle text-xs text-muted-dark">Um cliente em cada hora.</p>
-      </Group>
-
-      <Group title="A tua semana">
-        <ul className="divide-y divide-onyx/10">
-          {WEEKDAYS.map((day) => {
-            const shifts = pattern.week[day.id] ?? { am: false, pm: false }
-            const closed = !shifts.am && !shifts.pm
-            return (
-              <li key={day.id} className="flex items-center gap-3 py-2.5">
-                <span className="w-10 font-subtitle text-sm font-semibold text-onyx">{day.label}</span>
-                <span className="flex-1 font-subtitle text-xs text-muted-dark">
-                  {closed
-                    ? 'Fechado'
-                    : [shifts.am && pattern.amTime, shifts.pm && pattern.pmTime].filter(Boolean).join(' · ')}
-                </span>
-                {(['am', 'pm'] as const).map((shift) => (
-                  <button
-                    key={shift}
-                    type="button"
-                    aria-pressed={shifts[shift]}
-                    onClick={() => toggleShift(day.id, shift)}
-                    className={`h-10 w-[4.5rem] rounded-full font-subtitle text-xs ${
-                      shifts[shift] ? 'glass-chip-on font-semibold text-onyx' : 'glass-chip text-onyx/50'
-                    }`}
-                  >
-                    {shift === 'am' ? 'Manhã' : 'Tarde'}
-                  </button>
-                ))}
-              </li>
-            )
-          })}
-        </ul>
-
-        <span className={`${miniLabel} mt-4`}>Para as próximas (semanas)</span>
-        <div className="grid grid-cols-6 gap-1.5">
-          {[1, 2, 3, 4, 6, 8].map((w) => (
-            <Option
-              key={w}
-              active={pattern.weeks === w}
-              onClick={() => setPattern({ ...pattern, weeks: w })}
-              label={String(w)}
-            />
-          ))}
-        </div>
-      </Group>
-
-      <Group title="Folgas (dias a saltar)">
-        <div className="flex items-stretch gap-2">
-          <input
-            type="date"
-            value={offInput}
-            onChange={(e) => setOffInput(e.target.value)}
-            aria-label="Dia a saltar"
-            className={`${sheetFieldClass} h-11 w-full min-w-0 appearance-none px-3 text-sm min-w-0 flex-1`}
-          />
-          <button
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center">
+          <motion.button
             type="button"
-            disabled={!offInput || daysOff.includes(offInput)}
-            onClick={() => {
-              setDaysOff((list) => [...list, offInput].sort())
-              setOffInput('')
+            aria-label="Fechar"
+            onClick={() => !busy && onClose()}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          <motion.form
+            role="dialog"
+            aria-modal="true"
+            aria-label="Abrir a semana"
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (times.length && !busy) void submit()
             }}
-            className="glass-chip h-11 shrink-0 rounded-xl px-3 font-subtitle text-sm text-onyx disabled:opacity-40"
+            className="relative flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           >
-            Adicionar
-          </button>
-        </div>
-        {daysOff.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {daysOff.map((d) => (
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-onyx/10 px-4 py-3">
               <button
-                key={d}
                 type="button"
-                onClick={() => setDaysOff((list) => list.filter((x) => x !== d))}
-                aria-label={`Remover ${d.split('-').reverse().join('/')}`}
-                className="glass-chip flex items-center gap-1.5 rounded-full px-3 py-1.5 font-subtitle text-xs text-onyx"
+                onClick={onClose}
+                disabled={busy}
+                className="min-w-20 text-left font-subtitle text-[15px] text-onyx/60 disabled:opacity-50"
               >
-                {d.split('-').reverse().join('/')}
-                <i className="bx bx-x text-base" aria-hidden="true" />
+                Cancelar
               </button>
-            ))}
-          </div>
-        )}
-      </Group>
+              <h2 className="font-subtitle text-base font-semibold text-onyx">Abrir a semana</h2>
+              <button
+                type="submit"
+                disabled={busy || times.length === 0}
+                className="min-w-20 text-right font-subtitle text-[15px] font-semibold text-onyx disabled:opacity-30"
+              >
+                {busy ? 'A criar…' : 'Criar'}
+              </button>
+            </div>
 
-      <p className="text-center font-subtitle text-sm text-muted-dark">
-        {times.length > 0
-          ? `${times.length} ${times.length === 1 ? 'horário' : 'horários'} até ${times[times.length - 1].toLocaleDateString('pt-PT', { day: 'numeric', month: 'long' })}`
-          : 'Escolhe os dias e as horas para ver quantos horários cria.'}
-      </p>
-    </Sheet>
+            <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-5">
+              <p className="px-1 font-subtitle text-sm text-muted-dark">
+                Abre as próximas semanas com a tua rotina. Os horários que já existem ficam como estão.
+              </p>
+              {error && (
+                <p role="alert" className="rounded-xl bg-red-700/10 px-4 py-3 font-subtitle text-sm text-red-700">
+                  {error}
+                </p>
+              )}
+
+              {/* The two times of the day. */}
+              <section>
+                <h3 className={section}>Horas das sessões</h3>
+                <div className={group}>
+                  {(
+                    [
+                      ['Manhã', 'amTime'],
+                      ['Tarde', 'pmTime'],
+                    ] as const
+                  ).map(([label, field]) => (
+                    <label key={field} className="relative flex h-[52px] items-center gap-3 px-4">
+                      <span className="flex-1 font-subtitle text-[15px] text-onyx">{label}</span>
+                      <span className="font-subtitle text-base lining-nums tabular-nums text-onyx">
+                        {pattern[field]}
+                      </span>
+                      <i className="bx bx-time-five text-lg text-onyx/40" aria-hidden="true" />
+                      <input
+                        type="time"
+                        value={pattern[field]}
+                        onChange={(e) => setPattern({ ...pattern, [field]: e.target.value })}
+                        aria-label={`Hora da ${label.toLowerCase()}`}
+                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                      />
+                    </label>
+                  ))}
+                </div>
+                <p className="mt-2 px-1 font-subtitle text-xs text-muted-dark">Uma cliente em cada hora.</p>
+              </section>
+
+              {/* Which of the two each weekday has. */}
+              <section>
+                <h3 className={section}>
+                  A tua semana · {openDays} {openDays === 1 ? 'dia aberto' : 'dias abertos'}
+                </h3>
+                <ul className={group}>
+                  {WEEKDAYS.map((day) => {
+                    const shifts = pattern.week[day.id] ?? { am: false, pm: false }
+                    const closed = !shifts.am && !shifts.pm
+                    return (
+                      <li key={day.id} className="flex items-center gap-3 px-4 py-2.5">
+                        <span className="min-w-0 flex-1">
+                          <span
+                            className={cn('block font-subtitle text-[15px]', closed ? 'text-onyx/45' : 'text-onyx')}
+                          >
+                            {DAY_NAMES[day.id]}
+                          </span>
+                          <span className="block font-subtitle text-xs text-muted-dark">
+                            {closed
+                              ? 'Fechado'
+                              : [shifts.am && pattern.amTime, shifts.pm && pattern.pmTime].filter(Boolean).join(' e ')}
+                          </span>
+                        </span>
+                        {(['am', 'pm'] as const).map((shift) => (
+                          <button
+                            key={shift}
+                            type="button"
+                            aria-pressed={shifts[shift]}
+                            aria-label={`${DAY_NAMES[day.id]}, ${shift === 'am' ? 'manhã' : 'tarde'}`}
+                            onClick={() => toggleShift(day.id, shift)}
+                            className={cn(
+                              'h-9 w-[4.25rem] rounded-full font-subtitle text-xs transition-colors',
+                              shifts[shift] ? 'bg-onyx font-medium text-white' : 'border border-onyx/15 text-onyx/45',
+                            )}
+                          >
+                            {shift === 'am' ? 'Manhã' : 'Tarde'}
+                          </button>
+                        ))}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </section>
+
+              {/* For how long. */}
+              <section>
+                <h3 className={section}>Durante</h3>
+                <div className="grid grid-cols-6 rounded-xl bg-onyx/[0.06] p-1" role="radiogroup" aria-label="Semanas">
+                  {[1, 2, 3, 4, 6, 8].map((w) => (
+                    <button
+                      key={w}
+                      type="button"
+                      role="radio"
+                      aria-checked={pattern.weeks === w}
+                      onClick={() => setPattern({ ...pattern, weeks: w })}
+                      className={cn(
+                        'flex h-11 flex-col items-center justify-center rounded-[9px] font-subtitle leading-none',
+                        pattern.weeks === w
+                          ? 'bg-white text-onyx shadow-sm shadow-black/10 dark:bg-onyx/[0.14]'
+                          : 'text-onyx/55',
+                      )}
+                    >
+                      <span className="text-sm font-semibold">{w}</span>
+                      <span className="mt-0.5 text-[10px]">{w === 1 ? 'semana' : 'semanas'}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              {/* Days off inside that time. */}
+              <section>
+                <h3 className={section}>Folgas a saltar</h3>
+                <div className={group}>
+                  {daysOff.map((d) => (
+                    <div key={d} className="flex h-[52px] items-center gap-3 px-4">
+                      <span className="flex-1 font-subtitle text-[15px] capitalize text-onyx">
+                        {new Date(`${d}T12:00:00`).toLocaleDateString('pt-PT', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long',
+                        })}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setDaysOff((list) => list.filter((x) => x !== d))}
+                        aria-label={`Remover a folga de ${d.split('-').reverse().join('/')}`}
+                        className="text-lg text-onyx/35 hover:text-red-700"
+                      >
+                        <i className="bx bx-minus-circle" aria-hidden="true" />
+                      </button>
+                    </div>
+                  ))}
+                  <label className="relative flex h-[52px] items-center gap-2 px-4 font-subtitle text-[15px] text-onyx">
+                    <i className="bx bx-plus-circle text-lg" aria-hidden="true" />
+                    Adicionar folga
+                    <input
+                      type="date"
+                      value=""
+                      onChange={(e) => {
+                        const d = e.target.value
+                        if (d) setDaysOff((list) => (list.includes(d) ? list : [...list, d].sort()))
+                      }}
+                      aria-label="Dia de folga"
+                      className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    />
+                  </label>
+                </div>
+              </section>
+
+              {/* What will be created. */}
+              <div className="rounded-2xl border border-onyx/10 p-4 text-center">
+                <p className="font-subtitle text-3xl font-semibold lining-nums text-onyx">{times.length}</p>
+                <p className="font-subtitle text-sm text-muted-dark">
+                  {times.length === 0
+                    ? 'Escolhe pelo menos um dia e uma hora.'
+                    : `${times.length === 1 ? 'horário novo' : 'horários novos'} até ${lastDay!.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'long' })}`}
+                </p>
+              </div>
+            </div>
+          </motion.form>
+        </div>
+      )}
+    </AnimatePresence>
   )
 }
 
