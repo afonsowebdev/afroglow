@@ -2829,6 +2829,7 @@ function AdminDashboard() {
         open={manualOpen}
         services={services}
         presetCustomer={manualCustomer}
+        slots={slots}
         onClose={() => setManualOpen(false)}
         onDone={() => void loadDashboard()}
       />

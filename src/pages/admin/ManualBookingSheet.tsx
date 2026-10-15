@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
+import { AnimatePresence, motion } from 'motion/react'
 import { api, ApiError } from '@/lib/api'
-import { formatPrice, type Service } from '@/lib/types'
+import { formatPrice, type AvailabilitySlot, type Service } from '@/lib/types'
 import type { AdminCustomer } from '@/pages/admin/admin-types'
 import { choiceComplete, optionsOf, priceFor, servicePriceLabel } from '@/lib/pricing'
+import { cn } from '@/lib/utils'
 import { BRAID_COLORS } from '@/lib/braid-colors'
 
 function localDateValue(date: Date) {
@@ -13,19 +14,24 @@ function localDateValue(date: Date) {
 }
 
 /**
- * Adds a confirmed booking by hand: for clients who book by WhatsApp, Instagram or in person.
- * Pick an existing client or type a name + phone; no account or email is needed.
+ * Adds a confirmed booking by hand: for clients who book by WhatsApp, Instagram or in person. A sheet in the
+ * app's grouped style: who (an existing client or a name and phone; no account needed), the model as chips with its
+ * options and the hair colour as swatches, when (the free slots of the next days in one tap, or any date and time),
+ * a note, and a summary line; Cancelar and Guardar always on top.
  */
 export function ManualBookingSheet({
   open,
   services,
   presetCustomer,
+  slots = [],
   onClose,
   onDone,
 }: {
   open: boolean
   services: Service[]
   presetCustomer?: AdminCustomer | null
+  /** The agenda's slots: the free ones in the next days are offered as one-tap times. */
+  slots?: AvailabilitySlot[]
   onClose: () => void
   onDone: () => void
 }) {
@@ -52,12 +58,16 @@ export function ManualBookingSheet({
     setNotes('')
     setSearch('')
     setDate(localDateValue(new Date()))
+    setLength('')
+    setParting('')
+    setColor('')
     setServiceId((current) => current || services.find((s) => s.active !== false)?.id || '')
     if (presetCustomer) {
       setMode('existing')
       setPicked(presetCustomer)
     } else {
-      setMode('new')
+      // Search the clients first; a new one is a tap away.
+      setMode('existing')
       setPicked(null)
       setName('')
       setPhone('')
@@ -81,7 +91,11 @@ export function ManualBookingSheet({
   const options = service ? optionsOf(service) : { lengths: [], partings: [], hasOptions: false }
   const price = service ? priceFor(service, length || null, parting || null) : null
   const canSubmit =
-    hasClient && Boolean(date) && Boolean(time) && Boolean(serviceId) && (!service || choiceComplete(service, length || null, parting || null))
+    hasClient &&
+    Boolean(date) &&
+    Boolean(time) &&
+    Boolean(serviceId) &&
+    (!service || choiceComplete(service, length || null, parting || null))
 
   async function submit() {
     setBusy(true)
@@ -107,179 +121,370 @@ export function ManualBookingSheet({
     }
   }
 
-  return (
-    <Sheet
-      open={open}
-      title="Nova marcação"
-      description="Fica confirmada logo, e o horário deixa de estar disponível para os clientes."
-      icon="bx bx-calendar-plus"
-      busy={busy}
-      error={error}
-      submitLabel="Guardar marcação"
-      submitDisabled={!canSubmit}
-      onSubmit={submit}
-      onClose={onClose}
-    >
-      <div className="flex rounded-full glass-chip p-1">
-        {(
-          [
-            ['new', 'Novo cliente'],
-            ['existing', 'Cliente existente'],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setMode(id)}
-            className={`flex-1 rounded-full py-2 font-subtitle text-sm transition-colors ${
-              mode === id ? 'glass-chip-on text-onyx' : 'text-onyx/70'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+  const freeSlots = slots
+    .filter((sl) => sl.status === 'OPEN' && new Date(sl.startsAt).getTime() > Date.now())
+    .sort((x, y) => new Date(x.startsAt).getTime() - new Date(y.startsAt).getTime())
+    .slice(0, 8)
+  const chosenAt = date && time ? new Date(`${date}T${time}:00`) : null
+  // What still stops it from being saved, said plainly in the summary.
+  const missing = [
+    !hasClient && (mode === 'existing' ? 'escolher a cliente' : 'nome e telemóvel'),
+    options.lengths.length > 0 && !length && 'o comprimento',
+    options.partings.length > 0 && !parting && 'a repartição',
+    (!date || !time) && 'a data e a hora',
+  ].filter(Boolean) as string[]
+  const whenLabel = chosenAt
+    ? chosenAt.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' }) + ` · ${time}`
+    : ''
 
-      {mode === 'new' ? (
-        <>
-          <SheetField label="Nome">
-            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} className={sheetFieldClass} />
-          </SheetField>
-          <SheetField label="Telemóvel">
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              type="tel"
-              maxLength={30}
-              placeholder="912 345 678"
-              className={sheetFieldClass}
-            />
-          </SheetField>
-        </>
-      ) : (
-        <div>
-          {picked ? (
-            <div className="flex items-center justify-between rounded-xl border border-onyx bg-cream px-4 py-3">
-              <div>
-                <p className="font-subtitle text-sm font-semibold text-onyx">{picked.name}</p>
-                <p className="font-subtitle text-xs text-muted-dark">{picked.phone}</p>
-              </div>
-              {!presetCustomer && (
-                <button
-                  type="button"
-                  onClick={() => setPicked(null)}
-                  className="font-subtitle text-sm text-onyx underline"
-                >
-                  Mudar
-                </button>
+  const section = 'mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark'
+  const group =
+    'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
+  const plain =
+    'field-plain block w-full min-w-0 bg-transparent font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35'
+  const chip = (on: boolean) =>
+    cn(
+      'h-10 shrink-0 rounded-full px-4 font-subtitle text-sm transition-colors',
+      on ? 'bg-onyx font-medium text-white' : 'border border-onyx/15 text-onyx',
+    )
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center">
+          <motion.button
+            type="button"
+            aria-label="Fechar"
+            onClick={() => !busy && onClose()}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          <motion.form
+            role="dialog"
+            aria-modal="true"
+            aria-label="Nova marcação"
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (canSubmit && !busy) void submit()
+            }}
+            className="relative flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 34 }}
+          >
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-onyx/10 px-4 py-3">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={busy}
+                className="min-w-20 text-left font-subtitle text-[15px] text-onyx/60 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <h2 className="font-subtitle text-base font-semibold text-onyx">Nova marcação</h2>
+              <button
+                type="submit"
+                disabled={busy || !canSubmit}
+                className="min-w-20 text-right font-subtitle text-[15px] font-semibold text-onyx disabled:opacity-30"
+              >
+                {busy ? 'A guardar…' : 'Guardar'}
+              </button>
+            </div>
+
+            <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-5">
+              {error && (
+                <p role="alert" className="rounded-xl bg-red-700/10 px-4 py-3 font-subtitle text-sm text-red-700">
+                  {error}
+                </p>
+              )}
+
+              {/* Who. */}
+              <section>
+                <h3 className={section}>Cliente</h3>
+                {!presetCustomer && (
+                  <div
+                    className="mb-2.5 grid grid-cols-2 rounded-xl bg-onyx/[0.06] p-1"
+                    role="tablist"
+                    aria-label="Cliente"
+                  >
+                    {(
+                      [
+                        ['existing', 'Já é cliente'],
+                        ['new', 'Nova cliente'],
+                      ] as const
+                    ).map(([id, label]) => (
+                      <button
+                        key={id}
+                        type="button"
+                        role="tab"
+                        aria-selected={mode === id}
+                        onClick={() => setMode(id)}
+                        className={cn(
+                          'h-9 rounded-[9px] font-subtitle text-sm',
+                          mode === id
+                            ? 'bg-white font-medium text-onyx shadow-sm shadow-black/10 dark:bg-onyx/[0.14]'
+                            : 'text-onyx/55',
+                        )}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {mode === 'new' ? (
+                  <div className={group}>
+                    <input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      maxLength={100}
+                      placeholder="Nome"
+                      aria-label="Nome"
+                      autoComplete="off"
+                      className={`${plain} h-[52px] px-4`}
+                    />
+                    <input
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      type="tel"
+                      maxLength={30}
+                      placeholder="Telemóvel"
+                      aria-label="Telemóvel"
+                      className={`${plain} h-[52px] px-4`}
+                    />
+                  </div>
+                ) : picked ? (
+                  <div className={`${group} flex items-center gap-3 px-4 py-3`}>
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-onyx font-subtitle text-sm font-semibold text-white">
+                      {picked.name.trim().charAt(0).toUpperCase()}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-subtitle text-[15px] font-medium text-onyx">
+                        {picked.name}
+                      </span>
+                      <span className="block font-subtitle text-xs text-muted-dark">{picked.phone}</span>
+                    </span>
+                    {!presetCustomer && (
+                      <button
+                        type="button"
+                        onClick={() => setPicked(null)}
+                        className="font-subtitle text-sm text-onyx/60"
+                      >
+                        Mudar
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className={group}>
+                    <label className="flex items-center gap-2 px-4">
+                      <i className="bx bx-search text-lg text-onyx/40" aria-hidden="true" />
+                      <input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Nome ou telemóvel"
+                        aria-label="Pesquisar cliente"
+                        className={`${plain} h-[52px]`}
+                      />
+                    </label>
+                    {matches.length === 0 ? (
+                      <p className="px-4 py-3 font-subtitle text-sm text-muted-dark">
+                        Nenhuma cliente encontrada.{' '}
+                        <button
+                          type="button"
+                          onClick={() => setMode('new')}
+                          className="text-onyx underline underline-offset-4"
+                        >
+                          Criar nova
+                        </button>
+                      </p>
+                    ) : (
+                      matches.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => setPicked(c)}
+                          className="flex w-full items-center gap-3 px-4 py-2.5 text-left active:bg-onyx/[0.04]"
+                        >
+                          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-onyx/10 font-subtitle text-xs font-semibold text-onyx">
+                            {c.name.trim().charAt(0).toUpperCase()}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate font-subtitle text-sm font-medium text-onyx">{c.name}</span>
+                            <span className="block font-subtitle text-xs text-muted-dark">{c.phone}</span>
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </section>
+
+              {/* What: the model, its options and the colour. */}
+              <section>
+                <h3 className={section}>Modelo</h3>
+                <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {services
+                    .filter((s) => s.active !== false)
+                    .map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        aria-pressed={serviceId === s.id}
+                        onClick={() => {
+                          setServiceId(s.id)
+                          setLength('')
+                          setParting('')
+                        }}
+                        className={cn(
+                          'flex shrink-0 flex-col items-start rounded-2xl px-4 py-2.5 text-left transition-colors',
+                          serviceId === s.id ? 'bg-onyx text-white' : 'border border-onyx/15 text-onyx',
+                        )}
+                      >
+                        <span className="whitespace-nowrap font-subtitle text-sm font-medium">{s.name}</span>
+                        <span className="whitespace-nowrap font-subtitle text-xs opacity-60">
+                          {servicePriceLabel(s)}
+                        </span>
+                      </button>
+                    ))}
+                </div>
+                {[
+                  ['Comprimento', options.lengths, length, setLength] as const,
+                  ['Repartição', options.partings, parting, setParting] as const,
+                ].map(([label, values, value, set]) =>
+                  values.length ? (
+                    <div key={label} className="mt-3">
+                      <p className="mb-1.5 px-1 font-subtitle text-xs text-muted-dark">{label}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {values.map((v) => (
+                          <button key={v} type="button" onClick={() => set(v)} className={chip(value === v)}>
+                            {v}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null,
+                )}
+                <div className="mt-3">
+                  <p className="mb-1.5 px-1 font-subtitle text-xs text-muted-dark">
+                    Cor {color ? `· ${color} ${BRAID_COLORS.find((c) => c.code === color)?.name ?? ''}` : '(opcional)'}
+                  </p>
+                  <div className="flex flex-wrap gap-2.5">
+                    {BRAID_COLORS.map((c) => (
+                      <button
+                        key={c.code}
+                        type="button"
+                        aria-label={`Cor ${c.code} · ${c.name}`}
+                        aria-pressed={color === c.code}
+                        onClick={() => setColor(color === c.code ? '' : c.code)}
+                        className={cn(
+                          'size-9 rounded-full ring-offset-2 ring-offset-white transition-shadow',
+                          color === c.code ? 'ring-2 ring-onyx' : 'ring-1 ring-onyx/15',
+                        )}
+                        style={{ backgroundColor: c.hex }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              {/* When: a free slot in one tap, or any date and time. */}
+              <section>
+                <h3 className={section}>Quando</h3>
+                {freeSlots.length > 0 && (
+                  <>
+                    <p className="mb-1.5 px-1 font-subtitle text-xs text-muted-dark">Vagas livres</p>
+                    <div className="-mx-5 mb-3 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      {freeSlots.map((sl) => {
+                        const at = new Date(sl.startsAt)
+                        const d = localDateValue(at)
+                        const t = `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`
+                        const on = d === date && t === time
+                        return (
+                          <button
+                            key={sl.id}
+                            type="button"
+                            onClick={() => {
+                              setDate(d)
+                              setTime(t)
+                            }}
+                            className={cn(
+                              'flex shrink-0 flex-col items-center rounded-2xl px-3.5 py-2 transition-colors',
+                              on ? 'bg-onyx text-white' : 'border border-onyx/15 text-onyx',
+                            )}
+                          >
+                            <span className="font-subtitle text-[11px] capitalize opacity-70">
+                              {at.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric' })}
+                            </span>
+                            <span className="font-subtitle text-sm font-semibold lining-nums">{t}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+                <div className={group}>
+                  <label className="flex items-center justify-between gap-3 px-4">
+                    <span className="font-subtitle text-[15px] text-onyx">Data</span>
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className={`${plain} h-[52px] w-auto text-right`}
+                    />
+                  </label>
+                  <label className="flex items-center justify-between gap-3 px-4">
+                    <span className="font-subtitle text-[15px] text-onyx">Hora</span>
+                    <input
+                      type="time"
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
+                      className={`${plain} h-[52px] w-auto text-right`}
+                    />
+                  </label>
+                </div>
+              </section>
+
+              <section>
+                <h3 className={section}>Nota</h3>
+                <div className={group}>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={2}
+                    maxLength={500}
+                    placeholder="Opcional: algo a lembrar para esta sessão"
+                    aria-label="Nota"
+                    className={`${plain} resize-none px-4 py-3 leading-snug`}
+                  />
+                </div>
+              </section>
+
+              {/* What will be saved, in one line. */}
+              {service && (
+                <div className="rounded-2xl border border-onyx/10 p-4">
+                  <p className="font-subtitle text-xs uppercase tracking-[0.14em] text-muted-dark">Resumo</p>
+                  <p className="mt-1 font-subtitle text-[15px] font-medium text-onyx">
+                    {[service.name, length, parting].filter(Boolean).join(' · ')}
+                    {price !== null && (
+                      <span className="text-muted-dark"> · {formatPrice(price).replace(/,00/, '')}</span>
+                    )}
+                  </p>
+                  <p className="font-subtitle text-sm capitalize text-muted-dark">{whenLabel}</p>
+                  {missing.length > 0 ? (
+                    <p className="mt-2 font-subtitle text-xs font-medium text-red-700">Falta: {missing.join(', ')}.</p>
+                  ) : (
+                    <p className="mt-2 font-subtitle text-xs text-muted-dark">
+                      Fica confirmada logo e o horário deixa de estar livre para as clientes.
+                    </p>
+                  )}
+                </div>
               )}
             </div>
-          ) : (
-            <>
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Pesquisar por nome ou telemóvel"
-                className={sheetFieldClass}
-              />
-              <div className="mt-2 flex flex-col gap-1">
-                {matches.length === 0 && (
-                  <p className="px-1 py-2 font-subtitle text-sm text-muted-dark">Nenhum cliente encontrado.</p>
-                )}
-                {matches.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => setPicked(c)}
-                    className="rounded-xl glass-chip px-4 py-2.5 text-left"
-                  >
-                    <span className="block font-subtitle text-sm font-semibold text-onyx">{c.name}</span>
-                    <span className="block font-subtitle text-xs text-muted-dark">{c.phone}</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+          </motion.form>
         </div>
       )}
-
-      <SheetField label="Modelo">
-        <select
-          value={serviceId}
-          onChange={(e) => {
-            setServiceId(e.target.value)
-            setLength('')
-            setParting('')
-          }}
-          className={sheetFieldClass}
-        >
-          {services
-            .filter((s) => s.active !== false)
-            .map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name} · {servicePriceLabel(s)}
-              </option>
-            ))}
-        </select>
-      </SheetField>
-
-      <SheetField label="Cor (opcional)">
-        <select value={color} onChange={(e) => setColor(e.target.value)} className={sheetFieldClass}>
-          <option value="">Sem cor indicada</option>
-          {BRAID_COLORS.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.code} · {c.name}
-            </option>
-          ))}
-        </select>
-      </SheetField>
-
-      {options.hasOptions && (
-        <div className="grid grid-cols-2 gap-3">
-          {options.lengths.length > 0 && (
-            <SheetField label="Comprimento">
-              <select value={length} onChange={(e) => setLength(e.target.value)} className={sheetFieldClass}>
-                <option value="">Escolher</option>
-                {options.lengths.map((v) => (
-                  <option key={v}>{v}</option>
-                ))}
-              </select>
-            </SheetField>
-          )}
-          {options.partings.length > 0 && (
-            <SheetField label="Repartição">
-              <select value={parting} onChange={(e) => setParting(e.target.value)} className={sheetFieldClass}>
-                <option value="">Escolher</option>
-                {options.partings.map((v) => (
-                  <option key={v}>{v}</option>
-                ))}
-              </select>
-            </SheetField>
-          )}
-          {price !== null && (
-            <p className="col-span-2 font-subtitle text-sm text-onyx">Preço: {formatPrice(price)}</p>
-          )}
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-3">
-        <SheetField label="Data">
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={sheetFieldClass} />
-        </SheetField>
-        <SheetField label="Hora">
-          <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className={sheetFieldClass} />
-        </SheetField>
-      </div>
-
-      <SheetField label="Notas (opcional)">
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={2}
-          maxLength={500}
-          className={`${sheetFieldClass} resize-none`}
-        />
-      </SheetField>
-    </Sheet>
+    </AnimatePresence>
   )
 }
