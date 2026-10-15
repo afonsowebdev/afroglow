@@ -1551,7 +1551,7 @@ function PendingCard({
           </a>
         </div>
 
-        <div className="mt-4 rounded-2xl bg-onyx/5 p-4">
+        <div className="mt-3 rounded-2xl border border-onyx/10 bg-white p-4 shadow-sm shadow-black/5">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="font-subtitle text-[11px] font-medium uppercase tracking-wide text-muted-dark">Sessão</p>
@@ -2542,22 +2542,6 @@ function AdminDashboard() {
                     {scheduleNotice}
                   </p>
                 )}
-                <div className="mb-4 grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setGenerateOpen(true)}
-                    className="flex items-center justify-center gap-2 whitespace-nowrap glass-chip rounded-full px-3 py-3 font-subtitle text-[13px] text-onyx transition-opacity hover:opacity-90"
-                  >
-                    <i className="bx bx-calendar-week text-lg" aria-hidden="true" /> Horário semanal
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBlockOpen(true)}
-                    className="flex items-center justify-center gap-2 whitespace-nowrap glass-chip rounded-full px-3 py-3 font-subtitle text-[13px] text-onyx"
-                  >
-                    <i className="bx bx-calendar-x text-lg" aria-hidden="true" /> Fechar um dia
-                  </button>
-                </div>
                 {clearResult && (
                   <div className="mb-4 flex items-start gap-3 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
                     <i className="bx bx-check-circle mt-0.5 text-xl text-onyx" aria-hidden="true" />
@@ -2572,48 +2556,73 @@ function AdminDashboard() {
                     </button>
                   </div>
                 )}
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { label: 'Disponíveis', value: monthSlots.filter((slot) => slot.status === 'OPEN').length },
-                    { label: 'Pendentes', value: monthSlots.filter((slot) => slot.status === 'PENDING').length },
-                    { label: 'Reservadas', value: monthSlots.filter((slot) => slot.status === 'BOOKED').length },
-                  ].map((stat) => (
-                    <div key={stat.label} className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
-                      <p className="font-subtitle font-semibold lining-nums tracking-tight text-xl leading-none text-onyx">
-                        {stat.value}
-                      </p>
-                      <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
-                        {stat.label}
-                      </p>
-                    </div>
+                {/* The month in one line, each state with its colour (as in the calendar below). */}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1 font-subtitle text-sm text-muted-dark">
+                  {(
+                    [
+                      ['bg-emerald-500', monthSlots.filter((slot) => slot.status === 'OPEN').length, 'livres'],
+                      ['bg-amber-500', monthSlots.filter((slot) => slot.status === 'PENDING').length, 'por confirmar'],
+                      ['bg-red-600', monthSlots.filter((slot) => slot.status === 'BOOKED').length, 'reservadas'],
+                    ] as const
+                  ).map(([dot, count, label]) => (
+                    <span key={label} className="flex items-center gap-1.5">
+                      <span className={`size-2 rounded-full ${dot}`} />
+                      <strong className="font-semibold lining-nums text-onyx">{count}</strong> {label}
+                    </span>
                   ))}
                 </div>
 
-                <form
-                  onSubmit={handleCreateSlots}
-                  className="mt-6 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5"
-                >
-                  <button
-                    type="button"
-                    onClick={toggleCreate}
-                    aria-expanded={createOpen}
-                    className="flex w-full items-center justify-between gap-3 text-left"
-                  >
-                    <span>
-                      <span className="block font-subtitle text-lg font-semibold tracking-tight text-onyx">
-                        Criar horários
+                {/* What can be done, as one list. */}
+                <div className="mt-4 divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
+                  {[
+                    {
+                      icon: 'bx bx-calendar-week',
+                      title: 'Abrir a semana',
+                      text: 'O teu horário habitual em várias semanas de uma vez.',
+                      onClick: () => setGenerateOpen(true),
+                      expands: false,
+                    },
+                    {
+                      icon: 'bx bx-calendar-plus',
+                      title: 'Abrir um dia',
+                      text: 'Escolhe o dia e as horas.',
+                      onClick: toggleCreate,
+                      expands: true,
+                    },
+                    {
+                      icon: 'bx bx-calendar-x',
+                      title: 'Fechar um dia',
+                      text: 'Folga ou imprevisto: tira as vagas livres desse dia.',
+                      onClick: () => setBlockOpen(true),
+                      expands: false,
+                    },
+                  ].map((row) => (
+                    <button
+                      key={row.title}
+                      type="button"
+                      onClick={row.onClick}
+                      aria-expanded={row.expands ? createOpen : undefined}
+                      className="flex w-full items-center gap-3.5 px-4 py-3 text-left active:bg-onyx/[0.04]"
+                    >
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-onyx text-lg text-white">
+                        <i className={row.icon} aria-hidden="true" />
                       </span>
-                      <span className="mt-1 block font-subtitle text-sm text-muted-dark">
-                        {createOpen ? 'Escolhe o dia e toca nas horas que queres abrir.' : 'Toca para abrir.'}
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-subtitle text-[15px] font-medium text-onyx">{row.title}</span>
+                        <span className="block font-subtitle text-xs text-muted-dark">{row.text}</span>
                       </span>
-                    </span>
-                    <span className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-xl text-onyx">
                       <i
-                        className={`bx bx-chevron-down transition-transform duration-300 ${createOpen ? 'rotate-180' : ''}`}
+                        className={`bx ${row.expands ? 'bx-chevron-down' : 'bx-chevron-right'} text-xl text-onyx/30 transition-transform ${
+                          row.expands && createOpen ? 'rotate-180' : ''
+                        }`}
                         aria-hidden="true"
                       />
-                    </span>
-                  </button>
+                    </button>
+                  ))}
+                </div>
+
+                {/* "Abrir um dia", opened from the list above. */}
+                <form onSubmit={handleCreateSlots}>
 
                   <AnimatePresence initial={false}>
                     {createOpen && (
@@ -2625,7 +2634,7 @@ function AdminDashboard() {
                         transition={{ duration: 0.25, ease: 'easeInOut' }}
                         className="overflow-hidden"
                       >
-                        <div className="mt-4 rounded-2xl bg-onyx/5 p-4">
+                        <div className="mt-3 rounded-2xl border border-onyx/10 bg-white p-4 shadow-sm shadow-black/5">
                           <p className="mb-3 flex items-center gap-2 font-subtitle text-sm font-semibold text-onyx">
                             <span className="flex size-6 items-center justify-center rounded-full bg-onyx text-xs text-white">
                               1
@@ -2703,7 +2712,7 @@ function AdminDashboard() {
                   <EmptyState
                     icon="bx bx-time-five"
                     title="Sem horários neste mês"
-                    text="Abre vagas em “Criar horários” ou “Horário semanal”, acima, para as clientes poderem marcar."
+                    text="Abre vagas em “Abrir a semana” ou “Abrir um dia”, acima, para as clientes poderem marcar."
                   />
                 ) : (
                   <SlotsDayView
