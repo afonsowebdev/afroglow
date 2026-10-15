@@ -1551,7 +1551,7 @@ function PendingCard({
           </a>
         </div>
 
-        <div className="mt-3 rounded-2xl border border-onyx/10 bg-white p-4 shadow-sm shadow-black/5">
+        <div className="mt-4 rounded-2xl bg-onyx/5 p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="font-subtitle text-[11px] font-medium uppercase tracking-wide text-muted-dark">Sessão</p>
@@ -2666,7 +2666,7 @@ function AdminDashboard() {
                           </div>
                         </div>
 
-                        <div className="mt-3 rounded-2xl bg-onyx/5 p-4">
+                        <div className="mt-3 rounded-2xl border border-onyx/10 bg-white p-4 shadow-sm shadow-black/5">
                           <p className="mb-3 flex items-center gap-2 font-subtitle text-sm font-semibold text-onyx">
                             <span className="flex size-6 items-center justify-center rounded-full bg-onyx text-xs text-white">
                               2
