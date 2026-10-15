@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import {
@@ -239,16 +239,11 @@ function SlotsDayView({
   const pickDefault = () =>
     (byKey.has(todayKey) ? todayKey : slotsByDate.find(([key]) => key >= todayKey)?.[0]) ?? slotsByDate[0]?.[0] ?? ''
   const [selected, setSelected] = useState(pickDefault)
-  const chosen = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!selected.startsWith(prefix) || !byKey.has(selected)) setSelected(pickDefault())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefix, slotsByDate])
-
-  useEffect(() => {
-    chosen.current?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
-  }, [selected])
 
   const clientOf = (slot: AvailabilitySlot) =>
     bookings.find((b) => b.slot.id === slot.id && (b.status === 'PENDING' || b.status === 'ACCEPTED'))?.customerName
@@ -257,18 +252,14 @@ function SlotsDayView({
   const free = list.filter((slot) => slot.status === 'OPEN').length
   const heading = list[0] ? dayHeading(list[0].startsAt) : null
   const parts = list[0] ? dateParts(list[0].startsAt) : null
-
-  const monthName = new Date(viewMonth.year, viewMonth.month - 1, 1).toLocaleDateString('pt-PT', { month: 'long' })
+  // The month as a grid, Monday first: blanks before the 1st.
+  const lead = (new Date(viewMonth.year, viewMonth.month - 1, 1).getDay() + 6) % 7
+  const [confirmId, setConfirmId] = useState<string | null>(null)
 
   return (
     <div className="mt-6">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 font-subtitle text-base font-semibold tracking-tight text-onyx">
-          <i className="bx bx-calendar text-xl text-onyx" aria-hidden="true" />
-          <span className="first-letter:uppercase">
-            Calendário de {monthName} {viewMonth.year}
-          </span>
-        </h2>
+      <div className="mb-2 flex items-center justify-between gap-3 px-1">
+        <h2 className="font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">Calendário</h2>
         {selected !== todayKey && byKey.has(todayKey) && (
           <button
             type="button"
@@ -279,67 +270,83 @@ function SlotsDayView({
           </button>
         )}
       </div>
-      <div
-        role="tablist"
-        aria-label="Dia"
-        className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:-mx-8 sm:px-8 [&::-webkit-scrollbar]:hidden"
-      >
-        {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
-          const key = `${prefix}-${String(day).padStart(2, '0')}`
-          const slots = byKey.get(key)
-          const open = slots?.filter((slot) => slot.status === 'OPEN').length ?? 0
-          const active = key === selected
-          const weekday = new Date(viewMonth.year, viewMonth.month - 1, day)
-            .toLocaleDateString('pt-PT', { weekday: 'long' })
-            .slice(0, 3)
-          const bar = !slots ? 'bg-onyx/10' : open > 0 ? 'bg-emerald-500' : 'bg-red-600'
-          return (
-            <button
-              key={key}
-              ref={active ? chosen : undefined}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              aria-label={`${day}, ${slots ? (open > 0 ? `${open} livres` : 'completo') : 'sem horários'}`}
-              onClick={() => setSelected(key)}
-              className={`flex h-[4.5rem] w-14 shrink-0 flex-col items-center justify-center rounded-2xl font-subtitle ${
-                active ? 'glass-chip-on' : 'glass-chip'
-              } ${slots || active ? 'text-onyx' : 'text-onyx/40'}`}
-            >
-              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-dark">{weekday}</span>
-              <span
-                className={`text-lg font-semibold lining-nums leading-tight tracking-tight ${key === todayKey ? 'text-onyx' : ''}`}
+
+      {/* The whole month at once: a dot for days with free times, a ring for days that are full. */}
+      <div className="rounded-2xl border border-onyx/10 bg-white p-3 shadow-sm shadow-black/5">
+        <div className="grid grid-cols-7 text-center font-subtitle text-[10px] font-medium uppercase tracking-wide text-muted-dark">
+          {['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map((d, i) => (
+            <span key={i} className="py-1">
+              {d}
+            </span>
+          ))}
+        </div>
+        <div role="grid" aria-label="Dias do mês" className="mt-1 grid grid-cols-7 gap-y-1">
+          {Array.from({ length: lead }, (_, i) => (
+            <span key={`b${i}`} />
+          ))}
+          {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
+            const key = `${prefix}-${String(day).padStart(2, '0')}`
+            const slots = byKey.get(key)
+            const open = slots?.filter((slot) => slot.status === 'OPEN').length ?? 0
+            const active = key === selected
+            const isToday = key === todayKey
+            const past = key < todayKey
+            return (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={active}
+                aria-label={`${day}, ${slots ? (open > 0 ? `${open} livres` : 'completo') : 'sem horários'}`}
+                onClick={() => setSelected(key)}
+                className="flex flex-col items-center py-0.5"
               >
-                {day}
-              </span>
-              <span className={`mt-1 h-1 w-6 rounded-full ${bar}`} aria-hidden="true" />
-            </button>
-          )
-        })}
+                <span
+                  className={`flex size-9 items-center justify-center rounded-full font-subtitle text-sm lining-nums transition-colors ${
+                    active
+                      ? 'bg-onyx font-semibold text-white'
+                      : isToday
+                        ? 'font-semibold text-onyx ring-1 ring-onyx'
+                        : slots
+                          ? past
+                            ? 'text-onyx/45'
+                            : 'font-medium text-onyx'
+                          : 'text-onyx/30'
+                  }`}
+                >
+                  {day}
+                </span>
+                <span
+                  className={`mt-0.5 size-1.5 rounded-full ${
+                    !slots ? 'bg-transparent' : open > 0 ? 'bg-emerald-500' : 'bg-red-600'
+                  }`}
+                  aria-hidden="true"
+                />
+              </button>
+            )
+          })}
+        </div>
+        <div className="mt-2 flex items-center justify-center gap-4 border-t border-onyx/[0.08] pt-2.5 font-subtitle text-[11px] text-muted-dark">
+          <span className="flex items-center gap-1.5">
+            <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" /> Com horas livres
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="size-1.5 rounded-full bg-red-600" aria-hidden="true" /> Completo
+          </span>
+          <span className="text-onyx/35">Sem ponto: fechado</span>
+        </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-center gap-5 font-subtitle text-[11px] text-muted-dark">
-        <span className="flex items-center gap-1.5">
-          <span className="h-1 w-4 rounded-full bg-emerald-500" aria-hidden="true" /> Com horas livres
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-1 w-4 rounded-full bg-red-600" aria-hidden="true" /> Completo
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-1 w-4 rounded-full bg-onyx/10" aria-hidden="true" /> Fechado
-        </span>
-      </div>
-
-      <div className="mt-5 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
+      {/* The chosen day: its times as a list. */}
+      <div className="mt-5">
         {list.length === 0 ? (
-          <div className="py-6 text-center">
-            <p className="font-subtitle text-base font-semibold text-onyx">Sem horários neste dia</p>
-            <p className="mt-1 font-subtitle text-sm text-muted-dark">Está fechado. Cria horários para o abrir.</p>
+          <div className="rounded-2xl bg-onyx/[0.04] px-4 py-6 text-center">
+            <p className="font-subtitle text-base font-semibold text-onyx">Dia fechado</p>
+            <p className="mt-1 font-subtitle text-sm text-muted-dark">Sem horários. Usa “Abrir um dia” acima para o abrir.</p>
           </div>
         ) : (
           <>
-            <div className="flex items-baseline justify-between gap-3">
-              <h3 className="font-subtitle text-lg font-semibold tracking-tight text-onyx first-letter:uppercase">
+            <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
+              <h3 className="font-subtitle text-base font-semibold tracking-tight text-onyx first-letter:uppercase">
                 {heading?.sub ? `${heading.title} · ${parts?.day} ${parts?.month}` : heading?.title}
               </h3>
               <span className="shrink-0 font-subtitle text-xs text-muted-dark">
@@ -347,43 +354,47 @@ function SlotsDayView({
                 {list.length - free === 1 ? 'ocupado' : 'ocupados'}
               </span>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-3">
+            <ul className="divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
               {list.map((slot) => {
                 const isFree = slot.status === 'OPEN'
                 const time = dateParts(slot.startsAt).time
                 const who = clientOf(slot)
+                const confirming = confirmId === slot.id
                 return (
-                  <div
-                    key={slot.id}
-                    className={`relative flex min-h-24 flex-col justify-between rounded-2xl p-3.5 ${
-                      isFree ? 'glass-chip' : 'bg-onyx/5'
-                    }`}
-                  >
-                    <span className="font-subtitle text-2xl font-semibold lining-nums leading-none tracking-tight text-onyx">
-                      {time}
-                    </span>
-                    <span className="mt-3 flex items-center gap-2 font-subtitle text-xs text-muted-dark">
+                  <li key={slot.id} className="flex items-center gap-3 px-4 py-3">
+                    <span className="w-14 shrink-0 font-subtitle text-lg font-semibold lining-nums text-onyx">{time}</span>
+                    <span className="flex min-w-0 flex-1 items-center gap-2 font-subtitle text-sm">
                       <span
-                        className={`size-2.5 shrink-0 rounded-full ${isFree ? 'bg-emerald-500' : 'bg-red-600'}`}
+                        className={`size-2 shrink-0 rounded-full ${
+                          isFree ? 'bg-emerald-500' : slot.status === 'PENDING' ? 'bg-amber-500' : 'bg-red-600'
+                        }`}
                         aria-hidden="true"
                       />
-                      <span className="truncate">{isFree ? 'Livre' : (who ?? SLOT_STATUS_LABEL[slot.status])}</span>
+                      <span className={`truncate ${isFree ? 'text-muted-dark' : 'font-medium text-onyx'}`}>
+                        {isFree ? 'Livre' : (who ?? SLOT_STATUS_LABEL[slot.status])}
+                      </span>
+                      {slot.status === 'PENDING' && (
+                        <span className="shrink-0 text-xs text-muted-dark">· por confirmar</span>
+                      )}
                     </span>
                     {isFree && (
                       <button
                         type="button"
-                        onClick={() => onDelete(slot.id)}
+                        onClick={() => (confirming ? onDelete(slot.id) : setConfirmId(slot.id))}
+                        onBlur={() => setConfirmId(null)}
                         disabled={busyId === slot.id}
-                        aria-label={`Remover a vaga das ${time}`}
-                        className="absolute right-1.5 top-1.5 flex size-8 items-center justify-center rounded-full text-lg text-muted-dark active:bg-red-700/10 active:text-red-700 disabled:opacity-40"
+                        aria-label={`Fechar a vaga das ${time}`}
+                        className={`shrink-0 rounded-full px-3 py-1.5 font-subtitle text-xs transition-colors disabled:opacity-40 ${
+                          confirming ? 'bg-red-600 font-medium text-[#ffffff]' : 'text-onyx/50'
+                        }`}
                       >
-                        <i className="bx bx-trash" aria-hidden="true" />
+                        {confirming ? 'Fechar' : <i className="bx bx-minus-circle text-lg" aria-hidden="true" />}
                       </button>
                     )}
-                  </div>
+                  </li>
                 )
               })}
-            </div>
+            </ul>
           </>
         )}
       </div>
@@ -2726,35 +2737,19 @@ function AdminDashboard() {
 
                 {/* Only when the month has something to clear. */}
                 {monthSlots.length > 0 && (
-                  <div className="mt-12">
-                    <div className="flex items-center gap-3">
-                      <span className="h-px flex-1 bg-onyx/10" />
-                      <span className="flex items-center gap-1.5 font-subtitle text-[11px] uppercase tracking-[0.18em] text-muted-dark">
-                        <i className="bx bx-error text-sm text-red-700" aria-hidden="true" />
-                        Zona de perigo
-                      </span>
-                      <span className="h-px flex-1 bg-onyx/10" />
-                    </div>
-
-                    <div className="relative mt-4 overflow-hidden rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5">
-                      <span className="absolute inset-y-0 left-0 w-1 bg-red-700" aria-hidden="true" />
-                      <div className="pl-2">
-                        <p className="font-subtitle font-semibold lining-nums tracking-tight text-lg text-onyx">
-                          Limpar {formatMonthLabel(viewMonth)}
-                        </p>
-                        <p className="mt-1 font-subtitle text-sm text-muted-dark">
-                          Apaga todas as vagas e marcações deste mês, incluindo as já aceites. Não pode ser desfeito.
-                        </p>
-                        <button
-                          type="button"
-                          onClick={openClearPanel}
-                          className="mt-4 inline-flex items-center gap-2 rounded-full border border-red-700/40 px-5 py-2.5 font-subtitle text-sm font-semibold text-red-700 transition-colors hover:bg-red-700 hover:text-[#ffffff]"
-                        >
-                          <i className="bx bx-trash text-base" aria-hidden="true" />
-                          Limpar mês
-                        </button>
-                      </div>
-                    </div>
+                  // Rarely needed and can't be undone: a quiet line at the end; the dialog asks for the password.
+                  <div className="mt-10 border-t border-onyx/10 pt-4 text-center">
+                    <button
+                      type="button"
+                      onClick={openClearPanel}
+                      className="inline-flex items-center gap-1.5 font-subtitle text-sm text-red-700/80 dark:text-red-400"
+                    >
+                      <i className="bx bx-trash text-base" aria-hidden="true" />
+                      Limpar {formatMonthLabel(viewMonth)}…
+                    </button>
+                    <p className="mt-1 font-subtitle text-xs text-muted-dark">
+                      Apaga todas as vagas e marcações do mês. Não pode ser desfeito.
+                    </p>
                   </div>
                 )}
 
