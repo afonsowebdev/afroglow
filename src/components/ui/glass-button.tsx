@@ -1,7 +1,9 @@
-import type { MouseEventHandler } from 'react'
+import { useRef, type MouseEventHandler } from 'react'
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
 import { tap } from '@/lib/haptics'
+import { useTheme } from '@/lib/theme'
+import { useBackdropTone } from '@/lib/use-backdrop-tone'
 import { cn } from '@/lib/utils'
 
 type Variant = 'overlay' | 'primary' | 'secondary'
@@ -9,14 +11,13 @@ type Variant = 'overlay' | 'primary' | 'secondary'
 /*
  * The customer app's button, in liquid glass like the tab bar:
  *  - overlay: over the hero video, clear neutral glass, white letters with a soft shadow;
- *  - primary: clear glass like the tab bar, dark letters, no colour at all;
- *  - secondary: clear glass, dark letters.
+ *  - primary / secondary: clear glass like the tab bar, no colour at all; the letters follow what is behind the
+ *    glass on their own (white with a soft shadow over dark photos or backgrounds, dark over light ones).
  * Always a compact pill: label on the left, round glass disc with an arrow on the right.
  */
-const PILL: Record<Variant, string> = {
-  overlay: 'liquid-glass text-[#ffffff]',
-  primary: 'liquid-glass text-onyx',
-  secondary: 'liquid-glass text-onyx',
+const LETTERS = {
+  light: 'text-[#1a1008]',
+  dark: 'text-[#ffffff] [text-shadow:0_1px_6px_rgba(0,0,0,0.35)]',
 }
 
 export function GlassButton({
@@ -41,9 +42,12 @@ export function GlassButton({
   onClick?: MouseEventHandler<HTMLElement>
   className?: string
 }) {
+  const box = useRef<HTMLDivElement>(null)
+  const { theme } = useTheme()
+  const tone = useBackdropTone(box, theme === 'dark' ? 'dark' : 'light', variant !== 'overlay')
   const classes = cn(
-    'inline-flex h-12 items-center gap-5 rounded-full ps-6 pe-1.5 outline-none transition-opacity',
-    PILL[variant],
+    'liquid-glass inline-flex h-12 items-center gap-5 rounded-full ps-6 pe-1.5 outline-none transition-[color,opacity] duration-300',
+    variant === 'overlay' ? 'text-[#ffffff]' : LETTERS[tone],
     disabled && 'pointer-events-none opacity-50',
     className,
   )
@@ -85,6 +89,7 @@ export function GlassButton({
 
   return (
     <motion.div
+      ref={box}
       className="w-fit"
       whileTap={{ scale: 0.96 }}
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}

@@ -312,7 +312,6 @@ function CustomerShell() {
           <BottomNavBar
             glass
             hidden={navHidden}
-            tone={overHero ? 'onDark' : 'onLight'}
             value={tab}
             onChange={(id) => {
               const target = TABS.find((t) => t.id === id)

@@ -1,5 +1,7 @@
-import type { ComponentType } from 'react'
+import { useRef, type ComponentType } from 'react'
 import { motion } from 'motion/react'
+import { useTheme } from '@/lib/theme'
+import { useBackdropTone } from '@/lib/use-backdrop-tone'
 import { cn } from '@/lib/utils'
 
 export interface BottomNavItem<T extends string = string> {
@@ -25,7 +27,8 @@ interface BottomNavBarProps<T extends string> {
   stickyBottom?: boolean
   /** iOS-style transparent "liquid glass" instead of the frosted default. */
   glass?: boolean
-  /** With `glass`: what is behind the bar, so icons and labels stay readable. */
+  /** With `glass`: what is behind the bar, so icons and labels stay readable. Left out, the bar works it out on its
+   *  own as the page moves (white over dark, dark over light). */
   tone?: 'onLight' | 'onDark'
   /** Tighter spacing, for bars with many items next to another button. */
   compact?: boolean
@@ -42,13 +45,17 @@ export function BottomNavBar<T extends string>({
   className,
   stickyBottom = false,
   glass = false,
-  tone = 'onLight',
+  tone,
   hidden = false,
   compact = false,
 }: BottomNavBarProps<T>) {
-  const onDark = glass && tone === 'onDark'
+  const bar = useRef<HTMLElement>(null)
+  const { theme } = useTheme()
+  const seen = useBackdropTone(bar, theme === 'dark' ? 'dark' : 'light', glass && !tone)
+  const onDark = glass && (tone ? tone === 'onDark' : seen === 'dark')
   return (
     <motion.nav
+      ref={bar}
       initial={{ scale: 0.9, opacity: 0 }}
       animate={hidden ? { scale: 0.96, opacity: 0, y: 120 } : { scale: 1, opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 28 }}

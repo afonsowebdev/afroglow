@@ -73,10 +73,11 @@ function luminanceAt(x: number, y: number, own: Element) {
  * or changes: photos and videos are read pixel by pixel, other things by their background colour. Letters on top
  * then go dark on light and white on dark.
  */
-export function useBackdropTone(ref: RefObject<HTMLElement | null>, fallback: BackdropTone = 'light') {
+export function useBackdropTone(ref: RefObject<HTMLElement | null>, fallback: BackdropTone = 'light', enabled = true) {
   const [tone, setTone] = useState<BackdropTone>(fallback)
 
   useEffect(() => {
+    if (!enabled) return
     let frame = 0
     const measure = () => {
       frame = 0
@@ -109,7 +110,7 @@ export function useBackdropTone(ref: RefObject<HTMLElement | null>, fallback: Ba
       window.removeEventListener('resize', schedule)
       window.clearInterval(timer)
     }
-  }, [ref])
+  }, [ref, enabled])
 
   return tone
 }

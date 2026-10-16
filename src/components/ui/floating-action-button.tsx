@@ -2,9 +2,11 @@
 
 import { motion } from 'motion/react'
 import { Plus, type LucideIcon } from 'lucide-react'
-import { useState, type ComponentType } from 'react'
+import { useRef, useState, type ComponentType } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { useTheme } from '@/lib/theme'
+import { useBackdropTone } from '@/lib/use-backdrop-tone'
 import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 
 export interface ActionIcon {
@@ -157,7 +159,7 @@ export interface MenuAction {
 export function FloatingActionMenu({
   actions,
   hidden = false,
-  tone = 'onLight',
+  tone,
   dot = false,
   direction = 'up',
   compact = false,
@@ -186,6 +188,11 @@ export function FloatingActionMenu({
 }) {
   const [open, setOpen] = useState(false)
   const close = () => setOpen(false)
+  // The glass button's "+" follows what is behind it on its own, unless told (white over dark, dark over light).
+  const round = useRef<HTMLButtonElement>(null)
+  const { theme } = useTheme()
+  const seen = useBackdropTone(round, theme === 'dark' ? 'dark' : 'light', !brand && !compact && !tone)
+  const onDark = tone ? tone === 'onDark' : seen === 'dark'
   // A to Z, read from top to bottom. A column that opens upward is built from the bottom, so it is reversed.
   const alphabetical = [...actions].sort((a, b) => a.label.localeCompare(b.label, 'pt'))
   const ordered = direction === 'up' ? alphabetical.reverse() : alphabetical
@@ -344,6 +351,7 @@ export function FloatingActionMenu({
         )}
 
         <motion.button
+          ref={round}
           type="button"
           aria-label={open ? 'Fechar menu' : 'Abrir menu'}
           aria-expanded={open}
@@ -363,7 +371,7 @@ export function FloatingActionMenu({
                   'flex items-center justify-center rounded-full',
                   small ? 'size-12' : 'size-14',
                   'transition-colors duration-500 ease-in-out',
-                  brand ? BRAND_CIRCLE : cn('liquid-glass', tone === 'onDark' ? 'text-[#ffffff]' : 'text-onyx'),
+                  brand ? BRAND_CIRCLE : cn('liquid-glass', onDark ? 'text-[#ffffff]' : 'text-[#1a1008]'),
                 )
           }
         >
