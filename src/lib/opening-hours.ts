@@ -42,6 +42,9 @@ function parseStarts(text: string): number[] {
   return [...text.matchAll(/(\d{1,2})[:h](\d{2})/g)].map((m) => +m[1] * 60 + +m[2])
 }
 
+/** How long after its start a session can still be going on (the longest hairstyles take about six hours). */
+const SESSION_SPAN = 6 * 60
+
 const clock = (minutes: number) =>
   `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
 
@@ -100,9 +103,11 @@ export function useOpeningStatus(rows: Array<{ days: string; hours: string }>) {
 
   const current = week[now.day].find(([open, close]) => now.minutes >= open && now.minutes < close)
   if (current) return { ...base, status: { open: true, text: `Aberto agora · fecha às ${clock(current[1])}` } }
+  // Days given as session start times: open from the first session until the last one has had time to finish
+  // (a session lasts up to about six hours), not the whole day. Before that it says when it opens; after, the next day.
   const today = [...starts[now.day]].sort((a, b) => a - b)
-  if (today.length) {
-    return { ...base, status: { open: true, text: `Aberto hoje · sessões às ${timeList(today)}` } }
+  if (today.length && now.minutes >= today[0] && now.minutes < today[today.length - 1] + SESSION_SPAN) {
+    return { ...base, status: { open: true, text: `Aberto agora · sessões às ${timeList(today)}` } }
   }
 
   for (let ahead = 0; ahead < 7; ahead++) {

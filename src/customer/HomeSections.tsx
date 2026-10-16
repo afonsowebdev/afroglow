@@ -1068,7 +1068,7 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
   const external = (href: string) => (href.startsWith('http') ? { target: '_blank', rel: 'noreferrer' } : {})
 
   return (
-    <section className="mx-auto max-w-2xl px-5 pb-6 pt-14">
+    <section className="mx-auto max-w-2xl px-5 pt-14">
       <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Contactos</p>
       <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Fala connosco</h2>
 

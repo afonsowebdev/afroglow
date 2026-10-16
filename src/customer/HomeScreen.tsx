@@ -49,7 +49,7 @@ export default function HomeScreen() {
   }, [])
 
   return (
-    <main className="pb-40">
+    <main className="pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
       {/* The hero fills the whole first screen, edge to edge, like the website. */}
       <section
         data-hero
