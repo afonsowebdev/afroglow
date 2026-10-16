@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ActionButton } from '@/components/ui/action-button'
 import { AccountAuthForm } from '@/components/ui/account-auth-form'
 import { api, ApiError } from '@/lib/api'
 import { useCustomerAuth } from '@/lib/customer-auth'
+import { useBackdropTone } from '@/lib/use-backdrop-tone'
+import { useTheme } from '@/lib/theme'
 import { success, tap } from '@/lib/haptics'
 import { useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 import { downloadBookingIcs } from '@/lib/calendar'
@@ -120,6 +122,11 @@ function Cta({
   onClick: () => void
   className?: string
 }) {
+  // The glass is see-through: its letters follow what is behind it, white on dark (a photo, the dark theme),
+  // dark on light, worked out on their own as the page moves.
+  const pill = useRef<HTMLDivElement>(null)
+  const { theme } = useTheme()
+  const tone = useBackdropTone(pill, theme === 'dark' ? 'dark' : 'light')
   return (
     <motion.div
       initial={{ y: 90, opacity: 0 }}
@@ -129,8 +136,15 @@ function Cta({
       className={`pointer-events-none fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 px-5 ${className}`}
     >
       <div className="pointer-events-auto mx-auto flex max-w-md justify-center">
-        <div className="rounded-full">
-          <ActionButton label={busy ? 'A enviar...' : label} disabled={busy} onClick={onClick} />
+        <div ref={pill} className="rounded-full">
+          <ActionButton
+            label={busy ? 'A enviar...' : label}
+            disabled={busy}
+            onClick={onClick}
+            className={`transition-[color,opacity] duration-300 ${
+              tone === 'dark' ? 'text-[#ffffff] [text-shadow:0_1px_6px_rgba(0,0,0,0.35)]' : 'text-[#1a1008]'
+            }`}
+          />
         </div>
       </div>
     </motion.div>
