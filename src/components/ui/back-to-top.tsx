@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { ArrowUp } from 'lucide-react'
 import { tap } from '@/lib/haptics'
 import { useTheme } from '@/lib/theme'
-import { useBackdropTone } from '@/lib/use-backdrop-tone'
+import { ROUND_SAMPLES, useBackdropTone } from '@/lib/use-backdrop-tone'
 import { cn } from '@/lib/utils'
 
 /**
@@ -15,7 +15,7 @@ export function BackToTop({ hidden = false }: { hidden?: boolean }) {
   const button = useRef<HTMLButtonElement>(null)
   const { theme } = useTheme()
   const visible = scrolled && !hidden
-  const tone = useBackdropTone(button, theme === 'dark' ? 'dark' : 'light', visible)
+  const tone = useBackdropTone(button, theme === 'dark' ? 'dark' : 'light', visible, ROUND_SAMPLES)
 
   useEffect(() => {
     const update = () => setScrolled(window.scrollY > window.innerHeight * 0.9)

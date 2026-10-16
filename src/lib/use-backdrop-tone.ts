@@ -12,6 +12,9 @@ function luminance(r: number, g: number, b: number) {
 }
 
 let sampler: CanvasRenderingContext2D | null = null
+const WIDE = [0.2, 0.5, 0.8] as const
+/** For small round buttons: five columns inside the circle, so a thin strip behind its middle doesn't decide. */
+export const ROUND_SAMPLES = [0.15, 0.3, 0.5, 0.7, 0.85] as const
 const UNREADABLE_PHOTO = 0.12
 
 /** The brightness of a photo or video at a point on screen (object-fit: cover), or null when it can't be read. */
@@ -73,7 +76,14 @@ function luminanceAt(x: number, y: number, own: Element) {
  * or changes: photos and videos are read pixel by pixel, other things by their background colour. Letters on top
  * then go dark on light and white on dark.
  */
-export function useBackdropTone(ref: RefObject<HTMLElement | null>, fallback: BackdropTone = 'light', enabled = true) {
+export function useBackdropTone(
+  ref: RefObject<HTMLElement | null>,
+  fallback: BackdropTone = 'light',
+  enabled = true,
+  /** Where across the element to look (0 left … 1 right): spread out for a wide bar, close to the middle for a
+   *  small round button, so a point just past its edge can't sway it. */
+  samples: readonly number[] = WIDE,
+) {
   const [tone, setTone] = useState<BackdropTone>(fallback)
 
   useEffect(() => {
@@ -85,12 +95,15 @@ export function useBackdropTone(ref: RefObject<HTMLElement | null>, fallback: Ba
       if (!el) return
       const r = el.getBoundingClientRect()
       if (!r.width) return
-      const y = r.top + r.height / 2
-      const values = [0.2, 0.5, 0.8]
-        .map((f) => luminanceAt(r.left + r.width * f, y, el))
+      // A small grid of points across the element (three rows of `samples`); the median decides, so a thin strip
+      // of something else (the gap between two cards, a line of text) can't sway it.
+      const values = [0.3, 0.5, 0.7]
+        .flatMap((fy) => samples.map((fx) => luminanceAt(r.left + r.width * fx, r.top + r.height * fy, el)))
         .filter((v): v is number => v !== null)
+        .sort((a, b) => a - b)
       if (!values.length) return
-      const average = values.reduce((sum, v) => sum + v, 0) / values.length
+      const middle = values.length >> 1
+      const average = values.length % 2 ? values[middle] : (values[middle - 1] + values[middle]) / 2
       // A little hysteresis so it doesn't flicker on mid-tones.
       setTone((current) =>
         current === 'light' ? (average < 0.3 ? 'dark' : 'light') : average > 0.4 ? 'light' : 'dark',
@@ -110,7 +123,7 @@ export function useBackdropTone(ref: RefObject<HTMLElement | null>, fallback: Ba
       window.removeEventListener('resize', schedule)
       window.clearInterval(timer)
     }
-  }, [ref, enabled])
+  }, [ref, enabled, samples])
 
   return tone
 }

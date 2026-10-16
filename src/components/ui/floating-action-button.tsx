@@ -6,7 +6,7 @@ import { useRef, useState, type ComponentType } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/lib/theme'
-import { useBackdropTone } from '@/lib/use-backdrop-tone'
+import { ROUND_SAMPLES, useBackdropTone } from '@/lib/use-backdrop-tone'
 import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 
 export interface ActionIcon {
@@ -191,7 +191,7 @@ export function FloatingActionMenu({
   // The glass button's "+" follows what is behind it on its own, unless told (white over dark, dark over light).
   const round = useRef<HTMLButtonElement>(null)
   const { theme } = useTheme()
-  const seen = useBackdropTone(round, theme === 'dark' ? 'dark' : 'light', !brand && !compact && !tone)
+  const seen = useBackdropTone(round, theme === 'dark' ? 'dark' : 'light', !brand && !compact && !tone, ROUND_SAMPLES)
   const onDark = tone ? tone === 'onDark' : seen === 'dark'
   // A to Z, read from top to bottom. A column that opens upward is built from the bottom, so it is reversed.
   const alphabetical = [...actions].sort((a, b) => a.label.localeCompare(b.label, 'pt'))
