@@ -503,6 +503,7 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
       <ServicePreview
         service={preview}
         chosen={false}
+        chooseLabel="Marcar"
         onClose={() => setPreviewId(null)}
         onChoose={() => {
           const id = previewId

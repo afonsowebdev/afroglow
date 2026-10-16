@@ -4,7 +4,7 @@ import { ActionButton } from '@/components/ui/action-button'
 import { tap } from '@/lib/haptics'
 import { serviceImageUrls } from '@/lib/service-images'
 import { formatPrice, type Service } from '@/lib/types'
-import { choiceLabel, combinations, priceKey, servicePriceLabel } from '@/lib/pricing'
+import { choiceLabel, combinations, priceKey } from '@/lib/pricing'
 
 const group =
   'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
@@ -136,6 +136,16 @@ export function ServicePreview({
                   </div>
                 )}
 
+                {/* The photo ends in a gentle wave into the details below, not a straight cut. */}
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 400 28"
+                  preserveAspectRatio="none"
+                  className="pointer-events-none absolute inset-x-0 -bottom-px z-[1] h-7 w-full fill-white"
+                >
+                  <path d="M0 16 C70 2 130 2 200 14 S330 28 400 10 L400 28 L0 28 Z" />
+                </svg>
+
                 {/* A soft shade at the top so the bars and the close button read on any photo. */}
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/45 to-transparent" />
 
@@ -168,7 +178,7 @@ export function ServicePreview({
                         />
                       ))}
                     </div>
-                    <div className="absolute bottom-4 right-4 flex gap-2">
+                    <div className="absolute bottom-10 right-4 z-[2] flex gap-2">
                       <button
                         type="button"
                         aria-label="Foto anterior"
@@ -193,9 +203,8 @@ export function ServicePreview({
               </div>
 
               {/* Details */}
-              <div className="px-5 pb-6 pt-5">
-                <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Modelo</p>
-                <h2 className="mt-1 font-subtitle text-[28px] font-semibold leading-tight tracking-tight text-onyx">
+              <div className="px-5 pb-6 pt-2">
+                <h2 className="font-subtitle text-[28px] font-semibold leading-tight tracking-tight text-onyx">
                   {service.name}
                 </h2>
                 {service.description && (
@@ -204,15 +213,36 @@ export function ServicePreview({
                   </p>
                 )}
 
-                <div className={`mt-5 ${group}`}>
-                  <Row label="Duração" value={service.durationLabel} />
-                  <Row label="Preço" value={servicePriceLabel(service)} />
+                {/* The key facts as three tiles. */}
+                <div className="mt-5 grid grid-cols-3 gap-2">
+                  {[
+                    { icon: 'bx bx-time-five', label: 'Duração', value: service.durationLabel },
+                    {
+                      icon: 'bx bx-purchase-tag-alt',
+                      label: service.pricing ? 'Desde' : 'Preço',
+                      value: formatPrice(service.priceCents),
+                    },
+                    { icon: 'bx bx-images', label: 'Fotos', value: String(count) },
+                  ].map((fact) => (
+                    <div
+                      key={fact.label}
+                      className="rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] px-3 py-3"
+                    >
+                      <i className={`${fact.icon} text-xl text-onyx/70`} aria-hidden="true" />
+                      <p className="mt-2 font-subtitle text-[11px] uppercase tracking-[0.12em] text-muted-dark">
+                        {fact.label}
+                      </p>
+                      <p className="mt-0.5 truncate font-subtitle text-[15px] font-semibold tabular-nums text-onyx">
+                        {fact.value}
+                      </p>
+                    </div>
+                  ))}
                 </div>
 
                 {options.length > 0 && (
                   <>
                     <p className="mb-2 mt-6 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">
-                      Preços
+                      Preço por comprimento
                     </p>
                     <div className={group}>
                       {options.map((o) => (
@@ -221,18 +251,30 @@ export function ServicePreview({
                     </div>
                   </>
                 )}
+
+                <p className="mt-5 flex items-center gap-2 px-1 font-subtitle text-xs text-muted-dark">
+                  <i className="bx bx-check-shield text-base" aria-hidden="true" />
+                  Tudo incluído · pagas no dia, no salão
+                </p>
               </div>
             </div>
 
-            <div className="border-t border-onyx/10 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 sm:pb-4">
-              <div className="flex justify-center">
-                <ActionButton
-                  label={chosen ? 'Retirar escolha' : chooseLabel}
-                  variant={chosen ? 'secondary' : 'primary'}
-                  icon={chosen ? 'bx bx-x' : undefined}
-                  onClick={onChoose}
-                />
+            {/* The price on the left, the button on the right. */}
+            <div className="flex items-center justify-between gap-4 border-t border-onyx/[0.08] px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 sm:pb-4">
+              <div className="min-w-0">
+                <p className="font-subtitle text-[11px] uppercase tracking-[0.12em] text-muted-dark">
+                  {service.pricing ? 'A partir de' : 'Preço'}
+                </p>
+                <p className="font-subtitle text-xl font-semibold tabular-nums text-onyx">
+                  {formatPrice(service.priceCents)}
+                </p>
               </div>
+              <ActionButton
+                label={chosen ? 'Retirar' : chooseLabel === 'Escolher este modelo' ? 'Escolher' : chooseLabel}
+                variant={chosen ? 'secondary' : 'primary'}
+                icon={chosen ? 'bx bx-x' : undefined}
+                onClick={onChoose}
+              />
             </div>
           </motion.div>
         </div>
