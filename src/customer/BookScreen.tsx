@@ -12,7 +12,7 @@ import { formatPrice, type AvailabilitySlot, type Service } from '@/lib/types'
 import { longDay, timeLabel } from './dates'
 import { useBackButton, useHideNav } from './nav-visibility'
 import { serviceImageUrls } from '@/lib/service-images'
-import { Fact, Facts, labelClass, panelClass } from './panel'
+import { Fact, Facts, labelClass } from './panel'
 import { choiceComplete, choiceLabel, optionsOf, priceFor, servicePriceLabel } from '@/lib/pricing'
 import { VelocityRow } from '@/components/ui/velocity-marquee'
 import { ButtonWithIcon } from '@/components/ui/button-with-icon'
@@ -413,11 +413,11 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                         return (
                           <div
                             key={s.id}
-                            className={`relative overflow-hidden rounded-2xl border bg-white transition-colors ${
-                              chosen ? 'border-onyx ring-1 ring-onyx' : 'border-onyx/15'
+                            className={`relative overflow-hidden rounded-3xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] transition-shadow duration-300 ${
+                              chosen ? 'ring-2 ring-onyx' : ''
                             }`}
                           >
-                            {/* App: tapping the card opens the photos; the circle picks the model directly.
+                            {/* App: tapping the photo opens the photos; "Escolher" picks the model.
                               Website: clicking the card picks the model; "Ver fotos" opens the photos. */}
                             <button
                               type="button"
@@ -441,66 +441,70 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                                     src={photos[0]}
                                     alt=""
                                     loading="lazy"
-                                    className="aspect-[16/10] w-full object-cover"
+                                    className="aspect-[4/3] w-full object-cover"
                                   />
                                   {photos.length > 1 && (
-                                    <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
+                                    <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
                                       <i className="bx bx-images text-sm" aria-hidden="true" />
                                       {photos.length} fotos
                                     </span>
                                   )}
                                 </div>
                               )}
-                              <div className="p-5">
-                                <p className={labelClass}>Modelo</p>
-                                <p className="mt-2 pr-8 font-subtitle text-xl font-semibold tracking-tight text-onyx">
-                                  {s.name}
-                                </p>
-                                {s.description && (
-                                  <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light text-muted-dark">
-                                    {s.description}
+                              <div className="px-5 pb-2 pt-4">
+                                <div className="flex items-baseline justify-between gap-3">
+                                  <p className="min-w-0 truncate font-subtitle text-xl font-semibold tracking-tight text-onyx">
+                                    {s.name}
                                   </p>
-                                )}
-                                <Facts columns="1fr 1fr">
-                                  <Fact label="Duração">{s.durationLabel}</Fact>
-                                  <Fact label="Preço">{servicePriceLabel(s)}</Fact>
-                                </Facts>
-                                {!site && (
-                                  <p className="mt-4 flex items-center gap-1 font-subtitle text-sm font-medium text-onyx">
-                                    {photos.length > 0 ? 'Ver fotos' : 'Ver detalhes'}
-                                    <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+                                  <p className="shrink-0 font-subtitle text-sm font-medium tabular-nums text-onyx">
+                                    {servicePriceLabel(s)}
+                                  </p>
+                                </div>
+                                {s.description && (
+                                  <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light leading-relaxed text-muted-dark">
+                                    {s.description}
                                   </p>
                                 )}
                               </div>
                             </button>
-                            {site && (
+
+                            {/* Below: the duration and photos on the left, choosing on the right. */}
+                            <div className="flex items-center justify-between gap-3 px-5 pb-4 pt-2">
+                              <div className="flex min-w-0 items-center gap-3 font-subtitle text-sm text-muted-dark">
+                                <span className="inline-flex items-center gap-1">
+                                  <i className="bx bx-time-five text-base" aria-hidden="true" />
+                                  {s.durationLabel}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    void tap()
+                                    setPreviewId(s.id)
+                                  }}
+                                  className="inline-flex items-center gap-0.5 text-onyx underline-offset-4 active:underline"
+                                >
+                                  {photos.length > 0 ? 'Ver fotos' : 'Detalhes'}
+                                  <i className="bx bx-chevron-right text-lg" aria-hidden="true" />
+                                </button>
+                              </div>
                               <button
                                 type="button"
-                                onClick={() => setPreviewId(s.id)}
-                                className="mx-5 mb-5 flex items-center gap-1 font-subtitle text-sm font-medium text-onyx underline-offset-4 hover:underline"
+                                aria-pressed={chosen}
+                                aria-label={chosen ? `Retirar ${s.name}` : `Escolher ${s.name}`}
+                                onClick={() => {
+                                  void tap()
+                                  setServiceId(chosen ? null : s.id)
+                                }}
+                                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-4 font-subtitle text-sm font-semibold transition-colors duration-300 ${
+                                  chosen
+                                    ? 'bg-onyx text-white'
+                                    : 'bg-white text-onyx shadow-sm shadow-black/10 ring-1 ring-onyx/10'
+                                }`}
                               >
-                                {photos.length > 0 ? 'Ver fotos' : 'Ver detalhes'}
-                                <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+                                {chosen && <i className="bx bx-check text-lg" aria-hidden="true" />}
+                                {chosen ? 'Escolhido' : 'Escolher'}
                               </button>
-                            )}
-
-                            <button
-                              type="button"
-                              aria-pressed={chosen}
-                              aria-label={chosen ? `Retirar ${s.name}` : `Escolher ${s.name}`}
-                              onClick={() => {
-                                void tap()
-                                setServiceId(chosen ? null : s.id)
-                              }}
-                              // Over the photo: solid, with a shadow, so it reads on any picture and in both themes.
-                              className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full shadow-md shadow-black/20 transition-colors ${
-                                chosen
-                                  ? 'bg-onyx text-white'
-                                  : 'border border-onyx/15 bg-white/90 text-transparent backdrop-blur-sm'
-                              }`}
-                            >
-                              <i className="bx bx-check text-xl" aria-hidden="true" />
-                            </button>
+                            </div>
                           </div>
                         )
                       })}
@@ -540,13 +544,18 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                             site={site}
                           />
                         )}
-                        <p className="mt-5 font-subtitle text-sm text-onyx">
+                        <p
+                          className={`mt-5 inline-flex items-center gap-2 rounded-full px-4 py-2 font-subtitle text-sm ${
+                            price !== null ? 'bg-onyx text-white' : 'bg-onyx/[0.05] text-onyx/55'
+                          }`}
+                        >
                           {price !== null ? (
                             <>
-                              Preço: <strong className="font-semibold">{formatPrice(price)}</strong>
+                              <i className="bx bx-purchase-tag-alt text-base" aria-hidden="true" />
+                              Preço <strong className="font-semibold tabular-nums">{formatPrice(price)}</strong>
                             </>
                           ) : (
-                            <span className="text-onyx/55">Escolhe para veres o preço.</span>
+                            'Escolhe para veres o preço'
                           )}
                         </p>
                       </section>
@@ -593,7 +602,9 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                     <h2 className="font-subtitle text-xl text-onyx">Confirma o teu pedido</h2>
 
                     {/* Summary (on the website's wide screens it is in the column beside). */}
-                    <div className={`${panelClass} mt-5 ${site ? 'lg:hidden' : ''}`}>
+                    <div
+                      className={`mt-5 rounded-3xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] p-5 ${site ? 'lg:hidden' : ''}`}
+                    >
                       <div className="flex items-center justify-between">
                         <p className={labelClass}>Resumo</p>
                         <span className="font-subtitle text-xs text-muted-dark">Por confirmar</span>
@@ -621,11 +632,21 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                         </Facts>
                       )}
 
-                      <div className="mt-4 flex items-center justify-between border-t border-onyx/15 pt-4 font-subtitle text-sm font-medium text-onyx">
-                        <button type="button" onClick={() => setStep(0)} className="underline underline-offset-4">
+                      <div className="mt-5 flex gap-2 font-subtitle text-sm font-medium text-onyx">
+                        <button
+                          type="button"
+                          onClick={() => setStep(0)}
+                          className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white px-3.5 shadow-sm shadow-black/10 ring-1 ring-onyx/10"
+                        >
+                          <i className="bx bx-edit-alt text-base" aria-hidden="true" />
                           Alterar modelo
                         </button>
-                        <button type="button" onClick={() => setStep(1)} className="underline underline-offset-4">
+                        <button
+                          type="button"
+                          onClick={() => setStep(1)}
+                          className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white px-3.5 shadow-sm shadow-black/10 ring-1 ring-onyx/10"
+                        >
+                          <i className="bx bx-calendar-edit text-base" aria-hidden="true" />
                           Alterar data
                         </button>
                       </div>
