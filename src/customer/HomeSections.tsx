@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CalendarCheck, CalendarPlus, UserRound } from 'lucide-react'
 import { ActionButton } from '@/components/ui/action-button'
+import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 import { AnimatedSocialIcons, type ActionIcon } from '@/components/ui/floating-action-button'
 import { api, assetUrl } from '@/lib/api'
 import { tap } from '@/lib/haptics'
@@ -1047,31 +1048,25 @@ export function Visit() {
 
 /** Ready-made first messages: each opens WhatsApp with the text already written. */
 const WHATSAPP_STARTERS = [
-  { label: 'Quero marcar', text: 'Olá! Gostaria de marcar uma sessão de tranças.' },
+  { label: 'Quero marcar uma sessão', text: 'Olá! Gostaria de marcar uma sessão de tranças.' },
   { label: 'Tenho uma dúvida', text: 'Olá! Tenho uma dúvida sobre os vossos serviços.' },
   { label: 'Preços e modelos', text: 'Olá! Gostaria de saber mais sobre os preços e os modelos.' },
 ]
 
 /**
- * Ways to reach the studio: WhatsApp first, large, with ready-made first messages; then calling, Instagram and email
- * as three tiles side by side.
+ * Ways to reach the studio, as the start of a conversation: the studio's greeting, the customer's ready-made replies
+ * (each opens WhatsApp with that text written) and a message bar that opens the chat; then calling, Instagram and
+ * email as round buttons.
  */
 export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
   const business = useBusinessInfo()
   const whatsapp = useWhatsapp()
-  const others: Array<{ icon: string; title: string; text: string; href: string }> = [
+  const others: Array<{ icon: string; title: string; href: string }> = [
     ...(business.phone
-      ? [
-          {
-            icon: 'bx bx-phone',
-            title: 'Ligar',
-            text: business.phone,
-            href: `tel:${business.phone.replace(/[^+\d]/g, '')}`,
-          },
-        ]
+      ? [{ icon: 'bx bx-phone', title: 'Ligar', href: `tel:${business.phone.replace(/[^+\d]/g, '')}` }]
       : []),
-    { icon: 'bx bxl-instagram', title: 'Instagram', text: `@${siteConfig.instagramHandle}`, href: instagramDmUrl() },
-    { icon: 'bx bx-envelope', title: 'Email', text: siteConfig.email, href: `mailto:${siteConfig.email}` },
+    { icon: 'bx bxl-instagram', title: 'Instagram', href: instagramDmUrl() },
+    { icon: 'bx bx-envelope', title: 'Email', href: `mailto:${siteConfig.email}` },
   ]
   const external = (href: string) => (href.startsWith('http') ? { target: '_blank', rel: 'noreferrer' } : {})
 
@@ -1079,63 +1074,80 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
     <section className="mx-auto max-w-2xl px-5 pb-6 pt-14">
       <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Contactos</p>
       <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Fala connosco</h2>
-      <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">Escolhe a forma mais fácil para ti.</p>
 
       {whatsappUrl && (
-        <div className="mt-5 rounded-3xl bg-onyx p-5 text-white">
-          <div className="flex items-center gap-3.5">
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-white/15 text-[1.7rem]">
-              <i className="bx bxl-whatsapp" aria-hidden="true" />
+        <div className="mt-5 rounded-3xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] p-4">
+          {/* The studio's greeting. */}
+          <div className="flex items-end gap-2.5">
+            <span
+              className={`flex size-9 shrink-0 items-center justify-center rounded-full font-logo text-lg leading-none logo-weight ${BRAND_CIRCLE}`}
+              aria-hidden="true"
+            >
+              <span className="translate-y-[0.1em]">A</span>
             </span>
-            <span className="min-w-0">
-              <span className="block font-subtitle text-lg font-semibold leading-tight">WhatsApp</span>
-              <span className="block font-subtitle text-sm text-white/65">Dúvidas e marcações</span>
-            </span>
+            <div className="max-w-[80%] rounded-2xl rounded-bl-md bg-white px-4 py-3 shadow-sm shadow-black/5">
+              <p className="font-subtitle text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-dark">
+                AFROGLOW
+              </p>
+              <p className="mt-0.5 font-subtitle text-[15px] leading-snug text-onyx">Olá! Como te podemos ajudar?</p>
+            </div>
           </div>
 
-          {/* A first message ready to send. */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            {WHATSAPP_STARTERS.map((starter) => (
-              <a
+          {/* The customer's ready-made replies. */}
+          <div className="mt-4 flex flex-col items-end gap-2">
+            {WHATSAPP_STARTERS.map((starter, i) => (
+              <motion.a
                 key={starter.label}
                 href={whatsapp.url(starter.text)}
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => void tap()}
-                className="inline-flex h-9 items-center rounded-full bg-white/12 px-3.5 font-subtitle text-sm ring-1 ring-inset ring-white/15 active:bg-white/20"
+                initial={{ opacity: 0, x: 16 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.6 }}
+                transition={{ delay: 0.12 * i, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                className="inline-flex items-center gap-2 rounded-2xl rounded-br-md bg-onyx px-4 py-2.5 font-subtitle text-[15px] text-white active:opacity-80"
               >
                 {starter.label}
-              </a>
+                <i className="bx bxl-whatsapp text-lg opacity-70" aria-hidden="true" />
+              </motion.a>
             ))}
           </div>
 
+          {/* A message bar that opens the chat. */}
           <a
             href={whatsappUrl}
             target="_blank"
             rel="noreferrer"
             onClick={() => void tap('medium')}
-            className="mt-4 flex h-11 items-center justify-center gap-2 rounded-full bg-white font-subtitle text-sm font-semibold text-onyx"
+            className="mt-5 flex h-12 items-center gap-3 rounded-full bg-white pe-1.5 ps-5 shadow-sm shadow-black/5"
           >
-            Abrir conversa
-            <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+            <span className="flex-1 font-subtitle text-[15px] text-onyx/40">Escreve a tua mensagem…</span>
+            <span className="flex size-9 items-center justify-center rounded-full bg-onyx text-xl text-white">
+              <i className="bx bxs-send" aria-hidden="true" />
+            </span>
           </a>
         </div>
       )}
 
-      <div className={`mt-3 grid gap-3 ${others.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+      <div className="mt-6 flex items-center gap-3" aria-hidden="true">
+        <span className="h-px flex-1 bg-onyx/10" />
+        <span className="font-subtitle text-xs uppercase tracking-[0.14em] text-muted-dark">ou</span>
+        <span className="h-px flex-1 bg-onyx/10" />
+      </div>
+      <div className="mt-4 flex justify-center gap-8">
         {others.map((option) => (
           <a
             key={option.title}
             href={option.href}
             {...external(option.href)}
             onClick={() => void tap()}
-            className="flex min-w-0 flex-col items-center rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] px-2 py-4 text-center active:bg-onyx/[0.08]"
+            className="flex flex-col items-center gap-2"
           >
-            <span className="flex size-11 items-center justify-center rounded-full bg-white text-2xl text-onyx shadow-sm shadow-black/5">
+            <span className="flex size-14 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--color-onyx)_6%,var(--color-white))] text-2xl text-onyx active:bg-onyx/10">
               <i className={option.icon} aria-hidden="true" />
             </span>
-            <span className="mt-2.5 font-subtitle text-sm font-semibold text-onyx">{option.title}</span>
-            <span className="mt-0.5 w-full truncate font-subtitle text-[11px] text-muted-dark">{option.text}</span>
+            <span className="font-subtitle text-xs font-medium text-onyx">{option.title}</span>
           </a>
         ))}
       </div>
