@@ -278,6 +278,7 @@ function CustomerShell() {
             </button>
           ) : (
             <HeaderLogo
+              onDark={overHero}
               onClick={() => {
                 void tap()
                 navigate('/')

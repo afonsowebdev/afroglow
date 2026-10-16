@@ -12,11 +12,10 @@ const SHOW_MS = 5600
 const ease = { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }
 
 /**
- * The "A" at the top of the customer app. Once per launch, after the opening, its circle widens into a capsule where
- * AFROGLOW assembles from particles (as in the opening); a few seconds later the word goes and the circle closes back
- * around the "A".
+ * The "A" at the top of the customer app. Once per launch, after the opening, AFROGLOW assembles from particles
+ * beside its circle (as in the opening), on nothing; a few seconds later the word goes and only the "A" stays.
  */
-export function HeaderLogo({ onClick }: { onClick: () => void }) {
+export function HeaderLogo({ onClick, onDark = false }: { onClick: () => void; onDark?: boolean }) {
   const [word, setWord] = useState(false)
 
   useEffect(() => {
@@ -36,39 +35,42 @@ export function HeaderLogo({ onClick }: { onClick: () => void }) {
   }, [])
 
   return (
-    <motion.button
-      type="button"
-      onClick={onClick}
-      aria-label="AFROGLOW, início"
-      layout
-      transition={ease}
-      style={{ borderRadius: 999 }}
-      className={`pointer-events-auto flex h-12 items-center overflow-hidden font-logo leading-none logo-weight ${BRAND_CIRCLE}`}
-    >
-      <span className="flex size-12 shrink-0 items-center justify-center text-[1.6rem]" aria-hidden="true">
-        <span className="translate-y-[0.1em]">A</span>
-      </span>
+    <span className="pointer-events-auto flex items-center gap-3">
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label="AFROGLOW, início"
+        className={`flex size-12 shrink-0 items-center justify-center rounded-full font-logo text-[1.6rem] leading-none logo-weight ${BRAND_CIRCLE}`}
+      >
+        <span className="translate-y-[0.1em]" aria-hidden="true">
+          A
+        </span>
+      </button>
+      {/* The word beside the circle, on nothing: white with a soft shadow over the video, dark over the page. */}
       <AnimatePresence initial={false}>
         {word && (
           <motion.span
             key="word"
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 'auto', opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -8, filter: 'blur(4px)' }}
             transition={ease}
-            className="block overflow-hidden"
+            className="pointer-events-none whitespace-nowrap font-logo leading-none logo-weight"
             aria-hidden="true"
           >
-            <span className="block whitespace-nowrap pe-5">
-              <LiquidLogo inkKey="header">
-                <span data-liquid="text" className="inline-block translate-y-[0.1em] text-[1.2rem] tracking-[0.14em]">
-                  AFROGLOW
-                </span>
-              </LiquidLogo>
-            </span>
+            <LiquidLogo inkKey={onDark ? 'header-dark' : 'header-light'}>
+              <span
+                data-liquid="text"
+                className={`inline-block translate-y-[0.1em] text-[1.35rem] tracking-[0.14em] ${
+                  onDark ? 'text-[#ffffff] [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]' : 'text-onyx'
+                }`}
+              >
+                AFROGLOW
+              </span>
+            </LiquidLogo>
           </motion.span>
         )}
       </AnimatePresence>
-    </motion.button>
+    </span>
   )
 }
