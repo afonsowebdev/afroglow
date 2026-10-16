@@ -310,8 +310,8 @@ function SectionTitle({ title, hint }: { title: string; hint?: string }) {
 }
 
 /**
- * Under a full-screen strip: round buttons to go back and forward (dimmed at the ends) and, between them, where the
- * customer is (dots, or a bar when there are many). Swiping still works; the buttons make it obvious.
+ * Under a full-screen strip: where the customer is ("01 / 05" and a progress line) and, together on the right, round
+ * buttons to go back and forward (dimmed at the ends). Swiping still works; the buttons make it obvious.
  */
 function CarouselControls({
   index,
@@ -326,53 +326,60 @@ function CarouselControls({
 }) {
   if (count < 2) return null
   const button =
-    'glass-chip flex size-12 shrink-0 items-center justify-center rounded-full text-[1.75rem] text-onyx transition-opacity disabled:opacity-30'
+    'glass-chip flex size-11 shrink-0 items-center justify-center rounded-full text-[1.6rem] text-onyx transition-opacity disabled:opacity-30'
   return (
-    <div className="mx-auto mt-4 flex w-full max-w-sm items-center justify-between gap-4 px-5">
-      <button
-        type="button"
-        aria-label={`${what} anterior`}
-        disabled={index <= 0}
-        onClick={() => onGo(index - 1)}
-        className={button}
-      >
-        <i className="bx bx-chevron-left" aria-hidden="true" />
-      </button>
-      {count <= 12 ? (
-        <div className="flex items-center gap-1.5" aria-label={`${index + 1} de ${count}`}>
-          {Array.from({ length: count }, (_, i) => (
-            <span
-              key={i}
-              className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? 'w-6 bg-onyx' : 'w-1.5 bg-onyx/25'}`}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="h-1 w-24 overflow-hidden rounded-full bg-onyx/15" aria-label={`${index + 1} de ${count}`}>
-          <div
-            className="h-full rounded-full bg-onyx transition-all"
-            style={{ width: `${((index + 1) / count) * 100}%` }}
-          />
-        </div>
-      )}
-      <button
-        type="button"
-        aria-label={`${what} seguinte`}
-        disabled={index >= count - 1}
-        onClick={() => onGo(index + 1)}
-        className={button}
-      >
-        <i className="bx bx-chevron-right" aria-hidden="true" />
-      </button>
+    <div className="mx-auto mt-4 flex w-full max-w-2xl items-center gap-4 px-5">
+      <p className="shrink-0 font-subtitle text-sm tabular-nums" aria-label={`${index + 1} de ${count}`}>
+        <span className="font-semibold text-onyx">{String(index + 1).padStart(2, '0')}</span>
+        <span className="text-muted-dark"> / {String(count).padStart(2, '0')}</span>
+      </p>
+      <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-onyx/10" aria-hidden="true">
+        <div
+          className="h-full rounded-full bg-onyx transition-[width] duration-300 ease-out"
+          style={{ width: `${((index + 1) / count) * 100}%` }}
+        />
+      </div>
+      <div className="flex shrink-0 gap-2">
+        <button
+          type="button"
+          aria-label={`${what} anterior`}
+          disabled={index <= 0}
+          onClick={() => onGo(index - 1)}
+          className={button}
+        >
+          <i className="bx bx-chevron-left" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          aria-label={`${what} seguinte`}
+          disabled={index >= count - 1}
+          onClick={() => onGo(index + 1)}
+          className={button}
+        >
+          <i className="bx bx-chevron-right" aria-hidden="true" />
+        </button>
+      </div>
     </div>
   )
+}
+
+/** The distance from one slide to the next in a strip (its width plus the gap). */
+function slideStep(el: HTMLDivElement) {
+  const [first, second] = el.children as unknown as HTMLElement[]
+  if (!first) return el.clientWidth
+  return second ? second.offsetLeft - first.offsetLeft : first.offsetWidth
+}
+
+/** Which slide of a strip is in place now. */
+function stripIndex(el: HTMLDivElement, count: number) {
+  return Math.min(count - 1, Math.max(0, Math.round(el.scrollLeft / slideStep(el))))
 }
 
 /** Scrolls a strip to slide `to` (clamped), smoothly. */
 function scrollStrip(el: HTMLDivElement | null, to: number, count: number) {
   if (!el) return
   void tap()
-  el.scrollTo({ left: Math.max(0, Math.min(count - 1, to)) * el.clientWidth, behavior: 'smooth' })
+  el.scrollTo({ left: Math.max(0, Math.min(count - 1, to)) * slideStep(el), behavior: 'smooth' })
 }
 
 /**
@@ -382,6 +389,14 @@ function scrollStrip(el: HTMLDivElement | null, to: number, count: number) {
  */
 const fullScreenSection =
   'flex h-[100svh] min-h-[600px] snap-start flex-col pb-[calc(5rem+env(safe-area-inset-bottom))] pt-[calc(3.75rem+env(safe-area-inset-top))]'
+
+/**
+ * The strip of a full-screen section: each slide a little narrower than the screen, so the edge of the next one shows
+ * on the right (it plainly goes on sideways), settling on one slide at a time.
+ */
+const strip =
+  'mt-5 flex min-h-0 flex-1 snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+const slide = 'h-full w-[86%] max-w-md shrink-0 snap-start snap-always'
 
 /** Four shortcuts behind a "+" button that slides away to show them. */
 export function QuickActions({ whatsappUrl }: { whatsappUrl?: string }) {
@@ -404,7 +419,7 @@ export function QuickActions({ whatsappUrl }: { whatsappUrl?: string }) {
   )
 }
 
-/** Services as full-screen photo cards: swipe or use the buttons to go from one to the next. */
+/** Services as full-screen photo cards: swipe (the next one peeks in) or use the buttons. */
 export function ServiceCarousel({ services }: { services: Service[] | null }) {
   const navigate = useNavigate()
   const [previewId, setPreviewId] = useState<string | null>(null)
@@ -417,96 +432,69 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
 
   return (
     <section id="servicos" className={fullScreenSection}>
-      <div className="mx-auto flex w-full max-w-2xl items-end justify-between px-5">
-        <div>
-          <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Penteados</p>
-          <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Os nossos serviços</h2>
-        </div>
-        {total > 1 && (
-          <p className="pb-1 font-subtitle text-sm tabular-nums text-muted-dark">
-            <span className="font-semibold text-onyx">{String(index + 1).padStart(2, '0')}</span> /{' '}
-            {String(total).padStart(2, '0')}
-          </p>
-        )}
+      <div className="mx-auto w-full max-w-2xl px-5">
+        <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Penteados</p>
+        <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Os nossos serviços</h2>
       </div>
-      <p className="mx-auto mt-1.5 w-full max-w-2xl px-5 font-subtitle text-sm font-light text-muted-dark">
-        Desliza ou usa as setas. Toca na foto para ver mais.
-      </p>
 
-      <div
-        ref={track}
-        className="mt-4 flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        onScroll={(e) => {
-          const el = e.currentTarget
-          setIndex(Math.min(total - 1, Math.max(0, Math.round(el.scrollLeft / el.clientWidth))))
-        }}
-      >
-        {services === null && (
-          <div className="h-full w-full shrink-0 px-5">
-            <div className="mx-auto h-full max-w-md animate-pulse rounded-[2rem] bg-onyx/5" />
-          </div>
-        )}
+      <div ref={track} className={strip} onScroll={(e) => setIndex(stripIndex(e.currentTarget, total))}>
+        {services === null && <div className={`${slide} animate-pulse rounded-[2rem] bg-onyx/5`} />}
         {services?.map((service, i) => {
           const photos = serviceImageUrls(service)
           return (
-            <div key={service.id} className="h-full w-full shrink-0 snap-center snap-always px-5">
-              {/* The photo as tall as the screen allows (as in the portfolio), with the name, price, description,
-                  duration and "Marcar" over its lower part on a soft dark fade. */}
-              <div className="relative mx-auto h-full max-w-md overflow-hidden rounded-[2rem] bg-onyx/5">
-                {/* The photo opens the gallery with more pictures. */}
-                <button
-                  type="button"
-                  aria-label={`Ver fotos de ${service.name}`}
-                  onClick={() => {
-                    void tap()
-                    setPreviewId(service.id)
-                  }}
-                  className="absolute inset-0 block"
-                >
-                  <img
-                    src={photos[0] ?? PHOTOS[i % PHOTOS.length].src}
-                    alt=""
-                    loading="lazy"
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
-                </button>
-                {photos.length > 1 && (
-                  <span className="pointer-events-none absolute left-4 top-4 inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
-                    <i className="bx bx-images text-sm" aria-hidden="true" />
-                    {photos.length} fotos
-                  </span>
-                )}
+            // The photo fills the card; the name, description, duration, price and "Marcar" sit over its lower part
+            // on a dark fade. Tapping the photo opens the gallery with more pictures.
+            <div key={service.id} className={`${slide} relative overflow-hidden rounded-[2rem] bg-onyx/5`}>
+              <button
+                type="button"
+                aria-label={`Ver fotos de ${service.name}`}
+                onClick={() => {
+                  void tap()
+                  setPreviewId(service.id)
+                }}
+                className="absolute inset-0 block"
+              >
+                <img
+                  src={photos[0] ?? PHOTOS[i % PHOTOS.length].src}
+                  alt=""
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              </button>
+              {photos.length > 1 && (
+                <span className="pointer-events-none absolute left-4 top-4 inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
+                  <i className="bx bx-images text-sm" aria-hidden="true" />
+                  {photos.length} fotos
+                </span>
+              )}
 
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/55 to-transparent px-5 pb-5 pt-28">
-                  <div className="flex items-baseline justify-between gap-4">
-                    <p className="truncate font-subtitle text-2xl font-semibold tracking-tight text-[#ffffff]">
-                      {service.name}
-                    </p>
-                    <p className="shrink-0 font-subtitle text-base tabular-nums text-[#ffffff]">
-                      {servicePriceLabel(service)}
-                    </p>
-                  </div>
-                  {service.description && (
-                    <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light leading-relaxed text-[#ffffff]/75">
-                      {service.description}
-                    </p>
-                  )}
-                  <div className="mt-4 flex items-center justify-between gap-4">
-                    <span className="inline-flex items-center gap-1.5 font-subtitle text-sm text-[#ffffff]/75">
-                      <i className="bx bx-time-five text-base" aria-hidden="true" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/55 to-transparent px-5 pb-5 pt-28">
+                <p className="font-subtitle text-2xl font-semibold leading-tight tracking-tight text-[#ffffff]">
+                  {service.name}
+                </p>
+                {service.description && (
+                  <p className="mt-1.5 line-clamp-2 font-subtitle text-sm font-light leading-relaxed text-[#ffffff]/75">
+                    {service.description}
+                  </p>
+                )}
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <p className="min-w-0 font-subtitle text-sm leading-snug text-[#ffffff]">
+                    <span className="block tabular-nums">{servicePriceLabel(service)}</span>
+                    <span className="flex items-center gap-1 text-[#ffffff]/70">
+                      <i className="bx bx-time-five text-sm" aria-hidden="true" />
                       {service.durationLabel}
                     </span>
-                    {/* Straight to booking this model. */}
-                    <Link
-                      to={`/marcar?service=${service.id}`}
-                      aria-label={`Marcar ${service.name}`}
-                      onClick={() => void tap('medium')}
-                      className="pointer-events-auto inline-flex h-10 items-center gap-1.5 rounded-full bg-[#ffffff] pe-3.5 ps-5 font-subtitle text-sm font-semibold text-[#1a1008]"
-                    >
-                      Marcar
-                      <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
-                    </Link>
-                  </div>
+                  </p>
+                  {/* Straight to booking this model. */}
+                  <Link
+                    to={`/marcar?service=${service.id}`}
+                    aria-label={`Marcar ${service.name}`}
+                    onClick={() => void tap('medium')}
+                    className="pointer-events-auto inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-[#ffffff] pe-3.5 ps-5 font-subtitle text-sm font-semibold text-[#1a1008]"
+                  >
+                    Marcar
+                    <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+                  </Link>
                 </div>
               </div>
             </div>
@@ -675,75 +663,56 @@ export function WorkGrid() {
   }, [viewer])
 
   const total = items.length
-  // The photos and videos, then the Instagram card as the last slide.
-  const slides = total + 1
-  useSwipeNudge(track, slides)
+  useSwipeNudge(track, total)
 
   return (
     <section className={fullScreenSection}>
-      <div className="mx-auto flex w-full max-w-2xl items-end justify-between px-5">
+      <div className="mx-auto flex w-full max-w-2xl items-end justify-between gap-4 px-5">
         <div>
           <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Portfólio</p>
           <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">O nosso trabalho</h2>
         </div>
-        <p className="pb-1 font-subtitle text-sm tabular-nums text-muted-dark">
-          <span className="font-semibold text-onyx">{String(Math.min(index, total - 1) + 1).padStart(2, '0')}</span> /{' '}
-          {String(total).padStart(2, '0')}
-        </p>
+        {/* More (videos) on Instagram, beside the title rather than as a slide. */}
+        <a
+          href={instagramDmUrl()}
+          target="_blank"
+          rel="noreferrer"
+          className="glass-chip mb-0.5 inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 font-subtitle text-sm text-onyx"
+        >
+          <i className="bx bxl-instagram text-lg" aria-hidden="true" />
+          Mais
+        </a>
       </div>
-      <p className="mx-auto mt-1.5 w-full max-w-2xl px-5 font-subtitle text-sm font-light text-muted-dark">
-        Desliza ou usa as setas. Toca para ampliar.
-      </p>
 
-      <div
-        ref={track}
-        className="mt-4 flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        onScroll={(e) => {
-          const el = e.currentTarget
-          setIndex(Math.min(total, Math.max(0, Math.round(el.scrollLeft / el.clientWidth))))
-        }}
-      >
+      <div ref={track} className={strip} onScroll={(e) => setIndex(stripIndex(e.currentTarget, total))}>
         {items.map((item, i) => (
-          <div key={item.key} className="h-full w-full shrink-0 snap-center snap-always px-5">
-            <button
-              type="button"
-              aria-label={`Ver ${item.kind === 'VIDEO' ? 'vídeo' : 'foto'} ${i + 1} em ecrã inteiro`}
-              onClick={() => {
-                void tap()
-                setViewer(i)
-              }}
-              className="relative mx-auto block h-full w-full max-w-md overflow-hidden rounded-[2rem] bg-black/5"
-            >
-              {item.kind === 'VIDEO' ? (
-                <AutoVideo src={item.src} className="h-full w-full object-cover" />
-              ) : (
-                <img src={item.src} alt={item.alt} loading="lazy" className="h-full w-full object-cover" />
-              )}
-              <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-[#ffffff] backdrop-blur-md">
-                <i className={item.kind === 'VIDEO' ? 'bx bx-play' : 'bx bx-expand-alt'} aria-hidden="true" />
-              </span>
-            </button>
-          </div>
-        ))}
-        <div className="h-full w-full shrink-0 snap-center snap-always px-5">
-          <a
-            href={instagramDmUrl()}
-            target="_blank"
-            rel="noreferrer"
-            className="mx-auto flex h-full w-full max-w-md flex-col items-center justify-center gap-3 rounded-[2rem] border border-onyx/10 bg-white text-center shadow-sm shadow-black/5"
+          <button
+            key={item.key}
+            type="button"
+            aria-label={`Ver ${item.kind === 'VIDEO' ? 'vídeo' : 'foto'} ${i + 1} em ecrã inteiro`}
+            onClick={() => {
+              void tap()
+              setViewer(i)
+            }}
+            className={`${slide} relative block overflow-hidden rounded-[2rem] bg-black/5`}
           >
-            <i className="bx bxl-instagram text-5xl text-onyx" aria-hidden="true" />
-            <span className="font-subtitle text-base font-semibold text-onyx">Vídeos no Instagram</span>
-            <span className="font-subtitle text-sm text-muted-dark">@{siteConfig.instagramHandle}</span>
-          </a>
-        </div>
+            {item.kind === 'VIDEO' ? (
+              <AutoVideo src={item.src} className="h-full w-full object-cover" />
+            ) : (
+              <img src={item.src} alt={item.alt} loading="lazy" className="h-full w-full object-cover" />
+            )}
+            <span className="absolute bottom-4 right-4 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-[#ffffff] backdrop-blur-md">
+              <i className={item.kind === 'VIDEO' ? 'bx bx-play' : 'bx bx-expand-alt'} aria-hidden="true" />
+            </span>
+          </button>
+        ))}
       </div>
 
       <CarouselControls
         index={index}
-        count={slides}
+        count={total}
         what="Trabalho"
-        onGo={(to) => scrollStrip(track.current, to, slides)}
+        onGo={(to) => scrollStrip(track.current, to, total)}
       />
 
       <AnimatePresence>
