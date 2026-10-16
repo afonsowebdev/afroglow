@@ -22,53 +22,40 @@ import { BRAID_COLORS, colorLabel } from '@/lib/braid-colors'
 
 const STEPS = ['Modelo', 'Data', 'Confirmar'] as const
 
-const fieldClass =
-  'w-full rounded-xl border-2 border-onyx/30 bg-white px-4 py-3.5 font-subtitle text-onyx outline-none focus-visible:border-onyx'
+/** A grouped list, as in the app's settings: rows on one soft surface, separated by hairlines. */
+const groupClass =
+  'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
 
-/** The braiding-hair colours as swatches with their code; the chosen one is ringed and named below. */
+/** The braiding-hair colours as one list: a flat swatch, the name and the code; the chosen one is ticked. */
 function ColorPicker({ value, onChange }: { value: string | null; onChange: (code: string) => void }) {
-  const chosen = BRAID_COLORS.find((c) => c.code === value)
   return (
-    <div className="mt-4">
-      <div className="flex flex-wrap gap-3" role="radiogroup" aria-label="Cor">
-        {BRAID_COLORS.map((c) => {
-          const on = c.code === value
-          return (
-            <button
-              key={c.code}
-              type="button"
-              role="radio"
-              aria-checked={on}
-              aria-label={`Cor ${c.code}, ${c.name}`}
-              title={`${c.code} · ${c.name}`}
-              onClick={() => {
-                void tap()
-                onChange(c.code)
-              }}
-              className="flex w-14 flex-col items-center gap-1.5"
-            >
-              <span
-                className={`size-12 rounded-full shadow-inner ring-offset-2 ring-offset-white transition-shadow ${
-                  on ? 'ring-2 ring-onyx' : 'ring-1 ring-onyx/15'
-                }`}
-                style={{ background: `radial-gradient(circle at 35% 30%, ${c.hex}bb, ${c.hex} 60%)` }}
-              />
-              <span className={`font-subtitle text-xs tabular-nums ${on ? 'font-semibold text-onyx' : 'text-onyx/60'}`}>
-                {c.code}
-              </span>
-            </button>
-          )
-        })}
-      </div>
-      <p className="mt-3 font-subtitle text-sm text-onyx">
-        {chosen ? (
-          <>
-            Cor <strong className="font-semibold">{chosen.code}</strong> · {chosen.name}
-          </>
-        ) : (
-          <span className="text-onyx/55">Nenhuma cor escolhida.</span>
-        )}
-      </p>
+    <div className={`mt-4 ${groupClass}`} role="radiogroup" aria-label="Cor">
+      {BRAID_COLORS.map((c) => {
+        const on = c.code === value
+        return (
+          <button
+            key={c.code}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            aria-label={`Cor ${c.code}, ${c.name}`}
+            onClick={() => {
+              void tap()
+              onChange(c.code)
+            }}
+            className="flex w-full items-center gap-3.5 px-4 py-2.5 text-left active:bg-onyx/[0.04]"
+          >
+            <span className="size-8 shrink-0 rounded-full ring-1 ring-onyx/15" style={{ background: c.hex }} />
+            <span className={`min-w-0 flex-1 font-subtitle text-[15px] text-onyx ${on ? 'font-semibold' : ''}`}>
+              {c.name}
+            </span>
+            <span className="font-subtitle text-sm tabular-nums text-muted-dark">Cor {c.code}</span>
+            <span className="flex w-5 shrink-0 justify-end" aria-hidden="true">
+              {on && <i className="bx bx-check text-2xl leading-none text-onyx" />}
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -302,10 +289,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
             {site ? 'Avisamos-te assim que for confirmada.' : 'Vais receber uma notificação assim que for confirmada.'}
           </p>
           <div className="mt-10 flex flex-col items-center gap-3">
-            <ActionButton
-              label="Ver as minhas marcações"
-              onClick={() => navigate('/marcacoes')}
-            />
+            <ActionButton label="Ver as minhas marcações" onClick={() => navigate('/marcacoes')} />
             {site && service && slot && (
               <ActionButton
                 label="Adicionar ao calendário"
@@ -327,9 +311,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
   }
 
   return (
-    <main
-      className={`px-5 pb-32 ${site ? 'pt-10 sm:pt-14 lg:pt-20' : 'pt-[calc(4.5rem+env(safe-area-inset-top))]'}`}
-    >
+    <main className={`px-5 pb-32 ${site ? 'pt-10 sm:pt-14 lg:pt-20' : 'pt-[calc(4.5rem+env(safe-area-inset-top))]'}`}>
       {/* Website: the sliding AFROGLOW behind the page, as on the home page's sections. */}
       {site && (
         <div className="pointer-events-none fixed inset-0 flex flex-col justify-center">
@@ -356,31 +338,34 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
             <h1 className="font-logo text-4xl text-onyx sm:text-5xl">Marcar sessão</h1>
           </div>
         ) : (
-        <div className="flex items-center gap-3">
-          {step > 0 ? (
-            <button
-              type="button"
-              aria-label="Passo anterior"
-              onClick={() => {
-                void tap()
-                setError(null)
-                setStep(step - 1)
-              }}
-              className="glass-chip flex h-10 w-10 items-center justify-center rounded-full text-xl text-onyx"
-            >
-              <i className="bx bx-chevron-left" aria-hidden="true" />
-            </button>
-          ) : (
+          <div className="flex items-center gap-3">
+            {step > 0 ? (
+              <button
+                type="button"
+                aria-label="Passo anterior"
+                onClick={() => {
+                  void tap()
+                  setError(null)
+                  setStep(step - 1)
+                }}
+                className="glass-chip flex h-10 w-10 items-center justify-center rounded-full text-xl text-onyx"
+              >
+                <i className="bx bx-chevron-left" aria-hidden="true" />
+              </button>
+            ) : (
+              <span className="h-10 w-10" />
+            )}
+            <h1 className="flex-1 text-center font-subtitle font-semibold tracking-tight text-2xl text-onyx">
+              Marcar sessão
+            </h1>
             <span className="h-10 w-10" />
-          )}
-          <h1 className="flex-1 text-center font-subtitle font-semibold tracking-tight text-2xl text-onyx">
-            Marcar sessão
-          </h1>
-          <span className="h-10 w-10" />
-        </div>
+          </div>
         )}
 
-        <div className={`mt-5 flex gap-2 ${site ? 'max-w-xl' : ''}`} aria-label={`Passo ${step + 1} de 3: ${STEPS[step]}`}>
+        <div
+          className={`mt-5 flex gap-2 ${site ? 'max-w-xl' : ''}`}
+          aria-label={`Passo ${step + 1} de 3: ${STEPS[step]}`}
+        >
           {STEPS.map((label, i) => (
             <div key={label} className="flex-1">
               <div className={`h-1 overflow-hidden rounded-full ${site ? 'bg-onyx/10' : 'bg-onyx/[0.07]'}`}>
@@ -418,355 +403,385 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
 
         {services && slots && (
           <div className={site ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-10' : ''}>
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, x: 24 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -24 }}
-              transition={{ duration: 0.22 }}
-              className="mt-8"
-            >
-              {step === 0 && (
-                <>
-                  <h2 className="font-subtitle text-xl text-onyx">Que tranças queres?</h2>
-                  <div className={site ? 'mt-5 grid gap-4 sm:grid-cols-2' : 'mt-5 flex flex-col gap-3'}>
-                    {services.map((s) => {
-                      const chosen = serviceId === s.id
-                      const photos = serviceImageUrls(s)
-                      return (
-                        <div
-                          key={s.id}
-                          className={`relative overflow-hidden rounded-2xl border bg-white transition-colors ${
-                            chosen ? 'border-onyx ring-1 ring-onyx' : 'border-onyx/15'
-                          }`}
-                        >
-                          {/* App: tapping the card opens the photos; the circle picks the model directly.
-                              Website: clicking the card picks the model; "Ver fotos" opens the photos. */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              void tap()
-                              if (site) setServiceId(chosen ? null : s.id)
-                              else setPreviewId(s.id)
-                            }}
-                            className="block w-full text-left"
-                            aria-label={site ? (chosen ? `Retirar ${s.name}` : `Escolher ${s.name}`) : `Ver fotos e detalhes de ${s.name}`}
-                          >
-                            {photos.length > 0 && (
-                              <div className="relative">
-                                <img
-                                  src={photos[0]}
-                                  alt=""
-                                  loading="lazy"
-                                  className="aspect-[16/10] w-full object-cover"
-                                />
-                                {photos.length > 1 && (
-                                  <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
-                                    <i className="bx bx-images text-sm" aria-hidden="true" />
-                                    {photos.length} fotos
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                            <div className="p-5">
-                              <p className={labelClass}>Modelo</p>
-                              <p className="mt-2 pr-8 font-subtitle text-xl font-semibold tracking-tight text-onyx">
-                                {s.name}
-                              </p>
-                              {s.description && (
-                                <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light text-muted-dark">
-                                  {s.description}
-                                </p>
-                              )}
-                              <Facts columns="1fr 1fr">
-                                <Fact label="Duração">{s.durationLabel}</Fact>
-                                <Fact label="Preço">{servicePriceLabel(s)}</Fact>
-                              </Facts>
-                              {!site && (
-                                <p className="mt-4 flex items-center gap-1 font-subtitle text-sm font-medium text-onyx">
-                                  {photos.length > 0 ? 'Ver fotos' : 'Ver detalhes'}
-                                  <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
-                                </p>
-                              )}
-                            </div>
-                          </button>
-                          {site && (
-                            <button
-                              type="button"
-                              onClick={() => setPreviewId(s.id)}
-                              className="mx-5 mb-5 flex items-center gap-1 font-subtitle text-sm font-medium text-onyx underline-offset-4 hover:underline"
-                            >
-                              {photos.length > 0 ? 'Ver fotos' : 'Ver detalhes'}
-                              <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
-                            </button>
-                          )}
-
-                          <button
-                            type="button"
-                            aria-pressed={chosen}
-                            aria-label={chosen ? `Retirar ${s.name}` : `Escolher ${s.name}`}
-                            onClick={() => {
-                              void tap()
-                              setServiceId(chosen ? null : s.id)
-                            }}
-                            // Over the photo: solid, with a shadow, so it reads on any picture and in both themes.
-                            className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full shadow-md shadow-black/20 transition-colors ${
-                              chosen
-                                ? 'bg-onyx text-white'
-                                : 'border border-onyx/15 bg-white/90 text-transparent backdrop-blur-sm'
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -24 }}
+                transition={{ duration: 0.22 }}
+                className="mt-8"
+              >
+                {step === 0 && (
+                  <>
+                    <h2 className="font-subtitle text-xl text-onyx">Que tranças queres?</h2>
+                    <div className={site ? 'mt-5 grid gap-4 sm:grid-cols-2' : 'mt-5 flex flex-col gap-3'}>
+                      {services.map((s) => {
+                        const chosen = serviceId === s.id
+                        const photos = serviceImageUrls(s)
+                        return (
+                          <div
+                            key={s.id}
+                            className={`relative overflow-hidden rounded-2xl border bg-white transition-colors ${
+                              chosen ? 'border-onyx ring-1 ring-onyx' : 'border-onyx/15'
                             }`}
                           >
-                            <i className="bx bx-check text-xl" aria-hidden="true" />
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </>
-              )}
+                            {/* App: tapping the card opens the photos; the circle picks the model directly.
+                              Website: clicking the card picks the model; "Ver fotos" opens the photos. */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                void tap()
+                                if (site) setServiceId(chosen ? null : s.id)
+                                else setPreviewId(s.id)
+                              }}
+                              className="block w-full text-left"
+                              aria-label={
+                                site
+                                  ? chosen
+                                    ? `Retirar ${s.name}`
+                                    : `Escolher ${s.name}`
+                                  : `Ver fotos e detalhes de ${s.name}`
+                              }
+                            >
+                              {photos.length > 0 && (
+                                <div className="relative">
+                                  <img
+                                    src={photos[0]}
+                                    alt=""
+                                    loading="lazy"
+                                    className="aspect-[16/10] w-full object-cover"
+                                  />
+                                  {photos.length > 1 && (
+                                    <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
+                                      <i className="bx bx-images text-sm" aria-hidden="true" />
+                                      {photos.length} fotos
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              <div className="p-5">
+                                <p className={labelClass}>Modelo</p>
+                                <p className="mt-2 pr-8 font-subtitle text-xl font-semibold tracking-tight text-onyx">
+                                  {s.name}
+                                </p>
+                                {s.description && (
+                                  <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light text-muted-dark">
+                                    {s.description}
+                                  </p>
+                                )}
+                                <Facts columns="1fr 1fr">
+                                  <Fact label="Duração">{s.durationLabel}</Fact>
+                                  <Fact label="Preço">{servicePriceLabel(s)}</Fact>
+                                </Facts>
+                                {!site && (
+                                  <p className="mt-4 flex items-center gap-1 font-subtitle text-sm font-medium text-onyx">
+                                    {photos.length > 0 ? 'Ver fotos' : 'Ver detalhes'}
+                                    <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+                                  </p>
+                                )}
+                              </div>
+                            </button>
+                            {site && (
+                              <button
+                                type="button"
+                                onClick={() => setPreviewId(s.id)}
+                                className="mx-5 mb-5 flex items-center gap-1 font-subtitle text-sm font-medium text-onyx underline-offset-4 hover:underline"
+                              >
+                                {photos.length > 0 ? 'Ver fotos' : 'Ver detalhes'}
+                                <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+                              </button>
+                            )}
 
-              {step === 1 && (
-                <>
-                  {service && options.hasOptions && (
-                    <section className="mb-10">
-                      <h2 className="font-subtitle text-xl text-onyx">Como queres as tuas {service.name}?</h2>
-                      <p className="mt-1 font-subtitle text-sm font-light text-onyx/60">
-                        O preço depende{' '}
-                        {options.lengths.length && options.partings.length
-                          ? 'do comprimento e da repartição'
-                          : options.lengths.length
-                            ? 'do comprimento'
-                            : 'da repartição'}
-                        . Tudo incluído.
-                      </p>
-                      {options.lengths.length > 0 && (
-                        <OptionChips label="Comprimento" values={options.lengths} value={length} onChange={setLength} site={site} />
-                      )}
-                      {options.partings.length > 0 && (
-                        <OptionChips label="Repartição" values={options.partings} value={parting} onChange={setParting} site={site} />
-                      )}
-                      <p className="mt-5 font-subtitle text-sm text-onyx">
-                        {price !== null ? (
-                          <>
-                            Preço: <strong className="font-semibold">{formatPrice(price)}</strong>
-                          </>
-                        ) : (
-                          <span className="text-onyx/55">Escolhe para veres o preço.</span>
-                        )}
-                      </p>
-                    </section>
-                  )}
-                  {service && (
-                    <section className="mb-10">
-                      <h2 className="font-subtitle text-xl text-onyx">Que cor queres?</h2>
-                      <p className="mt-1 font-subtitle text-sm font-light text-onyx/60">
-                        Escolhe pelo código da cor do cabelo.
-                      </p>
-                      <ColorPicker value={color} onChange={setColor} />
-                    </section>
-                  )}
-                  <h2 className="font-subtitle text-xl text-onyx">Quando queres vir?</h2>
-                  {slots.length === 0 ? (
-                    <div className="mt-8 text-center">
-                      <i className="bx bx-calendar-x text-5xl text-onyx/25" aria-hidden="true" />
-                      <p className="mt-3 font-subtitle text-base text-onyx">Sem horários livres de momento</p>
-                      <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
-                        Fala connosco e arranjamos uma data.
-                      </p>
-                      {whatsapp.enabled && (
-                        <a
-                          href={whatsapp.url('Olá! Gostaria de marcar uma sessão de tranças.')}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mt-5 inline-block rounded-full border border-onyx/20 px-6 py-3 font-subtitle text-sm text-onyx"
-                        >
-                          Falar no WhatsApp
-                        </a>
-                      )}
+                            <button
+                              type="button"
+                              aria-pressed={chosen}
+                              aria-label={chosen ? `Retirar ${s.name}` : `Escolher ${s.name}`}
+                              onClick={() => {
+                                void tap()
+                                setServiceId(chosen ? null : s.id)
+                              }}
+                              // Over the photo: solid, with a shadow, so it reads on any picture and in both themes.
+                              className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full shadow-md shadow-black/20 transition-colors ${
+                                chosen
+                                  ? 'bg-onyx text-white'
+                                  : 'border border-onyx/15 bg-white/90 text-transparent backdrop-blur-sm'
+                              }`}
+                            >
+                              <i className="bx bx-check text-xl" aria-hidden="true" />
+                            </button>
+                          </div>
+                        )
+                      })}
                     </div>
-                  ) : (
-                    <div className="mt-5">
-                      <SlotPicker slots={slots} value={slotId} onChange={setSlotId} />
-                    </div>
-                  )}
-                  {error && <p className="mt-5 font-subtitle text-sm text-red-700">{error}</p>}
-                </>
-              )}
+                  </>
+                )}
 
-              {step === 2 && service && slot && (
-                <>
-                  <h2 className="font-subtitle text-xl text-onyx">Confirma o teu pedido</h2>
-
-                  {/* Summary (on the website's wide screens it is in the column beside). */}
-                  <div className={`${panelClass} mt-5 ${site ? 'lg:hidden' : ''}`}>
-                    <div className="flex items-center justify-between">
-                      <p className={labelClass}>Resumo</p>
-                      <span className="font-subtitle text-xs text-muted-dark">Por confirmar</span>
-                    </div>
-                    <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">{service.name}</p>
-                    {(chosenLabel || color) && (
-                      <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
-                        {[chosenLabel, colorLabel(color)].filter(Boolean).join(' · ')}
-                      </p>
-                    )}
-
-                    <Facts columns="2fr 1fr">
-                      <Fact label="Data">{longDay(slot.startsAt)}</Fact>
-                      <Fact label="Hora">{timeLabel(slot.startsAt)}</Fact>
-                    </Facts>
-                    <Facts columns="1fr 1fr">
-                      <Fact label="Duração">{service.durationLabel}</Fact>
-                      <Fact label="Preço">{formatPrice(price ?? service.priceCents)}</Fact>
-                    </Facts>
-                    {business.address && (
-                      <Facts columns="1fr">
-                        <Fact label="Local">{business.address}</Fact>
-                      </Facts>
-                    )}
-
-                    <div className="mt-4 flex items-center justify-between border-t border-onyx/15 pt-4 font-subtitle text-sm font-medium text-onyx">
-                      <button type="button" onClick={() => setStep(0)} className="underline underline-offset-4">
-                        Alterar modelo
-                      </button>
-                      <button type="button" onClick={() => setStep(1)} className="underline underline-offset-4">
-                        Alterar data
-                      </button>
-                    </div>
-                  </div>
-
-                  {authLoading ? null : !customer ? (
-                    <div className="mt-8">
-                      <p className="mb-4 font-subtitle text-sm font-light text-muted-dark">
-                        Entra ou cria conta para enviar o pedido. Guardamos a tua escolha.
-                      </p>
-                      <AccountAuthForm />
-                    </div>
-                  ) : (
-                    <div className="mt-6 flex flex-col gap-4">
-                      <p className="font-subtitle text-sm font-light text-muted-dark">
-                        O pedido fica <strong className="font-semibold text-onyx">por confirmar</strong>.{' '}
-                        {site
-                          ? 'Avisamos-te assim que for aceite. Não há pagamentos online.'
-                          : 'Avisamos-te na app assim que for aceite. Não há pagamentos na app.'}
-                      </p>
-
-                      <div className={panelClass}>
-                        <p className={labelClass}>Os teus dados</p>
-                        <p className="mt-2 flex items-center gap-2 font-subtitle text-sm text-onyx">
-                          <i className="bx bx-user text-lg text-muted-dark" aria-hidden="true" />
-                          {customer.name}
+                {step === 1 && (
+                  <>
+                    {service && options.hasOptions && (
+                      <section className="mb-10">
+                        <h2 className="font-subtitle text-xl text-onyx">Como queres as tuas {service.name}?</h2>
+                        <p className="mt-1 font-subtitle text-sm font-light text-onyx/60">
+                          O preço depende{' '}
+                          {options.lengths.length && options.partings.length
+                            ? 'do comprimento e da repartição'
+                            : options.lengths.length
+                              ? 'do comprimento'
+                              : 'da repartição'}
+                          . Tudo incluído.
                         </p>
-                        <label className="mt-3 flex items-center gap-2 rounded-xl border-2 border-onyx/30 px-3 focus-within:border-onyx">
-                          <i className="bx bx-phone text-lg text-muted-dark" aria-hidden="true" />
-                          <input
-                            type="tel"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            aria-label="Telemóvel"
-                            placeholder="O teu telemóvel"
-                            className="w-full bg-transparent py-3 font-subtitle text-onyx outline-none"
+                        {options.lengths.length > 0 && (
+                          <OptionChips
+                            label="Comprimento"
+                            values={options.lengths}
+                            value={length}
+                            onChange={setLength}
+                            site={site}
                           />
-                        </label>
+                        )}
+                        {options.partings.length > 0 && (
+                          <OptionChips
+                            label="Repartição"
+                            values={options.partings}
+                            value={parting}
+                            onChange={setParting}
+                            site={site}
+                          />
+                        )}
+                        <p className="mt-5 font-subtitle text-sm text-onyx">
+                          {price !== null ? (
+                            <>
+                              Preço: <strong className="font-semibold">{formatPrice(price)}</strong>
+                            </>
+                          ) : (
+                            <span className="text-onyx/55">Escolhe para veres o preço.</span>
+                          )}
+                        </p>
+                      </section>
+                    )}
+                    {service && (
+                      <section className="mb-10">
+                        <h2 className="font-subtitle text-xl text-onyx">Que cor queres?</h2>
+                        <p className="mt-1 font-subtitle text-sm font-light text-onyx/60">
+                          Escolhe pelo código da cor do cabelo.
+                        </p>
+                        <ColorPicker value={color} onChange={setColor} />
+                      </section>
+                    )}
+                    <h2 className="font-subtitle text-xl text-onyx">Quando queres vir?</h2>
+                    {slots.length === 0 ? (
+                      <div className="mt-8 text-center">
+                        <i className="bx bx-calendar-x text-5xl text-onyx/25" aria-hidden="true" />
+                        <p className="mt-3 font-subtitle text-base text-onyx">Sem horários livres de momento</p>
+                        <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
+                          Fala connosco e arranjamos uma data.
+                        </p>
+                        {whatsapp.enabled && (
+                          <a
+                            href={whatsapp.url('Olá! Gostaria de marcar uma sessão de tranças.')}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-5 inline-block rounded-full border border-onyx/20 px-6 py-3 font-subtitle text-sm text-onyx"
+                          >
+                            Falar no WhatsApp
+                          </a>
+                        )}
                       </div>
+                    ) : (
+                      <div className="mt-5">
+                        <SlotPicker slots={slots} value={slotId} onChange={setSlotId} />
+                      </div>
+                    )}
+                    {error && <p className="mt-5 font-subtitle text-sm text-red-700">{error}</p>}
+                  </>
+                )}
 
-                      <label className="block">
-                        <span className={`${labelClass} mb-1.5 block`}>Notas (opcional)</span>
-                        <textarea
-                          value={notes}
-                          onChange={(e) => setNotes(e.target.value)}
-                          rows={3}
-                          maxLength={500}
-                          placeholder="Tamanho, comprimento, cor… ou qualquer informação extra"
-                          className={`${fieldClass} resize-none`}
-                        />
-                      </label>
+                {step === 2 && service && slot && (
+                  <>
+                    <h2 className="font-subtitle text-xl text-onyx">Confirma o teu pedido</h2>
 
-                      {business.cancellationPolicy && (
-                        <p className="flex items-start gap-2 font-subtitle text-xs font-light text-muted-dark">
-                          <i className="bx bx-calendar-x mt-0.5 text-base text-muted-dark" aria-hidden="true" />
-                          <span>
-                            <strong className="font-medium text-onyx">Cancelamentos:</strong>{' '}
-                            {business.cancellationPolicy}
-                          </span>
+                    {/* Summary (on the website's wide screens it is in the column beside). */}
+                    <div className={`${panelClass} mt-5 ${site ? 'lg:hidden' : ''}`}>
+                      <div className="flex items-center justify-between">
+                        <p className={labelClass}>Resumo</p>
+                        <span className="font-subtitle text-xs text-muted-dark">Por confirmar</span>
+                      </div>
+                      <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">
+                        {service.name}
+                      </p>
+                      {(chosenLabel || color) && (
+                        <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
+                          {[chosenLabel, colorLabel(color)].filter(Boolean).join(' · ')}
                         </p>
                       )}
-                      {error && <p className="font-subtitle text-sm text-red-700">{error}</p>}
-                    </div>
-                  )}
-                </>
-              )}
-            </motion.div>
-          </AnimatePresence>
 
-          {/* Website, wide screens: what has been chosen so far, with the button to go on, beside the steps. */}
-          {site && (
-            <aside className="mt-8 hidden lg:sticky lg:top-28 lg:block">
-              <div className="rounded-3xl border border-onyx/10 bg-white p-6 shadow-sm shadow-black/5">
-                <p className={labelClass}>A tua marcação</p>
-                <dl className="mt-4 flex flex-col gap-4 font-subtitle text-sm">
-                  <div>
-                    <dt className="text-onyx/55">Modelo</dt>
-                    <dd className="mt-0.5 text-base font-medium text-onyx">{service?.name ?? 'Por escolher'}</dd>
-                  </div>
-                  {service && (
-                    <div>
-                      <dt className="text-onyx/55">Cor</dt>
-                      <dd className="mt-0.5 text-base font-medium text-onyx">{colorLabel(color) ?? 'Por escolher'}</dd>
-                    </div>
-                  )}
-                  {service && options.hasOptions && (
-                    <div>
-                      <dt className="text-onyx/55">Opções</dt>
-                      <dd className="mt-0.5 text-base font-medium text-onyx">{chosenLabel ?? 'Por escolher'}</dd>
-                    </div>
-                  )}
-                  <div>
-                    <dt className="text-onyx/55">Data e hora</dt>
-                    <dd className="mt-0.5 text-base font-medium text-onyx">
-                      {slot ? `${longDay(slot.startsAt)}, ${timeLabel(slot.startsAt)}` : 'Por escolher'}
-                    </dd>
-                  </div>
-                  {service && (
-                    <div className="flex justify-between border-t border-onyx/10 pt-4">
-                      <div>
-                        <dt className="text-onyx/55">Duração</dt>
-                        <dd className="mt-0.5 font-medium text-onyx">{service.durationLabel}</dd>
+                      <Facts columns="2fr 1fr">
+                        <Fact label="Data">{longDay(slot.startsAt)}</Fact>
+                        <Fact label="Hora">{timeLabel(slot.startsAt)}</Fact>
+                      </Facts>
+                      <Facts columns="1fr 1fr">
+                        <Fact label="Duração">{service.durationLabel}</Fact>
+                        <Fact label="Preço">{formatPrice(price ?? service.priceCents)}</Fact>
+                      </Facts>
+                      {business.address && (
+                        <Facts columns="1fr">
+                          <Fact label="Local">{business.address}</Fact>
+                        </Facts>
+                      )}
+
+                      <div className="mt-4 flex items-center justify-between border-t border-onyx/15 pt-4 font-subtitle text-sm font-medium text-onyx">
+                        <button type="button" onClick={() => setStep(0)} className="underline underline-offset-4">
+                          Alterar modelo
+                        </button>
+                        <button type="button" onClick={() => setStep(1)} className="underline underline-offset-4">
+                          Alterar data
+                        </button>
                       </div>
-                      <div className="text-right">
-                        <dt className="text-onyx/55">Preço</dt>
-                        <dd className="mt-0.5 font-logo text-2xl leading-tight text-onyx">
-                          {price !== null ? formatPrice(price) : servicePriceLabel(service)}
+                    </div>
+
+                    {authLoading ? null : !customer ? (
+                      <div className="mt-8">
+                        <p className="mb-4 font-subtitle text-sm font-light text-muted-dark">
+                          Entra ou cria conta para enviar o pedido. Guardamos a tua escolha.
+                        </p>
+                        <AccountAuthForm />
+                      </div>
+                    ) : (
+                      <div className="mt-6 flex flex-col gap-4">
+                        <p className="font-subtitle text-sm font-light text-muted-dark">
+                          O pedido fica <strong className="font-semibold text-onyx">por confirmar</strong>.{' '}
+                          {site
+                            ? 'Avisamos-te assim que for aceite. Não há pagamentos online.'
+                            : 'Avisamos-te na app assim que for aceite. Não há pagamentos na app.'}
+                        </p>
+
+                        {/* The customer's details and the notes as grouped rows: the label on the left, the value on the right. */}
+                        <div>
+                          <p className={`${labelClass} mb-2 px-1`}>Os teus dados</p>
+                          <div className={groupClass}>
+                            <div className="flex h-[52px] items-center gap-3 px-4">
+                              <span className="w-24 shrink-0 font-subtitle text-[15px] text-onyx">Nome</span>
+                              <span className="min-w-0 flex-1 truncate text-right font-subtitle text-[15px] text-onyx/65">
+                                {customer.name}
+                              </span>
+                            </div>
+                            <label className="flex h-[52px] items-center gap-3 px-4">
+                              <span className="w-24 shrink-0 font-subtitle text-[15px] text-onyx">Telemóvel</span>
+                              <input
+                                type="tel"
+                                inputMode="tel"
+                                autoComplete="tel"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                placeholder="912 345 678"
+                                className="field-plain min-w-0 flex-1 bg-transparent text-right font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35"
+                              />
+                            </label>
+                          </div>
+                        </div>
+
+                        <label className="block">
+                          <span className={`${labelClass} mb-2 block px-1`}>Notas (opcional)</span>
+                          <span className={`block px-4 py-3 ${groupClass}`}>
+                            <textarea
+                              value={notes}
+                              onChange={(e) => setNotes(e.target.value)}
+                              rows={3}
+                              maxLength={500}
+                              placeholder="Tamanho, comprimento, cor… ou qualquer informação extra"
+                              className="field-plain block w-full resize-none bg-transparent font-subtitle text-base leading-snug text-onyx outline-none placeholder:text-onyx/35"
+                            />
+                          </span>
+                        </label>
+
+                        {business.cancellationPolicy && (
+                          <p className="flex items-start gap-2 font-subtitle text-xs font-light text-muted-dark">
+                            <i className="bx bx-calendar-x mt-0.5 text-base text-muted-dark" aria-hidden="true" />
+                            <span>
+                              <strong className="font-medium text-onyx">Cancelamentos:</strong>{' '}
+                              {business.cancellationPolicy}
+                            </span>
+                          </p>
+                        )}
+                        {error && <p className="font-subtitle text-sm text-red-700">{error}</p>}
+                      </div>
+                    )}
+                  </>
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Website, wide screens: what has been chosen so far, with the button to go on, beside the steps. */}
+            {site && (
+              <aside className="mt-8 hidden lg:sticky lg:top-28 lg:block">
+                <div className="rounded-3xl border border-onyx/10 bg-white p-6 shadow-sm shadow-black/5">
+                  <p className={labelClass}>A tua marcação</p>
+                  <dl className="mt-4 flex flex-col gap-4 font-subtitle text-sm">
+                    <div>
+                      <dt className="text-onyx/55">Modelo</dt>
+                      <dd className="mt-0.5 text-base font-medium text-onyx">{service?.name ?? 'Por escolher'}</dd>
+                    </div>
+                    {service && (
+                      <div>
+                        <dt className="text-onyx/55">Cor</dt>
+                        <dd className="mt-0.5 text-base font-medium text-onyx">
+                          {colorLabel(color) ?? 'Por escolher'}
                         </dd>
                       </div>
+                    )}
+                    {service && options.hasOptions && (
+                      <div>
+                        <dt className="text-onyx/55">Opções</dt>
+                        <dd className="mt-0.5 text-base font-medium text-onyx">{chosenLabel ?? 'Por escolher'}</dd>
+                      </div>
+                    )}
+                    <div>
+                      <dt className="text-onyx/55">Data e hora</dt>
+                      <dd className="mt-0.5 text-base font-medium text-onyx">
+                        {slot ? `${longDay(slot.startsAt)}, ${timeLabel(slot.startsAt)}` : 'Por escolher'}
+                      </dd>
                     </div>
-                  )}
-                </dl>
-                {/* The site's button with the sliding arrow disc, as "Agendar" in the header. */}
-                <ButtonWithIcon
-                  label={submitting ? 'A enviar...' : step === 2 ? 'Enviar pedido' : 'Continuar'}
-                  solid
-                  large
-                  disabled={!ctaVisible || submitting}
-                  onClick={() => (step === 2 ? void submit() : setStep(step + 1))}
-                  className="mt-6 w-full disabled:cursor-not-allowed disabled:opacity-30"
-                />
-                <p className="mt-3 font-subtitle text-xs font-light text-onyx/55">
-                  {step === 0 && !service
-                    ? 'Escolhe um modelo para continuar.'
-                    : step === 1 && !optionsDone
-                      ? 'Escolhe o comprimento e a repartição.'
-                      : step === 1 && !color
-                      ? 'Escolhe a cor.'
-                      : step === 1 && !slot
-                      ? 'Escolhe o dia e a hora.'
-                      : step === 2 && !customer
-                        ? 'Entra na tua conta para enviar o pedido.'
-                        : 'Sem pagamentos online. Pagas no dia.'}
-                </p>
-              </div>
-            </aside>
-          )}
+                    {service && (
+                      <div className="flex justify-between border-t border-onyx/10 pt-4">
+                        <div>
+                          <dt className="text-onyx/55">Duração</dt>
+                          <dd className="mt-0.5 font-medium text-onyx">{service.durationLabel}</dd>
+                        </div>
+                        <div className="text-right">
+                          <dt className="text-onyx/55">Preço</dt>
+                          <dd className="mt-0.5 font-logo text-2xl leading-tight text-onyx">
+                            {price !== null ? formatPrice(price) : servicePriceLabel(service)}
+                          </dd>
+                        </div>
+                      </div>
+                    )}
+                  </dl>
+                  {/* The site's button with the sliding arrow disc, as "Agendar" in the header. */}
+                  <ButtonWithIcon
+                    label={submitting ? 'A enviar...' : step === 2 ? 'Enviar pedido' : 'Continuar'}
+                    solid
+                    large
+                    disabled={!ctaVisible || submitting}
+                    onClick={() => (step === 2 ? void submit() : setStep(step + 1))}
+                    className="mt-6 w-full disabled:cursor-not-allowed disabled:opacity-30"
+                  />
+                  <p className="mt-3 font-subtitle text-xs font-light text-onyx/55">
+                    {step === 0 && !service
+                      ? 'Escolhe um modelo para continuar.'
+                      : step === 1 && !optionsDone
+                        ? 'Escolhe o comprimento e a repartição.'
+                        : step === 1 && !color
+                          ? 'Escolhe a cor.'
+                          : step === 1 && !slot
+                            ? 'Escolhe o dia e a hora.'
+                            : step === 2 && !customer
+                              ? 'Entra na tua conta para enviar o pedido.'
+                              : 'Sem pagamentos online. Pagas no dia.'}
+                  </p>
+                </div>
+              </aside>
+            )}
           </div>
         )}
       </div>
