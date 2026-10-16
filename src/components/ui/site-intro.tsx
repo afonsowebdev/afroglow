@@ -7,6 +7,26 @@ import { INTRO_READY_EVENT, INTRO_SEEN_KEY as SEEN_KEY, introWillShow } from '@/
 const ASSEMBLE_MS = 2800
 const MAX_MS = 6000
 
+/** Whether the opening is over (or never showed), and who is waiting for it to be. */
+let finished = false
+const waiting = new Set<() => void>()
+function finish() {
+  if (finished) return
+  finished = true
+  waiting.forEach((run) => run())
+  waiting.clear()
+}
+
+/** Runs `run` once the opening has gone (straight away when it is already over or never showed). */
+export function afterIntro(run: () => void) {
+  if (finished) {
+    run()
+    return () => {}
+  }
+  waiting.add(run)
+  return () => waiting.delete(run)
+}
+
 /**
  * The site's and the apps' opening: the whole screen in the theme's colour with AFROGLOW assembling from particles (as in the
  * contact section); once the word has formed and the page has loaded, it fades away and the site shows. Once per
@@ -15,6 +35,12 @@ const MAX_MS = 6000
 export function SiteIntro() {
   const [show, setShow] = useState(introWillShow)
   const [shownAt, setShownAt] = useState<number | null>(null)
+
+  // Nothing to wait for when it doesn't show.
+  useEffect(() => {
+    if (!show) finish()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Nothing under it moves while it is up.
   useEffect(() => {
@@ -53,7 +79,7 @@ export function SiteIntro() {
   }, [show, shownAt])
 
   return (
-    <AnimatePresence>
+    <AnimatePresence onExitComplete={finish}>
       {show && (
         <motion.div
           key="intro"

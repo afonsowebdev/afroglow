@@ -43,6 +43,7 @@ import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 import SettingsScreen from './SettingsScreen'
 import { SiteIntro } from '@/components/ui/site-intro'
 import { BackToTop } from '@/components/ui/back-to-top'
+import { HeaderLogo } from './HeaderLogo'
 import { NotificationBell } from '@/components/layout/NotificationBell'
 
 type TabId = 'inicio' | 'marcar' | 'marcacoes' | 'conta'
@@ -276,20 +277,13 @@ function CustomerShell() {
               <i className="bx bx-chevron-left" aria-hidden="true" />
             </button>
           ) : (
-            <button
-              type="button"
+            <HeaderLogo
               onClick={() => {
                 void tap()
                 navigate('/')
                 window.scrollTo({ top: 0 })
               }}
-              aria-label="AFROGLOW, início"
-              className={`pointer-events-auto flex size-12 items-center justify-center rounded-full font-logo text-[1.6rem] leading-none logo-weight ${BRAND_CIRCLE}`}
-            >
-              <span className="translate-y-[0.1em]" aria-hidden="true">
-                A
-              </span>
-            </button>
+            />
           )}
           <div className="pointer-events-auto flex items-start gap-2.5">
             {customer && !back && (
