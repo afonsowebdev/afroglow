@@ -17,6 +17,31 @@ import { useWhatsapp } from '@/lib/site-config'
 import { useTheme } from '@/lib/theme'
 import type { Service, Testimonial as ApiTestimonial } from '@/lib/types'
 
+/**
+ * One wave across 1440 units that repeats every 720 (so the 200%-wide layer can drift by half its width forever
+ * without a seam): a long swell with a smaller ripple on it, filled down to the bottom.
+ */
+function wavePath(base: number, swell: number, ripple: number, phase: number) {
+  const points: string[] = []
+  for (let x = 0; x <= 1440; x += 12) {
+    const t = (x / 720) * 2 * Math.PI
+    const y = base + swell * Math.sin(t + phase) + ripple * Math.sin(2 * t + phase * 1.7)
+    points.push(`${x} ${y.toFixed(1)}`)
+  }
+  return `M${points.join(' L')} L1440 100 L0 100 Z`
+}
+
+const WAVES = [
+  { key: 'far', fill: 'fill-white/25', d: wavePath(34, 22, 7, 0), animation: 'wave-drift 26s linear infinite reverse' },
+  { key: 'mid', fill: 'fill-white/55', d: wavePath(48, 19, 6, 1.7), animation: 'wave-drift 18s linear infinite' },
+  {
+    key: 'near',
+    fill: 'fill-white',
+    d: wavePath(62, 15, 5, 3.4),
+    animation: 'wave-drift 12s linear infinite reverse',
+  },
+]
+
 export default function HomeScreen() {
   const whatsapp = useWhatsapp()
   const { theme } = useTheme()
@@ -63,23 +88,20 @@ export default function HomeScreen() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[12%] backdrop-blur-xl [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_70%)] [mask-image:linear-gradient(to_bottom,transparent,black_70%)]"
         />
-        {/* Two layers of waves drifting slowly in opposite directions. */}
+        {/* Three layers of waves (far, middle, near) drifting slowly at their own pace, in turns of direction. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 -bottom-px z-[6] h-16 overflow-hidden"
+          className="pointer-events-none absolute inset-x-0 -bottom-px z-[6] h-24 overflow-hidden"
         >
-          {[
-            { fill: 'fill-white/50', style: 'wave-drift 15s linear infinite reverse', top: 'top-0' },
-            { fill: 'fill-white', style: 'wave-drift 9s linear infinite', top: 'top-3' },
-          ].map((wave) => (
+          {WAVES.map((wave) => (
             <svg
-              key={wave.fill}
-              viewBox="0 0 780 60"
+              key={wave.key}
+              viewBox="0 0 1440 100"
               preserveAspectRatio="none"
-              className={`absolute ${wave.top} left-0 h-[calc(100%-0.75rem)] w-[200%] ${wave.fill}`}
-              style={{ animation: wave.style }}
+              className={`absolute inset-y-0 left-0 h-full w-[200%] ${wave.fill}`}
+              style={{ animation: wave.animation }}
             >
-              <path d="M0 30 C65 6 130 6 195 30 S325 54 390 30 C455 6 520 6 585 30 S715 54 780 30 L780 60 L0 60 Z" />
+              <path d={wave.d} />
             </svg>
           ))}
         </div>
