@@ -1058,12 +1058,19 @@ export function Visit() {
 export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
   const business = useBusinessInfo()
   const { status } = useOpeningStatus(business.openingHours)
-  const others: Array<{ icon: string; title: string; href: string }> = [
+  const others: Array<{ icon: string; title: string; value: string; href: string }> = [
     ...(business.phone
-      ? [{ icon: 'bx bx-phone', title: 'Ligar', href: `tel:${business.phone.replace(/[^+\d]/g, '')}` }]
+      ? [
+          {
+            icon: 'bx bx-phone',
+            title: 'Ligar',
+            value: business.phone,
+            href: `tel:${business.phone.replace(/[^+\d]/g, '')}`,
+          },
+        ]
       : []),
-    { icon: 'bx bxl-instagram', title: 'Instagram', href: instagramDmUrl() },
-    { icon: 'bx bx-envelope', title: 'Email', href: `mailto:${siteConfig.email}` },
+    { icon: 'bx bxl-instagram', title: 'Instagram', value: `@${siteConfig.instagramHandle}`, href: instagramDmUrl() },
+    { icon: 'bx bx-envelope', title: 'Email', value: siteConfig.email, href: `mailto:${siteConfig.email}` },
   ]
   const external = (href: string) => (href.startsWith('http') ? { target: '_blank', rel: 'noreferrer' } : {})
 
@@ -1102,9 +1109,6 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
           <div className="mt-6 flex justify-center">
             <ActionButton label="Falar no WhatsApp" href={whatsappUrl} icon="bx bxl-whatsapp" />
           </div>
-          {business.phone && (
-            <p className="mt-3 font-subtitle text-xs tabular-nums text-muted-dark">{business.phone}</p>
-          )}
         </div>
       )}
 
@@ -1113,18 +1117,29 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
         <span className="font-subtitle text-xs uppercase tracking-[0.14em] text-muted-dark">ou</span>
         <span className="h-px flex-1 bg-onyx/10" />
       </div>
-      {/* The other ways, as the action buttons of an iPhone contact card. */}
-      <div className={`mt-4 grid gap-2.5 ${others.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+      {/* The other ways as a grouped list, as in the iPhone's settings: what it does, the contact itself, an arrow. */}
+      <div className="mt-4 divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
         {others.map((option) => (
           <a
             key={option.title}
             href={option.href}
             {...external(option.href)}
             onClick={() => void tap()}
-            className="flex h-[68px] flex-col items-center justify-center gap-1 rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] text-onyx active:bg-onyx/[0.08]"
+            className="flex items-center gap-3.5 px-4 py-3 active:bg-onyx/[0.05]"
           >
-            <i className={`${option.icon} text-[22px]`} aria-hidden="true" />
-            <span className="font-subtitle text-xs font-medium">{option.title}</span>
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-onyx text-xl text-white">
+              <i className={option.icon} aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-subtitle text-[15px] font-medium leading-tight text-onyx">
+                {option.title}
+              </span>
+              <span className="mt-0.5 block truncate font-subtitle text-[13px] text-muted-dark">{option.value}</span>
+            </span>
+            <i
+              className={`bx ${option.href.startsWith('http') ? 'bx-link-external' : 'bx-chevron-right'} text-xl text-onyx/30`}
+              aria-hidden="true"
+            />
           </a>
         ))}
       </div>
