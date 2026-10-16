@@ -1098,16 +1098,10 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
           <p className="mx-auto mt-4 max-w-[19rem] font-subtitle text-[15px] leading-relaxed text-onyx/70">
             Tens alguma dúvida sobre os modelos, os preços ou a tua marcação? Fala diretamente comigo.
           </p>
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-            onClick={() => void tap('medium')}
-            className="mt-6 flex h-[52px] items-center justify-center gap-2 rounded-2xl bg-onyx font-subtitle text-[15px] font-semibold text-white active:opacity-85"
-          >
-            <i className="bx bxl-whatsapp text-[22px]" aria-hidden="true" />
-            Falar no WhatsApp
-          </a>
+          {/* The app's own glass button, with WhatsApp in its disc. */}
+          <div className="mt-6 flex justify-center">
+            <ActionButton label="Falar no WhatsApp" href={whatsappUrl} icon="bx bxl-whatsapp" />
+          </div>
           {business.phone && (
             <p className="mt-3 font-subtitle text-xs tabular-nums text-muted-dark">{business.phone}</p>
           )}
