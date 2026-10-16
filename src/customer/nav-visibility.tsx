@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 
 interface NavVisibility {
   hidden: boolean
@@ -17,12 +17,36 @@ const Context = createContext<NavVisibility>({
   setAutoHidden: () => {},
 })
 
+/** A screen's way back, shown in the top row in place of the "A" while the screen has one. */
+const BackContext = createContext<{ back: (() => void) | null; setBack: (back: (() => void) | null) => void }>({
+  back: null,
+  setBack: () => {},
+})
+
 export function NavVisibilityProvider({ children }: { children: ReactNode }) {
   const [forced, setHidden] = useState(false)
   const [auto, setAutoHidden] = useState(false)
+  const [back, setBack] = useState<(() => void) | null>(null)
   return (
-    <Context.Provider value={{ hidden: forced || auto, forced, setHidden, setAutoHidden }}>{children}</Context.Provider>
+    <Context.Provider value={{ hidden: forced || auto, forced, setHidden, setAutoHidden }}>
+      <BackContext.Provider value={{ back, setBack }}>{children}</BackContext.Provider>
+    </Context.Provider>
   )
+}
+
+/** The current screen's way back, or null (the top row then shows the "A"). */
+export const useHeaderBack = () => useContext(BackContext).back
+
+/** A screen calls this while it has a way back (`active`): the top row shows a back button that runs `onBack`. */
+export function useBackButton(active: boolean, onBack: () => void) {
+  const { setBack } = useContext(BackContext)
+  const latest = useRef(onBack)
+  latest.current = onBack
+  useEffect(() => {
+    if (!active) return
+    setBack(() => () => latest.current())
+    return () => setBack(null)
+  }, [active, setBack])
 }
 
 export const useNavHidden = () => useContext(Context).hidden

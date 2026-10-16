@@ -10,7 +10,7 @@ import { useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 import { downloadBookingIcs } from '@/lib/calendar'
 import { formatPrice, type AvailabilitySlot, type Service } from '@/lib/types'
 import { longDay, timeLabel } from './dates'
-import { useHideNav } from './nav-visibility'
+import { useBackButton, useHideNav } from './nav-visibility'
 import { serviceImageUrls } from '@/lib/service-images'
 import { Fact, Facts, labelClass, panelClass } from './panel'
 import { choiceComplete, choiceLabel, optionsOf, priceFor, servicePriceLabel } from '@/lib/pricing'
@@ -225,6 +225,11 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
       (step === 1 && optionsDone && Boolean(color) && Boolean(slot) && (slots?.length ?? 0) > 0) ||
       (step === 2 && Boolean(customer) && phone.trim().length >= 6))
   useHideNav(ctaVisible)
+  // In the app, the previous step is reached from the top row (the back button takes the place of the "A").
+  useBackButton(!site && step > 0, () => {
+    setError(null)
+    setStep(step - 1)
+  })
 
   async function submit() {
     if (!slot || !service || !customer) return
@@ -338,28 +343,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
             <h1 className="font-logo text-4xl text-onyx sm:text-5xl">Marcar sessão</h1>
           </div>
         ) : (
-          <div className="flex items-center gap-3">
-            {step > 0 ? (
-              <button
-                type="button"
-                aria-label="Passo anterior"
-                onClick={() => {
-                  void tap()
-                  setError(null)
-                  setStep(step - 1)
-                }}
-                className="glass-chip flex h-10 w-10 items-center justify-center rounded-full text-xl text-onyx"
-              >
-                <i className="bx bx-chevron-left" aria-hidden="true" />
-              </button>
-            ) : (
-              <span className="h-10 w-10" />
-            )}
-            <h1 className="flex-1 text-center font-subtitle font-semibold tracking-tight text-2xl text-onyx">
-              Marcar sessão
-            </h1>
-            <span className="h-10 w-10" />
-          </div>
+          <h1 className="text-center font-subtitle text-2xl font-semibold tracking-tight text-onyx">Marcar sessão</h1>
         )}
 
         <div

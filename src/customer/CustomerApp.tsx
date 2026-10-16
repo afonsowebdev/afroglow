@@ -37,7 +37,7 @@ import BookScreen from './BookScreen'
 import HomeScreen from './HomeScreen'
 import { BookingAlertsProvider, useBookingAlerts } from './booking-alerts'
 import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
-import { NavVisibilityProvider, useAutoHideNav, useNavHidden } from './nav-visibility'
+import { NavVisibilityProvider, useAutoHideNav, useHeaderBack, useNavHidden } from './nav-visibility'
 import ProfileScreen from './ProfileScreen'
 import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 import SettingsScreen from './SettingsScreen'
@@ -85,6 +85,7 @@ function CustomerShell() {
   const { unseen } = useBookingAlerts()
   const location = useLocation()
   const navigate = useNavigate()
+  const back = useHeaderBack()
   const { customer, loading, logout } = useCustomerAuth()
   const avatar = useAvatar()
 
@@ -256,26 +257,41 @@ function CustomerShell() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Top row on every screen: the "A" on the left (home), the bell and the menu on the right. At the top of the
-          page, scrolling away with it. Not on the sign-in screen, which has its own "A" in the middle. */}
+      {/* Top row on every screen: the "A" on the left (home), or the screen's back button in its place when it has one;
+          the bell (not while there is a back button) and the menu on the right. At the top of the page, scrolling away with it. Not on the sign-in screen,
+          which has its own "A" in the middle. */}
       {!onSignIn && (
         <div className="pointer-events-none absolute inset-x-0 top-[calc(0.75rem+env(safe-area-inset-top))] z-50 flex items-start justify-between px-4">
-          <button
-            type="button"
-            onClick={() => {
-              void tap()
-              navigate('/')
-              window.scrollTo({ top: 0 })
-            }}
-            aria-label="AFROGLOW, início"
-            className={`pointer-events-auto flex size-12 items-center justify-center rounded-full font-logo text-[1.6rem] leading-none logo-weight ${BRAND_CIRCLE}`}
-          >
-            <span className="translate-y-[0.1em]" aria-hidden="true">
-              A
-            </span>
-          </button>
+          {back ? (
+            <button
+              type="button"
+              onClick={() => {
+                void tap()
+                back()
+              }}
+              aria-label="Voltar"
+              className={`pointer-events-auto flex size-12 items-center justify-center rounded-full text-[1.75rem] ${BRAND_CIRCLE}`}
+            >
+              <i className="bx bx-chevron-left" aria-hidden="true" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                void tap()
+                navigate('/')
+                window.scrollTo({ top: 0 })
+              }}
+              aria-label="AFROGLOW, início"
+              className={`pointer-events-auto flex size-12 items-center justify-center rounded-full font-logo text-[1.6rem] leading-none logo-weight ${BRAND_CIRCLE}`}
+            >
+              <span className="translate-y-[0.1em]" aria-hidden="true">
+                A
+              </span>
+            </button>
+          )}
           <div className="pointer-events-auto flex items-start gap-2.5">
-            {customer && (
+            {customer && !back && (
               <NotificationBell tone={overHero ? 'onDark' : 'onLight'} className="size-12" plainBadge brand />
             )}
             <FloatingActionMenu

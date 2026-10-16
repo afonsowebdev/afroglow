@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ActionButton } from '@/components/ui/action-button'
 import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
 import { useNavigate } from 'react-router-dom'
+import { useBackButton } from './nav-visibility'
 import { api, ApiError } from '@/lib/api'
 import { useAvatar } from '@/lib/avatar-store'
 import { useCustomerAuth } from '@/lib/customer-auth'
@@ -184,6 +185,8 @@ function NotificationsRow() {
 
 export default function SettingsScreen() {
   const navigate = useNavigate()
+  // Back to the account, from the top row (in place of the "A").
+  useBackButton(true, () => navigate('/conta'))
   const photo = useAvatar()
   const { customer, updateProfile, changePassword, deleteAccount, logout } = useCustomerAuth()
   const [sheet, setSheet] = useState<SheetId>(null)
@@ -234,17 +237,7 @@ export default function SettingsScreen() {
     <main className="pb-40">
       <header className="px-5 pb-1 pt-[calc(4.5rem+env(safe-area-inset-top))]">
         <div className="mx-auto max-w-2xl">
-          <button
-            type="button"
-            aria-label="Voltar ao perfil"
-            onClick={() => navigate('/conta')}
-            className="glass-chip flex h-10 w-10 items-center justify-center rounded-full text-xl text-onyx"
-          >
-            <i className="bx bx-chevron-left" aria-hidden="true" />
-          </button>
-          <h1 className="mt-5 font-subtitle text-[32px] font-semibold leading-none tracking-tight text-onyx">
-            Definições
-          </h1>
+          <h1 className="font-subtitle text-[32px] font-semibold leading-none tracking-tight text-onyx">Definições</h1>
           <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">A tua conta e as preferências da app.</p>
         </div>
       </header>
