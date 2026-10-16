@@ -8,13 +8,14 @@ import { success, tap } from '@/lib/haptics'
 import { bookPath } from '@/lib/app-mode'
 import { mapSearchText, useBusinessInfo, useWhatsapp } from '@/lib/site-config'
 import { downloadBookingIcs } from '@/lib/calendar'
-import { formatPrice, type AvailabilitySlot, type Booking } from '@/lib/types'
+import { formatPrice, type AvailabilitySlot, type Booking, type Service } from '@/lib/types'
+import { serviceImageUrls } from '@/lib/service-images'
 import { dayKey, dayParts, longDay, timeLabel } from './dates'
 import { useBookingAlerts } from './booking-alerts'
 import { StatusDot } from './panel'
 import { SlotPicker } from './SlotPicker'
 import { usePullToRefresh } from './usePullToRefresh'
-import { bookingPrice, bookingExtras } from '@/lib/pricing'
+import { bookingPrice, bookingExtras, servicePriceLabel } from '@/lib/pricing'
 
 const STATUS: Record<Booking['status'], { label: string; chip: string; hint: string }> = {
   PENDING: {
@@ -51,9 +52,6 @@ function countdown(iso: string) {
   if (days === 1) return 'Amanhã'
   return `Daqui a ${days} dias`
 }
-
-/** "09:00 · Média · Cor 30 (Castanho claro)": the time and what was chosen. */
-const rowDetails = (b: Booking) => [timeLabel(b.slot.startsAt), bookingExtras(b)].filter(Boolean).join(' · ')
 
 /** Calendar, directions and WhatsApp for an upcoming session, as small round-cornered pills. */
 function SessionActions({ booking, onDark = false }: { booking: Booking; onDark?: boolean }) {
@@ -109,9 +107,25 @@ function SessionActions({ booking, onDark = false }: { booking: Booking; onDark?
   )
 }
 
-/** The next session, large: the day and time, the hairstyle, how long until it, and quick actions. */
-function NextSession({ booking, onOpen, isNew }: { booking: Booking; onOpen: () => void; isNew?: boolean }) {
-  const { weekday, day, month } = dayParts(booking.slot.startsAt)
+/** "Dom", "Qua": the weekday in three letters. */
+const shortWeekday = (iso: string) => dayParts(iso).weekday.slice(0, 3)
+
+/** The colour of a booking's dot: green confirmed, amber waiting, grey cancelled, red declined. */
+const DOT_COLOUR: Record<Booking['status'], string> = {
+  ACCEPTED: 'bg-emerald-500',
+  PENDING: 'bg-amber-400',
+  CANCELLED: 'bg-onyx/30',
+  REJECTED: 'bg-red-600',
+}
+
+/**
+ * The next session as a ticket: the hairstyle with its day, time and length on top; a perforated line with notches
+ * on the sides; then the status, how long until it, the price and quick actions.
+ */
+function NextTicket({ booking, onOpen, isNew }: { booking: Booking; onOpen: () => void; isNew?: boolean }) {
+  const { day, month } = dayParts(booking.slot.startsAt)
+  const weekday = shortWeekday(booking.slot.startsAt)
+  const label = 'font-subtitle text-[10px] font-medium uppercase tracking-[0.16em] text-white/55'
   return (
     <motion.div
       layout
@@ -123,90 +137,237 @@ function NextSession({ booking, onOpen, isNew }: { booking: Booking; onOpen: () 
         void tap()
         onOpen()
       }}
-      className="cursor-pointer rounded-3xl bg-onyx p-5 text-white"
+      className="relative cursor-pointer rounded-3xl bg-onyx text-white shadow-lg shadow-black/10"
     >
-      <div className="flex items-center justify-between gap-3">
-        <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-white/60">Próxima sessão</p>
-        <span className="flex items-center gap-2">
+      <div className="px-5 pb-5 pt-5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-white/60">Próxima sessão</p>
           {isNew && (
             <span className="rounded-full bg-red-600 px-2 py-0.5 font-subtitle text-[10px] font-semibold uppercase tracking-wide text-[#ffffff]">
               Novo
             </span>
           )}
-          <span className="rounded-full bg-white/15 px-2.5 py-1 font-subtitle text-xs font-medium">
-            {countdown(booking.slot.startsAt)}
+        </div>
+        <p className="mt-3 font-subtitle text-[26px] font-semibold leading-tight tracking-tight">
+          {booking.service.name}
+        </p>
+        {bookingExtras(booking) && (
+          <p className="mt-0.5 font-subtitle text-sm text-white/60">{bookingExtras(booking)}</p>
+        )}
+
+        <dl className="mt-5 grid grid-cols-[1.3fr_1fr_1fr] gap-3">
+          <div>
+            <dt className={label}>Dia</dt>
+            <dd className="mt-1 font-subtitle text-base font-semibold">
+              <span className="capitalize">{weekday}</span> {day} {month}
+            </dd>
+          </div>
+          <div>
+            <dt className={label}>Hora</dt>
+            <dd className="mt-1 font-subtitle text-base font-semibold tabular-nums">
+              {timeLabel(booking.slot.startsAt)}
+            </dd>
+          </div>
+          <div>
+            <dt className={label}>Duração</dt>
+            <dd className="mt-1 font-subtitle text-base font-semibold">{booking.service.durationLabel}</dd>
+          </div>
+        </dl>
+      </div>
+
+      {/* The perforation: a dashed line with a round notch cut out on each side. */}
+      <div className="relative mx-5 border-t-2 border-dashed border-white/20" aria-hidden="true">
+        <span className="absolute -left-8 -top-[13px] size-6 rounded-full bg-white" />
+        <span className="absolute -right-8 -top-[13px] size-6 rounded-full bg-white" />
+      </div>
+
+      <div className="px-5 pb-5 pt-4">
+        <div className="flex items-center justify-between gap-3 font-subtitle text-sm">
+          <span className="flex items-center gap-2">
+            <span className={`h-2 w-2 rounded-full ${DOT_COLOUR[booking.status]}`} aria-hidden="true" />
+            {STATUS[booking.status].label}
+            <span className="text-white/45">·</span>
+            <span className="text-white/70">{countdown(booking.slot.startsAt)}</span>
           </span>
-        </span>
-      </div>
-
-      <div className="mt-4 flex items-end gap-4">
-        <div className="text-center">
-          <p className="font-subtitle text-xs uppercase tracking-wide text-white/60">{weekday}</p>
-          <p className="font-subtitle text-5xl font-semibold leading-none tracking-tight">{day}</p>
-          <p className="mt-1 font-subtitle text-xs uppercase tracking-wide text-white/60">{month}</p>
+          <span className="font-semibold tabular-nums">{formatPrice(bookingPrice(booking))}</span>
         </div>
-        <div className="min-w-0 flex-1 border-l border-white/15 pl-4">
-          <p className="font-subtitle text-3xl font-semibold leading-none tabular-nums">
-            {timeLabel(booking.slot.startsAt)}
-          </p>
-          <p className="mt-2 truncate font-subtitle text-base font-medium">{booking.service.name}</p>
-          {bookingExtras(booking) && (
-            <p className="truncate font-subtitle text-sm text-white/60">{bookingExtras(booking)}</p>
-          )}
+        <div className="mt-4">
+          <SessionActions booking={booking} onDark />
         </div>
-      </div>
-
-      <div className="mt-4 flex items-center justify-between border-t border-white/15 pt-3 font-subtitle text-sm">
-        <span className="flex items-center gap-1.5">
-          <span
-            className={`h-2 w-2 rounded-full ${booking.status === 'ACCEPTED' ? 'bg-emerald-400' : 'bg-amber-400'}`}
-            aria-hidden="true"
-          />
-          {STATUS[booking.status].label}
-        </span>
-        <span className="tabular-nums text-white/80">{formatPrice(bookingPrice(booking))}</span>
-      </div>
-
-      <div className="mt-4">
-        <SessionActions booking={booking} onDark />
       </div>
     </motion.div>
   )
 }
 
-/** One booking as a row: the day in a small tile, the hairstyle and time, the status and a chevron. */
-function BookingRow({ booking, onOpen, isNew }: { booking: Booking; onOpen: () => void; isNew?: boolean }) {
-  const { day, month } = dayParts(booking.slot.startsAt)
-  const faded = booking.status === 'CANCELLED' || booking.status === 'REJECTED'
+/** "Outubro 2026": the month a session falls in, for the timeline's headings. */
+const monthHeading = (iso: string) => {
+  const label = new Date(iso).toLocaleDateString('pt-PT', { timeZone: 'Europe/Lisbon', month: 'long', year: 'numeric' })
+  return label.charAt(0).toUpperCase() + label.slice(1).replace(' de ', ' ')
+}
+
+/**
+ * Sessions as an agenda: grouped by month; on the left the day, then a line with a dot in the status colour, and the
+ * time, hairstyle and choice beside it. Cancelled and declined ones are faded.
+ */
+function Timeline({
+  bookings,
+  fresh,
+  onOpen,
+}: {
+  bookings: Booking[]
+  fresh: Set<string>
+  onOpen: (b: Booking) => void
+}) {
+  const months: Array<{ heading: string; items: Booking[] }> = []
+  for (const b of bookings) {
+    const heading = monthHeading(b.slot.startsAt)
+    const last = months[months.length - 1]
+    if (last?.heading === heading) last.items.push(b)
+    else months.push({ heading, items: [b] })
+  }
   return (
-    <button
-      type="button"
-      onClick={() => {
-        void tap()
-        onOpen()
-      }}
-      className="flex w-full items-center gap-3.5 px-4 py-3 text-left active:bg-onyx/[0.04]"
-    >
-      <span
-        className={`flex w-12 shrink-0 flex-col items-center rounded-xl bg-white py-1.5 shadow-sm shadow-black/5 ${faded ? 'opacity-50' : ''}`}
-      >
-        <span className="font-subtitle text-lg font-semibold leading-none text-onyx">{day}</span>
-        <span className="mt-0.5 font-subtitle text-[10px] uppercase tracking-wide text-muted-dark">{month}</span>
-      </span>
-      <span className={`min-w-0 flex-1 ${faded ? 'opacity-60' : ''}`}>
-        <span className="flex items-center gap-2">
-          <span className="truncate font-subtitle text-[15px] font-semibold text-onyx">{booking.service.name}</span>
-          {isNew && (
-            <span className="shrink-0 rounded-full bg-red-600 px-1.5 py-0.5 font-subtitle text-[9px] font-semibold uppercase tracking-wide text-[#ffffff]">
-              Novo
-            </span>
-          )}
+    <div className="flex flex-col gap-6">
+      {months.map(({ heading, items }) => (
+        <section key={heading}>
+          <h2 className="mb-3 font-subtitle text-sm font-semibold text-onyx">{heading}</h2>
+          <ol className="relative ml-12 border-l border-onyx/15">
+            {items.map((b, i) => {
+              const { day } = dayParts(b.slot.startsAt)
+              const weekday = shortWeekday(b.slot.startsAt)
+              const faded = b.status === 'CANCELLED' || b.status === 'REJECTED'
+              return (
+                <li key={b.id} className={`relative pl-5 ${i < items.length - 1 ? 'pb-4' : ''}`}>
+                  <span className={`absolute -left-12 top-0.5 w-9 text-center ${faded ? 'opacity-50' : ''}`}>
+                    <span className="block font-subtitle text-[10px] uppercase tracking-wide text-muted-dark">
+                      {weekday}
+                    </span>
+                    <span className="block font-subtitle text-xl font-semibold leading-tight text-onyx">{day}</span>
+                  </span>
+                  <span
+                    className={`absolute -left-[5px] top-2.5 size-2.5 rounded-full ring-4 ring-white ${DOT_COLOUR[b.status]}`}
+                    aria-hidden="true"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void tap()
+                      onOpen(b)
+                    }}
+                    className={`flex w-full items-center gap-3 rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] px-4 py-3 text-left active:bg-onyx/[0.07] ${faded ? 'opacity-60' : ''}`}
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-2">
+                        <span className="font-subtitle text-[15px] font-semibold tabular-nums text-onyx">
+                          {timeLabel(b.slot.startsAt)}
+                        </span>
+                        <span className="truncate font-subtitle text-[15px] text-onyx">{b.service.name}</span>
+                        {fresh.has(b.id) && (
+                          <span className="shrink-0 rounded-full bg-red-600 px-1.5 py-0.5 font-subtitle text-[9px] font-semibold uppercase tracking-wide text-[#ffffff]">
+                            Novo
+                          </span>
+                        )}
+                      </span>
+                      <span className="mt-0.5 block truncate font-subtitle text-[13px] text-muted-dark">
+                        {[STATUS[b.status].label, bookingExtras(b)].filter(Boolean).join(' · ')}
+                      </span>
+                    </span>
+                    <i className="bx bx-chevron-right -mr-1 text-xl text-onyx/30" aria-hidden="true" />
+                  </button>
+                </li>
+              )
+            })}
+          </ol>
+        </section>
+      ))}
+    </div>
+  )
+}
+
+const HOW = [
+  { icon: 'bx bx-list-check', title: 'Escolhe', text: 'o modelo' },
+  { icon: 'bx bx-calendar-plus', title: 'Marca', text: 'dia e hora livres' },
+  { icon: 'bx bx-bell', title: 'Recebe', text: 'a confirmação' },
+]
+
+/** No sessions yet: an empty ticket with the way to book, how it works, and the hairstyles to start from. */
+function NoSessions({ onBook }: { onBook: (serviceId?: string) => void }) {
+  const [services, setServices] = useState<Service[]>([])
+  useEffect(() => {
+    api
+      .get<Service[]>('/services')
+      .then((list) => setServices(list.filter((s) => s.active !== false)))
+      .catch(() => {})
+  }, [])
+  return (
+    <div className="flex flex-col gap-8">
+      <div className="rounded-3xl border-2 border-dashed border-onyx/15 px-6 py-8 text-center">
+        <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-onyx/[0.06] text-3xl text-onyx">
+          <i className="bx bx-calendar-plus" aria-hidden="true" />
         </span>
-        <span className="mt-0.5 block truncate font-subtitle text-[13px] text-muted-dark">{rowDetails(booking)}</span>
-      </span>
-      <StatusDot status={booking.status} />
-      <i className="bx bx-chevron-right -mr-1 text-xl text-onyx/30" aria-hidden="true" />
-    </button>
+        <p className="mt-4 font-subtitle text-xl font-semibold tracking-tight text-onyx">Ainda não tens sessões</p>
+        <p className="mx-auto mt-1 max-w-xs font-subtitle text-sm font-light text-muted-dark">
+          Escolhe o teu modelo e um horário livre. A marcação aparece aqui.
+        </p>
+        <div className="mt-6 flex justify-center">
+          <ActionButton label="Marcar sessão" onClick={() => onBook()} />
+        </div>
+      </div>
+
+      <section>
+        <h2 className="mb-3 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">
+          Como funciona
+        </h2>
+        <ol className="grid grid-cols-3 gap-2">
+          {HOW.map((step, i) => (
+            <li
+              key={step.title}
+              className="rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] p-3"
+            >
+              <span className="flex items-center justify-between">
+                <i className={`${step.icon} text-xl text-onyx`} aria-hidden="true" />
+                <span className="font-subtitle text-[11px] tabular-nums text-muted-dark">0{i + 1}</span>
+              </span>
+              <p className="mt-3 font-subtitle text-sm font-semibold text-onyx">{step.title}</p>
+              <p className="font-subtitle text-xs leading-snug text-muted-dark">{step.text}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {services.length > 0 && (
+        <section>
+          <h2 className="mb-3 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">
+            Escolhe um modelo
+          </h2>
+          <div className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {services.map((service) => {
+              const photo = serviceImageUrls(service)[0]
+              return (
+                <button
+                  key={service.id}
+                  type="button"
+                  onClick={() => {
+                    void tap()
+                    onBook(service.id)
+                  }}
+                  className="relative aspect-[3/4] w-36 shrink-0 snap-start overflow-hidden rounded-2xl bg-onyx/5 text-left"
+                >
+                  {photo && (
+                    <img src={photo} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                  )}
+                  <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-3 pb-3 pt-10">
+                    <span className="block truncate font-subtitle text-sm font-semibold text-[#ffffff]">
+                      {service.name}
+                    </span>
+                    <span className="block font-subtitle text-xs text-[#ffffff]/75">{servicePriceLabel(service)}</span>
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </section>
+      )}
+    </div>
   )
 }
 
@@ -374,46 +535,29 @@ export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}
         )}
 
         {bookings && list.length === 0 && (
-          <div className="mt-16 flex flex-col items-center text-center">
-            <i className="bx bx-calendar-heart text-6xl text-onyx/25" aria-hidden="true" />
-            <p className="mt-4 font-subtitle text-lg text-onyx">
-              {tab === 'next' ? 'Sem sessões marcadas' : 'Ainda sem histórico'}
-            </p>
-            {tab === 'next' && (
-              <>
+          <div className="mt-6">
+            {tab === 'next' ? (
+              <NoSessions onBook={(id) => navigate(id ? `${bookPath}?service=${id}` : bookPath)} />
+            ) : (
+              <div className="mt-10 flex flex-col items-center text-center">
+                <i className="bx bx-history text-5xl text-onyx/25" aria-hidden="true" />
+                <p className="mt-3 font-subtitle text-lg text-onyx">Ainda sem histórico</p>
                 <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">
-                  Marca a tua próxima sessão em poucos toques.
+                  As sessões que já tiveste aparecem aqui.
                 </p>
-                <ActionButton label="Marcar sessão" className="mt-6" onClick={() => navigate(bookPath)} />
-              </>
+              </div>
             )}
           </div>
         )}
 
         {bookings && list.length > 0 && (
-          <div className={`mt-6 ${wide ? 'grid items-start gap-6 lg:grid-cols-2' : 'flex flex-col gap-6'}`}>
-            {/* The next session stands out; the others follow as a list. */}
+          <div className={`mt-6 ${wide ? 'grid items-start gap-8 lg:grid-cols-2' : 'flex flex-col gap-8'}`}>
+            {/* The next session as a ticket; the rest as an agenda by month. */}
             {tab === 'next' && (
-              <NextSession booking={list[0]} isNew={fresh.has(list[0].id)} onOpen={() => open(list[0])} />
+              <NextTicket booking={list[0]} isNew={fresh.has(list[0].id)} onOpen={() => open(list[0])} />
             )}
             {(tab === 'next' ? list.slice(1) : list).length > 0 && (
-              <section>
-                {tab === 'next' && (
-                  <h2 className="mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">
-                    Depois
-                  </h2>
-                )}
-                <div className={group}>
-                  {(tab === 'next' ? list.slice(1) : list).map((booking) => (
-                    <BookingRow
-                      key={booking.id}
-                      booking={booking}
-                      isNew={fresh.has(booking.id)}
-                      onOpen={() => open(booking)}
-                    />
-                  ))}
-                </div>
-              </section>
+              <Timeline bookings={tab === 'next' ? list.slice(1) : list} fresh={fresh} onOpen={open} />
             )}
           </div>
         )}
