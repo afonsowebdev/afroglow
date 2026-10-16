@@ -1066,21 +1066,20 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
       <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Fala connosco</h2>
 
       {whatsappUrl && (
-        // The founder herself, inviting a message on WhatsApp.
-        <div className="mt-5 rounded-3xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] p-5">
-          <div className="flex items-center gap-4">
-            <img
-              src="/images/ceo/rute-de-pina-1.jpg"
-              alt="Rute De Pina"
-              loading="lazy"
-              className="size-16 shrink-0 rounded-full object-cover object-top ring-2 ring-white shadow-md shadow-black/10"
-            />
-            <div className="min-w-0">
-              <p className="font-subtitle text-lg font-semibold leading-tight text-onyx">Rute De Pina</p>
-              <p className="font-subtitle text-sm text-muted-dark">CEO & Fundadora · AFROGLOW</p>
-            </div>
-          </div>
-          <p className="mt-4 font-subtitle text-[15px] leading-relaxed text-onyx/80">
+        // The founder herself, as a contact card: her photo, name and role centred, one line in her voice and the
+        // WhatsApp button.
+        <div className="mt-5 rounded-[28px] bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] px-5 pb-5 pt-7 text-center">
+          <img
+            src="/images/ceo/rute-de-pina-1.jpg"
+            alt="Rute De Pina"
+            loading="lazy"
+            className="mx-auto size-24 rounded-full object-cover object-top shadow-lg shadow-black/10 ring-4 ring-white"
+          />
+          <p className="mt-4 font-subtitle text-[22px] font-semibold leading-tight tracking-tight text-onyx">
+            Rute De Pina
+          </p>
+          <p className="mt-0.5 font-subtitle text-[13px] text-muted-dark">CEO & Fundadora da AFROGLOW</p>
+          <p className="mx-auto mt-4 max-w-[19rem] font-subtitle text-[15px] leading-relaxed text-onyx/70">
             Tens alguma dúvida sobre os modelos, os preços ou a tua marcação? Fala diretamente comigo.
           </p>
           <a
@@ -1088,9 +1087,9 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
             target="_blank"
             rel="noreferrer"
             onClick={() => void tap('medium')}
-            className="mt-5 flex h-12 items-center justify-center gap-2 rounded-full bg-onyx font-subtitle text-sm font-semibold text-white active:opacity-85"
+            className="mt-6 flex h-[52px] items-center justify-center gap-2 rounded-2xl bg-onyx font-subtitle text-[15px] font-semibold text-white active:opacity-85"
           >
-            <i className="bx bxl-whatsapp text-xl" aria-hidden="true" />
+            <i className="bx bxl-whatsapp text-[22px]" aria-hidden="true" />
             Falar no WhatsApp
           </a>
         </div>
@@ -1101,19 +1100,18 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
         <span className="font-subtitle text-xs uppercase tracking-[0.14em] text-muted-dark">ou</span>
         <span className="h-px flex-1 bg-onyx/10" />
       </div>
-      <div className="mt-4 flex justify-center gap-8">
+      {/* The other ways, as the action buttons of an iPhone contact card. */}
+      <div className={`mt-4 grid gap-2.5 ${others.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
         {others.map((option) => (
           <a
             key={option.title}
             href={option.href}
             {...external(option.href)}
             onClick={() => void tap()}
-            className="flex flex-col items-center gap-2"
+            className="flex h-[68px] flex-col items-center justify-center gap-1 rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] text-onyx active:bg-onyx/[0.08]"
           >
-            <span className="flex size-14 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--color-onyx)_6%,var(--color-white))] text-2xl text-onyx active:bg-onyx/10">
-              <i className={option.icon} aria-hidden="true" />
-            </span>
-            <span className="font-subtitle text-xs font-medium text-onyx">{option.title}</span>
+            <i className={`${option.icon} text-[22px]`} aria-hidden="true" />
+            <span className="font-subtitle text-xs font-medium">{option.title}</span>
           </a>
         ))}
       </div>
