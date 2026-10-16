@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'motion/react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CalendarCheck, CalendarPlus, UserRound } from 'lucide-react'
 import { ActionButton } from '@/components/ui/action-button'
-import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 import { AnimatedSocialIcons, type ActionIcon } from '@/components/ui/floating-action-button'
 import { api, assetUrl } from '@/lib/api'
 import { tap } from '@/lib/haptics'
@@ -1048,15 +1047,22 @@ export function Visit() {
 
 /** Ready-made first messages: each opens WhatsApp with the text already written. */
 const WHATSAPP_STARTERS = [
-  { label: 'Quero marcar uma sessão', text: 'Olá! Gostaria de marcar uma sessão de tranças.' },
-  { label: 'Tenho uma dúvida', text: 'Olá! Tenho uma dúvida sobre os vossos serviços.' },
-  { label: 'Preços e modelos', text: 'Olá! Gostaria de saber mais sobre os preços e os modelos.' },
+  { icon: 'bx bx-calendar-plus', label: 'Marcar uma sessão', text: 'Olá! Gostaria de marcar uma sessão de tranças.' },
+  {
+    icon: 'bx bx-help-circle',
+    label: 'Dúvidas sobre os serviços',
+    text: 'Olá! Tenho uma dúvida sobre os vossos serviços.',
+  },
+  {
+    icon: 'bx bx-purchase-tag-alt',
+    label: 'Preços e modelos',
+    text: 'Olá! Gostaria de saber mais sobre os preços e os modelos.',
+  },
 ]
 
 /**
- * Ways to reach the studio, as the start of a conversation: the studio's greeting, the customer's ready-made replies
- * (each opens WhatsApp with that text written) and a message bar that opens the chat; then calling, Instagram and
- * email as round buttons.
+ * Ways to reach the studio: WhatsApp on one card (its number, the subjects as rows that open the chat with that text
+ * written, and a button to open it); then calling, Instagram and email as round buttons.
  */
 export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
   const business = useBusinessInfo()
@@ -1076,57 +1082,53 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
       <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Fala connosco</h2>
 
       {whatsappUrl && (
-        <div className="mt-5 rounded-3xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] p-4">
-          {/* The studio's greeting. */}
-          <div className="flex items-end gap-2.5">
-            <span
-              className={`flex size-9 shrink-0 items-center justify-center rounded-full font-logo text-lg leading-none logo-weight ${BRAND_CIRCLE}`}
-              aria-hidden="true"
-            >
-              <span className="translate-y-[0.1em]">A</span>
+        <div className="mt-5 overflow-hidden rounded-3xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
+          <div className="flex items-center gap-3.5 px-4 pb-3 pt-4">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-onyx text-2xl text-white">
+              <i className="bx bxl-whatsapp" aria-hidden="true" />
             </span>
-            <div className="max-w-[80%] rounded-2xl rounded-bl-md bg-white px-4 py-3 shadow-sm shadow-black/5">
-              <p className="font-subtitle text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-dark">
-                AFROGLOW
-              </p>
-              <p className="mt-0.5 font-subtitle text-[15px] leading-snug text-onyx">Olá! Como te podemos ajudar?</p>
-            </div>
+            <span className="min-w-0">
+              <span className="block font-subtitle text-base font-semibold text-onyx">WhatsApp</span>
+              {business.whatsappNumber && (
+                <span className="block font-subtitle text-sm tabular-nums text-muted-dark">
+                  {business.phone || `+${business.whatsappNumber}`}
+                </span>
+              )}
+            </span>
           </div>
 
-          {/* The customer's ready-made replies. */}
-          <div className="mt-4 flex flex-col items-end gap-2">
-            {WHATSAPP_STARTERS.map((starter, i) => (
-              <motion.a
+          <p className="px-4 pb-1 pt-2 font-subtitle text-[11px] font-medium uppercase tracking-[0.14em] text-muted-dark">
+            Sobre o que queres falar?
+          </p>
+          <div className="mx-3 divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-white">
+            {WHATSAPP_STARTERS.map((starter) => (
+              <a
                 key={starter.label}
                 href={whatsapp.url(starter.text)}
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => void tap()}
-                initial={{ opacity: 0, x: 16 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, amount: 0.6 }}
-                transition={{ delay: 0.12 * i, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                className="inline-flex items-center gap-2 rounded-2xl rounded-br-md bg-onyx px-4 py-2.5 font-subtitle text-[15px] text-white active:opacity-80"
+                className="flex h-[50px] items-center gap-3 px-4 active:bg-onyx/[0.04]"
               >
-                {starter.label}
-                <i className="bx bxl-whatsapp text-lg opacity-70" aria-hidden="true" />
-              </motion.a>
+                <i className={`${starter.icon} text-xl text-onyx/70`} aria-hidden="true" />
+                <span className="flex-1 font-subtitle text-[15px] text-onyx">{starter.label}</span>
+                <i className="bx bx-chevron-right text-xl text-onyx/30" aria-hidden="true" />
+              </a>
             ))}
           </div>
 
-          {/* A message bar that opens the chat. */}
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-            onClick={() => void tap('medium')}
-            className="mt-5 flex h-12 items-center gap-3 rounded-full bg-white pe-1.5 ps-5 shadow-sm shadow-black/5"
-          >
-            <span className="flex-1 font-subtitle text-[15px] text-onyx/40">Escreve a tua mensagem…</span>
-            <span className="flex size-9 items-center justify-center rounded-full bg-onyx text-xl text-white">
-              <i className="bx bxs-send" aria-hidden="true" />
-            </span>
-          </a>
+          <div className="p-3">
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => void tap('medium')}
+              className="flex h-12 items-center justify-center gap-2 rounded-full bg-onyx font-subtitle text-sm font-semibold text-white active:opacity-85"
+            >
+              Abrir conversa
+              <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+            </a>
+          </div>
         </div>
       )}
 
