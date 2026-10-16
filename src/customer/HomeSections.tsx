@@ -376,11 +376,12 @@ function scrollStrip(el: HTMLDivElement | null, to: number, count: number) {
 }
 
 /**
- * A home section that fills the screen on its own (nothing of the page above or below shows), clear of the top row
- * and of the tab bar; the page settles on it when scrolled near (see HomeScreen).
+ * A home section that fills the screen on its own (nothing of the page above or below shows), its content centred
+ * with the same room above and below (the tab bar sits in the room below); the page settles on it when scrolled near
+ * (see HomeScreen).
  */
 const fullScreenSection =
-  'flex h-[100svh] min-h-[600px] snap-start flex-col pb-[calc(5rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))]'
+  'flex h-[100svh] min-h-[600px] snap-start flex-col pb-[calc(5rem+env(safe-area-inset-bottom))] pt-[calc(3.75rem+env(safe-area-inset-top))]'
 
 /** Four shortcuts behind a "+" button that slides away to show them. */
 export function QuickActions({ whatsappUrl }: { whatsappUrl?: string }) {
@@ -691,7 +692,7 @@ export function WorkGrid() {
         </p>
       </div>
       <p className="mx-auto mt-1.5 w-full max-w-2xl px-5 font-subtitle text-sm font-light text-muted-dark">
-        Desliza ou usa as setas. Toca para ver em ecrã inteiro.
+        Desliza ou usa as setas. Toca para ampliar.
       </p>
 
       <div
