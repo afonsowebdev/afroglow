@@ -80,6 +80,14 @@
       border-color 0.35s ease;
   }
 
+  /* No scroll bars anywhere (site and apps): pages and lists still scroll, without the bar at the edge. */
+  * {
+    scrollbar-width: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+  }
+
   body {
     background-color: var(--color-white, #ffffff);
     color: var(--color-onyx);

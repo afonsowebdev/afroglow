@@ -25,7 +25,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 /// The web view fills the whole screen (video under the status bar). iOS 26+ adds its own soft glass
 /// "scroll edge effect" under the status bar and above the home indicator; it shows as a hazy band over the
-/// page, so it is switched off here.
+/// page, so it is switched off here. The page's scroll bar at the edge is hidden too.
 final class AfroglowBridgeViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
         super.capacitorDidLoad()
@@ -38,6 +38,8 @@ final class AfroglowBridgeViewController: CAPBridgeViewController {
     }
 
     private func hideSystemEdgeEffects() {
+        webView?.scrollView.showsVerticalScrollIndicator = false
+        webView?.scrollView.showsHorizontalScrollIndicator = false
         guard #available(iOS 26.0, *), let scrollView = webView?.scrollView else { return }
         scrollView.topEdgeEffect.isHidden = true
         scrollView.bottomEdgeEffect.isHidden = true
