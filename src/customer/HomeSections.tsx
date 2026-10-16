@@ -873,97 +873,174 @@ export function ReviewsRow({ reviews }: { reviews: Review[] }) {
 }
 
 /** Address, map, phone and opening hours with today highlighted and an open / closed status. Hidden until filled. */
+/** "Avenida X, n.º 47" on top and "2.º Direito Frente · 5300-124 Bragança" under it. */
+function splitAddress(address: string) {
+  const parts = address
+    .split(',')
+    .map((p) => p.trim())
+    .filter(Boolean)
+  const take = parts.length > 1 && /^n\.?\s*[ºo°]?\s*\d/i.test(parts[1]) ? 2 : 1
+  return { street: parts.slice(0, take).join(', '), rest: parts.slice(take).join(' · ') }
+}
+
 export function Visit() {
   const business = useBusinessInfo()
-  const { todayRows, status } = useOpeningStatus(business.openingHours)
+  const { todayRows, closedDays, todayClosed, status } = useOpeningStatus(business.openingHours)
+  const [weekOpen, setWeekOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
   const hasHours = business.openingHours.length > 0
   if (!business.address && !hasHours && !business.phone) return null
-  const understood = status !== null
   const open = Boolean(status?.open)
+  const { street, rest } = splitAddress(business.address || '')
+  const query = encodeURIComponent(mapSearchText(business.address || ''))
+  const mapsHref = business.mapUrl || `https://maps.apple.com/?q=${query}`
+  const todayIndex = [...todayRows][0]
+  const today = todayIndex !== undefined ? business.openingHours[todayIndex] : null
+  const action =
+    'flex h-11 items-center justify-center gap-1.5 rounded-full font-subtitle text-sm font-medium transition-opacity active:opacity-80'
 
   return (
     <section className="mx-auto max-w-2xl px-5 pt-14">
-      <div className="flex items-end justify-between">
-        <div>
-          <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Visita-nos</p>
-          <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Onde estamos</h2>
-        </div>
-        {understood && (
-          <span
-            className={`mb-1 inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-subtitle text-xs font-medium ${
-              open ? 'bg-emerald-600/15 text-emerald-700' : 'bg-red-600/10 text-red-700'
-            }`}
-          >
-            <span className={`h-1.5 w-1.5 rounded-full ${open ? 'bg-emerald-600' : 'bg-red-600'}`} aria-hidden="true" />
-            {open ? (status?.text.startsWith('Aberto hoje') ? 'Aberto hoje' : 'Aberto agora') : 'Fechado'}
-          </span>
-        )}
-      </div>
+      <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Visita-nos</p>
+      <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Onde estamos</h2>
+      {status && (
+        <p className="mt-2 flex items-center gap-2 font-subtitle text-sm">
+          <span className={`h-2 w-2 rounded-full ${open ? 'bg-emerald-500' : 'bg-red-500'}`} aria-hidden="true" />
+          <span className={open ? 'text-emerald-700 dark:text-emerald-400' : 'text-onyx'}>{status.text}</span>
+        </p>
+      )}
 
-      <div className="mt-5 overflow-hidden rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white">
+      <div className="mt-5 overflow-hidden rounded-3xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
         {business.address && (
-          <div className="flex items-start gap-4 p-5">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-onyx/5 text-xl text-onyx">
-              <i className="bx bx-map" aria-hidden="true" />
-            </span>
-            <div className="min-w-0">
-              <p className="font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">Morada</p>
-              <p className="mt-1 font-subtitle text-base font-semibold leading-snug text-onyx">{business.address}</p>
-            </div>
-          </div>
-        )}
-
-        {(business.mapUrl || business.phone || business.address) && (
-          <div className="grid grid-cols-2 gap-2 border-t border-onyx/10 p-3">
-            <a
-              href={
-                business.mapUrl ||
-                `https://maps.apple.com/?q=${encodeURIComponent(mapSearchText(business.address || ''))}`
-              }
-              target="_blank"
-              rel="noreferrer"
-              className="glass-chip flex h-11 items-center justify-center gap-2 rounded-full font-subtitle text-sm font-medium text-onyx"
-            >
-              <i className="bx bx-navigation text-lg" aria-hidden="true" /> Como chegar
+          <>
+            {/* The map, in black and white; tapping it opens the phone's map app (it never traps the page's scroll). */}
+            <a href={mapsHref} target="_blank" rel="noreferrer" className="relative block h-48 bg-onyx/5">
+              <iframe
+                title={`Mapa: ${business.address}`}
+                src={`https://www.google.com/maps?q=${query}&output=embed`}
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                tabIndex={-1}
+                className="pointer-events-none block h-full w-full grayscale"
+              />
+              <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/60 px-3 py-1.5 font-subtitle text-xs text-[#ffffff] backdrop-blur-md">
+                <i className="bx bx-map-alt text-sm" aria-hidden="true" />
+                Abrir no mapa
+              </span>
             </a>
-            {business.phone ? (
-              <a
-                href={`tel:${business.phone.replace(/[^+\d]/g, '')}`}
-                className="glass-chip flex h-11 items-center justify-center gap-2 rounded-full font-subtitle text-sm font-medium text-onyx"
-              >
-                <i className="bx bx-phone text-lg" aria-hidden="true" /> Ligar
-              </a>
-            ) : (
-              <span />
-            )}
-          </div>
+
+            <div className="px-5 pt-4">
+              <p className="font-subtitle text-lg font-semibold leading-snug text-onyx">{street}</p>
+              {rest && <p className="mt-0.5 font-subtitle text-sm text-muted-dark">{rest}</p>}
+            </div>
+          </>
         )}
 
-        {hasHours && (
-          <div className="border-t border-onyx/10 p-5">
-            <p className="font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">Horário</p>
-            <dl className="mt-3 flex flex-col gap-1">
-              {business.openingHours.map((row, i) => {
-                const isToday = todayRows.has(i)
-                return (
-                  <div
-                    key={row.days}
-                    className={`flex items-center justify-between gap-4 rounded-xl px-3 py-2.5 font-subtitle text-sm ${
-                      isToday ? 'bg-onyx/5 font-semibold text-onyx' : 'text-muted-dark'
-                    }`}
-                  >
-                    <dt className="flex items-center gap-2">
-                      {isToday && <span className="h-1.5 w-1.5 rounded-full bg-onyx" aria-hidden="true" />}
-                      {row.days}
-                    </dt>
-                    <dd className={isToday ? 'text-onyx' : ''}>{row.hours}</dd>
-                  </div>
-                )
-              })}
-            </dl>
-          </div>
-        )}
+        <div className="grid grid-cols-2 gap-2 p-4">
+          {business.address && (
+            <a href={mapsHref} target="_blank" rel="noreferrer" className={`${action} col-span-2 bg-onyx text-white`}>
+              <i className="bx bx-navigation text-lg" aria-hidden="true" />
+              Como chegar
+            </a>
+          )}
+          {business.phone && (
+            <a href={`tel:${business.phone.replace(/[^+\d]/g, '')}`} className={`${action} glass-chip text-onyx`}>
+              <i className="bx bx-phone text-lg" aria-hidden="true" />
+              Ligar
+            </a>
+          )}
+          {business.address && (
+            <button
+              type="button"
+              onClick={() => {
+                void tap()
+                void navigator.clipboard
+                  ?.writeText(business.address)
+                  .then(() => {
+                    setCopied(true)
+                    window.setTimeout(() => setCopied(false), 1800)
+                  })
+                  .catch(() => {})
+              }}
+              className={`${action} glass-chip text-onyx`}
+            >
+              <i className={`bx ${copied ? 'bx-check' : 'bx-copy'} text-lg`} aria-hidden="true" />
+              {copied ? 'Copiada' : 'Copiar'}
+            </button>
+          )}
+        </div>
       </div>
+
+      {hasHours && (
+        <div className="mt-4 overflow-hidden rounded-3xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
+          {/* Today first; the whole week behind a tap. */}
+          <div className="flex items-center justify-between gap-4 px-5 py-4 font-subtitle">
+            <span>
+              <span className="block text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">Hoje</span>
+              <span className="text-[15px] font-semibold text-onyx">{today?.days ?? 'Hoje'}</span>
+            </span>
+            <span className="text-right text-[15px] font-semibold text-onyx">
+              {today ? today.hours : todayClosed ? 'Fechado' : '—'}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              void tap()
+              setWeekOpen((v) => !v)
+            }}
+            aria-expanded={weekOpen}
+            className="flex w-full items-center justify-between border-t border-onyx/[0.08] px-5 py-3.5 font-subtitle text-sm text-onyx"
+          >
+            {weekOpen ? 'Esconder' : 'Ver a semana toda'}
+            <i
+              className={`bx bx-chevron-down text-xl transition-transform ${weekOpen ? 'rotate-180' : ''}`}
+              aria-hidden="true"
+            />
+          </button>
+          <AnimatePresence initial={false}>
+            {weekOpen && (
+              <motion.dl
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                className="overflow-hidden"
+              >
+                <div className="divide-y divide-onyx/[0.06] border-t border-onyx/[0.08] px-5 pb-2">
+                  {business.openingHours.map((row, i) => {
+                    const isToday = todayRows.has(i)
+                    return (
+                      <div
+                        key={row.days}
+                        className={`flex items-center justify-between gap-4 py-3 font-subtitle text-sm ${
+                          isToday ? 'font-semibold text-onyx' : 'text-onyx/70'
+                        }`}
+                      >
+                        <dt className="flex items-center gap-2">
+                          {row.days}
+                          {isToday && (
+                            <span className="rounded-full bg-onyx px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">
+                              Hoje
+                            </span>
+                          )}
+                        </dt>
+                        <dd>{row.hours}</dd>
+                      </div>
+                    )
+                  })}
+                  {closedDays.length > 0 && !business.openingHours.some((r) => /fechad/i.test(r.hours)) && (
+                    <div className="flex items-center justify-between gap-4 py-3 font-subtitle text-sm text-onyx/50">
+                      <dt>Outros dias</dt>
+                      <dd>Fechado</dd>
+                    </div>
+                  )}
+                </div>
+              </motion.dl>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
     </section>
   )
 }
