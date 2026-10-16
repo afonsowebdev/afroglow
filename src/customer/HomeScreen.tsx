@@ -22,14 +22,6 @@ export default function HomeScreen() {
   const { theme } = useTheme()
   const dark = theme === 'dark'
 
-  // The full-screen sections (services, portfolio): when the scroll stops near one, the page settles on it.
-  useEffect(() => {
-    const root = document.documentElement
-    root.style.scrollSnapType = 'y proximity'
-    return () => {
-      root.style.scrollSnapType = ''
-    }
-  }, [])
   const [services, setServices] = useState<Service[] | null>(null)
   const [testimonials, setTestimonials] = useState<
     Array<{ id: string; quote: string; name: string; date?: string; photo?: number }>

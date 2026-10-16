@@ -384,11 +384,11 @@ function scrollStrip(el: HTMLDivElement | null, to: number, count: number) {
 
 /**
  * A home section that fills the screen on its own (nothing of the page above or below shows), its content centred
- * with the same room above and below (the tab bar sits in the room below); the page settles on it when scrolled near
- * (see HomeScreen).
+ * with the same room above and below (the tab bar sits in the room below). The page scrolls past it freely (no
+ * snapping, which made it feel stuck).
  */
 const fullScreenSection =
-  'flex h-[100svh] min-h-[600px] snap-start flex-col pb-[calc(5rem+env(safe-area-inset-bottom))] pt-[calc(3.75rem+env(safe-area-inset-top))]'
+  'flex h-[100svh] min-h-[600px] flex-col pb-[calc(5rem+env(safe-area-inset-bottom))] pt-[calc(3.75rem+env(safe-area-inset-top))]'
 
 /**
  * The strip of a full-screen section: each slide a little narrower than the screen, so the edge of the next one shows
