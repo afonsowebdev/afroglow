@@ -6,11 +6,12 @@ import { Sheet } from '@/components/ui/sheet'
 import { api, ApiError } from '@/lib/api'
 import { success, tap } from '@/lib/haptics'
 import { bookPath } from '@/lib/app-mode'
-import { useBusinessInfo } from '@/lib/site-config'
+import { mapSearchText, useBusinessInfo, useWhatsapp } from '@/lib/site-config'
+import { downloadBookingIcs } from '@/lib/calendar'
 import { formatPrice, type AvailabilitySlot, type Booking } from '@/lib/types'
-import { longDay, timeLabel } from './dates'
+import { dayKey, dayParts, longDay, timeLabel } from './dates'
 import { useBookingAlerts } from './booking-alerts'
-import { Fact, Facts, labelClass, panelClass, StatusDot } from './panel'
+import { StatusDot } from './panel'
 import { SlotPicker } from './SlotPicker'
 import { usePullToRefresh } from './usePullToRefresh'
 import { bookingPrice, bookingExtras } from '@/lib/pricing'
@@ -40,51 +41,174 @@ const STATUS: Record<Booking['status'], { label: string; chip: string; hint: str
 
 type Mode = 'details' | 'reschedule' | 'cancel'
 
-function BookingCard({ booking, onOpen, isNew }: { booking: Booking; onOpen: () => void; isNew?: boolean }) {
+const group =
+  'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
+
+/** "Hoje", "Amanhã", "Daqui a 3 dias" (by calendar day, Lisbon time). */
+function countdown(iso: string) {
+  const days = Math.round((Date.parse(dayKey(iso)) - Date.parse(dayKey(new Date().toISOString()))) / 86_400_000)
+  if (days <= 0) return 'Hoje'
+  if (days === 1) return 'Amanhã'
+  return `Daqui a ${days} dias`
+}
+
+/** "09:00 · Média · Cor 30 (Castanho claro)": the time and what was chosen. */
+const rowDetails = (b: Booking) => [timeLabel(b.slot.startsAt), bookingExtras(b)].filter(Boolean).join(' · ')
+
+/** Calendar, directions and WhatsApp for an upcoming session, as small round-cornered pills. */
+function SessionActions({ booking, onDark = false }: { booking: Booking; onDark?: boolean }) {
+  const business = useBusinessInfo()
+  const whatsapp = useWhatsapp()
+  const pill = `inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full font-subtitle text-sm ${
+    onDark ? 'bg-white/15 text-white' : 'glass-chip text-onyx'
+  }`
+  const mapHref =
+    business.mapUrl ||
+    (business.address
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapSearchText(business.address))}`
+      : '')
   return (
-    <motion.button
+    <div className="flex gap-2">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          void tap()
+          downloadBookingIcs({
+            serviceName: booking.service.name,
+            startsAtIso: booking.slot.startsAt,
+            durationLabel: booking.service.durationLabel,
+          })
+        }}
+        className={pill}
+      >
+        <i className="bx bx-calendar-plus text-lg" aria-hidden="true" />
+        Calendário
+      </button>
+      {mapHref && (
+        <a href={mapHref} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className={pill}>
+          <i className="bx bx-map text-lg" aria-hidden="true" />
+          Como chegar
+        </a>
+      )}
+      {whatsapp.enabled && (
+        <a
+          href={whatsapp.url(
+            `Olá! Sobre a minha marcação de ${booking.service.name} (${longDay(booking.slot.startsAt)} às ${timeLabel(booking.slot.startsAt)}).`,
+          )}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="WhatsApp"
+          onClick={(e) => e.stopPropagation()}
+          className={`${pill} max-w-[3.25rem]`}
+        >
+          <i className="bx bxl-whatsapp text-xl" aria-hidden="true" />
+        </a>
+      )}
+    </div>
+  )
+}
+
+/** The next session, large: the day and time, the hairstyle, how long until it, and quick actions. */
+function NextSession({ booking, onOpen, isNew }: { booking: Booking; onOpen: () => void; isNew?: boolean }) {
+  const { weekday, day, month } = dayParts(booking.slot.startsAt)
+  return (
+    <motion.div
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
+      role="button"
+      tabIndex={0}
+      onClick={() => {
+        void tap()
+        onOpen()
+      }}
+      className="cursor-pointer rounded-3xl bg-onyx p-5 text-white"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-white/60">Próxima sessão</p>
+        <span className="flex items-center gap-2">
+          {isNew && (
+            <span className="rounded-full bg-red-600 px-2 py-0.5 font-subtitle text-[10px] font-semibold uppercase tracking-wide text-[#ffffff]">
+              Novo
+            </span>
+          )}
+          <span className="rounded-full bg-white/15 px-2.5 py-1 font-subtitle text-xs font-medium">
+            {countdown(booking.slot.startsAt)}
+          </span>
+        </span>
+      </div>
+
+      <div className="mt-4 flex items-end gap-4">
+        <div className="text-center">
+          <p className="font-subtitle text-xs uppercase tracking-wide text-white/60">{weekday}</p>
+          <p className="font-subtitle text-5xl font-semibold leading-none tracking-tight">{day}</p>
+          <p className="mt-1 font-subtitle text-xs uppercase tracking-wide text-white/60">{month}</p>
+        </div>
+        <div className="min-w-0 flex-1 border-l border-white/15 pl-4">
+          <p className="font-subtitle text-3xl font-semibold leading-none tabular-nums">
+            {timeLabel(booking.slot.startsAt)}
+          </p>
+          <p className="mt-2 truncate font-subtitle text-base font-medium">{booking.service.name}</p>
+          {bookingExtras(booking) && (
+            <p className="truncate font-subtitle text-sm text-white/60">{bookingExtras(booking)}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between border-t border-white/15 pt-3 font-subtitle text-sm">
+        <span className="flex items-center gap-1.5">
+          <span
+            className={`h-2 w-2 rounded-full ${booking.status === 'ACCEPTED' ? 'bg-emerald-400' : 'bg-amber-400'}`}
+            aria-hidden="true"
+          />
+          {STATUS[booking.status].label}
+        </span>
+        <span className="tabular-nums text-white/80">{formatPrice(bookingPrice(booking))}</span>
+      </div>
+
+      <div className="mt-4">
+        <SessionActions booking={booking} onDark />
+      </div>
+    </motion.div>
+  )
+}
+
+/** One booking as a row: the day in a small tile, the hairstyle and time, the status and a chevron. */
+function BookingRow({ booking, onOpen, isNew }: { booking: Booking; onOpen: () => void; isNew?: boolean }) {
+  const { day, month } = dayParts(booking.slot.startsAt)
+  const faded = booking.status === 'CANCELLED' || booking.status === 'REJECTED'
+  return (
+    <button
       type="button"
       onClick={() => {
         void tap()
         onOpen()
       }}
-      className={`${panelClass} block w-full text-left`}
+      className="flex w-full items-center gap-3.5 px-4 py-3 text-left active:bg-onyx/[0.04]"
     >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <p className={labelClass}>Sessão</p>
+      <span
+        className={`flex w-12 shrink-0 flex-col items-center rounded-xl bg-white py-1.5 shadow-sm shadow-black/5 ${faded ? 'opacity-50' : ''}`}
+      >
+        <span className="font-subtitle text-lg font-semibold leading-none text-onyx">{day}</span>
+        <span className="mt-0.5 font-subtitle text-[10px] uppercase tracking-wide text-muted-dark">{month}</span>
+      </span>
+      <span className={`min-w-0 flex-1 ${faded ? 'opacity-60' : ''}`}>
+        <span className="flex items-center gap-2">
+          <span className="truncate font-subtitle text-[15px] font-semibold text-onyx">{booking.service.name}</span>
           {isNew && (
-            <span className="inline-flex items-center rounded-full bg-red-600 px-2 py-0.5 font-subtitle text-[10px] font-semibold uppercase tracking-wide text-[#ffffff]">
+            <span className="shrink-0 rounded-full bg-red-600 px-1.5 py-0.5 font-subtitle text-[9px] font-semibold uppercase tracking-wide text-[#ffffff]">
               Novo
             </span>
           )}
-        </div>
-        <StatusDot status={booking.status} />
-      </div>
-      <p className="mt-2 truncate font-subtitle text-xl font-semibold tracking-tight text-onyx">
-        {booking.service.name}
-      </p>
-      {bookingExtras(booking) && <p className="mt-0.5 font-subtitle text-sm text-muted-dark">{bookingExtras(booking)}</p>}
-      <Facts columns="2fr 1fr">
-        <Fact label="Data">{longDay(booking.slot.startsAt)}</Fact>
-        <Fact label="Hora">{timeLabel(booking.slot.startsAt)}</Fact>
-      </Facts>
-      <p className="mt-4 flex items-center justify-between font-subtitle text-sm font-medium text-onyx">
-        <span>{formatPrice(bookingPrice(booking))}</span>
-        <span className="flex items-center gap-1">
-          Ver detalhes <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
         </span>
-      </p>
-    </motion.button>
+        <span className="mt-0.5 block truncate font-subtitle text-[13px] text-muted-dark">{rowDetails(booking)}</span>
+      </span>
+      <StatusDot status={booking.status} />
+      <i className="bx bx-chevron-right -mr-1 text-xl text-onyx/30" aria-hidden="true" />
+    </button>
   )
 }
-
-// The app stacks the cards; the website sets them side by side, as many as fit.
-const listLayout = (wide: boolean) =>
-  wide ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3' : 'flex flex-col gap-3'
 
 /** `wide`: the website's layout, the cards side by side instead of the app's single column. */
 export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}) {
@@ -199,7 +323,9 @@ export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}
     <main className="px-5 pb-40 pt-[calc(4.5rem+env(safe-area-inset-top))]" {...handlers}>
       {indicator}
       <div className={wide ? 'mx-auto max-w-6xl sm:px-3' : 'mx-auto max-w-md'}>
-        <h1 className="font-subtitle font-semibold tracking-tight text-4xl text-onyx">As minhas marcações</h1>
+        <h1 className="font-subtitle text-[30px] font-semibold leading-tight tracking-tight text-onyx">
+          As minhas marcações
+        </h1>
 
         <div className={`glass-chip mt-6 flex rounded-full p-1 ${wide ? 'max-w-md' : ''}`}>
           {(
@@ -241,10 +367,9 @@ export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}
         )}
 
         {!bookings && !loadError && (
-          <div className={`mt-6 ${listLayout(wide)}`} aria-label="A carregar">
-            {[0, 1, 2].slice(0, wide ? 3 : 2).map((i) => (
-              <div key={i} className="h-28 animate-pulse rounded-3xl bg-onyx/5" />
-            ))}
+          <div className="mt-6 flex flex-col gap-3" aria-label="A carregar">
+            <div className="h-56 animate-pulse rounded-3xl bg-onyx/5" />
+            <div className="h-16 animate-pulse rounded-2xl bg-onyx/5" />
           </div>
         )}
 
@@ -265,17 +390,33 @@ export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}
           </div>
         )}
 
-        <div className={`mt-6 ${listLayout(wide)}`}>
-          {bookings &&
-            list.map((booking) => (
-              <BookingCard
-                key={booking.id}
-                booking={booking}
-                isNew={fresh.has(booking.id)}
-                onOpen={() => open(booking)}
-              />
-            ))}
-        </div>
+        {bookings && list.length > 0 && (
+          <div className={`mt-6 ${wide ? 'grid items-start gap-6 lg:grid-cols-2' : 'flex flex-col gap-6'}`}>
+            {/* The next session stands out; the others follow as a list. */}
+            {tab === 'next' && (
+              <NextSession booking={list[0]} isNew={fresh.has(list[0].id)} onOpen={() => open(list[0])} />
+            )}
+            {(tab === 'next' ? list.slice(1) : list).length > 0 && (
+              <section>
+                {tab === 'next' && (
+                  <h2 className="mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">
+                    Depois
+                  </h2>
+                )}
+                <div className={group}>
+                  {(tab === 'next' ? list.slice(1) : list).map((booking) => (
+                    <BookingRow
+                      key={booking.id}
+                      booking={booking}
+                      isNew={fresh.has(booking.id)}
+                      onOpen={() => open(booking)}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        )}
       </div>
 
       <Sheet
@@ -303,6 +444,7 @@ export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}
         busy={busy}
         error={error}
         hideSubmit={mode === 'details' && !manageable}
+        closeLabel={mode === 'details' ? 'Fechar' : 'Voltar'}
         submitLabel={mode === 'cancel' ? 'Sim, cancelar' : mode === 'reschedule' ? 'Confirmar' : 'Reagendar'}
         submitDisabled={mode === 'reschedule' && !newSlotId}
         onSubmit={() => {
@@ -320,24 +462,30 @@ export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}
       >
         {selected && mode === 'details' && (
           <>
-            <div className="rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 p-4">
-              <div className="flex items-center justify-between">
+            <div className={group}>
+              <div className="flex min-h-[48px] items-center justify-between px-4 py-2.5">
+                <span className="font-subtitle text-[15px] text-onyx">Estado</span>
                 <StatusDot status={selected.status} />
-                <span className="font-subtitle text-xl font-semibold tracking-tight text-onyx">
-                  {formatPrice(bookingPrice(selected))}
-                </span>
               </div>
               {bookingExtras(selected) && (
-                <p className="mt-3 font-subtitle text-sm text-onyx">{bookingExtras(selected)}</p>
+                <div className="flex min-h-[48px] items-center justify-between gap-4 px-4 py-2.5 font-subtitle text-[15px]">
+                  <span className="text-onyx">Escolha</span>
+                  <span className="text-right text-onyx/70">{bookingExtras(selected)}</span>
+                </div>
               )}
-              <Facts columns="1fr 1fr">
-                <Fact label="Duração">{selected.service.durationLabel}</Fact>
-                <Fact label="Hora">{timeLabel(selected.slot.startsAt)}</Fact>
-              </Facts>
-              {STATUS[selected.status].hint && (
-                <p className="mt-4 font-subtitle text-sm font-light text-muted-dark">{STATUS[selected.status].hint}</p>
-              )}
+              <div className="flex min-h-[48px] items-center justify-between px-4 py-2.5 font-subtitle text-[15px]">
+                <span className="text-onyx">Duração</span>
+                <span className="text-onyx/70">{selected.service.durationLabel}</span>
+              </div>
+              <div className="flex min-h-[48px] items-center justify-between px-4 py-2.5 font-subtitle text-[15px]">
+                <span className="text-onyx">Preço</span>
+                <span className="font-semibold tabular-nums text-onyx">{formatPrice(bookingPrice(selected))}</span>
+              </div>
             </div>
+            {STATUS[selected.status].hint && (
+              <p className="px-1 font-subtitle text-sm font-light text-muted-dark">{STATUS[selected.status].hint}</p>
+            )}
+            {manageable && <SessionActions booking={selected} />}
             {manageable && (
               <button
                 type="button"
@@ -345,13 +493,22 @@ export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}
                   setError(null)
                   setMode('cancel')
                 }}
-                className="font-subtitle text-sm text-red-700 underline"
+                className="flex items-center justify-center gap-1.5 py-1 font-subtitle text-sm text-red-700 dark:text-red-400"
               >
-                Cancelar esta marcação
+                <i className="bx bx-calendar-x text-lg" aria-hidden="true" />
+                Cancelar a marcação
               </button>
             )}
             {selected.status === 'REJECTED' && (
               <ActionButton label="Escolher outro horário" onClick={() => navigate(bookPath)} />
+            )}
+            {selected.status === 'ACCEPTED' && !manageable && (
+              <div className="flex justify-center">
+                <ActionButton
+                  label="Marcar de novo"
+                  onClick={() => navigate(`${bookPath}?service=${selected.service.id}`)}
+                />
+              </div>
             )}
           </>
         )}

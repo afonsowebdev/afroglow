@@ -31,6 +31,7 @@ export function Sheet({
   submitLabel,
   submitDisabled = false,
   hideSubmit = false,
+  closeLabel,
   children,
   onSubmit,
   onClose,
@@ -45,6 +46,8 @@ export function Sheet({
   submitLabel: string
   submitDisabled?: boolean
   hideSubmit?: boolean
+  /** The label of the button that only closes the sheet ("Cancelar" beside a submit, "Fechar" alone, by default). */
+  closeLabel?: string
   children: ReactNode
   onSubmit: () => void
   onClose: () => void
@@ -115,7 +118,7 @@ export function Sheet({
                   appStyle ? 'glass-chip' : 'border border-gold/30 hover:border-gold-deep'
                 }`}
               >
-                {hideSubmit ? 'Fechar' : 'Cancelar'}
+                {closeLabel ?? (hideSubmit ? 'Fechar' : 'Cancelar')}
               </button>
               {!hideSubmit && (
                 <button
