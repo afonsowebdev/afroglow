@@ -919,7 +919,7 @@ export function Visit() {
       <div className="mt-5 overflow-hidden rounded-3xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
         {business.address && (
           <>
-            {/* The map, in black and white; tapping it opens the phone's map app (it never traps the page's scroll). */}
+            {/* The map, in its own colours; tapping it opens the phone's map app (it never traps the page's scroll). */}
             <a href={mapsHref} target="_blank" rel="noreferrer" className="relative block h-48 bg-onyx/5">
               <iframe
                 title={`Mapa: ${business.address}`}
@@ -927,7 +927,7 @@ export function Visit() {
                 loading="lazy"
                 referrerPolicy="no-referrer"
                 tabIndex={-1}
-                className="pointer-events-none block h-full w-full grayscale"
+                className="pointer-events-none block h-full w-full"
               />
               <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/60 px-3 py-1.5 font-subtitle text-xs text-[#ffffff] backdrop-blur-md">
                 <i className="bx bx-map-alt text-sm" aria-hidden="true" />
@@ -944,10 +944,10 @@ export function Visit() {
 
         <div className="grid grid-cols-2 gap-2 p-4">
           {business.address && (
-            <a href={mapsHref} target="_blank" rel="noreferrer" className={`${action} col-span-2 bg-onyx text-white`}>
-              <i className="bx bx-navigation text-lg" aria-hidden="true" />
-              Como chegar
-            </a>
+            // The app's own glass button, with the navigation arrow in its disc.
+            <div className="col-span-2 mb-1 flex justify-center">
+              <ActionButton label="Como chegar" href={mapsHref} icon="bx bx-navigation" />
+            </div>
           )}
           {business.phone && (
             <a href={`tel:${business.phone.replace(/[^+\d]/g, '')}`} className={`${action} glass-chip text-onyx`}>
