@@ -380,7 +380,7 @@ function scrollStrip(el: HTMLDivElement | null, to: number, count: number) {
  * and of the tab bar; the page settles on it when scrolled near (see HomeScreen).
  */
 const fullScreenSection =
-  'flex h-[100svh] min-h-[600px] snap-start flex-col pb-[calc(6.75rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))]'
+  'flex h-[100svh] min-h-[600px] snap-start flex-col pb-[calc(5rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))]'
 
 /** Four shortcuts behind a "+" button that slides away to show them. */
 export function QuickActions({ whatsappUrl }: { whatsappUrl?: string }) {
@@ -442,15 +442,16 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
       >
         {services === null && (
           <div className="h-full w-full shrink-0 px-5">
-            <div className="mx-auto h-full max-w-sm animate-pulse rounded-2xl bg-onyx/5" />
+            <div className="mx-auto h-full max-w-md animate-pulse rounded-[2rem] bg-onyx/5" />
           </div>
         )}
         {services?.map((service, i) => {
           const photos = serviceImageUrls(service)
           return (
             <div key={service.id} className="h-full w-full shrink-0 snap-center snap-always px-5">
-              {/* Photo on top (as tall as the screen allows), then name and price, description, duration and "Marcar". */}
-              <div className="mx-auto flex h-full max-w-sm flex-col">
+              {/* The photo as tall as the screen allows (as in the portfolio), with the name, price, description,
+                  duration and "Marcar" over its lower part on a soft dark fade. */}
+              <div className="relative mx-auto h-full max-w-md overflow-hidden rounded-[2rem] bg-onyx/5">
                 {/* The photo opens the gallery with more pictures. */}
                 <button
                   type="button"
@@ -459,7 +460,7 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
                     void tap()
                     setPreviewId(service.id)
                   }}
-                  className="relative block min-h-0 w-full flex-1 overflow-hidden rounded-2xl bg-onyx/5"
+                  className="absolute inset-0 block"
                 >
                   <img
                     src={photos[0] ?? PHOTOS[i % PHOTOS.length].src}
@@ -467,40 +468,44 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
                     loading="lazy"
                     className="absolute inset-0 h-full w-full object-cover"
                   />
-                  {photos.length > 1 && (
-                    <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
-                      <i className="bx bx-images text-sm" aria-hidden="true" />
-                      {photos.length} fotos
-                    </span>
-                  )}
                 </button>
-
-                <div className="mt-4 flex items-baseline justify-between gap-4">
-                  <p className="truncate font-subtitle text-xl font-medium text-onyx">{service.name}</p>
-                  <p className="shrink-0 font-subtitle text-base tabular-nums text-onyx">
-                    {servicePriceLabel(service)}
-                  </p>
-                </div>
-                {service.description && (
-                  <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light leading-relaxed text-onyx/60">
-                    {service.description}
-                  </p>
-                )}
-                <div className="mt-3 flex items-center justify-between gap-4 border-t border-onyx/10 pt-3">
-                  <span className="inline-flex items-center gap-1.5 font-subtitle text-sm text-onyx/55">
-                    <i className="bx bx-time-five text-base" aria-hidden="true" />
-                    {service.durationLabel}
+                {photos.length > 1 && (
+                  <span className="pointer-events-none absolute left-4 top-4 inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
+                    <i className="bx bx-images text-sm" aria-hidden="true" />
+                    {photos.length} fotos
                   </span>
-                  {/* Straight to booking this model. */}
-                  <Link
-                    to={`/marcar?service=${service.id}`}
-                    aria-label={`Marcar ${service.name}`}
-                    onClick={() => void tap('medium')}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-full bg-onyx pe-3 ps-4 font-subtitle text-sm font-medium text-white"
-                  >
-                    Marcar
-                    <i className="bx bx-right-arrow-alt text-base" aria-hidden="true" />
-                  </Link>
+                )}
+
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/55 to-transparent px-5 pb-5 pt-28">
+                  <div className="flex items-baseline justify-between gap-4">
+                    <p className="truncate font-subtitle text-2xl font-semibold tracking-tight text-[#ffffff]">
+                      {service.name}
+                    </p>
+                    <p className="shrink-0 font-subtitle text-base tabular-nums text-[#ffffff]">
+                      {servicePriceLabel(service)}
+                    </p>
+                  </div>
+                  {service.description && (
+                    <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light leading-relaxed text-[#ffffff]/75">
+                      {service.description}
+                    </p>
+                  )}
+                  <div className="mt-4 flex items-center justify-between gap-4">
+                    <span className="inline-flex items-center gap-1.5 font-subtitle text-sm text-[#ffffff]/75">
+                      <i className="bx bx-time-five text-base" aria-hidden="true" />
+                      {service.durationLabel}
+                    </span>
+                    {/* Straight to booking this model. */}
+                    <Link
+                      to={`/marcar?service=${service.id}`}
+                      aria-label={`Marcar ${service.name}`}
+                      onClick={() => void tap('medium')}
+                      className="pointer-events-auto inline-flex h-10 items-center gap-1.5 rounded-full bg-[#ffffff] pe-3.5 ps-5 font-subtitle text-sm font-semibold text-[#1a1008]"
+                    >
+                      Marcar
+                      <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
