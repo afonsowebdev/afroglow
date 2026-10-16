@@ -300,15 +300,6 @@ const PHOTOS = [
   { src: '/images/hero/hero-5.jpg', alt: 'Detalhe do couro cabeludo com repartição triangular' },
 ]
 
-function SectionTitle({ title, hint }: { title: string; hint?: string }) {
-  return (
-    <div className="mx-auto max-w-2xl px-5">
-      <h2 className="font-subtitle text-2xl font-semibold tracking-tight text-onyx">{title}</h2>
-      {hint && <p className="mt-1 font-subtitle text-sm font-light text-muted-dark">{hint}</p>}
-    </div>
-  )
-}
-
 /**
  * Under a full-screen strip: where the customer is ("01 / 05" and a progress line) and, together on the right, round
  * buttons to go back and forward (dimmed at the ends). Swiping still works; the buttons make it obvious.
@@ -524,17 +515,19 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
 }
 
 const STEPS = [
-  { icon: 'bx bx-list-check', title: 'Escolhe', text: 'o penteado que mais gostas' },
-  { icon: 'bx bx-calendar-plus', title: 'Marca', text: 'um dia e hora livres' },
-  { icon: 'bx bx-bell', title: 'Recebe', text: 'o aviso de confirmação' },
+  { title: 'Escolhe o modelo', text: 'Vê as fotos, a duração e o preço de cada penteado.' },
+  { title: 'Marca dia e hora', text: 'Escolhe uma vaga livre na agenda e envia o pedido.' },
+  { title: 'Recebe a confirmação', text: 'Avisamos-te na app assim que a marcação for aceite.' },
 ]
 
 /**
- * "Como funciona" for people who haven't booked yet: three steps on a connected line plus a reassurance note.
- * Anyone with a booking already knows the flow, so it disappears for them.
+ * "Como funciona" for people who haven't booked yet: the three steps on one card, each with its number large in the
+ * brand's type, then that nothing is paid in the app and the button to start. Anyone with a booking already knows the
+ * flow, so it disappears for them.
  */
 export function StepsRow() {
   const { customer, loading } = useCustomerAuth()
+  const navigate = useNavigate()
   const [hasBookings, setHasBookings] = useState<boolean | null>(null)
 
   useEffect(() => {
@@ -551,36 +544,57 @@ export function StepsRow() {
   if (loading || hasBookings === null || hasBookings) return null
 
   return (
-    <section className="pt-12">
-      <SectionTitle title="Como funciona" hint="Três passos e ficas despachada." />
-      <div className="mx-auto mt-6 max-w-2xl px-5">
-        <ol className="relative">
-          <span aria-hidden="true" className="absolute bottom-6 left-[21px] top-6 w-px bg-onyx/20" />
+    <section className="mx-auto max-w-2xl px-5 pt-14">
+      <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Primeira vez?</p>
+      <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Como funciona</h2>
+
+      <div className="mt-5 rounded-[28px] bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] p-5">
+        <ol>
           {STEPS.map((step, index) => (
             <motion.li
               key={step.title}
-              initial={{ opacity: 0, x: -10 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 8 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.7 }}
-              transition={{ delay: index * 0.08 }}
-              className="relative flex items-center gap-4 py-3"
+              transition={{ delay: index * 0.1, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              className="relative flex gap-4 pb-6 last:pb-0"
             >
-              <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-onyx/10 shadow-sm shadow-black/5 bg-white text-xl text-onyx">
-                <i className={step.icon} aria-hidden="true" />
-              </span>
-              <span>
-                <span className="block font-subtitle text-base font-semibold text-onyx">
-                  {index + 1}. {step.title}
+              {/* The number, and a thin line down to the next step. */}
+              <span className="relative flex w-10 shrink-0 justify-center">
+                <span className="font-logo text-[2rem] leading-none text-onyx">
+                  {String(index + 1).padStart(2, '0')}
                 </span>
-                <span className="block font-subtitle text-sm font-light text-muted-dark">{step.text}</span>
+                {index < STEPS.length - 1 && (
+                  <span aria-hidden="true" className="absolute bottom-[-1.25rem] top-10 w-px bg-onyx/15" />
+                )}
+              </span>
+              <span className="pt-1">
+                <span className="block font-subtitle text-[17px] font-semibold leading-tight text-onyx">
+                  {step.title}
+                </span>
+                <span className="mt-1 block font-subtitle text-sm leading-relaxed text-muted-dark">{step.text}</span>
               </span>
             </motion.li>
           ))}
         </ol>
-        <p className="mt-3 flex items-start gap-2 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 px-4 py-3 font-subtitle text-sm text-muted-dark">
-          <i className="bx bx-info-circle mt-0.5 text-lg text-onyx" aria-hidden="true" />
-          Não pagas nada na app. Avisamos-te assim que o pedido for aceite.
-        </p>
+
+        <div className="mt-6 border-t border-onyx/10 pt-5">
+          <p className="flex items-center gap-2 font-subtitle text-sm text-onyx/80">
+            <i className="bx bx-wallet text-lg text-onyx" aria-hidden="true" />
+            Sem pagamentos na app: pagas no dia, no salão.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              void tap('medium')
+              navigate('/marcar')
+            }}
+            className="mt-4 flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-onyx font-subtitle text-[15px] font-semibold text-white active:opacity-85"
+          >
+            Marcar sessão
+            <i className="bx bx-right-arrow-alt text-xl" aria-hidden="true" />
+          </button>
+        </div>
       </div>
     </section>
   )
