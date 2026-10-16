@@ -1051,6 +1051,7 @@ export function Visit() {
  */
 export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
   const business = useBusinessInfo()
+  const { status } = useOpeningStatus(business.openingHours)
   const others: Array<{ icon: string; title: string; href: string }> = [
     ...(business.phone
       ? [{ icon: 'bx bx-phone', title: 'Ligar', href: `tel:${business.phone.replace(/[^+\d]/g, '')}` }]
@@ -1079,6 +1080,15 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
             Rute De Pina
           </p>
           <p className="mt-0.5 font-subtitle text-[13px] text-muted-dark">CEO & Fundadora da AFROGLOW</p>
+          {status && (
+            <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 font-subtitle text-xs text-onyx shadow-sm shadow-black/5">
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${status.open ? 'bg-emerald-500' : 'bg-red-500'}`}
+                aria-hidden="true"
+              />
+              {status.text}
+            </p>
+          )}
           <p className="mx-auto mt-4 max-w-[19rem] font-subtitle text-[15px] leading-relaxed text-onyx/70">
             Tens alguma dúvida sobre os modelos, os preços ou a tua marcação? Fala diretamente comigo.
           </p>
@@ -1092,6 +1102,9 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
             <i className="bx bxl-whatsapp text-[22px]" aria-hidden="true" />
             Falar no WhatsApp
           </a>
+          {business.phone && (
+            <p className="mt-3 font-subtitle text-xs tabular-nums text-muted-dark">{business.phone}</p>
+          )}
         </div>
       )}
 

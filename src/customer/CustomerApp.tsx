@@ -42,6 +42,7 @@ import ProfileScreen from './ProfileScreen'
 import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 import SettingsScreen from './SettingsScreen'
 import { SiteIntro } from '@/components/ui/site-intro'
+import { BackToTop } from '@/components/ui/back-to-top'
 import { NotificationBell } from '@/components/layout/NotificationBell'
 
 type TabId = 'inicio' | 'marcar' | 'marcacoes' | 'conta'
@@ -306,9 +307,9 @@ function CustomerShell() {
         </div>
       )}
 
-      {/* The tab bar, on its own at the bottom. */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center px-3">
-        <div className={navHidden ? 'pointer-events-none' : 'pointer-events-auto'}>
+      {/* The tab bar at the bottom, with the "back to the top" button beside it once the page is scrolled down. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center gap-2.5 px-3">
+        <motion.div layout className={navHidden ? 'pointer-events-none' : 'pointer-events-auto'}>
           <BottomNavBar
             glass
             hidden={navHidden}
@@ -329,7 +330,8 @@ function CustomerShell() {
               ...(id === 'conta' && customer ? { image: avatar } : {}),
             }))}
           />
-        </div>
+        </motion.div>
+        <BackToTop hidden={navHidden} />
       </div>
     </div>
   )
