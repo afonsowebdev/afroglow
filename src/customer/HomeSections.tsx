@@ -1113,18 +1113,20 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
         <span className="font-subtitle text-xs uppercase tracking-[0.14em] text-muted-dark">ou</span>
         <span className="h-px flex-1 bg-onyx/10" />
       </div>
-      {/* The other ways, as the action buttons of an iPhone contact card. */}
-      <div className={`mt-4 grid gap-2.5 ${others.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+      {/* The other ways as round buttons with their name under them, as on an iPhone contact card. */}
+      <div className="mt-5 flex justify-center gap-10">
         {others.map((option) => (
           <a
             key={option.title}
             href={option.href}
             {...external(option.href)}
             onClick={() => void tap()}
-            className="flex h-[68px] flex-col items-center justify-center gap-1 rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] text-onyx active:bg-onyx/[0.08]"
+            className="group flex w-16 flex-col items-center gap-2"
           >
-            <i className={`${option.icon} text-[22px]`} aria-hidden="true" />
-            <span className="font-subtitle text-xs font-medium">{option.title}</span>
+            <span className="flex size-14 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--color-onyx)_6%,var(--color-white))] text-[1.6rem] text-onyx ring-1 ring-onyx/[0.06] transition-transform group-active:scale-95">
+              <i className={option.icon} aria-hidden="true" />
+            </span>
+            <span className="font-subtitle text-xs font-medium text-onyx">{option.title}</span>
           </a>
         ))}
       </div>
