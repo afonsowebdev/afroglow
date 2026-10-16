@@ -47,10 +47,25 @@ function mediaLuminance(media: HTMLImageElement | HTMLVideoElement, x: number, y
 
 /** The brightness of an element's own background colour, or null when it is (nearly) see-through. */
 function ownBackground(el: Element) {
-  const match = getComputedStyle(el).backgroundColor.match(/[\d.]+/g)
-  if (!match) return null
-  const [r, g, b, a = '1'] = match
-  return +a >= 0.5 ? luminance(+r, +g, +b) : null
+  return colourLuminance(getComputedStyle(el).backgroundColor)
+}
+
+/**
+ * The brightness of a computed colour, or null when it is (nearly) see-through. Browsers give "rgb(…)"/"rgba(…)"
+ * (0–255), but colours mixed with color-mix() come back as "color(srgb r g b / a)" (0–1) or as oklab/oklch.
+ */
+function colourLuminance(css: string) {
+  const numbers = (css.match(/-?[\d.]+/g) ?? []).map(Number)
+  const alpha = css.includes('/') ? numbers[numbers.length - 1] : css.startsWith('rgba') ? numbers[3] : 1
+  if (!(alpha >= 0.5)) return null
+  if (css.startsWith('rgb')) return luminance(numbers[0], numbers[1], numbers[2])
+  if (css.startsWith('color(')) return luminance(numbers[0] * 255, numbers[1] * 255, numbers[2] * 255)
+  // oklab()/oklch(): the first number is the perceived lightness (0–1, or a percentage).
+  if (css.startsWith('okl')) {
+    const lightness = css.includes('%') && numbers[0] > 1 ? numbers[0] / 100 : numbers[0]
+    return lightness ** 3
+  }
+  return null
 }
 
 /**

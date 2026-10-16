@@ -527,7 +527,6 @@ const STEPS = [
  */
 export function StepsRow() {
   const { customer, loading } = useCustomerAuth()
-  const navigate = useNavigate()
   const [hasBookings, setHasBookings] = useState<boolean | null>(null)
 
   useEffect(() => {
@@ -583,17 +582,10 @@ export function StepsRow() {
             <i className="bx bx-wallet text-lg text-onyx" aria-hidden="true" />
             Sem pagamentos na app: pagas no dia, no salão.
           </p>
-          <button
-            type="button"
-            onClick={() => {
-              void tap('medium')
-              navigate('/marcar')
-            }}
-            className="mt-4 flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-onyx font-subtitle text-[15px] font-semibold text-white active:opacity-85"
-          >
-            Marcar sessão
-            <i className="bx bx-right-arrow-alt text-xl" aria-hidden="true" />
-          </button>
+          {/* The app's own button, as everywhere else. */}
+          <div className="mt-5 flex justify-center">
+            <ActionButton label="Marcar sessão" to="/marcar" />
+          </div>
         </div>
       </div>
     </section>
