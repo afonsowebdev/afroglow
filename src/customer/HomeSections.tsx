@@ -1046,8 +1046,8 @@ export function Visit() {
 }
 
 /**
- * Ways to reach the studio: WhatsApp on a photo of the work, with the brand's headline and one button; then calling,
- * Instagram and email as round buttons.
+ * Ways to reach the studio: the founder inviting a WhatsApp message (her photo, name and role, one line and the
+ * button); then calling, Instagram and email as round buttons.
  */
 export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
   const business = useBusinessInfo()
@@ -1066,29 +1066,33 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
       <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Fala connosco</h2>
 
       {whatsappUrl && (
-        // WhatsApp on a photo of the work: the brand's headline, one line and one button.
-        <div className="relative mt-5 h-[25rem] overflow-hidden rounded-3xl bg-onyx/5">
-          <img
-            src="/images/hero/hero-2.jpg"
-            alt=""
-            loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover object-[50%_30%]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/5" />
-          <div className="absolute inset-x-0 bottom-0 p-5">
-            <p className="font-logo text-[2rem] leading-[1.05] text-[#ffffff]">Tens alguma dúvida?</p>
-            <p className="mt-2 font-subtitle text-sm text-[#ffffff]/80">Escreve-nos pelo WhatsApp.</p>
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => void tap('medium')}
-              className="mt-4 flex h-12 items-center justify-center gap-2 rounded-full bg-[#ffffff] font-subtitle text-sm font-semibold text-[#1a1008] active:opacity-85"
-            >
-              <i className="bx bxl-whatsapp text-xl" aria-hidden="true" />
-              Falar no WhatsApp
-            </a>
+        // The founder herself, inviting a message on WhatsApp.
+        <div className="mt-5 rounded-3xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] p-5">
+          <div className="flex items-center gap-4">
+            <img
+              src="/images/ceo/rute-de-pina-1.jpg"
+              alt="Rute De Pina"
+              loading="lazy"
+              className="size-16 shrink-0 rounded-full object-cover object-top ring-2 ring-white shadow-md shadow-black/10"
+            />
+            <div className="min-w-0">
+              <p className="font-subtitle text-lg font-semibold leading-tight text-onyx">Rute De Pina</p>
+              <p className="font-subtitle text-sm text-muted-dark">CEO & Fundadora · AFROGLOW</p>
+            </div>
           </div>
+          <p className="mt-4 font-subtitle text-[15px] leading-relaxed text-onyx/80">
+            Tens alguma dúvida sobre os modelos, os preços ou a tua marcação? Fala diretamente comigo.
+          </p>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => void tap('medium')}
+            className="mt-5 flex h-12 items-center justify-center gap-2 rounded-full bg-onyx font-subtitle text-sm font-semibold text-white active:opacity-85"
+          >
+            <i className="bx bxl-whatsapp text-xl" aria-hidden="true" />
+            Falar no WhatsApp
+          </a>
         </div>
       )}
 
