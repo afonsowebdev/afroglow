@@ -24,29 +24,41 @@ export function BackToTop({ hidden = false }: { hidden?: boolean }) {
     return () => window.removeEventListener('scroll', update)
   }, [])
 
+  // One gentle ease for both: the room beside the tab bar opens (so the bar glides aside rather than jumping) while
+  // the button fades in from a slight blur; leaving does the same in reverse.
+  const ease = { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const }
   return (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {visible && (
-        <motion.button
-          ref={button}
-          type="button"
-          aria-label="Voltar ao topo"
-          onClick={() => {
-            void tap()
-            window.scrollTo({ top: 0, behavior: 'smooth' })
-          }}
-          initial={{ opacity: 0, scale: 0.6 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.6 }}
-          whileTap={{ scale: 0.92 }}
-          transition={{ type: 'spring', stiffness: 420, damping: 28 }}
-          className={cn(
-            'liquid-glass pointer-events-auto flex size-14 shrink-0 items-center justify-center rounded-full transition-colors duration-300',
-            tone === 'dark' ? 'text-[#ffffff]' : 'text-[#1a1008]',
-          )}
+        <motion.div
+          key="back-to-top"
+          className="pointer-events-auto shrink-0"
+          initial={{ width: 0, marginLeft: 0 }}
+          animate={{ width: 56, marginLeft: 10 }}
+          exit={{ width: 0, marginLeft: 0 }}
+          transition={ease}
         >
-          <ArrowUp size={24} strokeWidth={2.4} />
-        </motion.button>
+          <motion.button
+            ref={button}
+            type="button"
+            aria-label="Voltar ao topo"
+            onClick={() => {
+              void tap()
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+            initial={{ opacity: 0, scale: 0.85, filter: 'blur(6px)' }}
+            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, scale: 0.85, filter: 'blur(6px)' }}
+            whileTap={{ scale: 0.94 }}
+            transition={ease}
+            className={cn(
+              'liquid-glass flex size-14 items-center justify-center rounded-full transition-colors duration-300',
+              tone === 'dark' ? 'text-[#ffffff]' : 'text-[#1a1008]',
+            )}
+          >
+            <ArrowUp size={24} strokeWidth={2.4} />
+          </motion.button>
+        </motion.div>
       )}
     </AnimatePresence>
   )
