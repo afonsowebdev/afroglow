@@ -8,7 +8,7 @@ import { api, assetUrl } from '@/lib/api'
 import { tap } from '@/lib/haptics'
 import { serviceImageUrls } from '@/lib/service-images'
 import { useCustomerAuth } from '@/lib/customer-auth'
-import { instagramDmUrl, mapSearchText, siteConfig, useBusinessInfo, useWhatsapp } from '@/lib/site-config'
+import { instagramDmUrl, mapSearchText, siteConfig, useBusinessInfo } from '@/lib/site-config'
 import { useOpeningStatus } from '@/lib/opening-hours'
 import type { AvailabilitySlot, Booking, Service } from '@/lib/types'
 import { useBookingAlerts } from './booking-alerts'
@@ -1045,28 +1045,12 @@ export function Visit() {
   )
 }
 
-/** Ready-made first messages: each opens WhatsApp with the text already written. */
-const WHATSAPP_STARTERS = [
-  { icon: 'bx bx-calendar-plus', label: 'Marcar uma sessão', text: 'Olá! Gostaria de marcar uma sessão de tranças.' },
-  {
-    icon: 'bx bx-help-circle',
-    label: 'Dúvidas sobre os serviços',
-    text: 'Olá! Tenho uma dúvida sobre os vossos serviços.',
-  },
-  {
-    icon: 'bx bx-purchase-tag-alt',
-    label: 'Preços e modelos',
-    text: 'Olá! Gostaria de saber mais sobre os preços e os modelos.',
-  },
-]
-
 /**
- * Ways to reach the studio: WhatsApp on one card (its number, the subjects as rows that open the chat with that text
- * written, and a button to open it); then calling, Instagram and email as round buttons.
+ * Ways to reach the studio: WhatsApp on a photo of the work, with the brand's headline and one button; then calling,
+ * Instagram and email as round buttons.
  */
 export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
   const business = useBusinessInfo()
-  const whatsapp = useWhatsapp()
   const others: Array<{ icon: string; title: string; href: string }> = [
     ...(business.phone
       ? [{ icon: 'bx bx-phone', title: 'Ligar', href: `tel:${business.phone.replace(/[^+\d]/g, '')}` }]
@@ -1082,51 +1066,27 @@ export function ContactTiles({ whatsappUrl }: { whatsappUrl?: string }) {
       <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Fala connosco</h2>
 
       {whatsappUrl && (
-        <div className="mt-5 overflow-hidden rounded-3xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
-          <div className="flex items-center gap-3.5 px-4 pb-3 pt-4">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-onyx text-2xl text-white">
-              <i className="bx bxl-whatsapp" aria-hidden="true" />
-            </span>
-            <span className="min-w-0">
-              <span className="block font-subtitle text-base font-semibold text-onyx">WhatsApp</span>
-              {business.whatsappNumber && (
-                <span className="block font-subtitle text-sm tabular-nums text-muted-dark">
-                  {business.phone || `+${business.whatsappNumber}`}
-                </span>
-              )}
-            </span>
-          </div>
-
-          <p className="px-4 pb-1 pt-2 font-subtitle text-[11px] font-medium uppercase tracking-[0.14em] text-muted-dark">
-            Sobre o que queres falar?
-          </p>
-          <div className="mx-3 divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-white">
-            {WHATSAPP_STARTERS.map((starter) => (
-              <a
-                key={starter.label}
-                href={whatsapp.url(starter.text)}
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => void tap()}
-                className="flex h-[50px] items-center gap-3 px-4 active:bg-onyx/[0.04]"
-              >
-                <i className={`${starter.icon} text-xl text-onyx/70`} aria-hidden="true" />
-                <span className="flex-1 font-subtitle text-[15px] text-onyx">{starter.label}</span>
-                <i className="bx bx-chevron-right text-xl text-onyx/30" aria-hidden="true" />
-              </a>
-            ))}
-          </div>
-
-          <div className="p-3">
+        // WhatsApp on a photo of the work: the brand's headline, one line and one button.
+        <div className="relative mt-5 h-[25rem] overflow-hidden rounded-3xl bg-onyx/5">
+          <img
+            src="/images/hero/hero-2.jpg"
+            alt=""
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover object-[50%_30%]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/5" />
+          <div className="absolute inset-x-0 bottom-0 p-5">
+            <p className="font-logo text-[2rem] leading-[1.05] text-[#ffffff]">Tens alguma dúvida?</p>
+            <p className="mt-2 font-subtitle text-sm text-[#ffffff]/80">Escreve-nos pelo WhatsApp.</p>
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
               onClick={() => void tap('medium')}
-              className="flex h-12 items-center justify-center gap-2 rounded-full bg-onyx font-subtitle text-sm font-semibold text-white active:opacity-85"
+              className="mt-4 flex h-12 items-center justify-center gap-2 rounded-full bg-[#ffffff] font-subtitle text-sm font-semibold text-[#1a1008] active:opacity-85"
             >
-              Abrir conversa
-              <i className="bx bx-right-arrow-alt text-lg" aria-hidden="true" />
+              <i className="bx bxl-whatsapp text-xl" aria-hidden="true" />
+              Falar no WhatsApp
             </a>
           </div>
         </div>
