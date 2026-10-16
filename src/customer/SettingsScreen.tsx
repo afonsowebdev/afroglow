@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { ActionButton } from '@/components/ui/action-button'
 import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
 import { useNavigate } from 'react-router-dom'
-import { useBackButton } from './nav-visibility'
+import { useBackButton, useHideNav } from './nav-visibility'
 import { api, ApiError } from '@/lib/api'
 import { useAvatar } from '@/lib/avatar-store'
 import { useCustomerAuth } from '@/lib/customer-auth'
@@ -187,6 +187,8 @@ export default function SettingsScreen() {
   const navigate = useNavigate()
   // Back to the account, from the top row (in place of the "A").
   useBackButton(true, () => navigate('/conta'))
+  // A page reached from the account, not a tab: no tab bar, the way back is the button at the top.
+  useHideNav(true)
   const photo = useAvatar()
   const { customer, updateProfile, changePassword, deleteAccount, logout } = useCustomerAuth()
   const [sheet, setSheet] = useState<SheetId>(null)

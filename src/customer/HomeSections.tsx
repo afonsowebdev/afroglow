@@ -272,7 +272,7 @@ export function WelcomeCard() {
         </span>
       </div>
       <p className="mt-2 font-subtitle text-xl font-semibold tracking-tight text-onyx">{next.service.name}</p>
-{bookingExtras(next) && <p className="font-subtitle text-sm text-muted-dark">{bookingExtras(next)}</p>}
+      {bookingExtras(next) && <p className="font-subtitle text-sm text-muted-dark">{bookingExtras(next)}</p>}
 
       <dl className="mt-4 grid grid-cols-[2fr_1fr] gap-4 border-t border-onyx/15 pt-4">
         <div>
@@ -309,6 +309,79 @@ function SectionTitle({ title, hint }: { title: string; hint?: string }) {
   )
 }
 
+/**
+ * Under a full-screen strip: round buttons to go back and forward (dimmed at the ends) and, between them, where the
+ * customer is (dots, or a bar when there are many). Swiping still works; the buttons make it obvious.
+ */
+function CarouselControls({
+  index,
+  count,
+  onGo,
+  what,
+}: {
+  index: number
+  count: number
+  onGo: (to: number) => void
+  what: string
+}) {
+  if (count < 2) return null
+  const button =
+    'glass-chip flex size-12 shrink-0 items-center justify-center rounded-full text-[1.75rem] text-onyx transition-opacity disabled:opacity-30'
+  return (
+    <div className="mx-auto mt-4 flex w-full max-w-sm items-center justify-between gap-4 px-5">
+      <button
+        type="button"
+        aria-label={`${what} anterior`}
+        disabled={index <= 0}
+        onClick={() => onGo(index - 1)}
+        className={button}
+      >
+        <i className="bx bx-chevron-left" aria-hidden="true" />
+      </button>
+      {count <= 12 ? (
+        <div className="flex items-center gap-1.5" aria-label={`${index + 1} de ${count}`}>
+          {Array.from({ length: count }, (_, i) => (
+            <span
+              key={i}
+              className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? 'w-6 bg-onyx' : 'w-1.5 bg-onyx/25'}`}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="h-1 w-24 overflow-hidden rounded-full bg-onyx/15" aria-label={`${index + 1} de ${count}`}>
+          <div
+            className="h-full rounded-full bg-onyx transition-all"
+            style={{ width: `${((index + 1) / count) * 100}%` }}
+          />
+        </div>
+      )}
+      <button
+        type="button"
+        aria-label={`${what} seguinte`}
+        disabled={index >= count - 1}
+        onClick={() => onGo(index + 1)}
+        className={button}
+      >
+        <i className="bx bx-chevron-right" aria-hidden="true" />
+      </button>
+    </div>
+  )
+}
+
+/** Scrolls a strip to slide `to` (clamped), smoothly. */
+function scrollStrip(el: HTMLDivElement | null, to: number, count: number) {
+  if (!el) return
+  void tap()
+  el.scrollTo({ left: Math.max(0, Math.min(count - 1, to)) * el.clientWidth, behavior: 'smooth' })
+}
+
+/**
+ * A home section that fills the screen on its own (nothing of the page above or below shows), clear of the top row
+ * and of the tab bar; the page settles on it when scrolled near (see HomeScreen).
+ */
+const fullScreenSection =
+  'flex h-[100svh] min-h-[600px] snap-start flex-col pb-[calc(6.75rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))]'
+
 /** Four shortcuts behind a "+" button that slides away to show them. */
 export function QuickActions({ whatsappUrl }: { whatsappUrl?: string }) {
   const icons: ActionIcon[] = [
@@ -330,12 +403,11 @@ export function QuickActions({ whatsappUrl }: { whatsappUrl?: string }) {
   )
 }
 
-/** Services as swipeable photo cards. */
+/** Services as full-screen photo cards: swipe or use the buttons to go from one to the next. */
 export function ServiceCarousel({ services }: { services: Service[] | null }) {
   const navigate = useNavigate()
   const [previewId, setPreviewId] = useState<string | null>(null)
   const [index, setIndex] = useState(0)
-  const [swiped, setSwiped] = useState(false)
   const track = useRef<HTMLDivElement>(null)
   const preview = services?.find((s) => s.id === previewId) ?? null
   const total = services?.length ?? 0
@@ -343,8 +415,8 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
   useSwipeNudge(track, total)
 
   return (
-    <section id="servicos" className="scroll-mt-6 pt-12">
-      <div className="mx-auto flex max-w-2xl items-end justify-between px-5">
+    <section id="servicos" className={fullScreenSection}>
+      <div className="mx-auto flex w-full max-w-2xl items-end justify-between px-5">
         <div>
           <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Penteados</p>
           <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">Os nossos serviços</h2>
@@ -356,32 +428,29 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
           </p>
         )}
       </div>
-      <p className="mx-auto mt-2 max-w-2xl px-5 font-subtitle text-sm font-light text-muted-dark">
-        Toca na foto para ver mais. Toca em Marcar para escolher o dia.
+      <p className="mx-auto mt-1.5 w-full max-w-2xl px-5 font-subtitle text-sm font-light text-muted-dark">
+        Desliza ou usa as setas. Toca na foto para ver mais.
       </p>
 
       <div
         ref={track}
-        className="mt-5 flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="mt-4 flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         onScroll={(e) => {
           const el = e.currentTarget
-          const i = Math.min(total - 1, Math.max(0, Math.round(el.scrollLeft / el.clientWidth)))
-          setIndex(i)
-          if (i > 0) setSwiped(true)
+          setIndex(Math.min(total - 1, Math.max(0, Math.round(el.scrollLeft / el.clientWidth))))
         }}
       >
-        {services === null &&
-          [0].map((i) => (
-            <div key={i} className="w-full shrink-0 px-5">
-              <div className="mx-auto aspect-[4/5] max-w-sm animate-pulse rounded-2xl bg-onyx/5" />
-            </div>
-          ))}
+        {services === null && (
+          <div className="h-full w-full shrink-0 px-5">
+            <div className="mx-auto h-full max-w-sm animate-pulse rounded-2xl bg-onyx/5" />
+          </div>
+        )}
         {services?.map((service, i) => {
           const photos = serviceImageUrls(service)
           return (
-            <div key={service.id} className="w-full shrink-0 snap-center snap-always px-5">
-              {/* The website's service card: photo on top, then name and price, description, and duration with "Marcar". */}
-              <div className="mx-auto flex max-w-sm flex-col">
+            <div key={service.id} className="h-full w-full shrink-0 snap-center snap-always px-5">
+              {/* Photo on top (as tall as the screen allows), then name and price, description, duration and "Marcar". */}
+              <div className="mx-auto flex h-full max-w-sm flex-col">
                 {/* The photo opens the gallery with more pictures. */}
                 <button
                   type="button"
@@ -390,7 +459,7 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
                     void tap()
                     setPreviewId(service.id)
                   }}
-                  className="relative block aspect-[4/5] w-full overflow-hidden rounded-2xl bg-onyx/5"
+                  className="relative block min-h-0 w-full flex-1 overflow-hidden rounded-2xl bg-onyx/5"
                 >
                   <img
                     src={photos[0] ?? PHOTOS[i % PHOTOS.length].src}
@@ -408,14 +477,16 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
 
                 <div className="mt-4 flex items-baseline justify-between gap-4">
                   <p className="truncate font-subtitle text-xl font-medium text-onyx">{service.name}</p>
-                  <p className="shrink-0 font-subtitle text-base tabular-nums text-onyx">{servicePriceLabel(service)}</p>
+                  <p className="shrink-0 font-subtitle text-base tabular-nums text-onyx">
+                    {servicePriceLabel(service)}
+                  </p>
                 </div>
                 {service.description && (
-                  <p className="mt-1.5 line-clamp-2 font-subtitle text-sm font-light leading-relaxed text-onyx/60">
+                  <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light leading-relaxed text-onyx/60">
                     {service.description}
                   </p>
                 )}
-                <div className="mt-4 flex items-center justify-between gap-4 border-t border-onyx/10 pt-4">
+                <div className="mt-3 flex items-center justify-between gap-4 border-t border-onyx/10 pt-3">
                   <span className="inline-flex items-center gap-1.5 font-subtitle text-sm text-onyx/55">
                     <i className="bx bx-time-five text-base" aria-hidden="true" />
                     {service.durationLabel}
@@ -437,17 +508,12 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
         })}
       </div>
 
-      <SwipeHint index={index} slides={total} swiped={swiped} what="pacotes" />
-      {total > 1 && (
-        <div className="mt-3 flex justify-center gap-1.5" aria-hidden="true">
-          {services?.map((service, i) => (
-            <span
-              key={service.id}
-              className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? 'w-6 bg-onyx' : 'w-1.5 bg-onyx/25'}`}
-            />
-          ))}
-        </div>
-      )}
+      <CarouselControls
+        index={index}
+        count={total}
+        what="Modelo"
+        onGo={(to) => scrollStrip(track.current, to, total)}
+      />
 
       <ServicePreview
         service={preview}
@@ -553,7 +619,15 @@ function AutoVideo({ src, className }: { src: string; className?: string }) {
     return () => observer.disconnect()
   }, [])
   return (
-    <video ref={ref} src={src} muted loop playsInline preload="metadata" className={`background-video ${className ?? ''}`} />
+    <video
+      ref={ref}
+      src={src}
+      muted
+      loop
+      playsInline
+      preload="metadata"
+      className={`background-video ${className ?? ''}`}
+    />
   )
 }
 
@@ -563,7 +637,6 @@ export function WorkGrid() {
   const [viewer, setViewer] = useState<number | null>(null)
   const viewerStrip = useRef<HTMLDivElement>(null)
   const track = useRef<HTMLDivElement>(null)
-  const [swiped, setSwiped] = useState(false)
   const [viewerIndex, setViewerIndex] = useState(0)
 
   // The studio's own photos and videos (managed in the admin app); the sample photos show until it adds some.
@@ -596,11 +669,13 @@ export function WorkGrid() {
   }, [viewer])
 
   const total = items.length
-  useSwipeNudge(track, total + 1)
+  // The photos and videos, then the Instagram card as the last slide.
+  const slides = total + 1
+  useSwipeNudge(track, slides)
 
   return (
-    <section className="pt-12">
-      <div className="mx-auto flex max-w-2xl items-end justify-between px-5">
+    <section className={fullScreenSection}>
+      <div className="mx-auto flex w-full max-w-2xl items-end justify-between px-5">
         <div>
           <p className="font-subtitle text-xs font-medium uppercase tracking-[0.18em] text-muted-dark">Portfólio</p>
           <h2 className="mt-1 font-subtitle text-2xl font-semibold tracking-tight text-onyx">O nosso trabalho</h2>
@@ -610,22 +685,20 @@ export function WorkGrid() {
           {String(total).padStart(2, '0')}
         </p>
       </div>
-      <p className="mx-auto mt-2 max-w-2xl px-5 font-subtitle text-sm font-light text-muted-dark">
-        Desliza e toca para ver em ecrã inteiro.
+      <p className="mx-auto mt-1.5 w-full max-w-2xl px-5 font-subtitle text-sm font-light text-muted-dark">
+        Desliza ou usa as setas. Toca para ver em ecrã inteiro.
       </p>
 
       <div
         ref={track}
-        className="mt-5 flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="mt-4 flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         onScroll={(e) => {
           const el = e.currentTarget
-          const i = Math.min(total, Math.max(0, Math.round(el.scrollLeft / el.clientWidth)))
-          setIndex(i)
-          if (i > 0) setSwiped(true)
+          setIndex(Math.min(total, Math.max(0, Math.round(el.scrollLeft / el.clientWidth))))
         }}
       >
         {items.map((item, i) => (
-          <div key={item.key} className="w-full shrink-0 snap-center snap-always px-3">
+          <div key={item.key} className="h-full w-full shrink-0 snap-center snap-always px-5">
             <button
               type="button"
               aria-label={`Ver ${item.kind === 'VIDEO' ? 'vídeo' : 'foto'} ${i + 1} em ecrã inteiro`}
@@ -633,7 +706,7 @@ export function WorkGrid() {
                 void tap()
                 setViewer(i)
               }}
-              className="relative mx-auto block aspect-[4/5] w-full max-w-md overflow-hidden rounded-[2rem] bg-black/5"
+              className="relative mx-auto block h-full w-full max-w-md overflow-hidden rounded-[2rem] bg-black/5"
             >
               {item.kind === 'VIDEO' ? (
                 <AutoVideo src={item.src} className="h-full w-full object-cover" />
@@ -646,12 +719,12 @@ export function WorkGrid() {
             </button>
           </div>
         ))}
-        <div className="w-full shrink-0 snap-center snap-always px-3">
+        <div className="h-full w-full shrink-0 snap-center snap-always px-5">
           <a
             href={instagramDmUrl()}
             target="_blank"
             rel="noreferrer"
-            className="mx-auto flex aspect-[4/5] w-full max-w-md flex-col items-center justify-center gap-3 rounded-[2rem] border border-onyx/10 shadow-sm shadow-black/5 bg-white text-center"
+            className="mx-auto flex h-full w-full max-w-md flex-col items-center justify-center gap-3 rounded-[2rem] border border-onyx/10 bg-white text-center shadow-sm shadow-black/5"
           >
             <i className="bx bxl-instagram text-5xl text-onyx" aria-hidden="true" />
             <span className="font-subtitle text-base font-semibold text-onyx">Vídeos no Instagram</span>
@@ -660,25 +733,12 @@ export function WorkGrid() {
         </div>
       </div>
 
-      <SwipeHint index={index} slides={total + 1} swiped={swiped} what="trabalhos" />
-
-      {total <= 12 ? (
-        <div className="mt-4 flex justify-center gap-1.5" aria-hidden="true">
-          {items.map((item, i) => (
-            <span
-              key={item.key}
-              className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? 'w-6 bg-onyx' : 'w-1.5 bg-onyx/25'}`}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="mx-auto mt-4 h-1 w-24 overflow-hidden rounded-full bg-onyx/15" aria-hidden="true">
-          <div
-            className="h-full rounded-full bg-onyx transition-all"
-            style={{ width: `${((index + 1) / total) * 100}%` }}
-          />
-        </div>
-      )}
+      <CarouselControls
+        index={index}
+        count={slides}
+        what="Trabalho"
+        onGo={(to) => scrollStrip(track.current, to, slides)}
+      />
 
       <AnimatePresence>
         {viewer !== null && (
@@ -881,7 +941,10 @@ export function Visit() {
         {(business.mapUrl || business.phone || business.address) && (
           <div className="grid grid-cols-2 gap-2 border-t border-onyx/10 p-3">
             <a
-              href={business.mapUrl || `https://maps.apple.com/?q=${encodeURIComponent(mapSearchText(business.address || ''))}`}
+              href={
+                business.mapUrl ||
+                `https://maps.apple.com/?q=${encodeURIComponent(mapSearchText(business.address || ''))}`
+              }
               target="_blank"
               rel="noreferrer"
               className="glass-chip flex h-11 items-center justify-center gap-2 rounded-full font-subtitle text-sm font-medium text-onyx"

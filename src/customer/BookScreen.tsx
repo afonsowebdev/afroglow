@@ -224,11 +224,17 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
     ((step === 0 && Boolean(service)) ||
       (step === 1 && optionsDone && Boolean(color) && Boolean(slot) && (slots?.length ?? 0) > 0) ||
       (step === 2 && Boolean(customer) && phone.trim().length >= 6))
-  useHideNav(ctaVisible)
-  // In the app, the previous step is reached from the top row (the back button takes the place of the "A").
-  useBackButton(!site && step > 0, () => {
+  // In the app the booking is a clean page of its own: no tab bar at the bottom; on the website, only while its
+  // own button is on screen.
+  useHideNav(!site || ctaVisible)
+  // In the app, the way back is in the top row (in place of the "A"): the previous step, or from the first step the
+  // screen the customer came from.
+  useBackButton(!site, () => {
     setError(null)
-    setStep(step - 1)
+    if (done) navigate('/')
+    else if (step > 0) setStep(step - 1)
+    else if ((window.history.state as { idx?: number } | null)?.idx) navigate(-1)
+    else navigate('/')
   })
 
   async function submit() {
