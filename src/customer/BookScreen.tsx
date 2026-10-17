@@ -154,6 +154,10 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
   const [loadError, setLoadError] = useState(false)
 
   const [step, setStep] = useState(0)
+  // Each step starts at the top of the page, not where the previous one was scrolled to.
+  useEffect(() => {
+    window.scrollTo({ top: 0 })
+  }, [step])
   const [serviceId, setServiceId] = useState<string | null>(searchParams.get('service'))
   const [previewId, setPreviewId] = useState<string | null>(searchParams.get('preview'))
   const [slotId, setSlotId] = useState<string | null>(null)
