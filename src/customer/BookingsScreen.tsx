@@ -57,53 +57,80 @@ function countdown(iso: string) {
 function SessionActions({ booking, onDark = false }: { booking: Booking; onDark?: boolean }) {
   const business = useBusinessInfo()
   const whatsapp = useWhatsapp()
-  const pill = `inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full font-subtitle text-sm ${
+  // The way there: straight to the route in the iPhone's Maps when the address is known.
+  const directions = business.address
+    ? `https://maps.apple.com/?daddr=${encodeURIComponent(mapSearchText(business.address))}&dirflg=d`
+    : business.mapUrl
+  const secondary = `inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full font-subtitle text-sm ${
     onDark ? 'bg-white/15 text-white' : 'glass-chip text-onyx'
   }`
-  const mapHref =
-    business.mapUrl ||
-    (business.address
-      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapSearchText(business.address))}`
-      : '')
   return (
-    <div className="flex gap-2">
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation()
-          void tap()
-          downloadBookingIcs({
-            id: booking.id,
-            serviceName: booking.service.name,
-            startsAtIso: booking.slot.startsAt,
-            durationLabel: booking.service.durationLabel,
-          })
-        }}
-        className={pill}
-      >
-        <i className="bx bx-calendar-plus text-lg" aria-hidden="true" />
-        Calendário
-      </button>
-      {mapHref && (
-        <a href={mapHref} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className={pill}>
-          <i className="bx bx-map text-lg" aria-hidden="true" />
-          Como chegar
-        </a>
-      )}
-      {whatsapp.enabled && (
+    <div className="flex flex-col gap-2">
+      {/* The main action: the route, with where it goes under it. */}
+      {directions && (
         <a
-          href={whatsapp.url(
-            `Olá! Sobre a minha marcação de ${booking.service.name} (${longDay(booking.slot.startsAt)} às ${timeLabel(booking.slot.startsAt)}).`,
-          )}
+          href={directions}
           target="_blank"
           rel="noreferrer"
-          aria-label="WhatsApp"
-          onClick={(e) => e.stopPropagation()}
-          className={`${pill} max-w-[3.25rem]`}
+          onClick={(e) => {
+            e.stopPropagation()
+            void tap('medium')
+          }}
+          className={`flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-left ${
+            onDark ? 'bg-white text-onyx' : 'bg-onyx text-white'
+          }`}
         >
-          <i className="bx bxl-whatsapp text-xl" aria-hidden="true" />
+          <span
+            className={`flex size-9 shrink-0 items-center justify-center rounded-full text-lg ${
+              onDark ? 'bg-onyx text-white' : 'bg-white/15 text-white'
+            }`}
+          >
+            <i className="bx bxs-navigation" aria-hidden="true" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-subtitle text-[15px] font-semibold leading-tight">Como chegar</span>
+            {business.address && (
+              <span className={`block truncate font-subtitle text-xs ${onDark ? 'text-onyx/60' : 'text-white/65'}`}>
+                {mapSearchText(business.address).replace(/, Portugal$/, '')}
+              </span>
+            )}
+          </span>
+          <i className="bx bx-chevron-right text-xl opacity-50" aria-hidden="true" />
         </a>
       )}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            void tap()
+            downloadBookingIcs({
+              id: booking.id,
+              serviceName: booking.service.name,
+              startsAtIso: booking.slot.startsAt,
+              durationLabel: booking.service.durationLabel,
+            })
+          }}
+          className={secondary}
+        >
+          <i className="bx bx-calendar-plus text-lg" aria-hidden="true" />
+          Calendário
+        </button>
+        {whatsapp.enabled && (
+          <a
+            href={whatsapp.url(
+              `Olá! Sobre a minha marcação de ${booking.service.name} (${longDay(booking.slot.startsAt)} às ${timeLabel(booking.slot.startsAt)}).`,
+            )}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className={secondary}
+          >
+            <i className="bx bxl-whatsapp text-lg" aria-hidden="true" />
+            WhatsApp
+          </a>
+        )}
+      </div>
     </div>
   )
 }
