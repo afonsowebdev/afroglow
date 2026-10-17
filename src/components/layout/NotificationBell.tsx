@@ -191,7 +191,7 @@ export function NotificationBell({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 cursor-default bg-black/35 backdrop-blur-md"
+            className="fixed inset-0 cursor-default bg-black/50 backdrop-blur-md"
           />
         )}
       </AnimatePresence>
@@ -311,7 +311,7 @@ export function NotificationBell({
                   )}
                 </div>
               ) : (
-                <ul className="flex flex-col gap-2">
+                <ul className="flex flex-col divide-y divide-white/15">
                   {shown.map((n, i) => (
                     <motion.li
                       key={n.id}
@@ -329,7 +329,7 @@ export function NotificationBell({
                         dragElastic={{ left: 0.6, right: 0 }}
                         onDragEnd={(_, info) => info.offset.x < -90 && remove(n)}
                         onClick={() => openOne(n)}
-                        className="flex w-full items-start gap-3 rounded-[22px] bg-[rgba(245,245,245,0.6)] p-3.5 text-left shadow-[0_4px_18px_rgba(0,0,0,0.12)] backdrop-blur-2xl dark:bg-[rgba(58,44,34,0.55)]"
+                        className="flex w-full items-start gap-3 rounded-2xl bg-transparent px-2 py-3.5 text-left [text-shadow:0_1px_8px_rgba(0,0,0,0.3)] active:bg-white/10"
                       >
                         {/* The app's icon. */}
                         <span
@@ -340,12 +340,14 @@ export function NotificationBell({
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className="flex items-baseline justify-between gap-3">
-                            <span className="truncate font-subtitle text-[15px] font-semibold text-onyx">
+                            <span className="truncate font-subtitle text-[15px] font-semibold text-[#ffffff]">
                               {n.title}
                             </span>
-                            <span className="shrink-0 font-subtitle text-[12px] text-onyx/50">{ago(n.createdAt)}</span>
+                            <span className="shrink-0 font-subtitle text-[12px] text-[#ffffff]/60">
+                              {ago(n.createdAt)}
+                            </span>
                           </span>
-                          <span className="mt-0.5 line-clamp-3 block font-subtitle text-[14px] leading-snug text-onyx/80">
+                          <span className="mt-0.5 line-clamp-3 block font-subtitle text-[14px] leading-snug text-[#ffffff]/80">
                             {n.body}
                           </span>
                         </span>
