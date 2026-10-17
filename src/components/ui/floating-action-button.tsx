@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/lib/theme'
 import { ROUND_SAMPLES, useBackdropTone } from '@/lib/use-backdrop-tone'
+import { useScrollLock } from '@/lib/use-scroll-lock'
 import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 
 export interface ActionIcon {
@@ -188,6 +189,8 @@ export function FloatingActionMenu({
 }) {
   const [open, setOpen] = useState(false)
   const close = () => setOpen(false)
+  // The page behind stays still while the menu is open.
+  useScrollLock(open && !hidden)
   // The glass button's "+" follows what is behind it on its own, unless told (white over dark, dark over light).
   const round = useRef<HTMLButtonElement>(null)
   const { theme } = useTheme()

@@ -6,6 +6,7 @@ import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 import { tap } from '@/lib/haptics'
+import { useScrollLock } from '@/lib/use-scroll-lock'
 
 interface Notification {
   id: string
@@ -66,6 +67,8 @@ export function NotificationBell({
   const [items, setItems] = useState<Notification[] | null>(null)
   const [unread, setUnread] = useState(0)
   const [open, setOpen] = useState(false)
+  // The page behind stays still while the list is open.
+  useScrollLock(open)
   const root = useRef<HTMLDivElement>(null)
   // Ids already shown once, so only notifications that just arrived drop in (and ring the bell).
   const known = useRef<Set<string> | null>(null)
