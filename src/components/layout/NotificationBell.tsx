@@ -176,6 +176,21 @@ export function NotificationBell({
 
   return (
     <div ref={root} className="relative">
+      {/* While the list is open, the page behind is dimmed and blurred, as with the "+" menu; tapping it closes. */}
+      <AnimatePresence>
+        {open && (
+          <motion.button
+            type="button"
+            aria-label="Fechar notificações"
+            onClick={() => toggle()}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 cursor-default bg-black/35 backdrop-blur-md"
+          />
+        )}
+      </AnimatePresence>
       <button
         type="button"
         onClick={toggle}
@@ -233,7 +248,11 @@ export function NotificationBell({
                   </button>
                 )}
               </div>
-              <div className="mt-2.5 flex gap-1.5 overflow-x-auto [scrollbar-width:none]" role="tablist" aria-label="Filtrar">
+              <div
+                className="mt-2.5 flex gap-1.5 overflow-x-auto [scrollbar-width:none]"
+                role="tablist"
+                aria-label="Filtrar"
+              >
                 {FILTERS.map((f) => (
                   <button
                     key={f.id}
@@ -277,38 +296,45 @@ export function NotificationBell({
                     transition={{ duration: 0.35, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <div className="group relative">
-                    <button
-                      type="button"
-                      // Opens the booking it is about, with its details (reschedule / cancel) already showing.
-                      onClick={() => openOne(n)}
-                      className="flex w-full gap-3 py-3.5 pl-4 pr-11 text-left transition-colors hover:bg-onyx/[0.03]"
-                    >
-                      <span
-                        className={cn('mt-1.5 size-2 shrink-0 rounded-full', n.readAt ? 'bg-transparent' : 'bg-red-600')}
-                        aria-hidden="true"
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="flex items-baseline justify-between gap-3">
-                          <span className="font-subtitle text-sm font-medium text-onyx">{n.title}</span>
-                          <span className="shrink-0 font-subtitle text-[11px] text-onyx/45">{ago(n.createdAt)}</span>
+                      <button
+                        type="button"
+                        // Opens the booking it is about, with its details (reschedule / cancel) already showing.
+                        onClick={() => openOne(n)}
+                        className="flex w-full gap-3 py-3.5 pl-4 pr-11 text-left transition-colors hover:bg-onyx/[0.03]"
+                      >
+                        <span
+                          className={cn(
+                            'mt-1.5 size-2 shrink-0 rounded-full',
+                            n.readAt ? 'bg-transparent' : 'bg-red-600',
+                          )}
+                          aria-hidden="true"
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-baseline justify-between gap-3">
+                            <span className="font-subtitle text-sm font-medium text-onyx">{n.title}</span>
+                            <span className="shrink-0 font-subtitle text-[11px] text-onyx/45">{ago(n.createdAt)}</span>
+                          </span>
+                          <span className="mt-0.5 block font-subtitle text-xs leading-relaxed text-onyx/60">
+                            {n.body}
+                          </span>
                         </span>
-                        <span className="mt-0.5 block font-subtitle text-xs leading-relaxed text-onyx/60">{n.body}</span>
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => remove(n)}
-                      aria-label={`Eliminar notificação: ${n.title}`}
-                      className="absolute right-2 top-2.5 flex size-8 items-center justify-center rounded-full text-onyx/35 transition-colors hover:bg-onyx/[0.06] hover:text-onyx"
-                    >
-                      <X className="size-4" strokeWidth={1.75} />
-                    </button>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => remove(n)}
+                        aria-label={`Eliminar notificação: ${n.title}`}
+                        className="absolute right-2 top-2.5 flex size-8 items-center justify-center rounded-full text-onyx/35 transition-colors hover:bg-onyx/[0.06] hover:text-onyx"
+                      >
+                        <X className="size-4" strokeWidth={1.75} />
+                      </button>
                     </div>
                   </motion.li>
                 ))}
               </ul>
             )}
-            {failed && <p className="border-t border-onyx/10 px-4 py-2.5 font-subtitle text-xs text-red-700">{failed}</p>}
+            {failed && (
+              <p className="border-t border-onyx/10 px-4 py-2.5 font-subtitle text-xs text-red-700">{failed}</p>
+            )}
             {items && items.length > 0 && (
               <div className="flex items-center justify-end gap-3 border-t border-onyx/10 px-4 py-2.5">
                 {confirmClear ? (
