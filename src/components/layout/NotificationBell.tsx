@@ -326,7 +326,7 @@ export function NotificationBell({
                         dragElastic={{ left: 0.6, right: 0 }}
                         onDragEnd={(_, info) => info.offset.x < -90 && remove(n)}
                         onClick={() => openOne(n)}
-                        className="flex w-full items-start gap-3 rounded-[22px] bg-[rgba(245,245,245,0.82)] p-3.5 text-left shadow-[0_4px_18px_rgba(0,0,0,0.12)] backdrop-blur-2xl dark:bg-[rgba(58,44,34,0.82)]"
+                        className="flex w-full items-start gap-3 rounded-[22px] bg-[rgba(245,245,245,0.6)] p-3.5 text-left shadow-[0_4px_18px_rgba(0,0,0,0.12)] backdrop-blur-2xl dark:bg-[rgba(58,44,34,0.55)]"
                       >
                         {/* The app's icon. */}
                         <span
