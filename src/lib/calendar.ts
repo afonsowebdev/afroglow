@@ -1,11 +1,19 @@
+import { Capacitor } from '@capacitor/core'
+import { assetUrl } from '@/lib/api'
 import { getBusinessInfo, siteConfig } from '@/lib/site-config'
 
 function icsDate(date: Date) {
-  return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
+  return date
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}/, '')
 }
 
 function icsText(value: string) {
-  return value.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/[,;]/g, (c) => `\\${c}`)
+  return value
+    .replace(/\\/g, '\\\\')
+    .replace(/\n/g, '\\n')
+    .replace(/[,;]/g, (c) => `\\${c}`)
 }
 
 /** Session length: the first number in labels like "4-6 horas" (hours), otherwise 2 hours. */
@@ -15,8 +23,20 @@ function durationHours(durationLabel: string) {
   return Number.isFinite(hours) && hours > 0 && hours <= 12 ? hours : 2
 }
 
-/** Builds a calendar event for a booking and triggers its download as an .ics file. */
-export function downloadBookingIcs(booking: { serviceName: string; startsAtIso: string; durationLabel: string }) {
+/**
+ * Adds a booking to the calendar. In the iPhone app a downloaded file can't reach the Calendar, so the server's
+ * event (for that booking) opens in Safari, which offers "Adicionar ao calendário"; on the website the file downloads.
+ */
+export function downloadBookingIcs(booking: {
+  id?: string
+  serviceName: string
+  startsAtIso: string
+  durationLabel: string
+}) {
+  if (Capacitor.isNativePlatform() && booking.id) {
+    window.open(assetUrl(`/calendar/${booking.id}.ics`), '_blank')
+    return
+  }
   const start = new Date(booking.startsAtIso)
   const end = new Date(start.getTime() + durationHours(booking.durationLabel) * 3_600_000)
   const lines = [

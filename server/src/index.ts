@@ -11,6 +11,7 @@ import { adminMaintenanceRouter } from './routes/admin-maintenance.js'
 import { adminAvailabilityRouter, availabilityRouter } from './routes/availability.js'
 import { authRouter } from './routes/auth.js'
 import { adminBookingsRouter, bookingsRouter } from './routes/bookings.js'
+import { calendarRouter } from './routes/calendar.js'
 import { pushRouter } from './routes/push.js'
 import { registerRouter } from './routes/register.js'
 import { adminPortfolioRouter, portfolioRouter } from './routes/portfolio.js'
@@ -73,6 +74,7 @@ app.use('/api/admin/services', adminServicesRouter)
 app.use('/api/availability', availabilityRouter)
 app.use('/api/admin/availability', adminAvailabilityRouter)
 app.use('/api/bookings', bookingsRouter)
+app.use('/api/calendar', calendarRouter)
 app.use('/api/admin/bookings', adminBookingsRouter)
 app.use('/api/admin/push-token', pushRouter)
 app.use('/api/account', accountRouter)

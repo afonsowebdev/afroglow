@@ -73,6 +73,7 @@ function SessionActions({ booking, onDark = false }: { booking: Booking; onDark?
           e.stopPropagation()
           void tap()
           downloadBookingIcs({
+            id: booking.id,
             serviceName: booking.service.name,
             startsAtIso: booking.slot.startsAt,
             durationLabel: booking.service.durationLabel,

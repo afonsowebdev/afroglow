@@ -171,6 +171,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const [bookingId, setBookingId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoadError(false)
@@ -247,7 +248,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
     setSubmitting(true)
     setError(null)
     try {
-      await api.post('/bookings', {
+      const created = await api.post<{ id: string }>('/bookings', {
         slotId: slot.id,
         serviceId: service.id,
         length: length ?? undefined,
@@ -258,6 +259,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
         notes: notes.trim() || undefined,
       })
       void success()
+      setBookingId(created?.id ?? null)
       setDone(true)
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
@@ -312,6 +314,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                 variant="secondary"
                 onClick={() =>
                   downloadBookingIcs({
+                    id: bookingId ?? undefined,
                     serviceName: service.name,
                     startsAtIso: slot.startsAt,
                     durationLabel: service.durationLabel,
