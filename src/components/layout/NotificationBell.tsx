@@ -71,6 +71,17 @@ export function NotificationBell({
   const [open, setOpen] = useState(false)
   // The page behind stays still while the list is open.
   useScrollLock(open)
+  // While the list is open (and a moment after, so the tap that closes it can't land on anything), the "+" menu
+  // ignores taps.
+  useEffect(() => {
+    const root = document.documentElement
+    if (open) {
+      root.dataset.overlay = 'bell'
+      return
+    }
+    const timer = window.setTimeout(() => root.dataset.overlay === 'bell' && delete root.dataset.overlay, 400)
+    return () => window.clearTimeout(timer)
+  }, [open])
   const root = useRef<HTMLDivElement>(null)
   // Ids already shown once, so only notifications that just arrived drop in (and ring the bell).
   const known = useRef<Set<string> | null>(null)
@@ -123,6 +134,7 @@ export function NotificationBell({
   }, [open])
 
   const toggle = () => {
+    if (document.documentElement.dataset.overlay === 'menu') return
     void tap()
     const next = !open
     setOpen(next)

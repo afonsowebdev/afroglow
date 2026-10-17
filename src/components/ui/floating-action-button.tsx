@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import { Plus, type LucideIcon } from 'lucide-react'
-import { useRef, useState, type ComponentType } from 'react'
+import { useEffect, useRef, useState, type ComponentType } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/lib/theme'
@@ -191,6 +191,16 @@ export function FloatingActionMenu({
   const close = () => setOpen(false)
   // The page behind stays still while the menu is open.
   useScrollLock(open && !hidden)
+  // While it is open (and a moment after), the notifications' bell ignores taps.
+  useEffect(() => {
+    const root = document.documentElement
+    if (open) {
+      root.dataset.overlay = 'menu'
+      return
+    }
+    const timer = window.setTimeout(() => root.dataset.overlay === 'menu' && delete root.dataset.overlay, 400)
+    return () => window.clearTimeout(timer)
+  }, [open])
   // The glass button's "+" follows what is behind it on its own, unless told (white over dark, dark over light).
   const round = useRef<HTMLButtonElement>(null)
   const { theme } = useTheme()
@@ -358,7 +368,11 @@ export function FloatingActionMenu({
           type="button"
           aria-label={open ? 'Fechar menu' : 'Abrir menu'}
           aria-expanded={open}
-          onClick={() => setOpen((current) => !current)}
+          onClick={() => {
+            // Not while the notifications are open: a tap there only closes them.
+            if (document.documentElement.dataset.overlay === 'bell') return
+            setOpen((current) => !current)
+          }}
           animate={{ rotate: open ? 45 : 0 }}
           transition={{ type: 'tween', ease: 'easeInOut', duration: 0.5 }}
           // Apps: only the thin rim, no shadow under the button.
