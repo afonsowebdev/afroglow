@@ -11,7 +11,7 @@ import {
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { HeroVideoBackground } from '@/components/ui/hero-video-background'
-import { GlassButton } from '@/components/ui/glass-button'
+import { HeroCta } from './HeroCta'
 import { api } from '@/lib/api'
 import { useWhatsapp } from '@/lib/site-config'
 import { useTheme } from '@/lib/theme'
@@ -121,7 +121,7 @@ export default function HomeScreen() {
 
         {/* Call to action: low in the hero, in the same glass as the tab bar; "Descobre" sits under it. */}
         <div className="absolute inset-x-0 bottom-[calc(9.4rem+env(safe-area-inset-bottom))] z-10 flex justify-center">
-          <GlassButton label="Marcar sessão" to="/marcar" />
+          <HeroCta />
         </div>
 
         <motion.div

@@ -222,6 +222,22 @@
 }
 
 /* Slow horizontal drift of the waves at the bottom of the app's hero (one period = half the element's width). */
+/* The light that passes across the hero's "Marcar sessão" now and then. */
+@keyframes hero-cta-sheen {
+  0% {
+    transform: translateX(0);
+  }
+  35%,
+  100% {
+    transform: translateX(400%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [class*='hero-cta-sheen'] {
+    animation: none !important;
+  }
+}
+
 @keyframes wave-drift {
   to {
     transform: translateX(-50%);
