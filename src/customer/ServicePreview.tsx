@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ActionButton } from '@/components/ui/action-button'
+import { FavouriteButton } from '@/lib/favourites'
 import { tap } from '@/lib/haptics'
 import { serviceImageUrls } from '@/lib/service-images'
 import { formatPrice, type Service } from '@/lib/types'
@@ -204,9 +205,12 @@ export function ServicePreview({
 
               {/* Details */}
               <div className="px-5 pb-6 pt-2">
-                <h2 className="font-subtitle text-[28px] font-semibold leading-tight tracking-tight text-onyx">
-                  {service.name}
-                </h2>
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="font-subtitle text-[28px] font-semibold leading-tight tracking-tight text-onyx">
+                    {service.name}
+                  </h2>
+                  <FavouriteButton serviceId={service.id} name={service.name} className="mt-1" />
+                </div>
                 {service.description && (
                   <p className="mt-2 font-subtitle text-[15px] font-light leading-relaxed text-onyx/70">
                     {service.description}

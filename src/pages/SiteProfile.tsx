@@ -1,3 +1,4 @@
+import { FavouritesRow } from '@/customer/FavouritesRow'
 import { useState, type ComponentType } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { CalendarCheck, CalendarPlus, LayoutGrid, LogOut, MessageSquareQuote, Settings } from 'lucide-react'
@@ -85,9 +86,7 @@ export default function SiteProfile() {
   ]
 
   return (
-    <main
-      className="mx-auto grid max-w-6xl gap-12 px-5 pb-32 pt-6 sm:px-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-16 lg:pt-10"
-    >
+    <main className="mx-auto grid max-w-6xl gap-12 px-5 pb-32 pt-6 sm:px-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-16 lg:pt-10">
       {/* Who the customer is, and the account links. Phones: the links move to the end of the page. */}
       <aside className="contents lg:sticky lg:top-28 lg:block lg:self-start">
         <div className="order-1 flex items-center gap-4 lg:flex-col lg:items-start">
@@ -151,7 +150,12 @@ export default function SiteProfile() {
           <SideLink Icon={MessageSquareQuote} text="Deixar testemunho" onClick={() => setTestimonialOpen(true)} />
           <SideLink Icon={Settings} text="Definições" onClick={() => navigate('/definicoes')} />
           <div className="my-3 border-t border-onyx/10" />
-          <SideLink Icon={LogOut} text="Terminar sessão" danger onClick={() => void logout().then(() => navigate('/'))} />
+          <SideLink
+            Icon={LogOut}
+            text="Terminar sessão"
+            danger
+            onClick={() => void logout().then(() => navigate('/'))}
+          />
         </nav>
       </aside>
 
@@ -161,7 +165,10 @@ export default function SiteProfile() {
         {/* The numbers, in a row of three separated by hairlines. */}
         <dl className="mt-8 grid grid-cols-3 border-y border-onyx/10">
           {stats.map((stat, i) => (
-            <div key={stat.label} className={cn('flex flex-col-reverse py-6', i > 0 && 'border-l border-onyx/10 pl-5 sm:pl-8')}>
+            <div
+              key={stat.label}
+              className={cn('flex flex-col-reverse py-6', i > 0 && 'border-l border-onyx/10 pl-5 sm:pl-8')}
+            >
               <dt className={`mt-2 ${label}`}>{stat.label}</dt>
               <dd className="font-logo text-3xl leading-none text-onyx sm:text-4xl">{stat.value}</dd>
             </div>
@@ -223,6 +230,10 @@ export default function SiteProfile() {
         </section>
 
         {/* The history, as a table. */}
+        <div className="mt-14">
+          <FavouritesRow labelClass={`${label} mb-4`} />
+        </div>
+
         <section className="mt-14">
           <h2 className={label}>Histórico</h2>
           {done.length === 0 ? (

@@ -83,6 +83,35 @@ accountRouter.get('/me', requireCustomer, async (req, res) => {
 
 // The customer's own profile photo as a data URL (the app can't send its login header with an <img> request).
 // The customer's notifications for the website's bell: the latest 30, newest first, with how many are unread.
+// Favourite hairstyles (the heart): their ids, newest first.
+accountRouter.get('/favourites', requireCustomer, async (req, res) => {
+  const rows = await prisma.favouriteService.findMany({
+    where: { customerId: req.customerId! },
+    orderBy: { createdAt: 'desc' },
+    select: { serviceId: true },
+  })
+  res.json(rows.map((r) => r.serviceId))
+})
+
+accountRouter.put('/favourites/:serviceId', requireCustomer, async (req, res) => {
+  const service = await prisma.service.findUnique({ where: { id: req.params.serviceId }, select: { id: true } })
+  if (!service) {
+    res.status(404).json({ error: 'Modelo não encontrado.' })
+    return
+  }
+  await prisma.favouriteService.upsert({
+    where: { customerId_serviceId: { customerId: req.customerId!, serviceId: service.id } },
+    create: { customerId: req.customerId!, serviceId: service.id },
+    update: {},
+  })
+  res.status(204).end()
+})
+
+accountRouter.delete('/favourites/:serviceId', requireCustomer, async (req, res) => {
+  await prisma.favouriteService.deleteMany({ where: { customerId: req.customerId!, serviceId: req.params.serviceId } })
+  res.status(204).end()
+})
+
 accountRouter.get('/notifications', requireCustomer, async (req, res) => {
   const [items, unread] = await Promise.all([
     prisma.customerNotification.findMany({

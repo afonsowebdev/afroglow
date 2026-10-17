@@ -17,6 +17,7 @@ import { choiceComplete, choiceLabel, optionsOf, priceFor, servicePriceLabel } f
 import { VelocityRow } from '@/components/ui/velocity-marquee'
 import { ButtonWithIcon } from '@/components/ui/button-with-icon'
 import { ServicePreview } from './ServicePreview'
+import { FavouriteButton, useFavourites } from '@/lib/favourites'
 import { SlotPicker } from './SlotPicker'
 import { BRAID_COLORS, colorLabel } from '@/lib/braid-colors'
 
@@ -154,6 +155,7 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
   const [loadError, setLoadError] = useState(false)
 
   const [step, setStep] = useState(0)
+  const { isFavourite } = useFavourites()
   // Each step starts at the top of the page, not where the previous one was scrolled to.
   useEffect(() => {
     window.scrollTo({ top: 0 })
@@ -414,107 +416,115 @@ export default function BookScreen({ site = false }: { site?: boolean } = {}) {
                   <>
                     <h2 className="font-subtitle text-xl text-onyx">Que tranças queres?</h2>
                     <div className={site ? 'mt-5 grid gap-4 sm:grid-cols-2' : 'mt-5 flex flex-col gap-3'}>
-                      {services.map((s) => {
-                        const chosen = serviceId === s.id
-                        const photos = serviceImageUrls(s)
-                        return (
-                          <div
-                            key={s.id}
-                            className={`relative overflow-hidden rounded-3xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] transition-shadow duration-300 ${
-                              chosen ? 'ring-2 ring-onyx' : ''
-                            }`}
-                          >
-                            {/* App: tapping the photo opens the photos; "Escolher" picks the model.
-                              Website: clicking the card picks the model; "Ver fotos" opens the photos. */}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                void tap()
-                                if (site) setServiceId(chosen ? null : s.id)
-                                else setPreviewId(s.id)
-                              }}
-                              className="block w-full text-left"
-                              aria-label={
-                                site
-                                  ? chosen
-                                    ? `Retirar ${s.name}`
-                                    : `Escolher ${s.name}`
-                                  : `Ver fotos e detalhes de ${s.name}`
-                              }
+                      {[...services]
+                        .sort((a, b) => Number(isFavourite(b.id)) - Number(isFavourite(a.id)))
+                        .map((s) => {
+                          const chosen = serviceId === s.id
+                          const photos = serviceImageUrls(s)
+                          return (
+                            <div
+                              key={s.id}
+                              className={`relative overflow-hidden rounded-3xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] transition-shadow duration-300 ${
+                                chosen ? 'ring-2 ring-onyx' : ''
+                              }`}
                             >
-                              {photos.length > 0 && (
-                                <div className="relative">
-                                  <img
-                                    src={photos[0]}
-                                    alt=""
-                                    loading="lazy"
-                                    className="aspect-[4/3] w-full object-cover"
-                                  />
-                                  {photos.length > 1 && (
-                                    <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
-                                      <i className="bx bx-images text-sm" aria-hidden="true" />
-                                      {photos.length} fotos
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                              <div className="px-5 pb-2 pt-4">
-                                <div className="flex items-baseline justify-between gap-3">
-                                  <p className="min-w-0 truncate font-subtitle text-xl font-semibold tracking-tight text-onyx">
-                                    {s.name}
-                                  </p>
-                                  <p className="shrink-0 font-subtitle text-sm font-medium tabular-nums text-onyx">
-                                    {servicePriceLabel(s)}
-                                  </p>
-                                </div>
-                                {s.description && (
-                                  <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light leading-relaxed text-muted-dark">
-                                    {s.description}
-                                  </p>
-                                )}
-                              </div>
-                            </button>
-
-                            {/* Below: the duration and photos on the left, choosing on the right. */}
-                            <div className="flex items-center justify-between gap-3 px-5 pb-4 pt-2">
-                              <div className="flex min-w-0 items-center gap-3 font-subtitle text-sm text-muted-dark">
-                                <span className="inline-flex items-center gap-1">
-                                  <i className="bx bx-time-five text-base" aria-hidden="true" />
-                                  {s.durationLabel}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    void tap()
-                                    setPreviewId(s.id)
-                                  }}
-                                  className="inline-flex items-center gap-0.5 text-onyx underline-offset-4 active:underline"
-                                >
-                                  {photos.length > 0 ? 'Ver fotos' : 'Detalhes'}
-                                  <i className="bx bx-chevron-right text-lg" aria-hidden="true" />
-                                </button>
-                              </div>
+                              <FavouriteButton
+                                serviceId={s.id}
+                                name={s.name}
+                                onMedia
+                                className="absolute right-3 top-3 z-[1]"
+                              />
+                              {/* App: tapping the photo opens the photos; "Escolher" picks the model.
+                              Website: clicking the card picks the model; "Ver fotos" opens the photos. */}
                               <button
                                 type="button"
-                                aria-pressed={chosen}
-                                aria-label={chosen ? `Retirar ${s.name}` : `Escolher ${s.name}`}
                                 onClick={() => {
                                   void tap()
-                                  setServiceId(chosen ? null : s.id)
+                                  if (site) setServiceId(chosen ? null : s.id)
+                                  else setPreviewId(s.id)
                                 }}
-                                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-4 font-subtitle text-sm font-semibold transition-colors duration-300 ${
-                                  chosen
-                                    ? 'bg-onyx text-white'
-                                    : 'bg-white text-onyx shadow-sm shadow-black/10 ring-1 ring-onyx/10'
-                                }`}
+                                className="block w-full text-left"
+                                aria-label={
+                                  site
+                                    ? chosen
+                                      ? `Retirar ${s.name}`
+                                      : `Escolher ${s.name}`
+                                    : `Ver fotos e detalhes de ${s.name}`
+                                }
                               >
-                                {chosen && <i className="bx bx-check text-lg" aria-hidden="true" />}
-                                {chosen ? 'Escolhido' : 'Escolher'}
+                                {photos.length > 0 && (
+                                  <div className="relative">
+                                    <img
+                                      src={photos[0]}
+                                      alt=""
+                                      loading="lazy"
+                                      className="aspect-[4/3] w-full object-cover"
+                                    />
+                                    {photos.length > 1 && (
+                                      <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
+                                        <i className="bx bx-images text-sm" aria-hidden="true" />
+                                        {photos.length} fotos
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                <div className="px-5 pb-2 pt-4">
+                                  <div className="flex items-baseline justify-between gap-3">
+                                    <p className="min-w-0 truncate font-subtitle text-xl font-semibold tracking-tight text-onyx">
+                                      {s.name}
+                                    </p>
+                                    <p className="shrink-0 font-subtitle text-sm font-medium tabular-nums text-onyx">
+                                      {servicePriceLabel(s)}
+                                    </p>
+                                  </div>
+                                  {s.description && (
+                                    <p className="mt-1 line-clamp-2 font-subtitle text-sm font-light leading-relaxed text-muted-dark">
+                                      {s.description}
+                                    </p>
+                                  )}
+                                </div>
                               </button>
+
+                              {/* Below: the duration and photos on the left, choosing on the right. */}
+                              <div className="flex items-center justify-between gap-3 px-5 pb-4 pt-2">
+                                <div className="flex min-w-0 items-center gap-3 font-subtitle text-sm text-muted-dark">
+                                  <span className="inline-flex items-center gap-1">
+                                    <i className="bx bx-time-five text-base" aria-hidden="true" />
+                                    {s.durationLabel}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      void tap()
+                                      setPreviewId(s.id)
+                                    }}
+                                    className="inline-flex items-center gap-0.5 text-onyx underline-offset-4 active:underline"
+                                  >
+                                    {photos.length > 0 ? 'Ver fotos' : 'Detalhes'}
+                                    <i className="bx bx-chevron-right text-lg" aria-hidden="true" />
+                                  </button>
+                                </div>
+                                <button
+                                  type="button"
+                                  aria-pressed={chosen}
+                                  aria-label={chosen ? `Retirar ${s.name}` : `Escolher ${s.name}`}
+                                  onClick={() => {
+                                    void tap()
+                                    setServiceId(chosen ? null : s.id)
+                                  }}
+                                  className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-4 font-subtitle text-sm font-semibold transition-colors duration-300 ${
+                                    chosen
+                                      ? 'bg-onyx text-white'
+                                      : 'bg-white text-onyx shadow-sm shadow-black/10 ring-1 ring-onyx/10'
+                                  }`}
+                                >
+                                  {chosen && <i className="bx bx-check text-lg" aria-hidden="true" />}
+                                  {chosen ? 'Escolhido' : 'Escolher'}
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                        )
-                      })}
+                          )
+                        })}
                     </div>
                   </>
                 )}

@@ -1,4 +1,5 @@
 import { useState, type ComponentType } from 'react'
+import { FavouritesRow } from './FavouritesRow'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Camera,
@@ -40,7 +41,10 @@ function Row({
       onClick={onClick}
       className="flex w-full items-center gap-3.5 px-4 py-3.5 text-left font-subtitle text-[15px] active:bg-onyx/[0.05]"
     >
-      <Icon className={cn('size-5 shrink-0', danger ? 'text-red-700 dark:text-red-400' : 'text-onyx/70')} strokeWidth={1.75} />
+      <Icon
+        className={cn('size-5 shrink-0', danger ? 'text-red-700 dark:text-red-400' : 'text-onyx/70')}
+        strokeWidth={1.75}
+      />
       <span className={cn('flex-1', danger ? 'text-red-700 dark:text-red-400' : 'text-onyx')}>{text}</span>
       {value && <span className="text-sm text-onyx/45">{value}</span>}
       {!danger && <ChevronRight className="size-4 shrink-0 text-onyx/30" strokeWidth={2} />}
@@ -135,7 +139,9 @@ export default function ProfileScreen() {
               <span className="font-subtitle text-2xl font-semibold leading-tight text-onyx">{nextParts.day}</span>
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate font-subtitle text-[15px] font-medium text-onyx">{next.service.name}</span>
+              <span className="block truncate font-subtitle text-[15px] font-medium text-onyx">
+                {next.service.name}
+              </span>
               {bookingExtras(next) && (
                 <span className="block truncate font-subtitle text-xs text-onyx/55">{bookingExtras(next)}</span>
               )}
@@ -161,6 +167,11 @@ export default function ProfileScreen() {
           </div>
         )}
       </section>
+
+      {/* The hairstyles she hearted. */}
+      <div className="mt-8">
+        <FavouritesRow labelClass="mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-onyx/45" />
+      </div>
 
       {/* The account, in grouped lists. */}
       <section className="mt-8 flex flex-col gap-4">
@@ -200,7 +211,9 @@ export default function ProfileScreen() {
         onClose={() => setHistoryOpen(false)}
       >
         {done.length === 0 ? (
-          <p className="py-6 text-center font-subtitle text-sm text-onyx/55">As tuas sessões concluídas aparecem aqui.</p>
+          <p className="py-6 text-center font-subtitle text-sm text-onyx/55">
+            As tuas sessões concluídas aparecem aqui.
+          </p>
         ) : (
           <ul className="divide-y divide-onyx/[0.08]">
             {done.map((b) => {

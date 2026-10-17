@@ -40,6 +40,7 @@ model Service {
   createdAt     DateTime  @default(now())
   bookings      Booking[]
   images        ServiceImage[]
+  favourites    FavouriteService[]
 }
 
 enum SlotStatus {
@@ -83,6 +84,7 @@ model Customer {
   createdAt    DateTime      @default(now())
   bookings     Booking[]
   testimonials Testimonial[]
+  favourites   FavouriteService[]
 }
 
 model PendingRegistration {
@@ -207,4 +209,15 @@ model CustomerNotification {
   createdAt  DateTime  @default(now())
 
   @@index([customerId, createdAt])
+}
+
+/// A hairstyle a customer marked as a favourite (the heart), to find it and book it again.
+model FavouriteService {
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  serviceId  String
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@id([customerId, serviceId])
 }

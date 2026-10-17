@@ -14,6 +14,7 @@ import type { AvailabilitySlot, Booking, Service } from '@/lib/types'
 import { useBookingAlerts } from './booking-alerts'
 import { SwipeHint, useSwipeNudge } from '@/components/ui/swipe-hint'
 import { ServicePreview } from './ServicePreview'
+import { FavouriteButton } from '@/lib/favourites'
 import { dayKey, dayParts, longDay, timeLabel } from './dates'
 import { servicePriceLabel, bookingExtras } from '@/lib/pricing'
 
@@ -452,6 +453,7 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
                   className="absolute inset-0 h-full w-full object-cover"
                 />
               </button>
+              <FavouriteButton serviceId={service.id} name={service.name} onMedia className="absolute right-4 top-4" />
               {photos.length > 1 && (
                 <span className="pointer-events-none absolute left-4 top-4 inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 font-subtitle text-[11px] text-[#ffffff] backdrop-blur-md">
                   <i className="bx bx-images text-sm" aria-hidden="true" />
