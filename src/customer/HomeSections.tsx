@@ -637,6 +637,7 @@ export function WorkGrid() {
   const [index, setIndex] = useState(0)
   const [viewer, setViewer] = useState<number | null>(null)
   const viewerStrip = useRef<HTMLDivElement>(null)
+  const thumbs = useRef<HTMLDivElement>(null)
   const track = useRef<HTMLDivElement>(null)
   const [viewerIndex, setViewerIndex] = useState(0)
 
@@ -671,6 +672,14 @@ export function WorkGrid() {
 
   const total = items.length
   useSwipeNudge(track, total, 'portfolio')
+
+  // Keeps the thumbnail of the picture on screen in the middle of the strip.
+  useEffect(() => {
+    const strip = thumbs.current
+    const active = strip?.children[viewerIndex] as HTMLElement | undefined
+    if (!strip || !active) return
+    strip.scrollTo({ left: active.offsetLeft - strip.clientWidth / 2 + active.offsetWidth / 2, behavior: 'smooth' })
+  }, [viewerIndex, viewer])
 
   return (
     <section className={fullScreenSection}>
@@ -766,9 +775,38 @@ export function WorkGrid() {
             >
               <i className="bx bx-x" aria-hidden="true" />
             </button>
-            <p className="pointer-events-none absolute inset-x-0 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] text-center font-subtitle text-sm text-[#ffffff]/80">
-              {viewerIndex + 1} / {total}
-            </p>
+            {/* Along the bottom, as in the iPhone's Photos: every picture as a small thumbnail, the one on screen larger
+                and outlined; tap one to go to it. The strip follows along as you swipe. */}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent pb-[calc(1rem+env(safe-area-inset-bottom))] pt-10">
+              <div
+                ref={thumbs}
+                className="flex items-center gap-1.5 overflow-x-auto px-[50%] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {items.map((item, i) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    aria-label={`Ver ${i + 1} de ${total}`}
+                    aria-current={i === viewerIndex}
+                    onClick={() => {
+                      void tap()
+                      viewerStrip.current?.scrollTo({ left: i * viewerStrip.current.clientWidth, behavior: 'smooth' })
+                    }}
+                    className={`relative shrink-0 overflow-hidden rounded-md transition-all duration-300 ${
+                      i === viewerIndex ? 'h-14 w-11 ring-2 ring-[#ffffff]' : 'h-11 w-8 opacity-60'
+                    }`}
+                  >
+                    {item.kind === 'VIDEO' ? (
+                      <span className="flex h-full w-full items-center justify-center bg-[#ffffff]/15 text-[#ffffff]">
+                        <i className="bx bx-play text-lg" aria-hidden="true" />
+                      </span>
+                    ) : (
+                      <img src={item.src} alt="" loading="lazy" className="h-full w-full object-cover" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
