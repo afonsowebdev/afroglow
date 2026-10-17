@@ -186,8 +186,7 @@ function NextTicket({ booking, onOpen, isNew }: { booking: Booking; onOpen: () =
           <span className="flex items-center gap-2">
             <span className={`h-2 w-2 rounded-full ${DOT_COLOUR[booking.status]}`} aria-hidden="true" />
             {STATUS[booking.status].label}
-            <span className="text-white/45">·</span>
-            <span className="text-white/70">{countdown(booking.slot.startsAt)}</span>
+            <span className="ml-1 text-white/70">{countdown(booking.slot.startsAt)}</span>
           </span>
           <span className="font-semibold tabular-nums">{formatPrice(bookingPrice(booking))}</span>
         </div>
@@ -268,7 +267,8 @@ function Timeline({
                         )}
                       </span>
                       <span className="mt-0.5 block truncate font-subtitle text-[13px] text-muted-dark">
-                        {[STATUS[b.status].label, bookingExtras(b)].filter(Boolean).join(' · ')}
+                        {STATUS[b.status].label}
+                        {bookingExtras(b) && <span className="ml-2">{bookingExtras(b)}</span>}
                       </span>
                     </span>
                     <i className="bx bx-chevron-right -mr-1 text-xl text-onyx/30" aria-hidden="true" />
