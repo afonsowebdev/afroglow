@@ -180,7 +180,8 @@ export function NotificationBell({
 
   return (
     <div ref={root} className="relative">
-      {/* While the list is open, the page behind is dimmed and blurred, as with the "+" menu; tapping it closes. */}
+      {/* While the list is open, everything else (the page, the A and the "+") is dimmed and blurred and only the bell
+          stays clear, as with the "+" menu; tapping it closes. */}
       <AnimatePresence>
         {open && (
           <motion.button
@@ -191,7 +192,7 @@ export function NotificationBell({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 cursor-default bg-black/50 backdrop-blur-md"
+            className="fixed inset-0 z-[60] cursor-default bg-black/50 backdrop-blur-md"
           />
         )}
       </AnimatePresence>
@@ -201,7 +202,7 @@ export function NotificationBell({
         aria-label={unread ? `Notificações, ${unread} por ler` : 'Notificações'}
         aria-expanded={open}
         className={cn(
-          'relative flex items-center justify-center rounded-full transition-colors duration-500',
+          'relative z-[61] flex items-center justify-center rounded-full transition-colors duration-500',
           brand ? BRAND_CIRCLE : cn('liquid-glass', tone === 'onDark' ? 'text-[#ffffff]' : 'text-onyx'),
           className,
         )}
@@ -238,7 +239,7 @@ export function NotificationBell({
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             exit={{ opacity: 0, y: -8, filter: 'blur(6px)', transition: { duration: 0.2 } }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute right-0 top-full z-10 mt-4 w-[22rem] max-md:fixed max-md:inset-x-3 max-md:top-[calc(5.25rem+env(safe-area-inset-top))] max-md:mt-0 max-md:w-auto"
+            className="absolute right-0 top-full z-[61] mt-4 w-[22rem] max-md:fixed max-md:inset-x-3 max-md:top-[calc(5.25rem+env(safe-area-inset-top))] max-md:mt-0 max-md:w-auto"
           >
             <div className="flex items-center justify-between gap-3 px-2">
               <p className="font-subtitle text-[28px] font-bold tracking-tight text-[#ffffff] [text-shadow:0_1px_12px_rgba(0,0,0,0.25)]">
