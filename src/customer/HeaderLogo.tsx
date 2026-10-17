@@ -4,12 +4,14 @@ import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 import { LiquidLogo } from '@/components/ui/liquid-wordmark'
 import { afterIntro } from '@/components/ui/site-intro'
 
+/** Soft edges for the word's band: fading in from each side. */
+const FADE_EDGES =
+  'linear-gradient(to right, transparent, black 18px, black calc(100% - 26px), transparent), linear-gradient(to bottom, transparent, black 12px, black calc(100% - 12px), transparent)'
+
 /** Played once per launch of the app. */
 let played = false
 /** How long the word is up: about three seconds to assemble, then a couple of seconds formed. */
 const SHOW_MS = 5600
-
-const ease = { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }
 
 /**
  * The way out: a quick sweep across the word, as a finger would, so its particles scatter like dust in the wind just
@@ -22,9 +24,10 @@ function blowAway(el: HTMLElement | null) {
   const send = (type: string, x: number) =>
     el.dispatchEvent(new PointerEvent(type, { clientX: x, clientY: y, pointerType: 'touch', bubbles: true }))
   send('pointerdown', r.left)
-  const steps = 10
-  for (let i = 1; i <= steps; i++) window.setTimeout(() => send('pointermove', r.left + (r.width * i) / steps), i * 32)
-  window.setTimeout(() => send('pointerup', r.right), steps * 32 + 20)
+  // A slow, gentle breeze from left to right.
+  const steps = 16
+  for (let i = 1; i <= steps; i++) window.setTimeout(() => send('pointermove', r.left + (r.width * i) / steps), i * 45)
+  window.setTimeout(() => send('pointerup', r.right), steps * 45 + 20)
 }
 
 /**
@@ -44,7 +47,7 @@ export function HeaderLogo({ onClick, onDark = false }: { onClick: () => void; o
         setWord(true)
         timer = window.setTimeout(() => {
           blowAway(letters.current)
-          timer = window.setTimeout(() => setWord(false), 380)
+          timer = window.setTimeout(() => setWord(false), 520)
         }, SHOW_MS)
       }, 350)
     })
@@ -71,17 +74,25 @@ export function HeaderLogo({ onClick, onDark = false }: { onClick: () => void; o
         {word && (
           <motion.span
             key="word"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, x: 14, filter: 'blur(6px)', transition: { duration: 0.7, ease: [0.4, 0, 0.2, 1] } }}
-            transition={ease}
-            className="pointer-events-none relative whitespace-nowrap font-logo leading-none"
+            initial={{ opacity: 0, x: -10, filter: 'blur(6px)' }}
+            animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, x: 12, filter: 'blur(8px)', transition: { duration: 1, ease: [0.4, 0, 0.2, 1] } }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            // A band around the word (padding, offset by negative margins) whose edges fade out: the particles stay near
+            // the word and melt away at the sides instead of flying across the screen.
+            style={{
+              maskImage: FADE_EDGES,
+              WebkitMaskImage: FADE_EDGES,
+              maskComposite: 'intersect',
+              WebkitMaskComposite: 'source-in',
+            }}
+            className="pointer-events-none relative -my-4 -ml-5 -mr-8 whitespace-nowrap px-8 py-4 pl-5 font-logo leading-none"
             aria-hidden="true"
           >
             {/* A soft haze behind the word (no edges), so it reads over any frame of the video or over the page. */}
             <span
               aria-hidden="true"
-              className={`absolute -inset-x-5 -inset-y-4 -z-10 rounded-full blur-md ${
+              className={`absolute inset-x-2 inset-y-1 -z-10 rounded-full blur-md ${
                 onDark
                   ? 'bg-[radial-gradient(closest-side,rgba(0,0,0,0.38),transparent)]'
                   : 'bg-[radial-gradient(closest-side,rgba(255,255,255,0.75),transparent)] dark:bg-[radial-gradient(closest-side,rgba(43,29,18,0.75),transparent)]'
@@ -91,7 +102,7 @@ export function HeaderLogo({ onClick, onDark = false }: { onClick: () => void; o
               <span
                 ref={letters}
                 data-liquid="text"
-                className={`logo-weight inline-block translate-y-[0.1em] text-[1.4rem] tracking-[0.12em] [--logo-weight:0.075em] ${
+                className={`logo-weight inline-block translate-y-[0.1em] text-[1.1rem] tracking-[0.14em] [--logo-weight:0.07em] ${
                   onDark ? 'text-[#ffffff] [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]' : 'text-onyx'
                 }`}
               >
