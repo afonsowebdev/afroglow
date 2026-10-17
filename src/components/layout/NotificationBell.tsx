@@ -25,6 +25,8 @@ const FILTERS: Array<{ id: Filter; label: string }> = [
   { id: 'lembretes', label: 'Lembretes' },
 ]
 const isReminder = (n: Notification) => n.title.startsWith('Lembrete')
+/** The title without the check marks older notifications were sent with ("Marcação confirmada ✓"). */
+const cleanTitle = (title: string) => title.replace(/\s*[\u2713\u2714\u2705]\uFE0F?/g, '').trim()
 
 function matches(n: Notification, filter: Filter) {
   if (filter === 'por-ler') return !n.readAt
@@ -342,7 +344,7 @@ export function NotificationBell({
                         <span className="min-w-0 flex-1">
                           <span className="flex items-baseline justify-between gap-3">
                             <span className="truncate font-subtitle text-[15px] font-semibold text-[#ffffff]">
-                              {n.title}
+                              {cleanTitle(n.title)}
                             </span>
                             <span className="shrink-0 font-subtitle text-[12px] text-[#ffffff]/60">
                               {ago(n.createdAt)}

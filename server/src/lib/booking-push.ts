@@ -10,7 +10,7 @@ type Booking = { customerId: string; id: string; service: { name: string }; slot
 
 export const bookingPush = {
   accepted: (b: Booking) =>
-    sendCustomerPush(b.customerId, 'Marcação confirmada ✓', `${b.service.name} · ${whenLabel(b.slot.startsAt)}`, { bookingId: b.id }),
+    sendCustomerPush(b.customerId, 'Marcação confirmada', `${b.service.name} · ${whenLabel(b.slot.startsAt)}`, { bookingId: b.id }),
   rejected: (b: Booking, reason?: string) =>
     sendCustomerPush(
       b.customerId,
