@@ -204,7 +204,9 @@ export function NotificationBell({
         aria-label={unread ? `Notificações, ${unread} por ler` : 'Notificações'}
         aria-expanded={open}
         className={cn(
-          'relative z-[61] flex items-center justify-center rounded-full transition-colors duration-500',
+          'relative flex items-center justify-center rounded-full transition-colors duration-500',
+          // In front of the blur only while its own list is open (behind it when the "+" menu is open).
+          open && 'z-[61]',
           brand ? BRAND_CIRCLE : cn('liquid-glass', tone === 'onDark' ? 'text-[#ffffff]' : 'text-onyx'),
           className,
         )}
