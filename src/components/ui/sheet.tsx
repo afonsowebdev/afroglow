@@ -94,7 +94,7 @@ export function Sheet({
             <div className="flex items-start gap-4">
               <span
                 className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-xl ${
-                  destructive ? 'bg-red-700/10 text-red-700' : 'bg-gold-deep/10 text-gold-deep'
+                  destructive ? 'bg-red-600 text-[#ffffff]' : 'bg-gold-deep/10 text-gold-deep'
                 }`}
               >
                 <i className={icon} aria-hidden="true" />
@@ -126,7 +126,9 @@ export function Sheet({
                   disabled={busy || submitDisabled}
                   className={`rounded-full py-3 font-subtitle text-sm transition-opacity hover:opacity-90 disabled:opacity-40 ${
                     appStyle
-                      ? `glass-chip-on ${destructive ? 'text-red-700' : 'text-onyx'}`
+                      ? destructive
+                        ? 'bg-red-600 font-semibold text-[#ffffff]'
+                        : 'glass-chip-on text-onyx'
                       : `text-[#ffffff] ${destructive ? 'bg-red-700' : 'bg-gold-deep'}`
                   }`}
                 >

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { ActionButton } from '@/components/ui/action-button'
 import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
 import { useNavigate } from 'react-router-dom'
 import { useBackButton, useHideNav } from './nav-visibility'
@@ -34,7 +33,9 @@ function Item({
 }) {
   const content = (
     <>
-      <i className={`${icon} w-6 shrink-0 text-center text-[22px] text-muted-dark`} aria-hidden="true" />
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-onyx text-[18px] text-white">
+        <i className={icon} aria-hidden="true" />
+      </span>
       <span className="min-w-0 flex-1 truncate text-left font-subtitle text-[15px] text-onyx">{label}</span>
       {value && <span className="max-w-[45%] truncate font-subtitle text-sm text-muted-dark">{value}</span>}
       <i
@@ -43,14 +44,14 @@ function Item({
       />
     </>
   )
-  const cls = 'flex w-full items-center gap-3.5 px-4 py-3.5 transition-colors active:bg-onyx/5'
+  const cls = 'flex w-full items-center gap-3.5 px-4 py-3 transition-colors active:bg-onyx/5'
   if (href)
     return (
       <a href={href} target="_blank" rel="noreferrer" className={cls}>
         {content}
       </a>
     )
-  if (locked || !onClick) return <div className="flex w-full items-center gap-3.5 px-4 py-3.5">{content}</div>
+  if (locked || !onClick) return <div className="flex w-full items-center gap-3.5 px-4 py-3">{content}</div>
   return (
     <button type="button" onClick={onClick} className={cls}>
       {content}
@@ -64,7 +65,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="mb-2 px-1 font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-muted-dark">
         {title}
       </h2>
-      <div className="divide-y divide-onyx/10 overflow-hidden rounded-2xl border-[1.5px] border-onyx/20 bg-white">
+      <div className="divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
         {children}
       </div>
     </section>
@@ -99,7 +100,9 @@ function ReminderRow({ phone, email }: { phone: string; email: string }) {
   return (
     <div className="px-4 py-3">
       <div className="flex items-center gap-3.5">
-        <i className="bx bx-bell-plus w-6 shrink-0 text-center text-[22px] text-muted-dark" aria-hidden="true" />
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-onyx text-[18px] text-white">
+          <i className="bx bx-bell-plus" aria-hidden="true" />
+        </span>
         <span className="min-w-0 flex-1">
           <span className="block font-subtitle text-[15px] text-onyx">Lembrete da sessão</span>
           <span className="block font-subtitle text-xs text-muted-dark">Enviado 48 horas antes</span>
@@ -260,7 +263,7 @@ export default function SettingsScreen() {
           </div>
         )}
 
-        <div className="mt-6 flex items-center gap-4 rounded-2xl border-[1.5px] border-onyx/20 bg-white p-4">
+        <div className="mt-6 flex items-center gap-4 rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] p-4">
           {photo ? (
             <img src={photo} alt="" className="size-14 shrink-0 rounded-full object-cover" />
           ) : (
@@ -299,28 +302,49 @@ export default function SettingsScreen() {
           <Item icon="bx bx-file" label="Termos e condições" href="https://www.afroglow.pt/termos" />
         </Section>
 
-        <ActionButton
-          label="Terminar sessão"
-          variant="secondary"
-          icon="bx bx-log-out"
-          className="mt-7"
-          onClick={() => void logout()}
-        />
+        <section className="mt-8">
+          <div className="overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
+            <button
+              type="button"
+              onClick={() => void logout()}
+              className="flex w-full items-center gap-3.5 px-4 py-3 active:bg-onyx/5"
+            >
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-onyx/10 text-[18px] text-onyx">
+                <i className="bx bx-log-out" aria-hidden="true" />
+              </span>
+              <span className="flex-1 text-left font-subtitle text-[15px] text-onyx">Terminar sessão</span>
+            </button>
+          </div>
+        </section>
 
-        <div className="mt-8 text-center">
+        {/* Deleting the account: on its own, plainly marked in red. */}
+        <section className="mt-8">
+          <h2 className="mb-2 px-1 font-subtitle text-[11px] font-medium uppercase tracking-[0.18em] text-red-700 dark:text-red-400">
+            Zona de perigo
+          </h2>
           <button
             type="button"
             onClick={() => open('delete')}
-            className="font-subtitle text-xs text-red-700/80 underline underline-offset-4"
+            className="flex w-full items-center gap-3.5 rounded-2xl bg-red-600/[0.07] px-4 py-3.5 text-left ring-1 ring-inset ring-red-600/20 active:bg-red-600/[0.12]"
           >
-            Eliminar a minha conta
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-red-600 text-[19px] text-[#ffffff]">
+              <i className="bx bx-trash" aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-subtitle text-[15px] font-semibold text-red-700 dark:text-red-400">
+                Eliminar a minha conta
+              </span>
+              <span className="block font-subtitle text-xs text-muted-dark">Apaga a conta e os teus dados de vez</span>
+            </span>
+            <i className="bx bx-chevron-right text-xl text-red-700/50 dark:text-red-400/60" aria-hidden="true" />
           </button>
-          <p className="mt-4 font-subtitle text-xs text-muted-dark">
-            AFROGLOW · versão {__APP_VERSION__}
-            <br />
-            build {__APP_BUILD__} · {__APP_COMMIT__}
-          </p>
-        </div>
+        </section>
+
+        <p className="mt-8 text-center font-subtitle text-xs text-muted-dark">
+          AFROGLOW · versão {__APP_VERSION__}
+          <br />
+          build {__APP_BUILD__} · {__APP_COMMIT__}
+        </p>
       </div>
 
       {/* Edit name */}
@@ -414,49 +438,66 @@ export default function SettingsScreen() {
       {/* Delete account */}
       <Sheet
         open={sheet === 'delete'}
-        icon="bx bx-trash"
+        icon="bx bxs-trash"
         destructive
         title="Eliminar conta"
-        description="Esta ação é permanente e não pode ser desfeita."
+        description="É permanente: não há forma de recuperar a conta."
         busy={busy}
         error={error}
-        submitLabel="Eliminar a minha conta"
+        submitLabel="Eliminar conta"
         submitDisabled={deletePassword.length < 1 || !deleteAck}
         onSubmit={() => void run(() => deleteAccount(deletePassword))}
         onClose={() => setSheet(null)}
       >
-        <ul className="flex flex-col gap-2 rounded-xl bg-red-700/5 p-4 font-subtitle text-sm text-onyx">
-          <li className="flex gap-2">
-            <i className="bx bx-x-circle mt-0.5 text-red-700" aria-hidden="true" />
-            As tuas marcações futuras são canceladas.
-          </li>
-          <li className="flex gap-2">
-            <i className="bx bx-x-circle mt-0.5 text-red-700" aria-hidden="true" />O teu nome, telemóvel e notas são
-            removidos, bem como os teus testemunhos.
-          </li>
-          <li className="flex gap-2">
-            <i className="bx bx-x-circle mt-0.5 text-red-700" aria-hidden="true" />
-            Deixas de poder entrar com este email. Podes criar uma conta nova quando quiseres.
-          </li>
-        </ul>
+        {/* What goes, as a short list. */}
+        <div className="overflow-hidden rounded-2xl bg-red-600/[0.06] ring-1 ring-inset ring-red-600/15">
+          <p className="px-4 pb-1 pt-3 font-subtitle text-[11px] font-semibold uppercase tracking-[0.14em] text-red-700 dark:text-red-400">
+            O que acontece
+          </p>
+          <ul className="divide-y divide-red-600/10 font-subtitle text-sm text-onyx">
+            {[
+              ['bx bx-calendar-x', 'As tuas marcações futuras são canceladas.'],
+              ['bx bx-user-x', 'O teu nome, telemóvel, favoritas e testemunhos são apagados.'],
+              ['bx bx-log-out', 'Deixas de entrar com este email (podes criar uma conta nova quando quiseres).'],
+            ].map(([icon, text]) => (
+              <li key={text} className="flex items-start gap-3 px-4 py-2.5">
+                <i className={`${icon} mt-0.5 text-lg text-red-600`} aria-hidden="true" />
+                <span className="leading-snug">{text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
         <SheetField label="Confirma com a tua password">
           <input
             type="password"
             value={deletePassword}
             onChange={(e) => setDeletePassword(e.target.value)}
             autoComplete="current-password"
+            placeholder="A tua password"
             className={sheetFieldClass}
           />
         </SheetField>
-        <label className="flex cursor-pointer items-start gap-3">
-          <input
-            type="checkbox"
-            checked={deleteAck}
-            onChange={(e) => setDeleteAck(e.target.checked)}
-            className="mt-0.5 h-5 w-5 shrink-0 accent-red-700"
-          />
-          <span className="font-subtitle text-sm text-onyx">Compreendo que não pode ser desfeito.</span>
-        </label>
+        {/* The acknowledgement as an iPhone switch. */}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={deleteAck}
+          onClick={() => setDeleteAck(!deleteAck)}
+          className="flex items-center justify-between gap-4 rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] px-4 py-3 text-left"
+        >
+          <span className="font-subtitle text-sm text-onyx">Compreendo que não pode ser desfeito</span>
+          <span
+            className={`relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-200 ${
+              deleteAck ? 'bg-red-600' : 'bg-onyx/15'
+            }`}
+          >
+            <span
+              className={`absolute top-[2px] size-[27px] rounded-full bg-[#ffffff] shadow transition-transform duration-200 ${
+                deleteAck ? 'translate-x-[22px]' : 'translate-x-[2px]'
+              }`}
+            />
+          </span>
+        </button>
       </Sheet>
     </main>
   )
