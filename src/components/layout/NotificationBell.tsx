@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, X } from 'lucide-react'
+import { Bell } from 'lucide-react'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
@@ -25,17 +25,6 @@ const FILTERS: Array<{ id: Filter; label: string }> = [
 ]
 const isReminder = (n: Notification) => n.title.startsWith('Lembrete')
 
-/** An icon for what a notification is about, from its title. */
-function iconFor(n: Notification) {
-  const t = n.title.toLowerCase()
-  if (isReminder(n)) return 'bx bx-alarm'
-  if (/cancel/.test(t)) return 'bx bx-calendar-x'
-  if (/recus|não aceit|nao aceit/.test(t)) return 'bx bx-x-circle'
-  if (/confirm|aceit/.test(t)) return 'bx bx-calendar-check'
-  if (/novo pedido|pedido/.test(t)) return 'bx bx-calendar-plus'
-  if (/testemunh/.test(t)) return 'bx bx-message-square-detail'
-  return 'bx bx-bell'
-}
 function matches(n: Notification, filter: Filter) {
   if (filter === 'por-ler') return !n.readAt
   if (filter === 'lembretes') return isReminder(n)
@@ -241,169 +230,141 @@ export function NotificationBell({
           <motion.div
             role="dialog"
             aria-label="Notificações"
-            // Opens out of the bell, as the "+" menu: growing from its corner and coming into focus.
-            initial={{ opacity: 0, y: -12, scale: 0.86, filter: 'blur(8px)' }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -8, scale: 0.92, filter: 'blur(6px)', transition: { duration: 0.2 } }}
-            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-            className="absolute right-0 top-full z-10 mt-3 w-[22rem] origin-top-right overflow-hidden rounded-[26px] bg-white shadow-2xl shadow-black/25 ring-1 ring-onyx/[0.06] max-md:fixed max-md:inset-x-4 max-md:top-[calc(5.5rem+env(safe-area-inset-top))] max-md:mt-0 max-md:w-auto max-md:origin-top"
+            // As the iPhone's notification centre: no box, the notifications float over the blurred page.
+            initial={{ opacity: 0, y: -10, filter: 'blur(6px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -8, filter: 'blur(6px)', transition: { duration: 0.2 } }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute right-0 top-full z-10 mt-4 w-[22rem] max-md:fixed max-md:inset-x-3 max-md:top-[calc(5.25rem+env(safe-area-inset-top))] max-md:mt-0 max-md:w-auto"
           >
-            <div className="px-5 pb-3 pt-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="flex items-center gap-2 font-subtitle text-lg font-semibold tracking-tight text-onyx">
-                  Notificações
-                  {unread > 0 && (
-                    <span className="rounded-full bg-red-600 px-2 py-0.5 text-[11px] font-semibold leading-none text-[#ffffff]">
-                      {unread}
-                    </span>
+            <div className="flex items-center justify-between gap-3 px-2">
+              <p className="font-subtitle text-[28px] font-bold tracking-tight text-[#ffffff] [text-shadow:0_1px_12px_rgba(0,0,0,0.25)]">
+                Notificações
+              </p>
+              {items && items.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => (confirmClear ? clearAll() : setConfirmClear(true))}
+                  className={cn(
+                    'h-8 rounded-full px-3.5 font-subtitle text-[13px] font-semibold backdrop-blur-xl transition-colors',
+                    confirmClear
+                      ? 'bg-red-600 text-[#ffffff]'
+                      : 'bg-white/25 text-[#ffffff] ring-1 ring-white/20 dark:bg-[rgba(255,255,255,0.14)]',
                   )}
-                </p>
-                {unread > 0 && (
-                  <button
-                    type="button"
-                    onClick={readAll}
-                    className="inline-flex items-center gap-1 font-subtitle text-xs text-onyx/60 hover:text-onyx"
-                  >
-                    <i className="bx bx-check-double text-base" aria-hidden="true" />
-                    Ler todas
-                  </button>
-                )}
-              </div>
-              <div
-                className="mt-3 flex gap-1.5 overflow-x-auto [scrollbar-width:none]"
-                role="tablist"
-                aria-label="Filtrar"
-              >
-                {FILTERS.map((f) => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={filter === f.id}
-                    onClick={() => setFilter(f.id)}
+                >
+                  {confirmClear ? 'Limpar todas?' : 'Limpar'}
+                </button>
+              )}
+            </div>
+
+            {/* The filters as the iPhone's segmented control, in the same frosted material. */}
+            <div
+              className="mt-3 flex rounded-[11px] bg-white/20 p-[3px] ring-1 ring-white/15 backdrop-blur-xl dark:bg-[rgba(255,255,255,0.1)]"
+              role="tablist"
+              aria-label="Filtrar"
+            >
+              {FILTERS.map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === f.id}
+                  onClick={() => setFilter(f.id)}
+                  className="relative h-8 flex-1 rounded-[8px] font-subtitle text-[12px] font-medium"
+                >
+                  {filter === f.id && (
+                    <motion.span
+                      layoutId="notif-filter"
+                      className="absolute inset-0 rounded-[8px] bg-white/90 shadow-sm dark:bg-[rgba(255,255,255,0.28)]"
+                      transition={{ type: 'spring', stiffness: 460, damping: 36 }}
+                    />
+                  )}
+                  <span
                     className={cn(
-                      'shrink-0 rounded-full px-3.5 py-1.5 font-subtitle text-xs font-medium transition-colors',
-                      filter === f.id ? 'bg-onyx text-white' : 'bg-onyx/[0.06] text-onyx/70 hover:text-onyx',
+                      'relative',
+                      filter === f.id ? 'text-[#1c1c1e] dark:text-[#ffffff]' : 'text-[#ffffff]',
                     )}
                   >
                     {f.label}
-                    {f.id === 'por-ler' && unread > 0 ? ` · ${unread}` : ''}
-                  </button>
-                ))}
-              </div>
+                    {f.id === 'por-ler' && unread > 0 ? ` ${unread}` : ''}
+                  </span>
+                </button>
+              ))}
             </div>
-            {items === null ? (
-              <p className="px-4 py-8 text-center font-subtitle text-sm text-onyx/55">A carregar…</p>
-            ) : shown.length === 0 && items.length > 0 ? (
-              <p className="px-4 py-10 text-center font-subtitle text-sm text-onyx/55">
-                {filter === 'por-ler' ? 'Já viste todas as notificações.' : 'Nada aqui por agora.'}
-              </p>
-            ) : items.length === 0 ? (
-              <div className="px-6 pb-10 pt-6 text-center">
-                <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-onyx/[0.06]">
-                  <Bell className="size-6 text-onyx/50" strokeWidth={1.5} />
-                </span>
-                <p className="mt-3 font-subtitle text-sm text-onyx">Ainda sem notificações</p>
-                <p className="mt-1 font-subtitle text-xs text-onyx/55">
-                  Quando a tua marcação for confirmada, ou antes da sessão, aparece aqui.
-                </p>
-              </div>
-            ) : (
-              <ul className="max-h-[24rem] overflow-y-auto px-2 pb-2">
-                {shown.map((n, i) => (
-                  <motion.li
-                    key={n.id}
-                    // Each one comes into focus in turn as the panel opens (new ones fall in from above).
-                    initial={{ opacity: 0, y: fresh.has(n.id) ? -14 : 6, filter: 'blur(4px)' }}
-                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                    transition={{ duration: 0.35, delay: 0.06 + Math.min(i, 8) * 0.04, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <div className="group relative">
-                      <button
+
+            <div className="mt-3 max-h-[calc(100svh-12rem)] overflow-y-auto pb-2">
+              {items === null ? (
+                <p className="py-8 text-center font-subtitle text-sm text-[#ffffff]/80">A carregar…</p>
+              ) : shown.length === 0 ? (
+                <div className="py-10 text-center">
+                  <Bell className="mx-auto size-7 text-[#ffffff]/70" strokeWidth={1.5} />
+                  <p className="mt-3 font-subtitle text-[15px] font-semibold text-[#ffffff]">
+                    {items.length === 0 ? 'Sem notificações' : 'Nada aqui por agora'}
+                  </p>
+                  {items.length === 0 && (
+                    <p className="mx-auto mt-1 max-w-[16rem] font-subtitle text-[13px] text-[#ffffff]/75">
+                      As confirmações e os lembretes das tuas marcações aparecem aqui.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <ul className="flex flex-col gap-2">
+                  {shown.map((n, i) => (
+                    <motion.li
+                      key={n.id}
+                      layout
+                      initial={{ opacity: 0, y: fresh.has(n.id) ? -14 : 10, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, x: -80, transition: { duration: 0.2 } }}
+                      transition={{ duration: 0.32, delay: Math.min(i, 8) * 0.035, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      {/* Swipe left to delete, as on the iPhone. */}
+                      <motion.button
                         type="button"
-                        // Opens the booking it is about, with its details (reschedule / cancel) already showing.
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={{ left: 0.6, right: 0 }}
+                        onDragEnd={(_, info) => info.offset.x < -90 && remove(n)}
                         onClick={() => openOne(n)}
-                        className={cn(
-                          'flex w-full gap-3 rounded-2xl py-3 pl-3 pr-11 text-left transition-colors active:bg-onyx/[0.05]',
-                          !n.readAt && 'bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]',
-                        )}
+                        className="flex w-full items-start gap-3 rounded-[22px] bg-[rgba(245,245,245,0.82)] p-3.5 text-left shadow-[0_4px_18px_rgba(0,0,0,0.12)] backdrop-blur-2xl dark:bg-[rgba(58,44,34,0.82)]"
                       >
+                        {/* The app's icon. */}
                         <span
-                          className={cn(
-                            'relative flex size-10 shrink-0 items-center justify-center rounded-full text-xl',
-                            n.readAt ? 'bg-onyx/[0.06] text-onyx/60' : 'bg-onyx text-white',
-                          )}
                           aria-hidden="true"
+                          className={`flex size-[38px] shrink-0 items-center justify-center rounded-[10px] font-logo text-lg leading-none logo-weight ${BRAND_CIRCLE}`}
                         >
-                          <i className={iconFor(n)} />
-                          {!n.readAt && (
-                            <span className="absolute -right-0.5 -top-0.5 size-3 rounded-full bg-red-600 ring-2 ring-white" />
-                          )}
+                          <span className="translate-y-[0.1em]">A</span>
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className="flex items-baseline justify-between gap-3">
-                            <span
-                              className={cn(
-                                'font-subtitle text-sm text-onyx',
-                                n.readAt ? 'font-medium' : 'font-semibold',
-                              )}
-                            >
+                            <span className="truncate font-subtitle text-[15px] font-semibold text-onyx">
                               {n.title}
                             </span>
-                            <span className="shrink-0 font-subtitle text-[11px] text-onyx/45">{ago(n.createdAt)}</span>
+                            <span className="shrink-0 font-subtitle text-[12px] text-onyx/50">{ago(n.createdAt)}</span>
                           </span>
-                          <span className="mt-0.5 block font-subtitle text-xs leading-relaxed text-onyx/60">
+                          <span className="mt-0.5 line-clamp-3 block font-subtitle text-[14px] leading-snug text-onyx/80">
                             {n.body}
                           </span>
                         </span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => remove(n)}
-                        aria-label={`Eliminar notificação: ${n.title}`}
-                        className="absolute right-1.5 top-2 flex size-8 items-center justify-center rounded-full text-onyx/35 transition-colors hover:bg-onyx/[0.06] hover:text-onyx"
-                      >
-                        <X className="size-4" strokeWidth={1.75} />
-                      </button>
-                    </div>
-                  </motion.li>
-                ))}
-              </ul>
-            )}
-            {failed && (
-              <p className="border-t border-onyx/10 px-4 py-2.5 font-subtitle text-xs text-red-700">{failed}</p>
-            )}
-            {items && items.length > 0 && (
-              <div className="flex items-center justify-end gap-3 border-t border-onyx/[0.08] px-5 py-3">
-                {confirmClear ? (
-                  <>
-                    <span className="mr-auto font-subtitle text-xs text-onyx/60">Eliminar todas?</span>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmClear(false)}
-                      className="font-subtitle text-xs text-onyx/60 hover:text-onyx"
-                    >
-                      Não
-                    </button>
-                    <button
-                      type="button"
-                      onClick={clearAll}
-                      className="rounded-full bg-red-600 px-3 py-1 font-subtitle text-xs font-medium text-[#ffffff]"
-                    >
-                      Sim, eliminar
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setConfirmClear(true)}
-                    className="font-subtitle text-xs text-red-700 underline-offset-4 hover:underline dark:text-red-400"
-                  >
-                    Limpar tudo
-                  </button>
-                )}
-              </div>
-            )}
+                        {!n.readAt && (
+                          <span className="mt-1.5 size-2 shrink-0 rounded-full bg-red-600" aria-label="Por ler" />
+                        )}
+                      </motion.button>
+                    </motion.li>
+                  ))}
+                </ul>
+              )}
+              {failed && <p className="mt-2 px-2 font-subtitle text-xs text-[#ffffff]">{failed}</p>}
+              {unread > 0 && (
+                <button
+                  type="button"
+                  onClick={readAll}
+                  className="mx-auto mt-3 block rounded-full bg-white/25 px-4 py-1.5 font-subtitle text-[13px] font-semibold text-[#ffffff] ring-1 ring-white/20 backdrop-blur-xl dark:bg-[rgba(255,255,255,0.14)]"
+                >
+                  Marcar todas como lidas
+                </button>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
