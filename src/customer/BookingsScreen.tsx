@@ -283,13 +283,10 @@ function Timeline({
   )
 }
 
-const HOW = [
-  { icon: 'bx bx-list-check', title: 'Escolhe', text: 'o modelo' },
-  { icon: 'bx bx-calendar-plus', title: 'Marca', text: 'dia e hora livres' },
-  { icon: 'bx bx-bell', title: 'Recebe', text: 'a confirmação' },
-]
-
-/** No sessions yet: an empty ticket with the way to book, how it works, and the hairstyles to start from. */
+/**
+ * No sessions yet: three hairstyle photos fanned out, a short line and the way to book; then the hairstyles to start
+ * from, as tall photo cards.
+ */
 function NoSessions({ onBook }: { onBook: (serviceId?: string) => void }) {
   const [services, setServices] = useState<Service[]>([])
   useEffect(() => {
@@ -298,41 +295,36 @@ function NoSessions({ onBook }: { onBook: (serviceId?: string) => void }) {
       .then((list) => setServices(list.filter((s) => s.active !== false)))
       .catch(() => {})
   }, [])
+  const fan = services
+    .map((s) => serviceImageUrls(s)[0])
+    .filter(Boolean)
+    .slice(0, 3)
+  const tilt = ['-rotate-[9deg] -translate-x-[70%]', 'z-10', 'rotate-[9deg] translate-x-[70%]']
+
   return (
-    <div className="flex flex-col gap-8">
-      <div className="rounded-3xl border-2 border-dashed border-onyx/15 px-6 py-8 text-center">
-        <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-onyx/[0.06] text-3xl text-onyx">
-          <i className="bx bx-calendar-plus" aria-hidden="true" />
-        </span>
-        <p className="mt-4 font-subtitle text-xl font-semibold tracking-tight text-onyx">Ainda não tens sessões</p>
-        <p className="mx-auto mt-1 max-w-xs font-subtitle text-sm font-light text-muted-dark">
-          Escolhe o teu modelo e um horário livre. A marcação aparece aqui.
+    <div className="flex flex-col gap-10">
+      <div className="flex flex-col items-center pt-4 text-center">
+        <div className="relative flex h-44 w-full items-center justify-center">
+          {(fan.length ? fan : ['', '', '']).map((src, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 * i, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className={`absolute h-40 w-28 overflow-hidden rounded-2xl bg-onyx/[0.06] shadow-lg shadow-black/15 ring-4 ring-white ${tilt[i]}`}
+            >
+              {src && <img src={src} alt="" className="h-full w-full object-cover" />}
+            </motion.div>
+          ))}
+        </div>
+        <p className="mt-8 font-subtitle text-[22px] font-semibold tracking-tight text-onyx">Ainda não tens sessões</p>
+        <p className="mt-1.5 max-w-xs font-subtitle text-sm leading-relaxed text-muted-dark">
+          Escolhe o teu modelo e um horário livre. As tuas marcações aparecem aqui.
         </p>
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6">
           <ActionButton label="Marcar sessão" onClick={() => onBook()} />
         </div>
       </div>
-
-      <section>
-        <h2 className="mb-3 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">
-          Como funciona
-        </h2>
-        <ol className="grid grid-cols-3 gap-2">
-          {HOW.map((step, i) => (
-            <li
-              key={step.title}
-              className="rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] p-3"
-            >
-              <span className="flex items-center justify-between">
-                <i className={`${step.icon} text-xl text-onyx`} aria-hidden="true" />
-                <span className="font-subtitle text-[11px] tabular-nums text-muted-dark">0{i + 1}</span>
-              </span>
-              <p className="mt-3 font-subtitle text-sm font-semibold text-onyx">{step.title}</p>
-              <p className="font-subtitle text-xs leading-snug text-muted-dark">{step.text}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
 
       {services.length > 0 && (
         <section>
@@ -350,16 +342,19 @@ function NoSessions({ onBook }: { onBook: (serviceId?: string) => void }) {
                     void tap()
                     onBook(service.id)
                   }}
-                  className="relative aspect-[3/4] w-36 shrink-0 snap-start overflow-hidden rounded-2xl bg-onyx/5 text-left"
+                  className="relative aspect-[3/4] w-40 shrink-0 snap-start overflow-hidden rounded-3xl bg-onyx/5 text-left"
                 >
                   {photo && (
                     <img src={photo} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
                   )}
-                  <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-3 pb-3 pt-10">
-                    <span className="block truncate font-subtitle text-sm font-semibold text-[#ffffff]">
+                  <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-3.5 pb-3.5 pt-12">
+                    <span className="block truncate font-subtitle text-[15px] font-semibold text-[#ffffff]">
                       {service.name}
                     </span>
-                    <span className="block font-subtitle text-xs text-[#ffffff]/75">{servicePriceLabel(service)}</span>
+                    <span className="mt-0.5 flex items-center justify-between font-subtitle text-xs text-[#ffffff]/75">
+                      {servicePriceLabel(service)}
+                      <i className="bx bx-right-arrow-alt text-base" aria-hidden="true" />
+                    </span>
                   </span>
                 </button>
               )
@@ -488,7 +483,12 @@ export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}
           As minhas marcações
         </h1>
 
-        <div className={`glass-chip mt-6 flex rounded-full p-1 ${wide ? 'max-w-md' : ''}`}>
+        {/* Próximas / Anteriores as the iPhone's segmented control: a grey track, the chosen one on a lighter block
+            that slides across. */}
+        <div
+          className={`mt-6 flex rounded-[12px] bg-[color-mix(in_srgb,var(--color-onyx)_7%,var(--color-white))] p-[3px] ${wide ? 'max-w-md' : ''}`}
+          role="tablist"
+        >
           {(
             [
               ['next', 'Próximas', next.length],
@@ -498,22 +498,31 @@ export default function BookingsScreen({ wide = false }: { wide?: boolean } = {}
             <button
               key={id}
               type="button"
+              role="tab"
+              aria-selected={tab === id}
               onClick={() => {
                 void tap()
                 setTab(id)
               }}
-              className="relative flex flex-1 items-center justify-center gap-2 rounded-full py-2.5 font-subtitle text-sm"
+              className="relative flex h-9 flex-1 items-center justify-center gap-1.5 rounded-[9px] font-subtitle text-sm"
             >
               {tab === id && (
                 <motion.span
                   layoutId="bookings-tab"
-                  className="glass-chip-on absolute inset-0 rounded-full"
-                  transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                  className="absolute inset-0 rounded-[9px] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.04)] dark:bg-[color-mix(in_srgb,var(--color-onyx)_20%,var(--color-white))]"
+                  transition={{ type: 'spring', stiffness: 460, damping: 36 }}
                 />
               )}
-              <span className={`relative ${tab === id ? 'text-onyx' : 'text-onyx/60'}`}>
-                {label} {count > 0 && <span className="opacity-70">· {count}</span>}
-              </span>
+              <span className={`relative ${tab === id ? 'font-semibold text-onyx' : 'text-onyx/60'}`}>{label}</span>
+              {count > 0 && (
+                <span
+                  className={`relative min-w-5 rounded-full px-1.5 text-[11px] font-semibold tabular-nums leading-5 ${
+                    tab === id ? 'bg-onyx text-white' : 'bg-onyx/10 text-onyx/60'
+                  }`}
+                >
+                  {count}
+                </span>
+              )}
             </button>
           ))}
         </div>
