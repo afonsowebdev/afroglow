@@ -83,6 +83,10 @@ export default function CustomerApp() {
 }
 
 function CustomerShell() {
+  // Going back must not make the browser scroll (smoothly) to where that screen once was: each screen starts at the top.
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual'
+  }, [])
   const navHidden = useNavHidden()
   const { unseen } = useBookingAlerts()
   const location = useLocation()
@@ -218,7 +222,12 @@ function CustomerShell() {
 
   return (
     <div className="app-neutral min-h-screen bg-white">
-      <AnimatePresence mode="wait" initial={false}>
+      {/* Each screen starts at the top once the previous one has gone (no jump to the old position). */}
+      <AnimatePresence
+        mode="wait"
+        initial={false}
+        onExitComplete={() => window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })}
+      >
         <motion.div
           key={tab}
           initial={{ opacity: 0, y: 10 }}

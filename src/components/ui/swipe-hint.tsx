@@ -1,16 +1,20 @@
 import { useEffect } from 'react'
 import { motion } from 'motion/react'
 
+/** The strips already nudged since the app opened (by name), so coming back to a screen doesn't do it again. */
+const nudged = new Set<string>()
+
 /** Once, when the strip first comes into view, nudge it sideways to show that it can be dragged. */
-export function useSwipeNudge(ref: React.RefObject<HTMLDivElement | null>, slides: number) {
+export function useSwipeNudge(ref: React.RefObject<HTMLDivElement | null>, slides: number, name = 'strip') {
   useEffect(() => {
     const el = ref.current
-    if (!el || slides < 2) return
+    if (!el || slides < 2 || nudged.has(name)) return
     let timers: number[] = []
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return
         observer.disconnect()
+        nudged.add(name)
         el.style.scrollSnapType = 'none'
         el.scrollTo({ left: 56, behavior: 'smooth' })
         timers = [
@@ -26,11 +30,21 @@ export function useSwipeNudge(ref: React.RefObject<HTMLDivElement | null>, slide
       timers.forEach(clearTimeout)
       el.style.scrollSnapType = ''
     }
-  }, [ref, slides])
+  }, [ref, slides, name])
 }
 
 /** Arrows and a line under a swipeable strip: tells the customer to drag until they do, then shows the position. */
-export function SwipeHint({ index, slides, swiped, what }: { index: number; slides: number; swiped: boolean; what: string }) {
+export function SwipeHint({
+  index,
+  slides,
+  swiped,
+  what,
+}: {
+  index: number
+  slides: number
+  swiped: boolean
+  what: string
+}) {
   if (slides < 2) return null
   return (
     <div className="mx-auto mt-4 flex max-w-sm items-center justify-between px-5 text-onyx">

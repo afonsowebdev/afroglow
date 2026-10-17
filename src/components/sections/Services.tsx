@@ -33,7 +33,7 @@ export default function Services() {
   const [index, setIndex] = useState(0)
   const [swiped, setSwiped] = useState(false)
   const total = services?.length ?? 0
-  useSwipeNudge(track, total)
+  useSwipeNudge(track, total, 'site-services')
 
   useEffect(() => {
     api

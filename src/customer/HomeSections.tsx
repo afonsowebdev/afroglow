@@ -419,7 +419,7 @@ export function ServiceCarousel({ services }: { services: Service[] | null }) {
   const preview = services?.find((s) => s.id === previewId) ?? null
   const total = services?.length ?? 0
 
-  useSwipeNudge(track, total)
+  useSwipeNudge(track, total, 'services')
 
   return (
     <section id="servicos" className={fullScreenSection}>
@@ -670,7 +670,7 @@ export function WorkGrid() {
   }, [viewer])
 
   const total = items.length
-  useSwipeNudge(track, total)
+  useSwipeNudge(track, total, 'portfolio')
 
   return (
     <section className={fullScreenSection}>
@@ -832,7 +832,7 @@ export function ReviewsRow({ reviews }: { reviews: Review[] }) {
   const [index, setIndex] = useState(0)
   const [swiped, setSwiped] = useState(false)
   const track = useRef<HTMLDivElement>(null)
-  useSwipeNudge(track, reviews.length)
+  useSwipeNudge(track, reviews.length, 'reviews')
   if (reviews.length === 0) return null
   return (
     <section className="pt-12">
