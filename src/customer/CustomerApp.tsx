@@ -7,6 +7,7 @@ import {
   CalendarCheck,
   CalendarPlus,
   House,
+  LogIn,
   LogOut,
   Moon,
   PanelTop,
@@ -172,12 +173,18 @@ function CustomerShell() {
       label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
       onClick: () => setHideNavOnScroll(!hideOnScroll),
     },
-    {
-      Icon: Settings,
-      label: 'Definições',
-      onClick: () => navigate('/definicoes'),
-    },
-    ...(pushSupported()
+    customer
+      ? {
+          Icon: Settings,
+          label: 'Definições',
+          onClick: () => navigate('/definicoes'),
+        }
+      : {
+          Icon: LogIn,
+          label: 'Entrar ou criar conta',
+          onClick: () => navigate('/entrar'),
+        },
+    ...(pushSupported() && customer
       ? [
           {
             Icon: notificationsOn ? Bell : BellOff,
@@ -216,9 +223,9 @@ function CustomerShell() {
       : []),
   ]
 
-  // The app opens on the sign-in: everything in it is for customers with an account (create one there if needed).
+  // Anyone can look around (hairstyles, prices, portfolio, where we are) without an account; signing in is asked for
+  // only where it is needed: sending a booking, the bookings, the account and the favourites.
   if (loading) return <div className="min-h-screen bg-white" />
-  if (!customer) return <AuthScreen gate />
 
   return (
     <div className="app-neutral min-h-screen bg-white">
