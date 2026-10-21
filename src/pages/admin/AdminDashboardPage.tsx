@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import {
   Bell,
   BellRing,
+  House,
   CalendarCheck,
   CalendarX2,
   ChartColumn,
@@ -38,6 +39,7 @@ import { BroadcastView } from '@/pages/admin/BroadcastView'
 import { ClosuresView } from '@/pages/admin/ClosuresView'
 import { PromotionsView } from '@/pages/admin/PromotionsView'
 import { TeamView } from '@/pages/admin/TeamView'
+import { HomeView } from '@/pages/admin/HomeView'
 import { fullMe, type AdminMe, type Permission } from '@/pages/admin/admin-me'
 import { PortfolioView } from '@/pages/admin/PortfolioView'
 import { SecurityView } from '@/pages/admin/SecurityView'
@@ -127,7 +129,7 @@ const HISTORY_STATUS_LABEL: Record<Booking['status'], string> = {
   CANCELLED: 'Cancelada',
 }
 
-type NavTab = 'pedidos' | 'agenda' | 'disponibilidade' | 'clientes' | 'mais'
+type NavTab = 'inicio' | 'pedidos' | 'agenda' | 'disponibilidade' | 'clientes' | 'mais'
 type AdminTab = NavTab | MoreTarget
 
 const MORE_TARGETS: MoreTarget[] = [
@@ -145,6 +147,7 @@ const MORE_TARGETS: MoreTarget[] = [
 
 // Outline icons (lucide), as in the website's account menu; `icon` stays as the Boxicons fallback.
 const TABS: Array<BottomNavItem<NavTab>> = [
+  { id: 'inicio', label: 'Início', icon: 'bx bx-home', Icon: House },
   { id: 'pedidos', label: 'Pedidos', icon: 'bx bx-bell', Icon: Bell },
   { id: 'agenda', label: 'Agenda', icon: 'bx bx-calendar-check', Icon: CalendarCheck },
   { id: 'disponibilidade', label: 'Horários', icon: 'bx bx-time-five', Icon: Clock },
@@ -424,6 +427,7 @@ function SlotsDayView({
 
 // Every page has its own title and one line saying what it is for.
 const PAGE: Record<AdminTab, { title: string; hint: string }> = {
+  inicio: { title: 'Início', hint: 'O teu dia de relance.' },
   pedidos: { title: 'Pedidos', hint: 'Marcações à espera da tua resposta.' },
   agenda: { title: 'Agenda', hint: 'As sessões do mês.' },
   disponibilidade: { title: 'Horários', hint: 'Abre e fecha os horários para marcar.' },
@@ -1925,7 +1929,7 @@ function AdminDashboard() {
     const fromHash = window.location.hash.slice(1)
     return TABS.some((t) => t.id === fromHash) || MORE_TARGETS.includes(fromHash as MoreTarget)
       ? (fromHash as AdminTab)
-      : 'pedidos'
+      : 'inicio'
   })
   const [scrolled, setScrolled] = useState(false)
   useAutoHideNav(hideOnScroll, tab)
@@ -1935,7 +1939,7 @@ function AdminDashboard() {
     if (!me) return
     const bookingTab = tab === 'pedidos' || tab === 'agenda' || tab === 'disponibilidade' || tab === 'fechos'
     if ((bookingTab && !me.permissions.includes('marcacoes')) || (tab === 'clientes' && !me.permissions.includes('clientes'))) {
-      setTab(me.permissions.includes('clientes') ? 'clientes' : 'mais')
+      setTab('inicio')
     }
   }, [me, tab])
 
@@ -1988,6 +1992,7 @@ function AdminDashboard() {
 
   const [manualOpen, setManualOpen] = useState(false)
   const [manualCustomer, setManualCustomer] = useState<AdminCustomer | null>(null)
+  const [manualStartsAt, setManualStartsAt] = useState<string | null>(null)
   const [generateOpen, setGenerateOpen] = useState(false)
   const [scheduleNotice, setScheduleNotice] = useState<string | null>(null)
 
@@ -2827,6 +2832,25 @@ function AdminDashboard() {
               </section>
             )}
 
+            {tab === 'inicio' && (
+              <HomeView
+                name={me?.name ?? ''}
+                bookings={bookings}
+                slots={slots}
+                testimonials={testimonials}
+                can={can}
+                onOpen={(target) => {
+                  setTab(target)
+                  window.scrollTo({ top: 0 })
+                }}
+                onNewBooking={(startsAt) => {
+                  setManualCustomer(null)
+                  setManualStartsAt(startsAt ?? null)
+                  setManualOpen(true)
+                }}
+              />
+            )}
+
             {tab === 'pedidos' && (
               <PendingView
                 bookings={pendingBookings}
@@ -2906,8 +2930,12 @@ function AdminDashboard() {
         open={manualOpen}
         services={services}
         presetCustomer={manualCustomer}
+        presetStartsAt={manualStartsAt}
         slots={slots}
-        onClose={() => setManualOpen(false)}
+        onClose={() => {
+          setManualOpen(false)
+          setManualStartsAt(null)
+        }}
         onDone={() => void loadDashboard()}
       />
       <GenerateSlotsSheet
@@ -2931,7 +2959,10 @@ function AdminDashboard() {
               setTab(id)
               window.scrollTo({ top: 0 })
             }}
-            items={TABS.filter((t) => (t.id === 'clientes' ? can('clientes') : t.id === 'mais' ? true : can('marcacoes'))).map(({ id, label, icon, Icon }) => ({
+            compact
+            items={TABS.filter((t) =>
+              t.id === 'clientes' ? can('clientes') : t.id === 'mais' || t.id === 'inicio' ? true : can('marcacoes'),
+            ).map(({ id, label, icon, Icon }) => ({
               id,
               label,
               icon,
