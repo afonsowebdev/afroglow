@@ -45,6 +45,7 @@ export type RouteName =
   | 'team'
   | 'closures'
   | 'broadcast'
+  | 'appearance'
 
 export interface Route {
   name: RouteName

@@ -36,6 +36,8 @@ import {
   type TabId,
 } from './admin-context'
 import { Screen, ToastProvider } from './ios'
+import { AppearanceProvider, GLASS_ALPHA, useAppearance, WallpaperLayer } from './wallpaper'
+import { AppearanceScreen } from './screens/AppearanceScreen'
 import { AgendaScreen } from './screens/AgendaScreen'
 import { BroadcastScreen } from './screens/BroadcastScreen'
 import { ClosuresScreen } from './screens/ClosuresScreen'
@@ -70,6 +72,7 @@ const TITLES: Record<RouteName, string> = {
   team: 'Equipa',
   closures: 'Dias fechados',
   broadcast: 'Notificar',
+  appearance: 'Aparência',
 }
 
 const ROOTS: Record<TabId, Route> = {
@@ -100,7 +103,9 @@ function Wrapped({ title, backLabel, onBack, children }: { title: string; backLa
 export default function AdminDashboardPage() {
   return (
     <ToastProvider>
-      <AdminApp />
+      <AppearanceProvider>
+        <AdminApp />
+      </AppearanceProvider>
     </ToastProvider>
   )
 }
@@ -108,6 +113,8 @@ export default function AdminDashboardPage() {
 function AdminApp() {
   const navigate = useNavigate()
   const theme = useTheme()
+  const { appearance } = useAppearance()
+  const hasWallpaper = appearance.wallpaper.kind !== 'none'
   const [me, setMe] = useState<AdminMe | null>(null)
   const [avatar, setAvatar] = useState<string | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
@@ -386,6 +393,8 @@ function AdminApp() {
         return <TeamScreen backLabel={backLabel} />
       case 'closures':
         return <ClosuresScreen backLabel={backLabel} />
+      case 'appearance':
+        return <AppearanceScreen backLabel={backLabel} />
       case 'broadcast':
         return <BroadcastScreen backLabel={backLabel} presetCustomerId={r.id} />
       case 'stats':
@@ -411,7 +420,11 @@ function AdminApp() {
 
   return (
     <AdminContext.Provider value={value}>
-      <div className="admin-ios relative min-h-screen overflow-x-hidden">
+      <div
+        className={`admin-ios relative min-h-screen overflow-x-hidden ${hasWallpaper ? 'has-wallpaper' : ''}`}
+        style={{ ['--glass-a' as string]: GLASS_ALPHA[appearance.glass] }}
+      >
+        <WallpaperLayer />
         {loadError && (
           <button
             type="button"
@@ -434,7 +447,7 @@ function AdminApp() {
             animate="center"
             exit="exit"
             transition={direction === 0 ? { duration: 0.12 } : { type: 'spring', stiffness: 380, damping: 40 }}
-            className="bg-[var(--ios-bg)]"
+            className={hasWallpaper ? undefined : 'bg-[var(--ios-bg)]'}
           >
             {render(route)}
           </motion.div>

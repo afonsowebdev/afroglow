@@ -468,3 +468,25 @@
 .admin-ios .ios-list > :not(:last-child) .ios-cell-body {
   box-shadow: inset 0 -0.5px 0 var(--ios-separator);
 }
+/*
+ * A background chosen in "Fundo e aparência": the page lets it through and the cards become frosted glass over it,
+ * as see-through as chosen (--glass-a, set on the root). A veil in the theme's colour keeps the titles readable.
+ */
+.admin-ios.has-wallpaper {
+  background: transparent;
+  --ios-wallpaper-veil: rgba(255, 255, 255, 0.36);
+  --ios-secondary: rgba(28, 28, 30, 0.74);
+  --ios-cell: rgba(255, 255, 255, var(--glass-a, 0.6));
+  --ios-cell-pressed: rgba(255, 255, 255, calc(var(--glass-a, 0.6) + 0.18));
+}
+.dark .admin-ios.has-wallpaper {
+  --ios-wallpaper-veil: rgba(43, 29, 18, 0.55);
+  --ios-secondary: rgba(240, 230, 214, 0.8);
+  --ios-cell: rgba(58, 40, 24, var(--glass-a, 0.6));
+  --ios-cell-pressed: rgba(70, 48, 29, calc(var(--glass-a, 0.6) + 0.18));
+}
+.admin-ios.has-wallpaper .ios-list,
+.admin-ios.has-wallpaper [class*='bg-[var(--ios-cell)]'] {
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  backdrop-filter: blur(22px) saturate(1.6);
+}

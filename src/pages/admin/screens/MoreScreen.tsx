@@ -2,6 +2,7 @@ import {
   BarChart3,
   BellRing,
   CalendarX2,
+  Image as ImageIcon,
   Images,
   LogOut,
   MessageSquareQuote,
@@ -64,6 +65,7 @@ export function MoreScreen() {
       <Section header="Conta">
         {isOwner && <Cell Icon={Users} tint="blue" title="Equipa e permissões" onClick={() => push({ name: 'team' })} />}
         <Cell Icon={ShieldCheck} tint="gray" title="Password e segurança" onClick={() => push({ name: 'security' })} />
+        <Cell Icon={ImageIcon} title="Fundo e aparência" onClick={() => push({ name: 'appearance' })} />
         <Cell
           Icon={Moon}
           tint="indigo"
