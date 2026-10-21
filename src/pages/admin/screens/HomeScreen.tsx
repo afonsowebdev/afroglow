@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils'
 import { bookingName, bookingPrice } from '@/lib/pricing'
 import type { Booking } from '@/lib/types'
 import { useAdmin } from '../admin-context'
-import { addDaysKey, dateKey, dateParts, euros, greeting, longDate, plural, telHref, todayKey } from '../format'
+import { addDaysKey, dateKey, dateParts, euros, greeting, longDate, plural, telHref, todayKey, whenLabel } from '../format'
 import { Avatar, Cell, EmptyState, Screen, Section } from '../ios'
 
 interface QuickActionItem {
@@ -33,7 +33,18 @@ interface QuickActionItem {
  * What is done most, in reach: a large dark "Nova marcação" (the one done every day), and the rest as cards in two
  * columns, each with its icon, name and a line about it.
  */
-function QuickActions({ items, onNewBooking }: { items: QuickActionItem[]; onNewBooking?: () => void }) {
+function QuickActions({
+  items,
+  onNewBooking,
+  nextFree,
+  freeCount = 0,
+}: {
+  items: QuickActionItem[]
+  onNewBooking?: () => void
+  /** "Amanhã às 09:00": the first free time, to book straight into. */
+  nextFree?: string | null
+  freeCount?: number
+}) {
   return (
     <Section flush header="Ações rápidas">
       {onNewBooking && (
@@ -41,16 +52,46 @@ function QuickActions({ items, onNewBooking }: { items: QuickActionItem[]; onNew
           type="button"
           onClick={onNewBooking}
           whileTap={{ scale: 0.98 }}
-          className="flex w-full items-center gap-3.5 rounded-2xl bg-[var(--ios-tint)] p-4 text-left text-[var(--ios-on-tint)]"
+          className="relative flex w-full items-center gap-4 overflow-hidden rounded-3xl bg-[var(--ios-tint)] p-4 pr-3 text-left text-[var(--ios-on-tint)] shadow-lg shadow-black/15"
         >
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--ios-on-tint)_16%,transparent)]">
-            <Plus className="size-6" strokeWidth={2.2} />
+          {/* A soft gold glow behind the +, and a light sweeping across now and then. */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -left-10 -top-12 size-44 rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.35),transparent_65%)]"
+          />
+          <motion.span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/15 to-transparent"
+            initial={{ left: '-40%' }}
+            animate={{ left: ['-40%', '140%'] }}
+            transition={{ duration: 1.4, ease: 'easeInOut', repeat: Infinity, repeatDelay: 4.5 }}
+          />
+          <span className="relative flex size-14 shrink-0 items-center justify-center">
+            <motion.span
+              aria-hidden="true"
+              className="absolute inset-0 rounded-full ring-2 ring-[#c9a84c]"
+              animate={{ scale: [1, 1.18, 1], opacity: [0.7, 0, 0.7] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeOut' }}
+            />
+            <span className="flex size-14 items-center justify-center rounded-full bg-[#c9a84c] text-[#1c1c1e] shadow-[0_4px_14px_rgba(201,168,76,0.45)]">
+              <Plus className="size-7" strokeWidth={2.4} />
+            </span>
           </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-base font-semibold">Nova marcação</span>
-            <span className="block truncate text-xs opacity-75">Por WhatsApp, Instagram ou ao balcão</span>
+          <span className="relative min-w-0 flex-1">
+            <span className="block text-lg font-semibold leading-tight">Nova marcação</span>
+            <span className="mt-0.5 block truncate text-xs opacity-75">
+              {nextFree ? `Próxima vaga: ${nextFree}` : 'Por WhatsApp, Instagram ou ao balcão'}
+            </span>
+            {freeCount > 0 && (
+              <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[color-mix(in_srgb,var(--ios-on-tint)_14%,transparent)] px-2.5 py-1 text-[11px] font-medium">
+                <span className="size-1.5 rounded-full bg-[var(--ios-green)]" />
+                {plural(freeCount, 'vaga livre', 'vagas livres')} esta semana
+              </span>
+            )}
           </span>
-          <ArrowUpRight className="size-5 shrink-0 opacity-70" strokeWidth={2} />
+          <span className="relative flex size-9 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--ios-on-tint)_14%,transparent)]">
+            <ArrowUpRight className="size-[18px]" strokeWidth={2.2} />
+          </span>
         </motion.button>
       )}
       {items.length > 0 && (
@@ -150,6 +191,9 @@ export function HomeScreen() {
     return s.status === 'OPEN' && t >= now && t < weekEnd
   }).length
   const pendingTestimonials = testimonials.filter((t) => t.status === 'PENDING').length
+  const nextFreeSlot = slots
+    .filter((s) => s.status === 'OPEN' && new Date(s.startsAt).getTime() > now)
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))[0]
 
   const quick: QuickActionItem[] = [
     {
@@ -188,7 +232,12 @@ export function HomeScreen() {
             <MonthCard confirmed={confirmed} onClick={can('estatisticas') ? () => goTab('more', { name: 'stats' }) : undefined} />
           </div>
 
-          <QuickActions onNewBooking={() => newBooking(null)} items={quick} />
+          <QuickActions
+            onNewBooking={() => newBooking(null)}
+            items={quick}
+            nextFree={nextFreeSlot ? whenLabel(nextFreeSlot.startsAt) : null}
+            freeCount={freeWeek}
+          />
 
           {upcoming[0] && (
             <Section flush>
