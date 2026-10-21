@@ -21,7 +21,7 @@ import { bookingName, bookingPrice } from '@/lib/pricing'
 import type { Booking } from '@/lib/types'
 import { useAdmin } from '../admin-context'
 import { addDaysKey, dateKey, dateParts, euros, getLisbonYearMonth, greeting, longDate, plural, telHref, todayKey } from '../format'
-import { Avatar, Cell, EmptyState, Screen, Section, type Tint } from '../ios'
+import { Avatar, Cell, EmptyState, Screen, Section } from '../ios'
 
 /**
  * One of the four cards on top: the icon and what it counts, the number large, a line that says what it means, and
@@ -88,6 +88,69 @@ function Tile({
         </span>
       )}
     </motion.button>
+  )
+}
+
+interface QuickActionItem {
+  Icon: LucideIcon
+  title: string
+  hint: string
+  onClick: () => void
+  show: boolean
+}
+
+/**
+ * What is done most, in reach: a large dark "Nova marcação" (the one done every day), and the rest as cards in two
+ * columns, each with its icon, name and a line about it.
+ */
+function QuickActions({ items, onNewBooking }: { items: QuickActionItem[]; onNewBooking?: () => void }) {
+  return (
+    <Section flush header="Ações rápidas">
+      {onNewBooking && (
+        <motion.button
+          type="button"
+          onClick={onNewBooking}
+          whileTap={{ scale: 0.98 }}
+          className="flex w-full items-center gap-3.5 rounded-2xl bg-[var(--ios-tint)] p-4 text-left text-[var(--ios-on-tint)]"
+        >
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--ios-on-tint)_16%,transparent)]">
+            <Plus className="size-6" strokeWidth={2.2} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-base font-semibold">Nova marcação</span>
+            <span className="block truncate text-xs opacity-75">Por WhatsApp, Instagram ou ao balcão</span>
+          </span>
+          <ArrowUpRight className="size-5 shrink-0 opacity-70" strokeWidth={2} />
+        </motion.button>
+      )}
+      {items.length > 0 && (
+        <div className={cn('grid grid-cols-2 gap-3', onNewBooking && 'mt-3')}>
+          {items.map((item, i) => (
+            <motion.button
+              key={item.title}
+              type="button"
+              onClick={item.onClick}
+              whileTap={{ scale: 0.97 }}
+              className={cn(
+                'flex min-w-0 flex-col items-start gap-3 rounded-2xl bg-[var(--ios-cell)] p-4 text-left',
+                items.length % 2 === 1 && i === items.length - 1 && 'col-span-2',
+              )}
+            >
+              <span className="flex w-full items-center justify-between">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[var(--ios-bg)] shadow-[0_1px_3px_rgba(0,0,0,0.08),inset_0_0_0_0.5px_var(--ios-separator)]">
+                  <item.Icon className="size-[18px]" strokeWidth={1.9} />
+                </span>
+                <ArrowUpRight className="size-4 text-[var(--ios-tertiary)]" strokeWidth={2} />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold leading-tight">{item.title}</span>
+                <span className="mt-0.5 block text-xs leading-snug text-[var(--ios-secondary)]">{item.hint}</span>
+              </span>
+            </motion.button>
+          ))}
+        </div>
+      )}
+    </Section>
   )
 }
 
@@ -176,13 +239,18 @@ export function HomeScreen() {
   }).length
   const pendingTestimonials = testimonials.filter((t) => t.status === 'PENDING').length
 
-  const quick: Array<{ Icon: LucideIcon; tint: Tint; title: string; onClick: () => void; show: boolean }> = [
-    { Icon: Plus, tint: 'tint', title: 'Nova marcação', onClick: () => newBooking(null), show: can('marcacoes') },
-    { Icon: CalendarPlus, tint: 'green', title: 'Abrir horários', onClick: () => goTab('agenda', { name: 'agenda', id: 'horarios' }), show: can('marcacoes') },
-    { Icon: CalendarX2, tint: 'red', title: 'Fechar dias ou férias', onClick: () => goTab('more', { name: 'closures' }), show: can('marcacoes') },
-    { Icon: BellRing, tint: 'orange', title: 'Notificar clientes', onClick: () => goTab('more', { name: 'broadcast' }), show: can('notificacoes') },
-    { Icon: Tag, tint: 'pink', title: 'Promoções', onClick: () => goTab('more', { name: 'promotions' }), show: can('catalogo') },
-  ]
+  const quick: QuickActionItem[] = [
+    {
+      Icon: CalendarPlus,
+      title: 'Abrir horários',
+      hint: freeWeek ? `${plural(freeWeek, 'livre', 'livres')} esta semana` : 'Semana sem vagas',
+      onClick: () => goTab('agenda', { name: 'agenda', id: 'horarios' }),
+      show: can('marcacoes'),
+    },
+    { Icon: CalendarX2, title: 'Fechar dias', hint: 'Férias, folgas, feriados', onClick: () => goTab('more', { name: 'closures' }), show: can('marcacoes') },
+    { Icon: BellRing, title: 'Notificar', hint: 'Mensagem às clientes', onClick: () => goTab('more', { name: 'broadcast' }), show: can('notificacoes') },
+    { Icon: Tag, title: 'Promoções', hint: 'Descontos por uns dias', onClick: () => goTab('more', { name: 'promotions' }), show: can('catalogo') },
+  ].filter((q) => q.show)
 
   return (
     <Screen
@@ -253,6 +321,8 @@ export function HomeScreen() {
             />
           </div>
 
+          <QuickActions onNewBooking={() => newBooking(null)} items={quick} />
+
           {upcoming[0] && (
             <Section flush>
               <NextSession booking={upcoming[0]} />
@@ -306,12 +376,15 @@ export function HomeScreen() {
           )}
         </>
       ) : (
+        <>
+        {quick.length > 0 && <QuickActions items={quick} />}
         <EmptyState
           Icon={CalendarCheck}
           title={`Olá${firstName ? `, ${firstName}` : ''}`}
           text="Usa os separadores em baixo para o que tens acesso."
           action={can('clientes') ? { label: 'Abrir clientes', onClick: () => goTab('customers') } : undefined}
         />
+        </>
       )}
 
       {can('testemunhos') && pendingTestimonials > 0 && (
@@ -323,16 +396,6 @@ export function HomeScreen() {
             badge={pendingTestimonials}
             onClick={() => goTab('more', { name: 'testimonials' })}
           />
-        </Section>
-      )}
-
-      {quick.some((q) => q.show) && (
-        <Section header="Ações rápidas">
-          {quick
-            .filter((q) => q.show)
-            .map((q) => (
-              <Cell key={q.title} Icon={q.Icon} tint={q.tint} title={q.title} onClick={q.onClick} />
-            ))}
         </Section>
       )}
 
