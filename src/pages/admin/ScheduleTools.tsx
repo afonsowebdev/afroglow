@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { cn } from '@/lib/utils'
+import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
 import { api, ApiError } from '@/lib/api'
+import type { AvailabilitySlot } from '@/lib/types'
 
 const WEEKDAYS = [
   { id: 1, label: 'Seg' },
@@ -148,9 +150,9 @@ export function GenerateSlotsSheet({
     setPattern((p) => ({ ...p, week: { ...p.week, [day]: { ...p.week[day], [shift]: !p.week[day]?.[shift] } } }))
 
   const lastDay = times.length ? times[times.length - 1] : null
-  const section = 'mb-[7px] px-4 text-[13px] uppercase text-[var(--ios-secondary)]'
+  const section = 'mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark'
   const group =
-    'divide-y divide-[var(--ios-separator)] overflow-hidden rounded-[10px] bg-[var(--ios-cell)]'
+    'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
   const openDays = WEEKDAYS.filter((d) => pattern.week[d.id]?.am || pattern.week[d.id]?.pm).length
 
   return (
@@ -174,18 +176,18 @@ export function GenerateSlotsSheet({
               e.preventDefault()
               if (times.length && !busy) void submit()
             }}
-            className="relative flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-[12px] bg-[var(--ios-bg)] shadow-2xl sm:rounded-[14px]"
+            className="relative flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           >
-            <div className="flex shrink-0 items-center justify-between gap-3 ios-bar ios-hairline-b px-4 py-3">
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-onyx/10 px-4 py-3">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={busy}
-                className="min-w-20 text-left text-[17px] text-[var(--ios-tint)] disabled:opacity-50"
+                className="min-w-20 text-left font-subtitle text-[15px] text-onyx/60 disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -193,7 +195,7 @@ export function GenerateSlotsSheet({
               <button
                 type="submit"
                 disabled={busy || times.length === 0}
-                className="min-w-20 text-right text-[17px] font-semibold text-[var(--ios-tint)] disabled:opacity-30"
+                className="min-w-20 text-right font-subtitle text-[15px] font-semibold text-onyx disabled:opacity-30"
               >
                 {busy ? 'A criar…' : 'Criar'}
               </button>
@@ -270,7 +272,7 @@ export function GenerateSlotsSheet({
                             onClick={() => toggleShift(day.id, shift)}
                             className={cn(
                               'h-9 w-[4.25rem] rounded-full font-subtitle text-xs transition-colors',
-                              shifts[shift] ? 'bg-[var(--ios-tint)] font-medium text-[var(--ios-on-tint)]' : 'bg-[var(--ios-fill)] text-[var(--ios-secondary)]',
+                              shifts[shift] ? 'bg-onyx font-medium text-white' : 'border border-onyx/15 text-onyx/45',
                             )}
                           >
                             {shift === 'am' ? 'Manhã' : 'Tarde'}
@@ -285,7 +287,7 @@ export function GenerateSlotsSheet({
               {/* For how long. */}
               <section>
                 <h3 className={section}>Durante</h3>
-                <div className="grid grid-cols-6 rounded-[9px] bg-[var(--ios-fill)] p-[2px]" role="radiogroup" aria-label="Semanas">
+                <div className="grid grid-cols-6 rounded-xl bg-onyx/[0.06] p-1" role="radiogroup" aria-label="Semanas">
                   {[1, 2, 3, 4, 6, 8].map((w) => (
                     <button
                       key={w}
@@ -361,5 +363,71 @@ export function GenerateSlotsSheet({
         </div>
       )}
     </AnimatePresence>
+  )
+}
+
+/** Closes a whole day (holiday, day off): removes its still-open slots. Booked ones are never touched. */
+export function BlockDaySheet({
+  open,
+  slots,
+  onClose,
+  onDone,
+}: {
+  open: boolean
+  slots: AvailabilitySlot[]
+  onClose: () => void
+  onDone: (message: string) => void
+}) {
+  const [date, setDate] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (open) {
+      setDate(dateValue(new Date()))
+      setError(null)
+    }
+  }, [open])
+
+  const onThatDay = slots.filter((s) => dateValue(new Date(s.startsAt)) === date)
+  const open_ = onThatDay.filter((s) => s.status === 'OPEN')
+  const taken = onThatDay.length - open_.length
+
+  async function submit() {
+    setBusy(true)
+    setError(null)
+    try {
+      for (const slot of open_) await api.delete(`/admin/availability/${slot.id}`)
+      onDone(`Dia fechado: ${open_.length} horários removidos.`)
+      onClose()
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Erro ao fechar o dia.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Sheet
+      open={open}
+      title="Fechar um dia"
+      description="Remove os horários livres desse dia, por exemplo num feriado ou nas férias."
+      icon="bx bx-calendar-x"
+      destructive
+      busy={busy}
+      error={error}
+      submitLabel="Fechar dia"
+      submitDisabled={open_.length === 0}
+      onSubmit={submit}
+      onClose={onClose}
+    >
+      <SheetField label="Dia">
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={sheetFieldClass} />
+      </SheetField>
+      <p className="font-subtitle text-sm text-onyx">
+        {open_.length === 0 ? 'Não há horários livres neste dia.' : `${open_.length} horários livres serão removidos.`}
+        {taken > 0 && ` ${taken} com marcação ou pedido ficam como estão — trata deles em Pedidos ou Agenda.`}
+      </p>
+    </Sheet>
   )
 }

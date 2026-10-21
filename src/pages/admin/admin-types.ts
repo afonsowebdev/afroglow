@@ -24,12 +24,10 @@ export type AdminCustomerDetail = Omit<AdminCustomer, 'bookingCount' | 'spentCen
     visits: number
     spentCents: number
     averageCents: number
-    firstVisitAt: string | null
     lastVisitAt: string | null
     everyDays: number | null
     favouriteService: string | null
     cancelled: number
-    nextBookingId: string | null
   }
 }
 

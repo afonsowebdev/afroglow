@@ -6,12 +6,12 @@ import { loadBusinessInfo, mapSearchText, type BusinessInfo } from '@/lib/site-c
 const plain =
   'field-plain block w-full min-w-0 bg-transparent font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35'
 const group =
-  'divide-y divide-[var(--ios-separator)] overflow-hidden rounded-[10px] bg-[var(--ios-cell)]'
+  'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
 
 function Section({ title, note, children }: { title: string; note?: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="mb-[7px] px-4 text-[13px] uppercase text-[var(--ios-secondary)]">
+      <h2 className="mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">
         {title}
       </h2>
       {children}

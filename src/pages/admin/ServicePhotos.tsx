@@ -6,7 +6,7 @@ const MAX_SIDE = 1600
 const PHOTOS_PER_PACKAGE = 5
 
 /** Shrinks a phone photo (often 4-8 MB) to a ~300 KB JPEG before it is uploaded. */
-export async function shrinkPhoto(file: File): Promise<string> {
+export async function shrink(file: File): Promise<string> {
   const bitmap = await createImageBitmap(file)
   const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height))
   const canvas = document.createElement('canvas')
@@ -49,7 +49,7 @@ export function ServicePhotos({
     if (!files || files.length === 0) return
     await run('A enviar fotos...', async () => {
       for (const file of Array.from(files).slice(0, Math.max(0, PHOTOS_PER_PACKAGE - images.length))) {
-        const data = await shrinkPhoto(file)
+        const data = await shrink(file)
         await api.post(`/admin/services/${serviceId}/images`, { contentType: 'image/jpeg', data })
       }
     })
