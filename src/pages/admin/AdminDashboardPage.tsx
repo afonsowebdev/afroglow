@@ -2025,7 +2025,7 @@ function AdminDashboard() {
               )
             : Promise.resolve([] as Service[]),
           has('marcacoes') ? api.get<AvailabilitySlot[]>('/admin/availability') : Promise.resolve([] as AvailabilitySlot[]),
-          has('marcacoes') ? api.get<Booking[]>('/admin/bookings') : Promise.resolve([] as Booking[]),
+          has('marcacoes') || has('estatisticas') ? api.get<Booking[]>('/admin/bookings') : Promise.resolve([] as Booking[]),
           has('testemunhos') ? api.get<Testimonial[]>('/admin/testimonials') : Promise.resolve([] as Testimonial[]),
         ])
         setServices(servicesData)
@@ -2910,7 +2910,7 @@ function AdminDashboard() {
               />
             )}
 
-            {tab === 'estatisticas' && <StatsView />}
+            {tab === 'estatisticas' && <StatsView bookings={bookings} />}
             {tab === 'portfolio' && <PortfolioView />}
             {tab === 'seguranca' && <SecurityView onLogout={() => void handleLogout()} />}
             {tab === 'definicoes' && <SettingsView />}

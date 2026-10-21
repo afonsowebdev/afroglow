@@ -118,15 +118,18 @@ bookingsRouter.post('/', requireCustomer, async (req, res) => {
 })
 
 export const adminBookingsRouter = Router()
-adminBookingsRouter.use(requireAdmin, requirePermission('marcacoes'))
+adminBookingsRouter.use(requireAdmin)
 
-adminBookingsRouter.get('/', async (_req, res) => {
+// The list is also what Estatísticas is worked out from.
+adminBookingsRouter.get('/', requirePermission('marcacoes', 'estatisticas'), async (_req, res) => {
   const bookings = await prisma.booking.findMany({
     include: { slot: true, service: true },
     orderBy: { createdAt: 'desc' },
   })
   res.json(bookings)
 })
+
+adminBookingsRouter.use(requirePermission('marcacoes'))
 
 adminBookingsRouter.post('/:id/accept', async (req, res) => {
   await resolveBooking(req.params.id, 'ACCEPTED', 'BOOKED', res, ['PENDING'])

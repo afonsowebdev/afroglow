@@ -31,14 +31,6 @@ export type AdminCustomerDetail = Omit<AdminCustomer, 'bookingCount' | 'spentCen
   }
 }
 
-export interface AdminStats {
-  currentMonth: string
-  months: Array<{ key: string; bookings: number; revenueCents: number }>
-  topServices: Array<{ name: string; count: number; revenueCents: number }>
-  totals: { accepted: number; cancelled: number; rejected: number; pending: number; cancellationRate: number }
-  clients: { total: number; newThisMonth: number; returning: number }
-}
-
 export const STATUS_LABEL: Record<Booking['status'], string> = {
   PENDING: 'Pendente',
   ACCEPTED: 'Confirmada',
