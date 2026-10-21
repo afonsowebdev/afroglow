@@ -412,40 +412,40 @@
   -webkit-tap-highlight-color: transparent;
 }
 .dark .admin-ios {
-  /* A deep espresso, near black with a warm hint: the brand's brown, toned down. */
-  --ios-bg: #17120e;
-  --ios-cell: #231c16;
-  --ios-cell-pressed: #2d241d;
-  --ios-elevated: #231c16;
-  --ios-label: #f2ebe1;
-  --ios-secondary: rgba(242, 235, 225, 0.62);
-  --ios-tertiary: rgba(242, 235, 225, 0.3);
-  --ios-separator: rgba(242, 235, 225, 0.1);
-  --ios-fill: rgba(242, 235, 225, 0.07);
-  --ios-fill-strong: rgba(242, 235, 225, 0.18);
-  --ios-bar: rgba(23, 18, 14, 0.82);
+  /* The system's warm brown, as the admin and the website have always had it. */
+  --ios-bg: #2b1d12;
+  --ios-cell: #3a2818;
+  --ios-cell-pressed: #46301d;
+  --ios-elevated: #3a2818;
+  --ios-label: #f0e6d6;
+  --ios-secondary: rgba(240, 230, 214, 0.64);
+  --ios-tertiary: rgba(240, 230, 214, 0.32);
+  --ios-separator: rgba(240, 230, 214, 0.12);
+  --ios-fill: rgba(240, 230, 214, 0.08);
+  --ios-fill-strong: rgba(240, 230, 214, 0.2);
+  --ios-bar: rgba(43, 29, 18, 0.88);
   --ios-pattern-bg: #15100c;
   --ios-pattern-ink: rgba(242, 235, 225, 0.05);
   --ios-pattern-glow-1: rgba(201, 168, 76, 0.07);
   --ios-pattern-glow-2: rgba(120, 70, 35, 0.12);
-  --ios-tint: #f2ebe1;
-  --ios-on-tint: #17120e;
+  --ios-tint: #f0e6d6;
+  --ios-on-tint: #2b1d12;
   --ios-gold: #d4b055;
   --ios-red: #f87171;
   --ios-green: #34d399;
   --ios-orange: #fbbf24;
-  --ios-blue: #f2ebe1;
-  --ios-indigo: #f2ebe1;
-  --ios-teal: #f2ebe1;
-  --ios-pink: #f2ebe1;
-  --ios-purple: #f2ebe1;
-  --ios-gray: #a8998a;
+  --ios-blue: #f0e6d6;
+  --ios-indigo: #f0e6d6;
+  --ios-teal: #f0e6d6;
+  --ios-pink: #f0e6d6;
+  --ios-purple: #f0e6d6;
+  --ios-gray: #b39c7d;
 
-  --color-white: #17120e;
-  --color-cream: #231c16;
-  --color-onyx: #f2ebe1;
-  --color-muted: #a8998a;
-  --color-muted-dark: #d6cbbd;
+  --color-white: #2b1d12;
+  --color-cream: #3a2818;
+  --color-onyx: #f0e6d6;
+  --color-muted: #b39c7d;
+  --color-muted-dark: #d9c7a8;
   --color-gold-ink: #d4b055;
   --color-gold-deep: #d4b055;
 }

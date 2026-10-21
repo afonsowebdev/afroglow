@@ -25,8 +25,8 @@ export const COLORS: Array<{ name: string; value: string }> = [
 
 export const PHOTOS = ['/images/hero/hero-1.jpg', '/images/hero/hero-3.jpg', '/images/hero/hero-4.jpg', '/images/hero/hero-5.jpg', '/images/hero-app-poster-light.jpg']
 
-const KEY = 'afroglow-admin-appearance-v2'
-const DEFAULT: Appearance = { wallpaper: { kind: 'pattern' }, blur: 10, glass: 'media' }
+const KEY = 'afroglow-admin-appearance-v3'
+const DEFAULT: Appearance = { wallpaper: { kind: 'none' }, blur: 10, glass: 'media' }
 
 function load(): Appearance {
   try {
