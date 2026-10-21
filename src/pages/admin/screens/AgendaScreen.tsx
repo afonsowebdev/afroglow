@@ -82,7 +82,7 @@ function MonthGrid({
   return (
     <div className="rounded-[12px] bg-[var(--ios-cell)] px-2 pb-2 pt-1">
       <div className="flex items-center justify-between px-2">
-        <p className="text-[17px] font-semibold">{monthLabel(month)}</p>
+        <p className="text-[15px] font-semibold">{monthLabel(month)}</p>
         <div className="flex items-center">
           {!isThisMonth && (
             <button
@@ -133,9 +133,8 @@ function MonthGrid({
               <span
                 className={cn(
                   'flex size-[34px] items-center justify-center rounded-full text-[19px] tabular-nums',
-                  on && isToday && 'bg-[var(--ios-red)] font-semibold text-white',
-                  on && !isToday && 'bg-[var(--ios-label)] font-semibold text-[var(--ios-cell)]',
-                  !on && isToday && 'font-semibold text-[var(--ios-red)]',
+                  on && 'bg-[var(--ios-tint)] font-semibold text-[var(--ios-on-tint)]',
+                  !on && isToday && 'font-semibold ring-1 ring-[var(--ios-tint)]',
                   !on && !isToday && key < today && 'text-[var(--ios-secondary)]',
                   closed && !on && 'text-[var(--ios-tertiary)] line-through',
                 )}
@@ -256,8 +255,8 @@ function OpenDaySheet({
                   aria-pressed={on}
                   onClick={() => toggle(time)}
                   className={cn(
-                    'h-11 rounded-[10px] text-[17px] tabular-nums transition-colors',
-                    on ? 'bg-[var(--ios-tint)] font-semibold text-white dark:text-black' : 'bg-[var(--ios-cell)]',
+                    'h-11 rounded-[10px] text-[15px] tabular-nums transition-colors',
+                    on ? 'bg-[var(--ios-tint)] font-semibold text-[var(--ios-on-tint)]' : 'bg-[var(--ios-cell)]',
                     isTaken && 'text-[var(--ios-tertiary)] line-through',
                   )}
                 >
@@ -414,7 +413,7 @@ export function AgendaScreen({ initialMode }: { initialMode?: string }) {
       key={b.id}
       leading={
         <span className="flex w-12 flex-col">
-          <span className="text-[17px] font-semibold tabular-nums">{dateParts(b.slot.startsAt).time}</span>
+          <span className="text-[15px] font-semibold tabular-nums">{dateParts(b.slot.startsAt).time}</span>
           {showDay && <span className="text-[11px] text-[var(--ios-secondary)]">{dateParts(b.slot.startsAt).day} {dateParts(b.slot.startsAt).month}</span>}
         </span>
       }
@@ -549,7 +548,7 @@ export function AgendaScreen({ initialMode }: { initialMode?: string }) {
                 return (
                   <Cell
                     key={slot.id}
-                    leading={<span className="w-12 text-[17px] font-semibold tabular-nums">{dateParts(slot.startsAt).time}</span>}
+                    leading={<span className="w-12 text-[15px] font-semibold tabular-nums">{dateParts(slot.startsAt).time}</span>}
                     title={
                       <span className="flex items-center gap-2">
                         <span
@@ -590,7 +589,7 @@ export function AgendaScreen({ initialMode }: { initialMode?: string }) {
             <button type="button" aria-label="Mês anterior" onClick={() => changeMonth(stepMonth(month, -1))} className="flex size-11 items-center justify-center text-[var(--ios-tint)]">
               <ChevronLeft className="size-6" strokeWidth={2.4} />
             </button>
-            <p className="text-[17px] font-semibold">{monthLabel(month)}</p>
+            <p className="text-[15px] font-semibold">{monthLabel(month)}</p>
             <button type="button" aria-label="Mês seguinte" onClick={() => changeMonth(stepMonth(month, 1))} className="flex size-11 items-center justify-center text-[var(--ios-tint)]">
               <ChevronRight className="size-6" strokeWidth={2.4} />
             </button>
@@ -604,7 +603,7 @@ export function AgendaScreen({ initialMode }: { initialMode?: string }) {
                   key={b.id}
                   leading={
                     <span className="flex w-10 flex-col items-center">
-                      <span className="text-[17px] font-semibold leading-none tabular-nums">{dateParts(b.slot.startsAt).day}</span>
+                      <span className="text-[15px] font-semibold leading-none tabular-nums">{dateParts(b.slot.startsAt).day}</span>
                       <span className="mt-0.5 text-[11px] uppercase text-[var(--ios-secondary)]">{dateParts(b.slot.startsAt).month}</span>
                     </span>
                   }

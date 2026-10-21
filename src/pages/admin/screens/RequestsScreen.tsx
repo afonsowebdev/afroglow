@@ -43,7 +43,7 @@ function RequestCard({
         >
           <Avatar name={booking.customerName} size={40} />
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-[17px] font-semibold">{booking.customerName}</span>
+            <span className="block truncate text-[15px] font-semibold">{booking.customerName}</span>
             <span className="block truncate text-[13px] text-[var(--ios-secondary)]">
               Pedido {timeAgo(booking.createdAt).toLowerCase()}
             </span>
@@ -69,8 +69,8 @@ function RequestCard({
 
       <div className="mx-4 my-2 rounded-[10px] bg-[var(--ios-bg)] px-3.5 py-3">
         <div className="flex items-baseline justify-between gap-3">
-          <span className="text-[17px] font-semibold">{dayTitle(booking.slot.startsAt)}</span>
-          <span className="text-[22px] font-bold tabular-nums">{time}</span>
+          <span className="text-[15px] font-semibold">{dayTitle(booking.slot.startsAt)}</span>
+          <span className="text-[22px] font-semibold tabular-nums">{time}</span>
         </div>
         <div className="mt-1 flex items-baseline justify-between gap-3 text-[15px]">
           <span className="min-w-0 truncate">{booking.service.name}</span>

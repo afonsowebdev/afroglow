@@ -7,6 +7,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Check, ChevronLeft, ChevronRight, Search, X, type LucideIcon } from 'lucide-react'
+import { BrandLogo } from '@/components/ui/brand-logo'
 import { cn } from '@/lib/utils'
 
 /* ── Screen: large title, small bar on scroll ─────────────────────────────────────────────────────────────────── */
@@ -46,7 +47,7 @@ export function Screen({
   }, [])
 
   return (
-    <div className={cn('min-h-screen', bottomInset && 'pb-[calc(6.5rem+env(safe-area-inset-bottom))]')}>
+    <div className={cn('min-h-screen', bottomInset && 'pb-[calc(8rem+env(safe-area-inset-bottom))]')}>
       {/* The bar: back and actions always; the small title and the blur only once the large title is gone. */}
       <div
         ref={barRef}
@@ -61,32 +62,45 @@ export function Screen({
               <button
                 type="button"
                 onClick={back.onClick}
-                className="flex h-11 min-w-0 items-center text-[17px] text-[var(--ios-tint)] active:opacity-50"
+                className="flex h-11 min-w-0 items-center text-[15px] text-[var(--ios-tint)] active:opacity-50"
               >
                 <ChevronLeft className="size-7 shrink-0" strokeWidth={2.4} />
                 <span className="-ml-0.5 truncate">{back.label}</span>
               </button>
             )}
           </div>
-          <p
-            className={cn(
-              'max-w-[55%] truncate text-[17px] font-semibold transition-opacity duration-200',
-              compact ? 'opacity-100' : 'opacity-0',
+          <div className="relative flex max-w-[55%] items-center justify-center">
+            <p
+              className={cn(
+                'truncate text-[15px] font-semibold transition-opacity duration-200',
+                compact ? 'opacity-100' : 'opacity-0',
+              )}
+              aria-hidden={!compact}
+            >
+              {title}
+            </p>
+            {/* The tabs' own screens wear the AFROGLOW pill on top, as the admin always had. */}
+            {!back && (
+              <span
+                className={cn(
+                  'absolute flex h-10 items-center rounded-full bg-[var(--ios-elevated)] pe-4 ps-1.5 shadow-lg shadow-black/10 transition-opacity duration-200',
+                  compact ? 'pointer-events-none opacity-0' : 'opacity-100',
+                )}
+              >
+                <BrandLogo size="sm" />
+              </span>
             )}
-            aria-hidden={!compact}
-          >
-            {title}
-          </p>
+          </div>
           <div className="flex min-w-0 flex-1 items-center justify-end gap-1">{trailing}</div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-3xl pt-[calc(2.75rem+env(safe-area-inset-top))]">
-        <div className="px-4 pb-2 pt-1">
-          <h1 ref={titleRef} className="text-[34px] font-bold leading-[41px] tracking-[0.01em]">
+      <div className={cn('mx-auto max-w-3xl', back ? 'pt-[calc(2.75rem+env(safe-area-inset-top))]' : 'pt-[calc(4rem+env(safe-area-inset-top))]')}>
+        <div className="px-5 pb-2 pt-1">
+          <h1 ref={titleRef} className="text-[32px] font-semibold leading-[40px] tracking-tight">
             {title}
           </h1>
-          {subtitle && <div className="mt-0.5 text-[15px] text-[var(--ios-secondary)]">{subtitle}</div>}
+          {subtitle && <div className="mt-1 text-sm font-light text-[var(--ios-secondary)]">{subtitle}</div>}
         </div>
         {children}
       </div>
@@ -115,7 +129,7 @@ export function BarButton({
       disabled={disabled}
       aria-label={label}
       className={cn(
-        'flex h-11 min-w-11 items-center justify-center px-2 text-[17px] text-[var(--ios-tint)] active:opacity-50 disabled:opacity-30',
+        'flex h-11 min-w-11 items-center justify-center px-2 text-[15px] text-[var(--ios-tint)] active:opacity-50 disabled:opacity-30',
         bold && 'font-semibold',
       )}
     >
@@ -143,14 +157,14 @@ export function Section({
   return (
     <section className={cn('mt-[22px] px-4', className)}>
       {header && (
-        <h2 className="mb-[7px] px-4 text-[13px] uppercase leading-[18px] text-[var(--ios-secondary)]">{header}</h2>
+        <h2 className="mb-2 px-1 text-xs font-medium uppercase tracking-[0.14em] text-[var(--ios-secondary)]">{header}</h2>
       )}
       {flush ? (
         children
       ) : (
-        <div className="ios-list overflow-hidden rounded-[10px] bg-[var(--ios-cell)]">{children}</div>
+        <div className="ios-list overflow-hidden rounded-2xl bg-[var(--ios-cell)]">{children}</div>
       )}
-      {footer && <div className="mt-[7px] px-4 text-[13px] leading-[18px] text-[var(--ios-secondary)]">{footer}</div>}
+      {footer && <div className="mt-2 px-1 text-xs leading-[18px] text-[var(--ios-secondary)]">{footer}</div>}
     </section>
   )
 }
@@ -162,14 +176,14 @@ export function tintVar(tint: Tint) {
   return `var(--ios-${tint})`
 }
 
-/** A white symbol on a coloured rounded square, as in Settings. */
-export function IconTile({ Icon, tint = 'gray', size = 29 }: { Icon: LucideIcon; tint?: Tint; size?: number }) {
+/** The admin's round black icon (red for what deletes or closes), as in the lists it always had. */
+export function IconTile({ Icon, tint = 'gray', size = 36 }: { Icon: LucideIcon; tint?: Tint; size?: number }) {
   return (
     <span
-      className="flex shrink-0 items-center justify-center rounded-[7px] text-white"
-      style={{ width: size, height: size, background: tintVar(tint) }}
+      className="flex shrink-0 items-center justify-center rounded-full text-[var(--ios-on-tint)]"
+      style={{ width: size, height: size, background: tint === 'red' ? 'var(--ios-red)' : 'var(--ios-tint)' }}
     >
-      <Icon style={{ width: size * 0.62, height: size * 0.62 }} strokeWidth={2.2} />
+      <Icon style={{ width: size * 0.5, height: size * 0.5 }} strokeWidth={2} />
     </span>
   )
 }
@@ -217,7 +231,7 @@ export function Cell({
     <span className="min-w-0 flex-1">
       <span
         className={cn(
-          'block text-[17px] leading-[22px]',
+          'block text-[15px] leading-[21px]',
           !multiline && 'truncate',
           destructive && 'text-[var(--ios-red)]',
           tinted && 'text-[var(--ios-tint)]',
@@ -228,7 +242,7 @@ export function Cell({
       {subtitle && (
         <span
           className={cn(
-            'mt-0.5 block text-[13px] leading-[18px] text-[var(--ios-secondary)]',
+            'mt-0.5 block text-xs leading-[17px] text-[var(--ios-secondary)]',
             multiline ? 'whitespace-pre-line' : 'truncate',
           )}
         >
@@ -240,7 +254,7 @@ export function Cell({
   const trailing = (
     <>
       {detail !== undefined && detail !== null && (
-        <span className="max-w-[55%] shrink-0 truncate text-right text-[17px] text-[var(--ios-secondary)]">{detail}</span>
+        <span className="max-w-[55%] shrink-0 truncate text-right text-[15px] text-[var(--ios-secondary)]">{detail}</span>
       )}
       {badge ? <CountBadge count={badge} /> : null}
       {acc === 'chevron' && <ChevronRight className="size-[18px] shrink-0 text-[var(--ios-tertiary)]" strokeWidth={2.6} />}
@@ -269,7 +283,7 @@ export function Cell({
           <button type="button" onClick={onClick} disabled={disabled} className="flex min-w-0 flex-1 items-center gap-2 text-left active:opacity-50">
             {text}
             {detail !== undefined && detail !== null && (
-              <span className="max-w-[55%] shrink-0 truncate text-right text-[17px] text-[var(--ios-secondary)]">{detail}</span>
+              <span className="max-w-[55%] shrink-0 truncate text-right text-[15px] text-[var(--ios-secondary)]">{detail}</span>
             )}
           </button>
           {control}
@@ -341,11 +355,11 @@ export function Toggle({
       onClick={() => onChange(!checked)}
       className={cn(
         'relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-200 disabled:opacity-40',
-        checked ? 'bg-[var(--ios-green)]' : 'bg-[var(--ios-fill-strong)]',
+        checked ? 'bg-[var(--ios-tint)]' : 'bg-[var(--ios-fill-strong)]',
       )}
     >
       <motion.span
-        className="absolute top-[2px] size-[27px] rounded-full bg-white shadow-[0_3px_8px_rgba(0,0,0,0.15),0_3px_1px_rgba(0,0,0,0.06)]"
+        className="absolute top-[2px] size-[27px] rounded-full bg-[var(--ios-bg)] shadow-[0_3px_8px_rgba(0,0,0,0.15),0_3px_1px_rgba(0,0,0,0.06)]"
         animate={{ left: checked ? 22 : 2 }}
         transition={{ type: 'spring', stiffness: 600, damping: 38 }}
       />
@@ -399,7 +413,7 @@ export function Segmented<T extends string>({
   return (
     <div
       role="tablist"
-      className={cn('grid h-8 rounded-[9px] bg-[var(--ios-fill)] p-[2px]', className)}
+      className={cn('grid h-10 rounded-xl bg-[var(--ios-fill)] p-1', className)}
       style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
     >
       {options.map((option) => {
@@ -411,16 +425,16 @@ export function Segmented<T extends string>({
             role="tab"
             aria-selected={on}
             onClick={() => onChange(option.value)}
-            className="relative flex min-w-0 items-center justify-center rounded-[7px] px-1 text-[13px]"
+            className="relative flex min-w-0 items-center justify-center rounded-[9px] px-1 text-sm"
           >
             {on && (
               <motion.span
                 layoutId={id}
-                className="absolute inset-0 rounded-[7px] bg-white shadow-[0_3px_8px_rgba(0,0,0,0.12),0_3px_1px_rgba(0,0,0,0.04)] dark:bg-[#636366]"
+                className="absolute inset-0 rounded-[9px] bg-[var(--ios-bg)] shadow-sm shadow-black/10 dark:bg-[rgba(240,230,214,0.14)]"
                 transition={{ type: 'spring', stiffness: 500, damping: 40 }}
               />
             )}
-            <span className={cn('relative truncate', on ? 'font-semibold' : 'font-normal')}>{option.label}</span>
+            <span className={cn('relative truncate', on ? 'font-medium' : 'text-[var(--ios-secondary)]')}>{option.label}</span>
           </button>
         )
       })}
@@ -440,7 +454,7 @@ export function SearchField({
   className?: string
 }) {
   return (
-    <label className={cn('flex h-9 items-center gap-1.5 rounded-[10px] bg-[var(--ios-fill)] px-2', className)}>
+    <label className={cn('flex h-11 items-center gap-2 rounded-full bg-[var(--ios-fill)] px-4', className)}>
       <Search className="size-[17px] shrink-0 text-[var(--ios-secondary)]" strokeWidth={2.4} />
       <input
         value={value}
@@ -448,7 +462,7 @@ export function SearchField({
         placeholder={placeholder}
         aria-label={placeholder}
         type="search"
-        className="field-plain h-full min-w-0 flex-1 bg-transparent text-[17px] outline-none placeholder:text-[var(--ios-secondary)] [&::-webkit-search-cancel-button]:hidden"
+        className="field-plain h-full min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-[var(--ios-secondary)] [&::-webkit-search-cancel-button]:hidden"
       />
       {value && (
         <button
@@ -488,9 +502,9 @@ export function Button({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        'flex h-[50px] w-full items-center justify-center gap-2 rounded-[12px] px-4 text-[17px] font-semibold transition-opacity active:opacity-60 disabled:opacity-35',
-        variant === 'filled' && 'bg-[var(--ios-tint)] text-white dark:text-black',
-        variant === 'tinted' && 'bg-[color-mix(in_srgb,var(--ios-tint)_15%,transparent)] text-[var(--ios-tint)]',
+        'flex h-12 w-full items-center justify-center gap-2 rounded-full px-5 text-[15px] font-medium transition-opacity active:opacity-60 disabled:opacity-35',
+        variant === 'filled' && 'bg-[var(--ios-tint)] text-[var(--ios-on-tint)]',
+        variant === 'tinted' && 'bg-[var(--ios-fill)] text-[var(--ios-tint)]',
         variant === 'gray' && 'bg-[var(--ios-fill)] text-[var(--ios-label)]',
         variant === 'destructive' && 'bg-[var(--ios-red)] text-white',
         variant === 'destructiveTinted' && 'bg-[color-mix(in_srgb,var(--ios-red)_15%,transparent)] text-[var(--ios-red)]',
@@ -505,18 +519,11 @@ export function Button({
 
 /** Round initials (or a photo), as in Contacts. */
 export function Avatar({ name, src, size = 40 }: { name: string; src?: string | null; size?: number }) {
-  const initials =
-    name
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part.charAt(0).toUpperCase())
-      .join('') || '?'
+  const initials = name.trim().charAt(0).toUpperCase() || '?'
   if (src) return <img src={src} alt="" className="shrink-0 rounded-full object-cover" style={{ width: size, height: size }} />
   return (
     <span
-      className="flex shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-[#a5abb8] to-[#858994] font-medium text-white"
+      className="flex shrink-0 items-center justify-center rounded-full bg-[var(--ios-tint)] font-semibold text-[var(--ios-on-tint)]"
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {initials}
@@ -537,12 +544,14 @@ export function EmptyState({
   action?: { label: string; onClick: () => void }
 }) {
   return (
-    <div className="flex flex-col items-center px-8 py-14 text-center">
-      <Icon className="size-12 text-[var(--ios-tertiary)]" strokeWidth={1.5} />
-      <p className="mt-4 text-[20px] font-semibold">{title}</p>
+    <div className="mx-4 mt-6 flex flex-col items-center rounded-3xl bg-[var(--ios-cell)] px-6 py-10 text-center">
+      <span className="flex size-16 items-center justify-center rounded-full bg-[var(--ios-tint)] text-[var(--ios-on-tint)]">
+        <Icon className="size-8" strokeWidth={1.8} />
+      </span>
+      <p className="mt-5 text-xl font-semibold tracking-tight">{title}</p>
       {text && <p className="mt-1 max-w-xs text-[15px] text-[var(--ios-secondary)]">{text}</p>}
       {action && (
-        <button type="button" onClick={action.onClick} className="mt-4 text-[17px] text-[var(--ios-tint)] active:opacity-50">
+        <button type="button" onClick={action.onClick} className="mt-4 text-[15px] font-medium underline underline-offset-4 active:opacity-50">
           {action.label}
         </button>
       )}
@@ -553,14 +562,14 @@ export function EmptyState({
 /* ── Form rows ─────────────────────────────────────────────────────────────────────────────────────────────────── */
 
 export const plainInput =
-  'field-plain min-w-0 bg-transparent text-[17px] outline-none placeholder:text-[var(--ios-tertiary)] disabled:opacity-50'
+  'field-plain min-w-0 bg-transparent text-base outline-none placeholder:text-[var(--ios-tertiary)] disabled:opacity-50'
 
 /** A label on the left and its field on the right. */
 export function FieldRow({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="flex w-full items-stretch">
       <span className="ios-cell-body ml-4 flex min-h-11 flex-1 items-center gap-3 pr-4">
-        <span className="w-28 shrink-0 text-[17px]">{label}</span>
+        <span className="w-28 shrink-0 text-[15px]">{label}</span>
         <span className="flex min-w-0 flex-1 justify-end">{children}</span>
       </span>
     </label>
@@ -610,8 +619,8 @@ export function DateCell({
   return (
     <label className="relative flex w-full">
       <span className="ios-cell-body ml-4 flex min-h-11 flex-1 items-center gap-3 pr-4">
-        <span className="flex-1 text-[17px]">{label}</span>
-        <span className="rounded-[6px] bg-[var(--ios-fill)] px-2.5 py-1 text-[17px] tabular-nums">{display}</span>
+        <span className="flex-1 text-[15px]">{label}</span>
+        <span className="rounded-[6px] bg-[var(--ios-fill)] px-2.5 py-1 text-[15px] tabular-nums">{display}</span>
       </span>
       <input
         type={type}
@@ -691,17 +700,17 @@ export function IOSSheet({
                 type="button"
                 onClick={onClose}
                 disabled={busy}
-                className="z-10 text-[17px] text-[var(--ios-tint)] active:opacity-50 disabled:opacity-30"
+                className="z-10 text-[15px] text-[var(--ios-tint)] active:opacity-50 disabled:opacity-30"
               >
                 {closeLabel}
               </button>
-              <h2 className="absolute inset-x-24 truncate text-center text-[17px] font-semibold">{title}</h2>
+              <h2 className="absolute inset-x-24 truncate text-center text-[15px] font-semibold">{title}</h2>
               {done ? (
                 <button
                   type="button"
                   onClick={done.onClick}
                   disabled={busy || done.disabled}
-                  className="z-10 text-[17px] font-semibold text-[var(--ios-tint)] active:opacity-50 disabled:opacity-30"
+                  className="z-10 text-[15px] font-semibold text-[var(--ios-tint)] active:opacity-50 disabled:opacity-30"
                 >
                   {busy ? 'A guardar…' : done.label}
                 </button>
@@ -764,7 +773,7 @@ export function Alert({
             transition={{ duration: 0.18 }}
           >
             <div className="px-4 pb-4 pt-5">
-              <p className="text-[17px] font-semibold leading-[22px]">{title}</p>
+              <p className="text-[15px] font-semibold leading-[22px]">{title}</p>
               {message && <div className="mt-0.5 text-[13px] leading-[18px]">{message}</div>}
               {children && <div className="mt-3 text-left">{children}</div>}
             </div>
@@ -781,7 +790,7 @@ export function Alert({
                     if (!button.onClick || button.style === 'cancel') onClose()
                   }}
                   className={cn(
-                    'h-11 text-[17px] active:bg-[var(--ios-fill)]',
+                    'h-11 text-[15px] active:bg-[var(--ios-fill)]',
                     button.style === 'destructive' ? 'text-[var(--ios-red)]' : 'text-[var(--ios-tint)]',
                     button.style === 'cancel' || (!stacked && i === buttons.length - 1 && button.style !== 'destructive')
                       ? 'font-semibold'
@@ -907,47 +916,4 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 export function useToast() {
   return useContext(ToastContext)
-}
-
-/* ── Tab bar ───────────────────────────────────────────────────────────────────────────────────────────────────── */
-
-export function TabBar<T extends string>({
-  items,
-  value,
-  onChange,
-}: {
-  items: Array<{ id: T; label: string; Icon: LucideIcon; badge?: number }>
-  value: T
-  onChange: (id: T) => void
-}) {
-  return (
-    <nav
-      className="ios-bar ios-hairline-t fixed inset-x-0 bottom-0 z-50 pb-[env(safe-area-inset-bottom)]"
-      aria-label="Secções"
-    >
-      <div className="mx-auto flex h-[49px] max-w-3xl">
-        {items.map(({ id, label, Icon, badge }) => {
-          const on = id === value
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => onChange(id)}
-              aria-current={on ? 'page' : undefined}
-              className={cn(
-                'relative flex flex-1 flex-col items-center justify-center gap-[3px] pt-1',
-                on ? 'text-[var(--ios-tint)]' : 'text-[var(--ios-gray)]',
-              )}
-            >
-              <span className="relative">
-                <Icon className="size-[25px]" strokeWidth={on ? 2.3 : 1.9} />
-                {badge ? <CountBadge count={badge} className="absolute -right-3 -top-1.5 h-[18px] min-w-[18px] text-[12px]" /> : null}
-              </span>
-              <span className="text-[10px] font-medium leading-none">{label}</span>
-            </button>
-          )
-        })}
-      </div>
-    </nav>
-  )
 }

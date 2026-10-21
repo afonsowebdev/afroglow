@@ -29,7 +29,7 @@ export function MoreScreen() {
       <Section>
         <Cell
           leading={<Avatar name={me.name || me.email} src={avatar} size={58} />}
-          title={<span className="text-[20px] font-semibold">{me.name || 'O teu perfil'}</span>}
+          title={<span className="text-lg font-semibold">{me.name || 'O teu perfil'}</span>}
           subtitle={`${me.email} · ${isOwner ? 'Dona da conta' : 'Equipa'}`}
           onClick={() => push({ name: 'profile' })}
         />

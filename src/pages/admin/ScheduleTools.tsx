@@ -270,7 +270,7 @@ export function GenerateSlotsSheet({
                             onClick={() => toggleShift(day.id, shift)}
                             className={cn(
                               'h-9 w-[4.25rem] rounded-full font-subtitle text-xs transition-colors',
-                              shifts[shift] ? 'bg-[var(--ios-tint)] font-medium text-white dark:text-black' : 'bg-[var(--ios-fill)] text-[var(--ios-secondary)]',
+                              shifts[shift] ? 'bg-[var(--ios-tint)] font-medium text-[var(--ios-on-tint)]' : 'bg-[var(--ios-fill)] text-[var(--ios-secondary)]',
                             )}
                           >
                             {shift === 'am' ? 'Manhã' : 'Tarde'}

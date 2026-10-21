@@ -37,14 +37,14 @@ function TestimonialCard({ testimonial, view, onDecision, busy }: { testimonial:
         <div className="flex items-center gap-3">
           <AuthorAvatar testimonial={testimonial} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[17px] font-semibold">{testimonial.customer.name}</p>
+            <p className="truncate text-[15px] font-semibold">{testimonial.customer.name}</p>
             <p className="text-[13px] text-[var(--ios-secondary)]">
               {timeAgo(testimonial.createdAt)}
               {testimonial.photo === true && ' · quer mostrar a foto'}
             </p>
           </div>
         </div>
-        <p className={`mt-3 text-[17px] leading-[24px] ${long && !expanded ? 'line-clamp-5' : ''}`}>“{testimonial.content}”</p>
+        <p className={`mt-3 text-[15px] leading-[24px] ${long && !expanded ? 'line-clamp-5' : ''}`}>“{testimonial.content}”</p>
         {long && (
           <button type="button" onClick={() => setExpanded((v) => !v)} className="mt-1 text-[15px] text-[var(--ios-tint)]">
             {expanded ? 'Ler menos' : 'Ler tudo'}

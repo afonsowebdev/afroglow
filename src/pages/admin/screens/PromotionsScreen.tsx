@@ -182,8 +182,8 @@ export function PromotionsScreen({ backLabel }: { backLabel: string }) {
                 key={p.id}
                 leading={
                   <span
-                    className="flex h-[29px] min-w-[46px] items-center justify-center rounded-[7px] px-1 text-[13px] font-bold text-white"
-                    style={{ background: group.key === 'running' ? 'var(--ios-pink)' : 'var(--ios-gray)' }}
+                    className="flex h-[29px] min-w-[46px] items-center justify-center rounded-full px-2 text-xs font-semibold text-[var(--ios-on-tint)]"
+                    style={{ background: group.key === 'running' ? 'var(--ios-tint)' : 'var(--ios-gray)' }}
                   >
                     −{p.percentOff}%
                   </span>
@@ -228,7 +228,7 @@ export function PromotionsScreen({ backLabel }: { backLabel: string }) {
                     className={`${plainInput} h-11 w-14 text-right`}
                     aria-label="Percentagem de desconto"
                   />
-                  <span className="text-[17px] text-[var(--ios-secondary)]">%</span>
+                  <span className="text-[15px] text-[var(--ios-secondary)]">%</span>
                 </span>
               </FieldRow>
             </Section>
@@ -239,7 +239,7 @@ export function PromotionsScreen({ backLabel }: { backLabel: string }) {
                   type="button"
                   onClick={() => setDraft({ ...draft, percentOff: String(n) })}
                   className={`h-8 rounded-full px-3.5 text-[15px] active:opacity-50 ${
-                    draft.percentOff === String(n) ? 'bg-[var(--ios-tint)] font-semibold text-white dark:text-black' : 'bg-[var(--ios-fill)]'
+                    draft.percentOff === String(n) ? 'bg-[var(--ios-tint)] font-semibold text-[var(--ios-on-tint)]' : 'bg-[var(--ios-fill)]'
                   }`}
                 >
                   −{n}%

@@ -195,7 +195,7 @@ export function CustomerDetailScreen({ id, backLabel }: { id: string; backLabel:
               [s.visits ? euros(s.averageCents) : '—', 'por visita'],
             ].map(([value, label]) => (
               <div key={label} className="bg-[var(--ios-cell)] px-2 py-3 text-center">
-                <p className="truncate text-[20px] font-semibold tabular-nums">{value}</p>
+                <p className="truncate text-lg font-semibold tabular-nums">{value}</p>
                 <p className="text-[12px] text-[var(--ios-secondary)]">{label}</p>
               </div>
             ))}
@@ -330,7 +330,7 @@ export function CustomerDetailScreen({ id, backLabel }: { id: string; backLabel:
             exit={{ opacity: 0 }}
           >
             <div className="flex items-center justify-between px-2 pt-[env(safe-area-inset-top)] text-white">
-              <button type="button" onClick={() => setViewer(null)} className="h-11 px-2 text-[17px]">
+              <button type="button" onClick={() => setViewer(null)} className="h-11 px-2 text-[15px]">
                 Fechar
               </button>
               <p className="text-[15px] opacity-80">{timeAgo(viewer.createdAt)}</p>

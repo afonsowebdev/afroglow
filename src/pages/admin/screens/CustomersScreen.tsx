@@ -160,7 +160,7 @@ export function CustomersScreen() {
                     <span className="flex items-center pl-4">
                       <span
                         className={cn(
-                          'flex size-[22px] items-center justify-center rounded-full border-[1.5px] text-[13px] text-white',
+                          'flex size-[22px] items-center justify-center rounded-full border-[1.5px] text-[13px] text-[var(--ios-on-tint)]',
                           on ? 'border-[var(--ios-tint)] bg-[var(--ios-tint)]' : 'border-[var(--ios-tertiary)]',
                         )}
                       >
@@ -174,7 +174,7 @@ export function CustomersScreen() {
                   <span className="ios-cell-body ml-3 flex min-w-0 flex-1 items-center gap-2 py-2.5 pr-4">
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-2">
-                        <span className="truncate text-[17px]">{customer.name}</span>
+                        <span className="truncate text-[15px]">{customer.name}</span>
                         {badge && (
                           <span
                             className={cn(
@@ -205,11 +205,11 @@ export function CustomersScreen() {
       )}
 
       {selecting && (
-        <div className="ios-bar ios-hairline-t fixed inset-x-0 bottom-[calc(49px+env(safe-area-inset-bottom))] z-40 flex h-11 items-center justify-between px-4">
+        <div className="ios-bar fixed inset-x-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-40 flex h-12 items-center justify-between rounded-full px-5 shadow-lg shadow-black/10">
           <button
             type="button"
             onClick={() => setPicked(allPicked ? new Set() : new Set(list.map((c) => c.id)))}
-            className="text-[17px] text-[var(--ios-tint)]"
+            className="text-[15px] text-[var(--ios-tint)]"
           >
             {allPicked ? 'Desmarcar todas' : 'Selecionar todas'}
           </button>
@@ -220,7 +220,7 @@ export function CustomersScreen() {
               setPassword('')
               setConfirming(true)
             }}
-            className="text-[17px] text-[var(--ios-red)] disabled:opacity-30"
+            className="text-[15px] text-[var(--ios-red)] disabled:opacity-30"
           >
             Eliminar{picked.size ? ` (${picked.size})` : ''}
           </button>

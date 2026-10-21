@@ -18,7 +18,7 @@ import { bookingName, bookingPrice } from '@/lib/pricing'
 import type { Booking } from '@/lib/types'
 import { useAdmin } from '../admin-context'
 import { addDaysKey, dateKey, dateParts, euros, getLisbonYearMonth, greeting, longDate, plural, telHref, todayKey } from '../format'
-import { Avatar, Cell, EmptyState, Screen, Section, tintVar, type Tint } from '../ios'
+import { Avatar, Cell, EmptyState, Screen, Section, type Tint } from '../ios'
 
 /** A big tappable number, like the smart lists in Reminders. */
 function Tile({
@@ -42,10 +42,13 @@ function Tile({
       className="flex min-w-0 flex-col rounded-[12px] bg-[var(--ios-cell)] p-3 text-left active:bg-[var(--ios-cell-pressed)] disabled:active:bg-[var(--ios-cell)]"
     >
       <span className="flex items-start justify-between gap-2">
-        <span className="flex size-[30px] items-center justify-center rounded-full text-white" style={{ background: tintVar(tint) }}>
+        <span
+          className="flex size-9 items-center justify-center rounded-full text-[var(--ios-on-tint)]"
+          style={{ background: tint === 'red' ? 'var(--ios-red)' : 'var(--ios-tint)' }}
+        >
           <Icon className="size-[17px]" strokeWidth={2.4} />
         </span>
-        <span className="truncate text-[28px] font-bold leading-[30px] tabular-nums">{value}</span>
+        <span className="truncate text-2xl font-semibold leading-[30px] tabular-nums">{value}</span>
       </span>
       <span className="mt-2 truncate text-[15px] font-semibold text-[var(--ios-secondary)]">{label}</span>
     </button>
@@ -55,9 +58,9 @@ function Tile({
 /** The next session, large: who, what, when, and a call or a WhatsApp in one tap. */
 function NextSession({ booking }: { booking: Booking }) {
   const { push, can } = useAdmin()
-  const { time } = dateParts(booking.slot.startsAt)
+  const { time, weekdayShort, day, month } = dateParts(booking.slot.startsAt)
   const key = dateKey(booking.slot.startsAt)
-  const when = key === todayKey() ? 'Hoje' : key === addDaysKey(todayKey(), 1) ? 'Amanhã' : longDate(key)
+  const when = key === todayKey() ? 'Hoje' : key === addDaysKey(todayKey(), 1) ? 'Amanhã' : `${weekdayShort}, ${day} ${month}`
   return (
     <div className="overflow-hidden rounded-[12px] bg-[var(--ios-cell)]">
       <button
@@ -68,11 +71,11 @@ function NextSession({ booking }: { booking: Booking }) {
       >
         <Avatar name={booking.customerName} size={48} />
         <span className="min-w-0 flex-1">
-          <span className="block text-[13px] font-semibold uppercase text-[var(--ios-tint)]">A seguir · {when}</span>
-          <span className="block truncate text-[20px] font-semibold leading-tight">{booking.customerName}</span>
+          <span className="block text-xs font-medium uppercase tracking-[0.14em] text-[var(--ios-gold)]">A seguir · {when}</span>
+          <span className="block truncate text-lg font-semibold leading-tight">{booking.customerName}</span>
           <span className="block truncate text-[15px] text-[var(--ios-secondary)]">{bookingName(booking)}</span>
         </span>
-        <span className="shrink-0 text-[28px] font-bold tabular-nums">{time}</span>
+        <span className="shrink-0 text-[28px] font-semibold tabular-nums">{time}</span>
       </button>
       <div className="ios-hairline-t grid grid-cols-2">
         <a
@@ -194,7 +197,7 @@ export function HomeScreen() {
                   <Cell
                     key={b.id}
                     leading={
-                      <span className={`w-12 text-[17px] font-semibold tabular-nums ${past ? 'text-[var(--ios-tertiary)]' : ''}`}>
+                      <span className={`w-12 text-[15px] font-semibold tabular-nums ${past ? 'text-[var(--ios-tertiary)]' : ''}`}>
                         {dateParts(b.slot.startsAt).time}
                       </span>
                     }

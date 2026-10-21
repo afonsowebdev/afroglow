@@ -44,7 +44,7 @@ interface Usage {
 }
 
 const tableField =
-  'w-full rounded-[10px] bg-[var(--ios-cell)] px-3 py-2.5 text-[17px] text-[var(--ios-label)] outline-none placeholder:text-[var(--ios-tertiary)]'
+  'w-full rounded-[10px] bg-[var(--ios-cell)] px-3 py-2.5 text-[15px] text-[var(--ios-label)] outline-none placeholder:text-[var(--ios-tertiary)]'
 
 /** The hairstyles: photo, name, price and options; tap to edit, + to add. */
 export function ServicesScreen({ backLabel }: { backLabel: string }) {
@@ -198,7 +198,7 @@ export function ServicesScreen({ backLabel }: { backLabel: string }) {
                     {promo ? (
                       <>
                         <span className="line-through">{euros(service.priceCents)}</span>{' '}
-                        <span className="font-semibold text-[var(--ios-pink)]">
+                        <span className="font-semibold text-[var(--ios-gold)]">
                           {euros(Math.round((service.priceCents * (100 - promo.percentOff)) / 100))}
                         </span>
                       </>
@@ -289,7 +289,7 @@ export function ServicesScreen({ backLabel }: { backLabel: string }) {
                           placeholder="65"
                           className={`${plainInput} h-11 w-24 text-right`}
                         />
-                        <span className="text-[17px] text-[var(--ios-secondary)]">€</span>
+                        <span className="text-[15px] text-[var(--ios-secondary)]">€</span>
                       </span>
                     </FieldRow>
                   </div>

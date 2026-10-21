@@ -1,7 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { CalendarDays, Ellipsis, House, Inbox, Users } from 'lucide-react'
+import {
+  BellRing,
+  CalendarDays,
+  CalendarPlus,
+  CalendarX2,
+  Ellipsis,
+  House,
+  Inbox,
+  LogOut,
+  Moon,
+  Plus,
+  Sun,
+  Tag,
+  Users,
+} from 'lucide-react'
+import { BottomNavBar } from '@/components/ui/bottom-nav-bar'
+import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
+import { useTheme } from '@/lib/theme'
 import { adminToken, api, ApiError } from '@/lib/api'
 import { registerForPushNotifications } from '@/lib/push-notifications'
 import type { AvailabilitySlot, Booking, Service, Testimonial } from '@/lib/types'
@@ -18,7 +35,7 @@ import {
   type RouteName,
   type TabId,
 } from './admin-context'
-import { Screen, TabBar, ToastProvider } from './ios'
+import { Screen, ToastProvider } from './ios'
 import { AgendaScreen } from './screens/AgendaScreen'
 import { BroadcastScreen } from './screens/BroadcastScreen'
 import { ClosuresScreen } from './screens/ClosuresScreen'
@@ -90,6 +107,7 @@ export default function AdminDashboardPage() {
 
 function AdminApp() {
   const navigate = useNavigate()
+  const theme = useTheme()
   const [me, setMe] = useState<AdminMe | null>(null)
   const [avatar, setAvatar] = useState<string | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
@@ -307,15 +325,34 @@ function AdminApp() {
   const pending = bookings.filter((b) => b.status === 'PENDING' && new Date(b.slot.startsAt).getTime() >= Date.now()).length
   const pendingTestimonials = testimonials.filter((t) => t.status === 'PENDING').length
   const tabs = [
-    { id: 'home' as const, label: 'Início', Icon: House },
+    { id: 'home' as const, label: 'Início', icon: 'bx bx-home', Icon: House },
     ...(can('marcacoes')
       ? [
-          { id: 'agenda' as const, label: 'Agenda', Icon: CalendarDays },
-          { id: 'requests' as const, label: 'Pedidos', Icon: Inbox, badge: pending },
+          { id: 'agenda' as const, label: 'Agenda', icon: 'bx bx-calendar', Icon: CalendarDays },
+          { id: 'requests' as const, label: 'Pedidos', icon: 'bx bx-bell', Icon: Inbox, badge: pending },
         ]
       : []),
-    ...(can('clientes') ? [{ id: 'customers' as const, label: 'Clientes', Icon: Users }] : []),
-    { id: 'more' as const, label: 'Mais', Icon: Ellipsis, badge: pendingTestimonials },
+    ...(can('clientes') ? [{ id: 'customers' as const, label: 'Clientes', icon: 'bx bx-user', Icon: Users }] : []),
+    { id: 'more' as const, label: 'Mais', icon: 'bx bx-dots-horizontal-rounded', Icon: Ellipsis, dot: pendingTestimonials > 0 },
+  ]
+
+  // The round + beside the tab bar, as before: the things done most, one tap away from any screen.
+  const menuActions: MenuAction[] = [
+    ...(can('marcacoes')
+      ? [
+          { Icon: Plus, label: 'Nova marcação', onClick: () => setManual({ open: true, customer: null }) },
+          { Icon: CalendarPlus, label: 'Abrir horários', onClick: () => goTab('agenda', { name: 'agenda', id: 'horarios' }) },
+          { Icon: CalendarX2, label: 'Fechar dias', onClick: () => goTab('more', { name: 'closures' }) },
+        ]
+      : []),
+    ...(can('notificacoes') ? [{ Icon: BellRing, label: 'Notificar clientes', onClick: () => goTab('more', { name: 'broadcast' }) }] : []),
+    ...(can('catalogo') ? [{ Icon: Tag, label: 'Promoções', onClick: () => goTab('more', { name: 'promotions' }) }] : []),
+    {
+      Icon: theme.theme === 'dark' ? Sun : Moon,
+      label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
+      onClick: theme.toggleTheme,
+    },
+    { Icon: LogOut, label: 'Terminar sessão', danger: true, onClick: () => void logout() },
   ]
 
   const backLabel = stack.length > 1 ? TITLES[stack[stack.length - 2].name] : ''
@@ -402,7 +439,13 @@ function AdminApp() {
           </motion.div>
         </AnimatePresence>
 
-        <TabBar items={tabs} value={tab} onChange={(id) => goTab(id)} />
+        {/* The floating glass tab bar with the round options button beside it, as the admin always had. */}
+        <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center gap-2.5 px-3">
+          <div className="pointer-events-auto min-w-0">
+            <BottomNavBar glass compact={tabs.length > 4} items={tabs} value={tab} onChange={(id) => goTab(id)} />
+          </div>
+          <FloatingActionMenu actions={menuActions} dot={pendingTestimonials > 0} PlusIcon={Plus} />
+        </div>
 
         <ManualBookingSheet
           open={manual.open}
