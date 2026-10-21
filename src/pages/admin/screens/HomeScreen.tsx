@@ -3,6 +3,7 @@ import {
   BellRing,
   CalendarCheck,
   CalendarPlus,
+  Clock,
   CalendarX2,
   MessageCircle,
   MessageSquareQuote,
@@ -16,9 +17,9 @@ import { customerWhatsappUrl } from '@/lib/site-config'
 import { MonthCard, RequestsCard, TodayCard, WeekCard } from './home-cards'
 import { cn } from '@/lib/utils'
 import { bookingName, bookingPrice } from '@/lib/pricing'
-import type { Booking } from '@/lib/types'
+import type { AvailabilitySlot, Booking } from '@/lib/types'
 import { useAdmin } from '../admin-context'
-import { addDaysKey, dateKey, dateParts, euros, greeting, longDate, plural, telHref, todayKey, whenLabel } from '../format'
+import { addDaysKey, dateKey, dateParts, dayTitle, euros, greeting, longDate, plural, telHref, todayKey } from '../format'
 import { Avatar, Cell, EmptyState, Screen, Section } from '../ios'
 
 interface QuickActionItem {
@@ -36,63 +37,82 @@ interface QuickActionItem {
 function QuickActions({
   items,
   onNewBooking,
-  nextFree,
+  freeSlots = [],
   freeCount = 0,
 }: {
   items: QuickActionItem[]
-  onNewBooking?: () => void
-  /** "Amanhã às 09:00": the first free time, to book straight into. */
-  nextFree?: string | null
+  /** Opens the booking sheet, on a free time when one was tapped. */
+  onNewBooking?: (startsAt?: string) => void
+  /** The next free times, to book straight into. */
+  freeSlots?: AvailabilitySlot[]
   freeCount?: number
 }) {
   return (
     <Section flush header="Ações rápidas">
       {onNewBooking && (
-        <motion.button
-          type="button"
-          onClick={onNewBooking}
-          whileTap={{ scale: 0.98 }}
-          className="relative flex w-full items-center gap-4 overflow-hidden rounded-3xl bg-[var(--ios-tint)] p-4 pr-3 text-left text-[var(--ios-on-tint)] shadow-lg shadow-black/15"
-        >
-          {/* A soft gold glow behind the +, and a light sweeping across now and then. */}
+        <div className="relative overflow-hidden rounded-3xl bg-[var(--ios-tint)] p-4 text-[var(--ios-on-tint)] shadow-lg shadow-black/15">
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute -left-10 -top-12 size-44 rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.35),transparent_65%)]"
+            className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.3),transparent_65%)]"
           />
-          <motion.span
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/15 to-transparent"
-            initial={{ left: '-40%' }}
-            animate={{ left: ['-40%', '140%'] }}
-            transition={{ duration: 1.4, ease: 'easeInOut', repeat: Infinity, repeatDelay: 4.5 }}
-          />
-          <span className="relative flex size-14 shrink-0 items-center justify-center">
-            <motion.span
-              aria-hidden="true"
-              className="absolute inset-0 rounded-full ring-2 ring-[#c9a84c]"
-              animate={{ scale: [1, 1.18, 1], opacity: [0.7, 0, 0.7] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeOut' }}
-            />
-            <span className="flex size-14 items-center justify-center rounded-full bg-[#c9a84c] text-[#1c1c1e] shadow-[0_4px_14px_rgba(201,168,76,0.45)]">
-              <Plus className="size-7" strokeWidth={2.4} />
+          {/* The whole top opens a blank booking. */}
+          <motion.button type="button" onClick={() => onNewBooking()} whileTap={{ scale: 0.98 }} className="relative flex w-full items-center gap-3.5 text-left">
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#c9a84c] text-[#1c1c1e] shadow-[0_4px_14px_rgba(201,168,76,0.4)]">
+              <CalendarPlus className="size-6" strokeWidth={2} />
             </span>
-          </span>
-          <span className="relative min-w-0 flex-1">
-            <span className="block text-lg font-semibold leading-tight">Nova marcação</span>
-            <span className="mt-0.5 block truncate text-xs opacity-75">
-              {nextFree ? `Próxima vaga: ${nextFree}` : 'Por WhatsApp, Instagram ou ao balcão'}
-            </span>
-            {freeCount > 0 && (
-              <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[color-mix(in_srgb,var(--ios-on-tint)_14%,transparent)] px-2.5 py-1 text-[11px] font-medium">
-                <span className="size-1.5 rounded-full bg-[var(--ios-green)]" />
-                {plural(freeCount, 'vaga livre', 'vagas livres')} esta semana
+            <span className="min-w-0 flex-1">
+              <span className="block text-lg font-semibold leading-tight">Nova marcação</span>
+              <span className="block truncate text-xs opacity-70">
+                {freeSlots.length ? 'Toca numa vaga ou escolhe a hora' : 'Por WhatsApp, Instagram ou ao balcão'}
               </span>
-            )}
-          </span>
-          <span className="relative flex size-9 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--ios-on-tint)_14%,transparent)]">
-            <ArrowUpRight className="size-[18px]" strokeWidth={2.2} />
-          </span>
-        </motion.button>
+            </span>
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--ios-on-tint)_14%,transparent)]">
+              <Plus className="size-5" strokeWidth={2.4} />
+            </span>
+          </motion.button>
+
+          {/* The next free times: one tap opens the booking on that time. */}
+          <p className="relative mt-4 text-[11px] font-medium uppercase tracking-[0.14em] opacity-60">
+            {freeSlots.length ? `Próximas vagas · ${plural(freeCount, 'livre', 'livres')} esta semana` : 'Sem vagas abertas'}
+          </p>
+          <div className="relative -mx-4 mt-2 flex gap-2 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {freeSlots.map((slot, i) => {
+              const title = dayTitle(slot.startsAt)
+              const { time, weekdayShort, day } = dateParts(slot.startsAt)
+              const dayLabel = title === 'Hoje' || title === 'Amanhã' ? title : `${weekdayShort.charAt(0).toUpperCase()}${weekdayShort.slice(1)} ${day}`
+              return (
+                <motion.button
+                  key={slot.id}
+                  type="button"
+                  onClick={() => onNewBooking(slot.startsAt)}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + i * 0.05 }}
+                  className={cn(
+                    'flex shrink-0 flex-col items-start rounded-2xl px-3.5 py-2 text-left',
+                    i === 0 ? 'bg-[#c9a84c] text-[#1c1c1e]' : 'bg-[color-mix(in_srgb,var(--ios-on-tint)_12%,transparent)]',
+                  )}
+                >
+                  <span className={cn('text-[11px]', i === 0 ? 'opacity-75' : 'opacity-65')}>{dayLabel}</span>
+                  <span className="text-base font-semibold tabular-nums leading-tight">{time}</span>
+                </motion.button>
+              )
+            })}
+            <motion.button
+              type="button"
+              onClick={() => onNewBooking()}
+              whileTap={{ scale: 0.95 }}
+              className="flex shrink-0 items-center gap-2 rounded-2xl border border-dashed border-[color-mix(in_srgb,var(--ios-on-tint)_35%,transparent)] px-3.5 py-2"
+            >
+              <Clock className="size-4 opacity-80" strokeWidth={2} />
+              <span className="text-left">
+                <span className="block text-[11px] opacity-65">Qualquer dia</span>
+                <span className="block text-sm font-semibold leading-tight">Outra hora</span>
+              </span>
+            </motion.button>
+          </div>
+        </div>
       )}
       {items.length > 0 && (
         <div className={cn('grid grid-cols-2 gap-3', onNewBooking && 'mt-3')}>
@@ -191,9 +211,10 @@ export function HomeScreen() {
     return s.status === 'OPEN' && t >= now && t < weekEnd
   }).length
   const pendingTestimonials = testimonials.filter((t) => t.status === 'PENDING').length
-  const nextFreeSlot = slots
+  const nextFreeSlots = slots
     .filter((s) => s.status === 'OPEN' && new Date(s.startsAt).getTime() > now)
-    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))[0]
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+    .slice(0, 6)
 
   const quick: QuickActionItem[] = [
     {
@@ -233,9 +254,9 @@ export function HomeScreen() {
           </div>
 
           <QuickActions
-            onNewBooking={() => newBooking(null)}
+            onNewBooking={(startsAt) => newBooking(null, startsAt)}
             items={quick}
-            nextFree={nextFreeSlot ? whenLabel(nextFreeSlot.startsAt) : null}
+            freeSlots={nextFreeSlots}
             freeCount={freeWeek}
           />
 

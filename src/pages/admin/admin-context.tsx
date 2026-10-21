@@ -72,7 +72,7 @@ export interface AdminContextValue {
   pop: () => void
   goTab: (tab: TabId, route?: Route) => void
   /** Opens the sheet to add a booking by hand, for a client or for anyone. */
-  newBooking: (customer?: { id: string; name: string; phone: string } | null) => void
+  newBooking: (customer?: { id: string; name: string; phone: string } | null, startsAt?: string) => void
   logout: () => void
 }
 

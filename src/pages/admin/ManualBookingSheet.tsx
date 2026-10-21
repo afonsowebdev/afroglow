@@ -57,6 +57,7 @@ export function ManualBookingSheet({
   open,
   services,
   presetCustomer,
+  presetStartsAt,
   slots = [],
   onClose,
   onDone,
@@ -64,6 +65,8 @@ export function ManualBookingSheet({
   open: boolean
   services: Service[]
   presetCustomer?: Pick<AdminCustomer, 'id' | 'name' | 'phone'> | null
+  /** A free time picked before opening (e.g. on the Início), already chosen. */
+  presetStartsAt?: string | null
   /** The agenda's slots: the free ones in the next days are offered as one-tap times. */
   slots?: AvailabilitySlot[]
   onClose: () => void
@@ -91,7 +94,13 @@ export function ManualBookingSheet({
     setError(null)
     setNotes('')
     setSearch('')
-    setDate(localDateValue(new Date()))
+    if (presetStartsAt) {
+      const at = new Date(presetStartsAt)
+      setDate(localDateValue(at))
+      setTime(`${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`)
+    } else {
+      setDate(localDateValue(new Date()))
+    }
     setLength('')
     setParting('')
     setColor('')
@@ -110,7 +119,7 @@ export function ManualBookingSheet({
       .get<AdminCustomer[]>('/admin/customers')
       .then(setCustomers)
       .catch(() => setCustomers([]))
-  }, [open, presetCustomer, services])
+  }, [open, presetCustomer, presetStartsAt, services])
 
   const matches = useMemo(() => {
     const q = search.trim().toLowerCase()

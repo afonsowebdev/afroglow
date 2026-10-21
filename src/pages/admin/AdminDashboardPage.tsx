@@ -124,10 +124,11 @@ function AdminApp() {
     more: [ROOTS.more],
   }))
   const [direction, setDirection] = useState<1 | -1 | 0>(0)
-  const [manual, setManual] = useState<{ open: boolean; customer: { id: string; name: string; phone: string } | null }>({
-    open: false,
-    customer: null,
-  })
+  const [manual, setManual] = useState<{
+    open: boolean
+    customer: { id: string; name: string; phone: string } | null
+    startsAt?: string | null
+  }>({ open: false, customer: null })
   const scrollMemory = useRef(new Map<string, number>())
 
   const signOut = useCallback(() => {
@@ -308,7 +309,7 @@ function AdminApp() {
         push,
         pop,
         goTab,
-        newBooking: (customer) => setManual({ open: true, customer: customer ?? null }),
+        newBooking: (customer, startsAt) => setManual({ open: true, customer: customer ?? null, startsAt: startsAt ?? null }),
         logout: () => void logout(),
       },
     [me, avatar, can, bookings, slots, services, testimonials, load, push, pop, goTab, logout],
@@ -451,6 +452,7 @@ function AdminApp() {
           open={manual.open}
           services={services}
           presetCustomer={manual.customer}
+          presetStartsAt={manual.startsAt}
           slots={slots}
           onClose={() => setManual((m) => ({ ...m, open: false }))}
           onDone={() => void value.reload()}
