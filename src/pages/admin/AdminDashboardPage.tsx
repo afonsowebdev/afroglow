@@ -39,7 +39,7 @@ import { BroadcastView } from '@/pages/admin/BroadcastView'
 import { ClosuresView } from '@/pages/admin/ClosuresView'
 import { PromotionsView } from '@/pages/admin/PromotionsView'
 import { TeamView } from '@/pages/admin/TeamView'
-import { HomeView } from '@/pages/admin/HomeView'
+import { HomeView, homeDate, homeGreeting } from '@/pages/admin/HomeView'
 import { fullMe, type AdminMe, type Permission } from '@/pages/admin/admin-me'
 import { PortfolioView } from '@/pages/admin/PortfolioView'
 import { SecurityView } from '@/pages/admin/SecurityView'
@@ -2427,9 +2427,9 @@ function AdminDashboard() {
           transition={{ duration: 0.22, ease: 'easeOut' }}
         >
           <h1 className="font-subtitle text-[32px] font-semibold leading-none tracking-tight text-onyx">
-            {PAGE[tab].title}
+            {tab === 'inicio' ? homeGreeting(me?.name ?? '') : PAGE[tab].title}
           </h1>
-          <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">{PAGE[tab].hint}</p>
+          <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">{tab === 'inicio' ? homeDate() : PAGE[tab].hint}</p>
 
           {(tab === 'agenda' || tab === 'disponibilidade') && (
             <MonthStrip value={viewMonth} today={getLisbonYearMonth(new Date())} onSelect={goToMonth} />
