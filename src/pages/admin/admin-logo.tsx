@@ -33,7 +33,7 @@ export function AdminLogo() {
         setFull(true)
       }}
       aria-label="AFROGLOW"
-      className="flex h-10 items-center overflow-hidden rounded-full bg-[var(--ios-elevated)] p-1 shadow-lg shadow-black/10"
+      className="flex h-10 items-center overflow-hidden rounded-full bg-[var(--ios-cell)] p-1 shadow-lg shadow-black/10"
       style={{ borderRadius: 999 }}
       transition={{ layout: { type: 'spring', stiffness: 260, damping: 30 } }}
     >

@@ -5,7 +5,7 @@ import { useTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { useAdmin } from '../admin-context'
 import { Cell, Screen, Section, Segmented, Toggle, useToast } from '../ios'
-import { COLORS, PHOTOS, photoToWallpaper, useAppearance, type Wallpaper } from '../wallpaper'
+import { COLORS, PatternPreview, PHOTOS, photoToWallpaper, useAppearance, type Wallpaper } from '../wallpaper'
 
 function same(a: Wallpaper, b: Wallpaper) {
   if (a.kind !== b.kind) return false
@@ -81,7 +81,10 @@ export function AppearanceScreen({ backLabel }: { backLabel: string }) {
     <Screen title="Aparência" back={{ label: backLabel, onClick: pop }}>
       <Section flush header="Fundo" footer="Fica guardado neste iPhone.">
         <div className="grid grid-cols-4 gap-3">
-          <Choice label="Nenhum" chosen={current.kind === 'none'} onClick={() => update({ wallpaper: { kind: 'none' } })}>
+          <Choice label="AFROGLOW" chosen={current.kind === 'pattern'} onClick={() => update({ wallpaper: { kind: 'pattern' } })}>
+            <PatternPreview />
+          </Choice>
+          <Choice label="Liso" chosen={current.kind === 'none'} onClick={() => update({ wallpaper: { kind: 'none' } })}>
             <span className="block size-full bg-[var(--ios-bg)]" />
           </Choice>
           {COLORS.map((c) => (

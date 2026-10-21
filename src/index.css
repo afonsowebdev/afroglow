@@ -380,6 +380,8 @@
   --ios-fill: rgba(28, 28, 30, 0.06);
   --ios-fill-strong: rgba(28, 28, 30, 0.18);
   --ios-bar: rgba(255, 255, 255, 0.9);
+  --ios-pattern-bg: #f2eee8;
+  --ios-pattern-ink: rgba(28, 20, 14, 0.055);
   --ios-tint: #1c1c1e;
   --ios-on-tint: #ffffff;
   --ios-gold: #8a6d14;
@@ -408,36 +410,38 @@
   -webkit-tap-highlight-color: transparent;
 }
 .dark .admin-ios {
-  /* The system's warm brown, as the admin and the website have always had it. */
-  --ios-bg: #2b1d12;
-  --ios-cell: #3a2818;
-  --ios-cell-pressed: #46301d;
-  --ios-elevated: #3a2818;
-  --ios-label: #f0e6d6;
-  --ios-secondary: rgba(240, 230, 214, 0.64);
-  --ios-tertiary: rgba(240, 230, 214, 0.32);
-  --ios-separator: rgba(240, 230, 214, 0.12);
-  --ios-fill: rgba(240, 230, 214, 0.08);
-  --ios-fill-strong: rgba(240, 230, 214, 0.2);
-  --ios-bar: rgba(43, 29, 18, 0.88);
-  --ios-tint: #f0e6d6;
-  --ios-on-tint: #2b1d12;
+  /* A deep espresso, near black with a warm hint: the brand's brown, toned down. */
+  --ios-bg: #17120e;
+  --ios-cell: #231c16;
+  --ios-cell-pressed: #2d241d;
+  --ios-elevated: #231c16;
+  --ios-label: #f2ebe1;
+  --ios-secondary: rgba(242, 235, 225, 0.62);
+  --ios-tertiary: rgba(242, 235, 225, 0.3);
+  --ios-separator: rgba(242, 235, 225, 0.1);
+  --ios-fill: rgba(242, 235, 225, 0.07);
+  --ios-fill-strong: rgba(242, 235, 225, 0.18);
+  --ios-bar: rgba(23, 18, 14, 0.82);
+  --ios-pattern-bg: #15100c;
+  --ios-pattern-ink: rgba(242, 235, 225, 0.05);
+  --ios-tint: #f2ebe1;
+  --ios-on-tint: #17120e;
   --ios-gold: #d4b055;
   --ios-red: #f87171;
   --ios-green: #34d399;
   --ios-orange: #fbbf24;
-  --ios-blue: #f0e6d6;
-  --ios-indigo: #f0e6d6;
-  --ios-teal: #f0e6d6;
-  --ios-pink: #f0e6d6;
-  --ios-purple: #f0e6d6;
-  --ios-gray: #b39c7d;
+  --ios-blue: #f2ebe1;
+  --ios-indigo: #f2ebe1;
+  --ios-teal: #f2ebe1;
+  --ios-pink: #f2ebe1;
+  --ios-purple: #f2ebe1;
+  --ios-gray: #a8998a;
 
-  --color-white: #2b1d12;
-  --color-cream: #3a2818;
-  --color-onyx: #f0e6d6;
-  --color-muted: #b39c7d;
-  --color-muted-dark: #d9c7a8;
+  --color-white: #17120e;
+  --color-cream: #231c16;
+  --color-onyx: #f2ebe1;
+  --color-muted: #a8998a;
+  --color-muted-dark: #d6cbbd;
   --color-gold-ink: #d4b055;
   --color-gold-deep: #d4b055;
 }
@@ -469,24 +473,28 @@
   box-shadow: inset 0 -0.5px 0 var(--ios-separator);
 }
 /*
- * A background chosen in "Fundo e aparência": the page lets it through and the cards become frosted glass over it,
- * as see-through as chosen (--glass-a, set on the root). A veil in the theme's colour keeps the titles readable.
+ * A background chosen in "Fundo e aparência" (the AFROGLOW pattern by default): the page lets it through and the
+ * cards become glass over it (as see-through as chosen: --glass-l / --glass-d on the root), with a thin rim. A veil in
+ * the theme's colour keeps photos from fighting the text.
  */
 .admin-ios.has-wallpaper {
   background: transparent;
   --ios-wallpaper-veil: rgba(255, 255, 255, 0.36);
-  --ios-secondary: rgba(28, 28, 30, 0.74);
-  --ios-cell: rgba(255, 255, 255, var(--glass-a, 0.6));
-  --ios-cell-pressed: rgba(255, 255, 255, calc(var(--glass-a, 0.6) + 0.18));
+  --ios-glass-rim: rgba(255, 255, 255, 0.7);
+  --ios-secondary: rgba(28, 28, 30, 0.7);
+  --ios-cell: rgba(255, 255, 255, var(--glass-l, 0.6));
+  --ios-cell-pressed: rgba(255, 255, 255, calc(var(--glass-l, 0.6) + 0.18));
 }
 .dark .admin-ios.has-wallpaper {
-  --ios-wallpaper-veil: rgba(43, 29, 18, 0.55);
-  --ios-secondary: rgba(240, 230, 214, 0.8);
-  --ios-cell: rgba(58, 40, 24, var(--glass-a, 0.6));
-  --ios-cell-pressed: rgba(70, 48, 29, calc(var(--glass-a, 0.6) + 0.18));
+  --ios-wallpaper-veil: rgba(23, 18, 14, 0.6);
+  --ios-glass-rim: rgba(242, 235, 225, 0.1);
+  --ios-secondary: rgba(242, 235, 225, 0.68);
+  --ios-cell: rgba(255, 246, 232, var(--glass-d, 0.06));
+  --ios-cell-pressed: rgba(255, 246, 232, calc(var(--glass-d, 0.06) + 0.06));
 }
 .admin-ios.has-wallpaper .ios-list,
 .admin-ios.has-wallpaper [class*='bg-[var(--ios-cell)]'] {
-  -webkit-backdrop-filter: blur(22px) saturate(1.6);
-  backdrop-filter: blur(22px) saturate(1.6);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  backdrop-filter: blur(22px) saturate(1.5);
+  box-shadow: inset 0 0 0 1px var(--ios-glass-rim);
 }

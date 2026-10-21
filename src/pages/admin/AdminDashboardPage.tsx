@@ -36,7 +36,7 @@ import {
   type TabId,
 } from './admin-context'
 import { Screen, ToastProvider } from './ios'
-import { AppearanceProvider, GLASS_ALPHA, useAppearance, WallpaperLayer } from './wallpaper'
+import { AppearanceProvider, GLASS, useAppearance, WallpaperLayer } from './wallpaper'
 import { AppearanceScreen } from './screens/AppearanceScreen'
 import { AgendaScreen } from './screens/AgendaScreen'
 import { BroadcastScreen } from './screens/BroadcastScreen'
@@ -422,7 +422,10 @@ function AdminApp() {
     <AdminContext.Provider value={value}>
       <div
         className={`admin-ios relative min-h-screen overflow-x-hidden ${hasWallpaper ? 'has-wallpaper' : ''}`}
-        style={{ ['--glass-a' as string]: GLASS_ALPHA[appearance.glass] }}
+        style={{
+          ['--glass-l' as string]: GLASS[appearance.glass].light,
+          ['--glass-d' as string]: GLASS[appearance.glass].dark,
+        }}
       >
         <WallpaperLayer />
         {loadError && (
