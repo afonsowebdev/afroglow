@@ -7,8 +7,8 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Check, ChevronLeft, ChevronRight, Search, X, type LucideIcon } from 'lucide-react'
-import { BrandLogo } from '@/components/ui/brand-logo'
 import { cn } from '@/lib/utils'
+import { AdminLogo } from './admin-logo'
 
 /* ── Screen: large title, small bar on scroll ─────────────────────────────────────────────────────────────────── */
 
@@ -60,13 +60,8 @@ export function Screen({
           <div className="flex min-w-0 flex-1 items-center">
             {/* The tabs' own screens wear the AFROGLOW pill, on the left; pushed screens show "‹ Back" there. */}
             {!back && (
-              <span
-                className={cn(
-                  'ml-2 flex h-10 items-center rounded-full bg-[var(--ios-elevated)] pe-4 ps-1.5 shadow-lg shadow-black/10 transition-opacity duration-200',
-                  compact ? 'pointer-events-none opacity-0' : 'opacity-100',
-                )}
-              >
-                <BrandLogo size="sm" />
+              <span className={cn('ml-2 transition-opacity duration-200', compact ? 'pointer-events-none opacity-0' : 'opacity-100')}>
+                <AdminLogo />
               </span>
             )}
             {back && (

@@ -1,4 +1,5 @@
 import {
+  ArrowUpRight,
   BellRing,
   CalendarCheck,
   CalendarPlus,
@@ -13,48 +14,80 @@ import {
   Tag,
   type LucideIcon,
 } from 'lucide-react'
+import { motion } from 'motion/react'
 import { customerWhatsappUrl } from '@/lib/site-config'
+import { cn } from '@/lib/utils'
 import { bookingName, bookingPrice } from '@/lib/pricing'
 import type { Booking } from '@/lib/types'
 import { useAdmin } from '../admin-context'
 import { addDaysKey, dateKey, dateParts, euros, getLisbonYearMonth, greeting, longDate, plural, telHref, todayKey } from '../format'
 import { Avatar, Cell, EmptyState, Screen, Section, type Tint } from '../ios'
 
-/** A big tappable number, like the smart lists in Reminders. */
+/**
+ * One of the four cards on top: the icon and what it counts, the number large, a line that says what it means, and
+ * for some a thin bar (how full the week is, how the month goes against the last). `highlight`: dark, when it needs
+ * doing (requests waiting).
+ */
 function Tile({
   Icon,
-  tint,
-  value,
   label,
+  value,
+  hint,
+  progress,
+  highlight = false,
   onClick,
 }: {
   Icon: LucideIcon
-  tint: Tint
-  value: string | number
   label: string
+  value: string | number
+  hint: string
+  progress?: number
+  highlight?: boolean
   onClick?: () => void
 }) {
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onClick}
       disabled={!onClick}
-      className="flex min-w-0 flex-col rounded-[12px] bg-[var(--ios-cell)] p-3 text-left active:bg-[var(--ios-cell-pressed)] disabled:active:bg-[var(--ios-cell)]"
+      whileTap={onClick ? { scale: 0.97 } : undefined}
+      className={cn(
+        'relative flex min-h-[8.5rem] min-w-0 flex-col overflow-hidden rounded-2xl p-4 text-left transition-colors',
+        highlight ? 'bg-[var(--ios-tint)] text-[var(--ios-on-tint)]' : 'bg-[var(--ios-cell)]',
+      )}
     >
-      <span className="flex items-start justify-between gap-2">
+      <span className="flex items-center gap-2">
         <span
-          className={
-            tint === 'red'
-              ? 'flex size-9 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--ios-red)_12%,transparent)] text-[var(--ios-red)]'
-              : 'flex size-9 items-center justify-center rounded-full bg-[var(--ios-bg)] text-[var(--ios-label)] shadow-[0_1px_3px_rgba(0,0,0,0.08),inset_0_0_0_0.5px_var(--ios-separator)]'
-          }
+          className={cn(
+            'flex size-8 shrink-0 items-center justify-center rounded-full',
+            highlight
+              ? 'bg-[color-mix(in_srgb,var(--ios-on-tint)_16%,transparent)]'
+              : 'bg-[var(--ios-bg)] shadow-[0_1px_3px_rgba(0,0,0,0.08),inset_0_0_0_0.5px_var(--ios-separator)]',
+          )}
         >
-          <Icon className="size-[18px]" strokeWidth={1.9} />
+          <Icon className="size-4" strokeWidth={2} />
         </span>
-        <span className="truncate text-2xl font-semibold leading-[30px] tabular-nums">{value}</span>
+        <span className={cn('min-w-0 flex-1 truncate text-[13px] font-medium', highlight ? 'opacity-80' : 'text-[var(--ios-secondary)]')}>
+          {label}
+        </span>
+        {onClick && <ArrowUpRight className={cn('size-4 shrink-0', highlight ? 'opacity-70' : 'text-[var(--ios-tertiary)]')} strokeWidth={2} />}
       </span>
-      <span className="mt-2 truncate text-[15px] font-semibold text-[var(--ios-secondary)]">{label}</span>
-    </button>
+      <span className="mt-auto truncate pt-3 text-[28px] font-semibold leading-none tracking-tight tabular-nums">{value}</span>
+      <span className={cn('mt-1.5 truncate text-xs', highlight ? 'opacity-75' : 'text-[var(--ios-secondary)]')}>{hint}</span>
+      {/* The same room with or without the bar, so the numbers line up across the cards. */}
+      {progress === undefined ? (
+        <span className="mt-2.5 block h-1" />
+      ) : (
+        <span className={cn('mt-2.5 block h-1 overflow-hidden rounded-full', highlight ? 'bg-white/20' : 'bg-[var(--ios-fill-strong)]')}>
+          <motion.span
+            className={cn('block h-full rounded-full', highlight ? 'bg-[var(--ios-on-tint)]' : 'bg-[var(--ios-tint)]')}
+            initial={{ width: 0 }}
+            animate={{ width: `${Math.round(Math.min(1, Math.max(0, progress)) * 100)}%` }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          />
+        </span>
+      )}
+    </motion.button>
   )
 }
 
@@ -127,6 +160,16 @@ export function HomeScreen() {
       return m.year === thisMonth.year && m.month === thisMonth.month
     })
     .reduce((sum, b) => sum + bookingPrice(b), 0)
+  const nextToday = todaySessions.find((b) => new Date(b.slot.startsAt).getTime() >= now)
+  const urgent = pending.filter((b) => new Date(b.slot.startsAt).getTime() < now + 86_400_000).length
+  const inMonth = (b: Booking, m: { year: number; month: number }) => {
+    const x = getLisbonYearMonth(new Date(b.slot.startsAt))
+    return x.year === m.year && x.month === m.month
+  }
+  const lastMonth = thisMonth.month === 1 ? { year: thisMonth.year - 1, month: 12 } : { year: thisMonth.year, month: thisMonth.month - 1 }
+  const lastMonthRevenue = confirmed.filter((b) => inMonth(b, lastMonth)).reduce((sum, b) => sum + bookingPrice(b), 0)
+  const lastMonthName = new Date(lastMonth.year, lastMonth.month - 1, 15).toLocaleDateString('pt-PT', { month: 'short' }).replace('.', '')
+  const monthCount = confirmed.filter((b) => inMonth(b, thisMonth)).length
   const freeWeek = slots.filter((s) => {
     const t = new Date(s.startsAt).getTime()
     return s.status === 'OPEN' && t >= now && t < weekEnd
@@ -158,21 +201,54 @@ export function HomeScreen() {
     >
       {can('marcacoes') ? (
         <>
-          <div className="mt-2 grid grid-cols-2 gap-3 px-4">
-            <Tile Icon={CalendarCheck} tint="blue" value={todaySessions.length} label="Hoje" onClick={() => goTab('agenda')} />
+          <div className="mt-3 grid grid-cols-2 gap-3 px-4">
+            <Tile
+              Icon={CalendarCheck}
+              label="Hoje"
+              value={todaySessions.length}
+              hint={
+                nextToday
+                  ? `Próxima às ${dateParts(nextToday.slot.startsAt).time}`
+                  : todaySessions.length
+                    ? 'Todas concluídas'
+                    : 'Dia sem sessões'
+              }
+              onClick={() => goTab('agenda')}
+            />
             <Tile
               Icon={Inbox}
-              tint={pending.length ? 'red' : 'gray'}
-              value={pending.length}
               label="Pedidos"
+              value={pending.length}
+              highlight={pending.length > 0}
+              hint={
+                pending.length === 0
+                  ? 'Tudo respondido'
+                  : urgent
+                    ? `${urgent} para as próximas 24h`
+                    : 'Toca para responder'
+              }
               onClick={() => goTab('requests')}
             />
-            <Tile Icon={Clock} tint="indigo" value={weekSessions.length} label="Próx. 7 dias" onClick={() => goTab('agenda')} />
+            <Tile
+              Icon={Clock}
+              label="7 dias"
+              value={weekSessions.length}
+              hint={freeWeek ? `${plural(freeWeek, 'horário livre', 'horários livres')}` : 'Sem horários livres'}
+              progress={weekSessions.length + freeWeek ? weekSessions.length / (weekSessions.length + freeWeek) : 0}
+              onClick={() => goTab('agenda')}
+            />
             <Tile
               Icon={Euro}
-              tint="green"
-              value={euros(monthRevenue)}
               label="Este mês"
+              value={euros(monthRevenue)}
+              hint={
+                lastMonthRevenue
+                  ? monthRevenue >= lastMonthRevenue
+                    ? `+${euros(monthRevenue - lastMonthRevenue)} vs ${lastMonthName}`
+                    : `${Math.round((monthRevenue / lastMonthRevenue) * 100)}% de ${lastMonthName}`
+                  : `${plural(monthCount, 'sessão', 'sessões')} confirmadas`
+              }
+              progress={lastMonthRevenue ? monthRevenue / lastMonthRevenue : undefined}
               onClick={can('estatisticas') ? () => goTab('more', { name: 'stats' }) : undefined}
             />
           </div>
