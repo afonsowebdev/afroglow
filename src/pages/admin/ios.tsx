@@ -58,6 +58,17 @@ export function Screen({
       >
         <div className="mx-auto flex h-11 max-w-3xl items-center gap-2 px-2">
           <div className="flex min-w-0 flex-1 items-center">
+            {/* The tabs' own screens wear the AFROGLOW pill, on the left; pushed screens show "‹ Back" there. */}
+            {!back && (
+              <span
+                className={cn(
+                  'ml-2 flex h-10 items-center rounded-full bg-[var(--ios-elevated)] pe-4 ps-1.5 shadow-lg shadow-black/10 transition-opacity duration-200',
+                  compact ? 'pointer-events-none opacity-0' : 'opacity-100',
+                )}
+              >
+                <BrandLogo size="sm" />
+              </span>
+            )}
             {back && (
               <button
                 type="button"
@@ -79,17 +90,6 @@ export function Screen({
             >
               {title}
             </p>
-            {/* The tabs' own screens wear the AFROGLOW pill on top, as the admin always had. */}
-            {!back && (
-              <span
-                className={cn(
-                  'absolute flex h-10 items-center rounded-full bg-[var(--ios-elevated)] pe-4 ps-1.5 shadow-lg shadow-black/10 transition-opacity duration-200',
-                  compact ? 'pointer-events-none opacity-0' : 'opacity-100',
-                )}
-              >
-                <BrandLogo size="sm" />
-              </span>
-            )}
           </div>
           <div className="flex min-w-0 flex-1 items-center justify-end gap-1">{trailing}</div>
         </div>
@@ -176,14 +176,20 @@ export function tintVar(tint: Tint) {
   return `var(--ios-${tint})`
 }
 
-/** The admin's round black icon (red for what deletes or closes), as in the lists it always had. */
+/** A round icon on a soft raised disc (red for what deletes or closes). */
 export function IconTile({ Icon, tint = 'gray', size = 36 }: { Icon: LucideIcon; tint?: Tint; size?: number }) {
+  const red = tint === 'red'
   return (
     <span
-      className="flex shrink-0 items-center justify-center rounded-full text-[var(--ios-on-tint)]"
-      style={{ width: size, height: size, background: tint === 'red' ? 'var(--ios-red)' : 'var(--ios-tint)' }}
+      className={cn(
+        'flex shrink-0 items-center justify-center rounded-full',
+        red
+          ? 'bg-[color-mix(in_srgb,var(--ios-red)_12%,transparent)] text-[var(--ios-red)]'
+          : 'bg-[var(--ios-bg)] text-[var(--ios-label)] shadow-[0_1px_3px_rgba(0,0,0,0.08),inset_0_0_0_0.5px_var(--ios-separator)]',
+      )}
+      style={{ width: size, height: size }}
     >
-      <Icon style={{ width: size * 0.5, height: size * 0.5 }} strokeWidth={2} />
+      <Icon style={{ width: size * 0.5, height: size * 0.5 }} strokeWidth={1.9} />
     </span>
   )
 }

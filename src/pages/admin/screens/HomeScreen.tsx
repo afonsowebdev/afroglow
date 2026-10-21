@@ -43,10 +43,13 @@ function Tile({
     >
       <span className="flex items-start justify-between gap-2">
         <span
-          className="flex size-9 items-center justify-center rounded-full text-[var(--ios-on-tint)]"
-          style={{ background: tint === 'red' ? 'var(--ios-red)' : 'var(--ios-tint)' }}
+          className={
+            tint === 'red'
+              ? 'flex size-9 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--ios-red)_12%,transparent)] text-[var(--ios-red)]'
+              : 'flex size-9 items-center justify-center rounded-full bg-[var(--ios-bg)] text-[var(--ios-label)] shadow-[0_1px_3px_rgba(0,0,0,0.08),inset_0_0_0_0.5px_var(--ios-separator)]'
+          }
         >
-          <Icon className="size-[17px]" strokeWidth={2.4} />
+          <Icon className="size-[18px]" strokeWidth={1.9} />
         </span>
         <span className="truncate text-2xl font-semibold leading-[30px] tabular-nums">{value}</span>
       </span>
@@ -71,7 +74,7 @@ function NextSession({ booking }: { booking: Booking }) {
       >
         <Avatar name={booking.customerName} size={48} />
         <span className="min-w-0 flex-1">
-          <span className="block text-xs font-medium uppercase tracking-[0.14em] text-[var(--ios-gold)]">A seguir · {when}</span>
+          <span className="block truncate text-xs font-medium uppercase tracking-[0.12em] text-[var(--ios-gold)]">A seguir · {when}</span>
           <span className="block truncate text-lg font-semibold leading-tight">{booking.customerName}</span>
           <span className="block truncate text-[15px] text-[var(--ios-secondary)]">{bookingName(booking)}</span>
         </span>
