@@ -66,9 +66,9 @@ export function useAppearance() {
 
 /** How see-through the cards are: their opacity over the background, in the light and in the dark theme. */
 export const GLASS: Record<Appearance['glass'], { light: number; dark: number }> = {
-  pouca: { light: 0.7, dark: 0.09 },
-  media: { light: 0.45, dark: 0.055 },
-  muita: { light: 0.25, dark: 0.03 },
+  pouca: { light: 0.55, dark: 0.1 },
+  media: { light: 0.3, dark: 0.06 },
+  muita: { light: 0.14, dark: 0.03 },
 }
 
 /** One tile of the AFROGLOW pattern: the "A", the wordmark and a few of the salon's signs, faint and turned a little. */
