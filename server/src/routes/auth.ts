@@ -10,12 +10,15 @@ import {
   verifyPassword,
 } from '../lib/auth.js'
 import { isHosted } from '../lib/env.js'
+import { isPermission, PERMISSIONS } from '../lib/permissions.js'
 import { currentResetCode, isValidResetCode } from '../lib/password-reset.js'
 import { prisma } from '../lib/prisma.js'
 import { sendPasswordResetCodeEmail } from '../lib/resend.js'
 import {
   adminChangePasswordSchema,
+  adminProfileSchema,
   adminResetPasswordSchema,
+  avatarSchema,
   forgotPasswordSchema,
   loginSchema,
 } from '../lib/validation.js'
@@ -52,13 +55,100 @@ authRouter.post('/logout', (_req, res) => {
   res.status(204).end()
 })
 
+/** The signed-in admin as the app needs it: who they are, what they may do and their own choices. */
+function presentAdmin(admin: {
+  id: string
+  email: string
+  name: string
+  role: 'OWNER' | 'STAFF'
+  permissions: string[]
+  notifyNewBookings: boolean
+  avatarType: string | null
+  avatarUpdatedAt: Date | null
+  createdAt: Date
+}) {
+  return {
+    id: admin.id,
+    email: admin.email,
+    name: admin.name,
+    role: admin.role,
+    // Owners can do everything; the list spells it out so the app needs no special case.
+    permissions: admin.role === 'OWNER' ? [...PERMISSIONS] : admin.permissions.filter(isPermission),
+    notifyNewBookings: admin.notifyNewBookings,
+    // Changes with every new photo, so the app knows when to fetch it again.
+    avatarVersion: admin.avatarType && admin.avatarUpdatedAt ? admin.avatarUpdatedAt.getTime() : null,
+    createdAt: admin.createdAt,
+  }
+}
+
+const adminSelect = {
+  id: true,
+  email: true,
+  name: true,
+  role: true,
+  permissions: true,
+  notifyNewBookings: true,
+  avatarType: true,
+  avatarUpdatedAt: true,
+  createdAt: true,
+} as const
+
 authRouter.get('/me', requireAdmin, async (req, res) => {
-  const admin = await prisma.admin.findUnique({ where: { id: req.adminId } })
+  const admin = await prisma.admin.findUnique({ where: { id: req.adminId }, select: adminSelect })
   if (!admin) {
     res.status(401).json({ error: 'Não autenticado.' })
     return
   }
-  res.json({ email: admin.email })
+  res.json(presentAdmin(admin))
+})
+
+authRouter.patch('/me', requireAdmin, async (req, res) => {
+  const parsed = adminProfileSchema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.issues[0]?.message ?? 'Dados inválidos.' })
+    return
+  }
+  const admin = await prisma.admin.update({ where: { id: req.adminId }, data: parsed.data, select: adminSelect })
+  res.json(presentAdmin(admin))
+})
+
+// The admin's photo: a small square JPEG the app prepares, as for customers.
+authRouter.put('/me/avatar', requireAdmin, async (req, res) => {
+  const parsed = avatarSchema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Imagem inválida.' })
+    return
+  }
+  const admin = await prisma.admin.update({
+    where: { id: req.adminId },
+    data: {
+      avatar: Buffer.from(parsed.data.data, 'base64') as unknown as Uint8Array<ArrayBuffer>,
+      avatarType: parsed.data.contentType,
+      avatarUpdatedAt: new Date(),
+    },
+    select: adminSelect,
+  })
+  res.json(presentAdmin(admin))
+})
+
+authRouter.delete('/me/avatar', requireAdmin, async (req, res) => {
+  const admin = await prisma.admin.update({
+    where: { id: req.adminId },
+    data: { avatar: null, avatarType: null, avatarUpdatedAt: null },
+    select: adminSelect,
+  })
+  res.json(presentAdmin(admin))
+})
+
+// Any team member's photo, as a data URL (the app can't send its login header with an <img> request).
+authRouter.get('/avatar/:adminId', requireAdmin, async (req, res) => {
+  const admin = await prisma.admin.findUnique({
+    where: { id: req.params.adminId },
+    select: { avatar: true, avatarType: true },
+  })
+  res.json({
+    dataUrl: admin?.avatar && admin.avatarType ? `data:${admin.avatarType};base64,${Buffer.from(admin.avatar).toString('base64')}` : null,
+  })
 })
 
 authRouter.post('/change-password', requireAdmin, loginRateLimit, async (req, res) => {

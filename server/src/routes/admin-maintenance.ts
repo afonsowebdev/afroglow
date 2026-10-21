@@ -1,10 +1,11 @@
 import { Router } from 'express'
+import { requirePermission } from '../lib/permissions.js'
 import { requireAdmin, verifyPassword } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
 import { clearMonthSchema } from '../lib/validation.js'
 
 export const adminMaintenanceRouter = Router()
-adminMaintenanceRouter.use(requireAdmin)
+adminMaintenanceRouter.use(requireAdmin, requirePermission('marcacoes'))
 
 // Slots are stored in UTC but the admin thinks in Lisbon-local months, so a
 // slot's month membership is resolved via Intl rather than a raw UTC range

@@ -1,10 +1,11 @@
 import { Router } from 'express'
+import { requirePermission } from '../lib/permissions.js'
 import { requireAdmin } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
 import { bookingPrice } from '../lib/pricing.js'
 
 export const adminStatsRouter = Router()
-adminStatsRouter.use(requireAdmin)
+adminStatsRouter.use(requireAdmin, requirePermission('estatisticas'))
 
 // Months are Lisbon-local, like everywhere else in the admin.
 function lisbonMonthKey(date: Date) {

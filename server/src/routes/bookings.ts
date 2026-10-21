@@ -1,9 +1,12 @@
 import { randomBytes } from 'node:crypto'
 import { Router } from 'express'
+import { requirePermission } from '../lib/permissions.js'
 import { sendBookingPushNotification } from '../lib/apns.js'
 import { hashPassword, requireAdmin, requireCustomer } from '../lib/auth.js'
 import { bookingPush } from '../lib/booking-push.js'
+import { currentClosures, isClosed } from '../lib/closures.js'
 import { prisma } from '../lib/prisma.js'
+import { runningPromotions, withPromotion } from '../lib/promotions.js'
 import {
   sendBookingAcceptedEmail,
   sendBookingConfirmationEmail,
@@ -30,9 +33,10 @@ bookingsRouter.post('/', requireCustomer, async (req, res) => {
   const customerId = req.customerId!
 
   try {
+    const [closures, promos] = await Promise.all([currentClosures(), runningPromotions()])
     const { booking, slot, service, customer } = await prisma.$transaction(async (tx) => {
       const slot = await tx.availabilitySlot.findUnique({ where: { id: slotId } })
-      if (!slot || slot.status !== 'OPEN') {
+      if (!slot || slot.status !== 'OPEN' || isClosed(slot.startsAt, closures)) {
         throw new SlotUnavailableError()
       }
 
@@ -40,7 +44,7 @@ bookingsRouter.post('/', requireCustomer, async (req, res) => {
       if (!service || !service.active) {
         throw new ServiceNotFoundError()
       }
-      const choice = resolveChoice(service, length, parting)
+      const choice = resolveChoice(withPromotion(service, promos), length, parting)
       if (!choice) throw new OptionsInvalidError()
 
       const customer = await tx.customer.findUniqueOrThrow({ where: { id: customerId } })
@@ -114,7 +118,7 @@ bookingsRouter.post('/', requireCustomer, async (req, res) => {
 })
 
 export const adminBookingsRouter = Router()
-adminBookingsRouter.use(requireAdmin)
+adminBookingsRouter.use(requireAdmin, requirePermission('marcacoes'))
 
 adminBookingsRouter.get('/', async (_req, res) => {
   const bookings = await prisma.booking.findMany({
@@ -150,12 +154,18 @@ adminBookingsRouter.post('/manual', async (req, res) => {
     return
   }
 
+  if (isClosed(new Date(startsAt), await currentClosures())) {
+    res.status(409).json({ error: 'Esse dia está fechado. Reabre-o em Dias fechados para marcar.' })
+    return
+  }
+
   try {
+    const promos = await runningPromotions()
     const placeholderHash = customerId ? '' : await hashPassword(randomBytes(24).toString('hex'))
     const { booking, customer, service, slot } = await prisma.$transaction(async (tx) => {
       const service = await tx.service.findUnique({ where: { id: serviceId } })
       if (!service) throw new ServiceNotFoundError()
-      const choice = resolveChoice(service, length, parting)
+      const choice = resolveChoice(withPromotion(service, promos), length, parting)
       if (!choice) throw new OptionsInvalidError()
 
       let customer = customerId ? await tx.customer.findUnique({ where: { id: customerId } }) : null

@@ -175,3 +175,79 @@ export const serviceImageSchema = z.object({
   // base64 of the (already resized) image; roughly 4 MB of binary at most
   data: z.string().min(100).max(5_600_000),
 })
+
+export const adminProfileSchema = z
+  .object({
+    name: z.string().trim().max(60, 'O nome pode ter até 60 caracteres.').optional(),
+    notifyNewBookings: z.boolean().optional(),
+  })
+  .strict()
+
+/** A small square photo the app prepares (the admin's avatar). */
+export const avatarSchema = z.object({
+  contentType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+  data: z.string().min(100).max(420_000),
+})
+
+const permissionList = z.array(z.string()).max(20)
+
+export const createTeamMemberSchema = z.object({
+  name: z.string().trim().min(1, 'Indica o nome.').max(60),
+  email: emailSchema,
+  password: z.string().min(8, 'A password deve ter pelo menos 8 caracteres.').max(100),
+  role: z.enum(['OWNER', 'STAFF']),
+  permissions: permissionList,
+})
+
+export const updateTeamMemberSchema = z
+  .object({
+    name: z.string().trim().min(1).max(60).optional(),
+    role: z.enum(['OWNER', 'STAFF']).optional(),
+    permissions: permissionList.optional(),
+  })
+  .strict()
+
+export const teamPasswordSchema = z.object({
+  password: z.string().min(8, 'A password deve ter pelo menos 8 caracteres.').max(100),
+})
+
+const dateKeySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida.')
+
+export const closedPeriodSchema = z
+  .object({
+    startDate: dateKeySchema,
+    endDate: dateKeySchema,
+    reason: z.string().trim().max(120).default(''),
+    /** What happens to the bookings already made on those days: kept, or cancelled with a message to the client. */
+    bookings: z.enum(['KEEP', 'CANCEL']).default('KEEP'),
+    message: z.string().trim().max(300).optional(),
+  })
+  .refine((p) => p.startDate <= p.endDate, 'O último dia não pode ser antes do primeiro.')
+
+export const promotionSchema = z
+  .object({
+    title: z.string().trim().min(2, 'Dá um nome à promoção.').max(60),
+    percentOff: z.number().int().min(1, 'O desconto vai de 1 a 90%.').max(90, 'O desconto vai de 1 a 90%.'),
+    /** null: every hairstyle. */
+    serviceId: z.string().min(1).nullable(),
+    startsAt: z.string().datetime(),
+    endsAt: z.string().datetime(),
+    active: z.boolean().default(true),
+  })
+  .refine((p) => p.startsAt < p.endsAt, 'O fim tem de ser depois do início.')
+
+export const broadcastSchema = z
+  .object({
+    title: z.string().trim().min(2, 'Escreve um título.').max(60),
+    body: z.string().trim().min(2, 'Escreve a mensagem.').max(300),
+    audience: z.enum(['ALL', 'SELECTED']),
+    customerIds: z.array(z.string().min(1)).max(2000).optional(),
+  })
+  .refine((b) => b.audience === 'ALL' || (b.customerIds?.length ?? 0) > 0, 'Escolhe pelo menos uma cliente.')
+
+export const customerPhotoSchema = z.object({
+  contentType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+  // base64 of the (already resized) photo; roughly 2 MB of binary at most
+  data: z.string().min(100).max(2_800_000),
+  caption: z.string().trim().max(120).default(''),
+})

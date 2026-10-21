@@ -142,7 +142,14 @@ export async function sendBookingPushNotification(booking: { customerName: strin
   }
 
   try {
-    const tokens = await prisma.pushToken.findMany()
+    const tokens = await prisma.pushToken.findMany({
+      where: {
+        admin: {
+          notifyNewBookings: true,
+          OR: [{ role: 'OWNER' }, { permissions: { has: 'marcacoes' } }],
+        },
+      },
+    })
     if (tokens.length === 0) return
 
     const results = await Promise.all(

@@ -8,18 +8,34 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum AdminRole {
+  OWNER
+  STAFF
+}
+
 model Admin {
   id           String      @id @default(cuid())
   email        String      @unique
   passwordHash String
+  /// How the admin is called in the app ("Olá, Ana") and shown to the team.
+  name         String      @default("")
+  /// OWNER sees and manages everything, the team included; STAFF only what `permissions` lists (lib/permissions).
+  role         AdminRole   @default(OWNER)
+  permissions  String[]    @default([])
+  /// A new booking request pushes a notification to this admin's iPhones.
+  notifyNewBookings Boolean @default(true)
+  avatar          Bytes?
+  avatarType      String?
+  avatarUpdatedAt DateTime?
   createdAt    DateTime    @default(now())
   pushTokens   PushToken[]
+  broadcasts   Broadcast[]
 }
 
 model PushToken {
   id        String   @id @default(cuid())
   adminId   String
-  admin     Admin    @relation(fields: [adminId], references: [id])
+  admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
   token     String   @unique
   // Notifications sent to this iPhone that it has not opened yet: shown on the app icon, zeroed when the app opens.
   badge     Int      @default(0)
@@ -41,6 +57,7 @@ model Service {
   bookings      Booking[]
   images        ServiceImage[]
   favourites    FavouriteService[]
+  promotions    Promotion[]
 }
 
 enum SlotStatus {
@@ -85,6 +102,7 @@ model Customer {
   bookings     Booking[]
   testimonials Testimonial[]
   favourites   FavouriteService[]
+  photos       CustomerPhoto[]
 }
 
 model PendingRegistration {
@@ -220,4 +238,60 @@ model FavouriteService {
   createdAt  DateTime @default(now())
 
   @@id([customerId, serviceId])
+}
+
+/// Photos the business keeps of a client's hair (the finished style, the hair before…), private to the admin.
+model CustomerPhoto {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  data        Bytes
+  contentType String
+  caption     String   @default("")
+  createdAt   DateTime @default(now())
+
+  @@index([customerId, createdAt])
+}
+
+/// Days the studio is closed (holidays, days off): no times can be opened on them. Dates are Lisbon-local
+/// "YYYY-MM-DD", both ends included.
+model ClosedPeriod {
+  id        String   @id @default(cuid())
+  startDate String
+  endDate   String
+  reason    String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([endDate])
+}
+
+/// A discount on one hairstyle (or every one, when serviceId is null) between two moments. The customer sees and
+/// books the discounted price while it runs.
+model Promotion {
+  id         String   @id @default(cuid())
+  title      String
+  percentOff Int
+  serviceId  String?
+  service    Service? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  startsAt   DateTime
+  endsAt     DateTime
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  @@index([endsAt])
+}
+
+/// A message the business sent to its clients from the admin app (push + the website's bell).
+model Broadcast {
+  id             String   @id @default(cuid())
+  title          String
+  body           String
+  /// "ALL" or "SELECTED".
+  audience       String
+  recipientCount Int
+  adminId        String?
+  admin          Admin?   @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt])
 }

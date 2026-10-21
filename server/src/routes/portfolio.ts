@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { requirePermission } from '../lib/permissions.js'
 import { requireAdmin } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
 
@@ -54,7 +55,7 @@ portfolioRouter.get('/:id/file', async (req, res) => {
 })
 
 export const adminPortfolioRouter = Router()
-adminPortfolioRouter.use(requireAdmin)
+adminPortfolioRouter.use(requireAdmin, requirePermission('catalogo'))
 
 // Upload: JSON { contentType, data } with the file in base64 (the iPhone app's network layer can't send raw files).
 adminPortfolioRouter.post('/', async (req, res) => {

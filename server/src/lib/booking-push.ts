@@ -18,8 +18,13 @@ export const bookingPush = {
       reason ? `${b.service.name}: ${reason}` : `${b.service.name} não ficou disponível nessa data. Escolhe outro horário.`,
       { bookingId: b.id },
     ),
-  cancelled: (b: Booking) =>
-    sendCustomerPush(b.customerId, 'Marcação cancelada', `${b.service.name} · ${whenLabel(b.slot.startsAt)}`, { bookingId: b.id }),
+  cancelled: (b: Booking, note?: string) =>
+    sendCustomerPush(
+      b.customerId,
+      'Marcação cancelada',
+      `${b.service.name} · ${whenLabel(b.slot.startsAt)}${note ? `. ${note}` : ''}`,
+      { bookingId: b.id },
+    ),
   reminder: (b: Booking) =>
     sendCustomerPush(b.customerId, 'Lembrete da tua sessão', `${b.service.name} · ${whenLabel(b.slot.startsAt)}`, { bookingId: b.id }),
 }

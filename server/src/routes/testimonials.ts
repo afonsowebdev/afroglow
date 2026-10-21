@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { requirePermission } from '../lib/permissions.js'
 import { requireAdmin } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
 
@@ -40,7 +41,7 @@ testimonialsRouter.get('/:id/photo', async (req, res) => {
 })
 
 export const adminTestimonialsRouter = Router()
-adminTestimonialsRouter.use(requireAdmin)
+adminTestimonialsRouter.use(requireAdmin, requirePermission('testemunhos'))
 
 adminTestimonialsRouter.get('/', async (_req, res) => {
   const testimonials = await prisma.testimonial.findMany({

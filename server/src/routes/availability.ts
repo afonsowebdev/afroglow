@@ -1,5 +1,7 @@
 import { Router } from 'express'
+import { requirePermission } from '../lib/permissions.js'
 import { requireAdmin } from '../lib/auth.js'
+import { currentClosures, isClosed } from '../lib/closures.js'
 import { prisma } from '../lib/prisma.js'
 import { createSlotSchema, createSlotsBatchSchema } from '../lib/validation.js'
 
@@ -8,16 +10,20 @@ export const availabilityRouter = Router()
 availabilityRouter.get('/', async (req, res) => {
   // `?include=busy` also returns slots that are taken (status only, no personal data), so the app can show them as "Ocupado".
   const includeBusy = req.query.include === 'busy'
-  const slots = await prisma.availabilitySlot.findMany({
-    where: { ...(includeBusy ? {} : { status: 'OPEN' as const }), startsAt: { gte: new Date() } },
-    select: { id: true, startsAt: true, status: true, createdAt: true },
-    orderBy: { startsAt: 'asc' },
-  })
-  res.json(slots)
+  const [slots, closures] = await Promise.all([
+    prisma.availabilitySlot.findMany({
+      where: { ...(includeBusy ? {} : { status: 'OPEN' as const }), startsAt: { gte: new Date() } },
+      select: { id: true, startsAt: true, status: true, createdAt: true },
+      orderBy: { startsAt: 'asc' },
+    }),
+    currentClosures(),
+  ])
+  // Closed days show nothing to book.
+  res.json(slots.filter((slot) => !isClosed(slot.startsAt, closures)))
 })
 
 export const adminAvailabilityRouter = Router()
-adminAvailabilityRouter.use(requireAdmin)
+adminAvailabilityRouter.use(requireAdmin, requirePermission('marcacoes'))
 
 adminAvailabilityRouter.get('/', async (_req, res) => {
   const slots = await prisma.availabilitySlot.findMany({ orderBy: { startsAt: 'asc' } })
@@ -28,6 +34,11 @@ adminAvailabilityRouter.post('/', async (req, res) => {
   const parsed = createSlotSchema.safeParse(req.body)
   if (!parsed.success) {
     res.status(400).json({ error: 'Data/hora inválida.' })
+    return
+  }
+
+  if (isClosed(new Date(parsed.data.startsAt), await currentClosures())) {
+    res.status(409).json({ error: 'Esse dia está fechado. Reabre-o em Dias fechados para abrir horários.' })
     return
   }
 
@@ -53,14 +64,17 @@ adminAvailabilityRouter.post('/batch', async (req, res) => {
     return
   }
 
+  // Times on closed days are left out (and counted as skipped).
+  const closures = await currentClosures()
+  const wanted = parsed.data.startsAtList.filter((startsAt) => !isClosed(new Date(startsAt), closures))
   const results = await Promise.allSettled(
-    parsed.data.startsAtList.map((startsAt) => prisma.availabilitySlot.create({ data: { startsAt: new Date(startsAt) } })),
+    wanted.map((startsAt) => prisma.availabilitySlot.create({ data: { startsAt: new Date(startsAt) } })),
   )
 
   const created = results.filter((r): r is PromiseFulfilledResult<Awaited<ReturnType<typeof prisma.availabilitySlot.create>>> => r.status === 'fulfilled').map((r) => r.value)
-  const skipped = results.length - created.length
+  const skipped = parsed.data.startsAtList.length - created.length
 
-  res.status(201).json({ created, skipped })
+  res.status(201).json({ created, skipped, closedSkipped: parsed.data.startsAtList.length - wanted.length })
 })
 
 adminAvailabilityRouter.delete('/:id', async (req, res) => {

@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { requirePermission } from '../lib/permissions.js'
 import { requireAdmin } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
 import { businessSettingsSchema } from '../lib/validation.js'
@@ -34,7 +35,7 @@ settingsRouter.get('/', async (_req, res) => {
 })
 
 export const adminSettingsRouter = Router()
-adminSettingsRouter.use(requireAdmin)
+adminSettingsRouter.use(requireAdmin, requirePermission('definicoes'))
 
 adminSettingsRouter.put('/', async (req, res) => {
   const parsed = businessSettingsSchema.safeParse(req.body)

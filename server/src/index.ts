@@ -5,7 +5,11 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import { isHosted } from './lib/env.js'
 import { sendDueBookingReminders } from './lib/reminders.js'
 import { accountRouter } from './routes/account.js'
+import { adminBroadcastsRouter } from './routes/admin-broadcasts.js'
+import { adminClosuresRouter } from './routes/admin-closures.js'
 import { adminCustomersRouter } from './routes/admin-customers.js'
+import { adminPromotionsRouter } from './routes/admin-promotions.js'
+import { adminTeamRouter } from './routes/admin-team.js'
 import { adminStatsRouter } from './routes/admin-stats.js'
 import { adminMaintenanceRouter } from './routes/admin-maintenance.js'
 import { adminAvailabilityRouter, availabilityRouter } from './routes/availability.js'
@@ -56,6 +60,8 @@ app.use(
 app.use('/api/admin/services/:id/images', express.json({ limit: '8mb' }))
 app.use('/api/admin/portfolio', express.json({ limit: '13mb' }))
 app.use('/api/account/avatar', express.json({ limit: '600kb' }))
+app.use('/api/auth/me/avatar', express.json({ limit: '600kb' }))
+app.use('/api/admin/customers/:id/photos', express.json({ limit: '4mb' }))
 app.use(express.json())
 app.use(cookieParser())
 
@@ -81,6 +87,10 @@ app.use('/api/account', accountRouter)
 app.use('/api/testimonials', testimonialsRouter)
 app.use('/api/admin/testimonials', adminTestimonialsRouter)
 app.use('/api/admin/maintenance', adminMaintenanceRouter)
+app.use('/api/admin/team', adminTeamRouter)
+app.use('/api/admin/closures', adminClosuresRouter)
+app.use('/api/admin/promotions', adminPromotionsRouter)
+app.use('/api/admin/broadcasts', adminBroadcastsRouter)
 
 // Unknown API paths and thrown errors (e.g. a blocked CORS origin) would
 // otherwise come back as Express's HTML error page, which the frontend can't

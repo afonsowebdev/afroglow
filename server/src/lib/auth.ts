@@ -3,6 +3,7 @@ import type { NextFunction, Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'
 import jwt from 'jsonwebtoken'
 import { isHosted } from './env.js'
+import { prisma } from './prisma.js'
 
 const rawSecret = process.env.JWT_SECRET
 if (!rawSecret) {
@@ -55,6 +56,8 @@ declare global {
   namespace Express {
     interface Request {
       adminId?: string
+      /** The signed-in admin's role and permissions (lib/permissions), loaded by requireAdmin. */
+      admin?: { id: string; role: 'OWNER' | 'STAFF'; permissions: string[] }
       customerId?: string
     }
   }
@@ -97,7 +100,17 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
     res.status(401).json({ error: 'Sessão inválida ou expirada.' })
     return
   }
-  req.adminId = payload.adminId
+  // Looked up every time, so a team member who was removed (or whose permissions changed) is out straight away.
+  const admin = await prisma.admin.findUnique({
+    where: { id: payload.adminId },
+    select: { id: true, role: true, permissions: true },
+  })
+  if (!admin) {
+    res.status(401).json({ error: 'Sessão inválida ou expirada.' })
+    return
+  }
+  req.adminId = admin.id
+  req.admin = admin
   next()
 }
 

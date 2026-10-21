@@ -1,8 +1,10 @@
 import { Router } from 'express'
+import { requirePermission } from '../lib/permissions.js'
 import { requireAdmin } from '../lib/auth.js'
 import { Prisma } from '@prisma/client'
 import { lowestPrice, type Pricing } from '../lib/pricing.js'
 import { prisma } from '../lib/prisma.js'
+import { runningPromotions, withPromotion } from '../lib/promotions.js'
 import { createServiceSchema, serviceImageSchema, updateServiceSchema } from '../lib/validation.js'
 
 const MAX_IMAGES_PER_SERVICE = 5
@@ -11,12 +13,16 @@ export const servicesRouter = Router()
 
 // What customers can book. The admin list (below) also shows the hidden ones.
 servicesRouter.get('/', async (_req, res) => {
-  const services = await prisma.service.findMany({
-    where: { active: true },
-    orderBy: { createdAt: 'asc' },
-    include: { images: { select: { id: true }, orderBy: { position: 'asc' } } },
-  })
-  res.json(services)
+  const [services, promos] = await Promise.all([
+    prisma.service.findMany({
+      where: { active: true },
+      orderBy: { createdAt: 'asc' },
+      include: { images: { select: { id: true }, orderBy: { position: 'asc' } } },
+    }),
+    runningPromotions(),
+  ])
+  // While a promotion runs, customers see (and book) the discounted prices.
+  res.json(services.map((service) => withPromotion(service, promos)))
 })
 
 // A photo of a service. Immutable: a new upload always gets a new id, so browsers can cache it for good.
@@ -37,13 +43,16 @@ servicesRouter.get('/:id/images/:imageId', async (req, res) => {
 export const adminServicesRouter = Router()
 adminServicesRouter.use(requireAdmin)
 
-adminServicesRouter.get('/', async (_req, res) => {
+// Also what a booking added by hand chooses from.
+adminServicesRouter.get('/', requirePermission('catalogo', 'marcacoes'), async (_req, res) => {
   const services = await prisma.service.findMany({
     orderBy: { createdAt: 'asc' },
     include: { images: { select: { id: true }, orderBy: { position: 'asc' } } },
   })
   res.json(services)
 })
+
+adminServicesRouter.use(requirePermission('catalogo'))
 
 // With a price table, the service's own price is its lowest ("a partir de"); Prisma needs DbNull to clear JSON.
 function serviceData<T extends { pricing?: Pricing | null; priceCents?: number }>(data: T) {

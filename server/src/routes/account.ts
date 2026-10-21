@@ -9,6 +9,7 @@ import {
   signCustomerSession,
   verifyPassword,
 } from '../lib/auth.js'
+import { currentClosures, isClosed } from '../lib/closures.js'
 import { prisma } from '../lib/prisma.js'
 import { removeCustomer } from '../lib/customer-removal.js'
 import { isHosted } from '../lib/env.js'
@@ -408,9 +409,10 @@ accountRouter.post('/bookings/:id/reschedule', requireCustomer, async (req, res)
       return
     }
 
+    const closures = await currentClosures()
     const updated = await prisma.$transaction(async (tx) => {
       const newSlot = await tx.availabilitySlot.findUnique({ where: { id: parsed.data.slotId } })
-      if (!newSlot || newSlot.status !== 'OPEN') {
+      if (!newSlot || newSlot.status !== 'OPEN' || isClosed(newSlot.startsAt, closures)) {
         throw new SlotUnavailableError()
       }
 
