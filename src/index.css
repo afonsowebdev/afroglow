@@ -382,6 +382,8 @@
   --ios-bar: rgba(255, 255, 255, 0.9);
   --ios-pattern-bg: #f2eee8;
   --ios-pattern-ink: rgba(28, 20, 14, 0.055);
+  --ios-pattern-glow-1: rgba(201, 168, 76, 0.14);
+  --ios-pattern-glow-2: rgba(150, 100, 60, 0.1);
   --ios-tint: #1c1c1e;
   --ios-on-tint: #ffffff;
   --ios-gold: #8a6d14;
@@ -424,6 +426,8 @@
   --ios-bar: rgba(23, 18, 14, 0.82);
   --ios-pattern-bg: #15100c;
   --ios-pattern-ink: rgba(242, 235, 225, 0.05);
+  --ios-pattern-glow-1: rgba(201, 168, 76, 0.07);
+  --ios-pattern-glow-2: rgba(120, 70, 35, 0.12);
   --ios-tint: #f2ebe1;
   --ios-on-tint: #17120e;
   --ios-gold: #d4b055;
@@ -480,21 +484,35 @@
 .admin-ios.has-wallpaper {
   background: transparent;
   --ios-wallpaper-veil: rgba(255, 255, 255, 0.36);
-  --ios-glass-rim: rgba(255, 255, 255, 0.7);
+  --ios-glass-rim: rgba(255, 255, 255, 0.55);
+  --ios-glass-edge: rgba(255, 255, 255, 0.95);
+  --ios-glass-sheen: rgba(255, 255, 255, 0.35);
+  --ios-glass-shadow: rgba(70, 45, 20, 0.22);
   --ios-secondary: rgba(28, 28, 30, 0.7);
   --ios-cell: rgba(255, 255, 255, var(--glass-l, 0.6));
   --ios-cell-pressed: rgba(255, 255, 255, calc(var(--glass-l, 0.6) + 0.18));
 }
 .dark .admin-ios.has-wallpaper {
   --ios-wallpaper-veil: rgba(23, 18, 14, 0.6);
-  --ios-glass-rim: rgba(242, 235, 225, 0.1);
+  --ios-glass-rim: rgba(255, 246, 232, 0.09);
+  --ios-glass-edge: rgba(255, 246, 232, 0.16);
+  --ios-glass-sheen: rgba(255, 246, 232, 0.05);
+  --ios-glass-shadow: rgba(0, 0, 0, 0.55);
   --ios-secondary: rgba(242, 235, 225, 0.68);
   --ios-cell: rgba(255, 246, 232, var(--glass-d, 0.06));
   --ios-cell-pressed: rgba(255, 246, 232, calc(var(--glass-d, 0.06) + 0.06));
 }
+/*
+ * The glass itself: the background strongly blurred through it, a sheen of light on its top half, a bright edge on
+ * top, a fine rim all round and a soft shadow under it, so each card floats a little above the background.
+ */
 .admin-ios.has-wallpaper .ios-list,
 .admin-ios.has-wallpaper [class*='bg-[var(--ios-cell)]'] {
-  -webkit-backdrop-filter: blur(22px) saturate(1.5);
-  backdrop-filter: blur(22px) saturate(1.5);
-  box-shadow: inset 0 0 0 1px var(--ios-glass-rim);
+  -webkit-backdrop-filter: blur(var(--ios-glass-blur, 14px)) saturate(1.8);
+  backdrop-filter: blur(var(--ios-glass-blur, 14px)) saturate(1.8);
+  background-image: linear-gradient(180deg, var(--ios-glass-sheen) 0%, transparent 55%);
+  box-shadow:
+    inset 0 1px 0 var(--ios-glass-edge),
+    inset 0 0 0 1px var(--ios-glass-rim),
+    0 10px 30px -12px var(--ios-glass-shadow);
 }

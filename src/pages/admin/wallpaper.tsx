@@ -66,9 +66,9 @@ export function useAppearance() {
 
 /** How see-through the cards are: their opacity over the background, in the light and in the dark theme. */
 export const GLASS: Record<Appearance['glass'], { light: number; dark: number }> = {
-  pouca: { light: 0.82, dark: 0.1 },
-  media: { light: 0.6, dark: 0.065 },
-  muita: { light: 0.4, dark: 0.04 },
+  pouca: { light: 0.7, dark: 0.09 },
+  media: { light: 0.45, dark: 0.055 },
+  muita: { light: 0.25, dark: 0.03 },
 }
 
 /** One tile of the AFROGLOW pattern: the "A", the wordmark and a few of the salon's signs, faint and turned a little. */
@@ -87,6 +87,9 @@ function PatternLayer() {
   const rows = 12
   return (
     <div className="absolute inset-0 bg-[var(--ios-pattern-bg)]">
+      {/* Two soft warm lights, so the glass over it has something to catch. */}
+      <div className="absolute -left-1/4 -top-1/4 size-[80vmax] rounded-full bg-[radial-gradient(circle,var(--ios-pattern-glow-1),transparent_60%)]" />
+      <div className="absolute -bottom-1/3 -right-1/4 size-[80vmax] rounded-full bg-[radial-gradient(circle,var(--ios-pattern-glow-2),transparent_60%)]" />
       <div className="absolute left-0 top-0 text-[var(--ios-pattern-ink)]" style={{ width: cols * TILE, height: rows * TILE }}>
         {Array.from({ length: rows }, (_, row) =>
           Array.from({ length: cols }, (_, col) =>
