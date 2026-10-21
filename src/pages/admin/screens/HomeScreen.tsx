@@ -1,9 +1,7 @@
 import {
-  ArrowUpRight,
   BellRing,
   CalendarCheck,
   CalendarPlus,
-  Clock,
   CalendarX2,
   MessageCircle,
   MessageSquareQuote,
@@ -12,10 +10,8 @@ import {
   Tag,
   type LucideIcon,
 } from 'lucide-react'
-import { motion } from 'motion/react'
 import { customerWhatsappUrl } from '@/lib/site-config'
 import { MonthCard, RequestsCard, TodayCard, WeekCard } from './home-cards'
-import { cn } from '@/lib/utils'
 import { bookingName, bookingPrice } from '@/lib/pricing'
 import type { AvailabilitySlot, Booking } from '@/lib/types'
 import { useAdmin } from '../admin-context'
@@ -31,117 +27,66 @@ interface QuickActionItem {
 }
 
 /**
- * What is done most, in reach: a large dark "Nova marcação" (the one done every day), and the rest as cards in two
- * columns, each with its icon, name and a line about it.
+ * What is done most, in reach: the black "Nova marcação" pill (as the agenda's "Nova" always was), the next free
+ * times as plain chips that open the booking on that time, and the rest as a list.
  */
 function QuickActions({
   items,
   onNewBooking,
   freeSlots = [],
-  freeCount = 0,
 }: {
   items: QuickActionItem[]
   /** Opens the booking sheet, on a free time when one was tapped. */
   onNewBooking?: (startsAt?: string) => void
   /** The next free times, to book straight into. */
   freeSlots?: AvailabilitySlot[]
-  freeCount?: number
 }) {
   return (
-    <Section flush header="Ações rápidas">
+    <>
       {onNewBooking && (
-        <div className="relative overflow-hidden rounded-3xl bg-[var(--ios-tint)] p-4 text-[var(--ios-on-tint)] shadow-lg shadow-black/15">
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.3),transparent_65%)]"
-          />
-          {/* The whole top opens a blank booking. */}
-          <motion.button type="button" onClick={() => onNewBooking()} whileTap={{ scale: 0.98 }} className="relative flex w-full items-center gap-3.5 text-left">
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#c9a84c] text-[#1c1c1e] shadow-[0_4px_14px_rgba(201,168,76,0.4)]">
-              <CalendarPlus className="size-6" strokeWidth={2} />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-lg font-semibold leading-tight">Nova marcação</span>
-              <span className="block truncate text-xs opacity-70">
-                {freeSlots.length ? 'Toca numa vaga ou escolhe a hora' : 'Por WhatsApp, Instagram ou ao balcão'}
-              </span>
-            </span>
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--ios-on-tint)_14%,transparent)]">
-              <Plus className="size-5" strokeWidth={2.4} />
-            </span>
-          </motion.button>
-
-          {/* The next free times: one tap opens the booking on that time. */}
-          <p className="relative mt-4 text-[11px] font-medium uppercase tracking-[0.14em] opacity-60">
-            {freeSlots.length ? `Próximas vagas · ${plural(freeCount, 'livre', 'livres')} esta semana` : 'Sem vagas abertas'}
-          </p>
-          <div className="relative -mx-4 mt-2 flex gap-2 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {freeSlots.map((slot, i) => {
-              const title = dayTitle(slot.startsAt)
-              const { time, weekdayShort, day } = dateParts(slot.startsAt)
-              const dayLabel = title === 'Hoje' || title === 'Amanhã' ? title : `${weekdayShort.charAt(0).toUpperCase()}${weekdayShort.slice(1)} ${day}`
-              return (
-                <motion.button
-                  key={slot.id}
-                  type="button"
-                  onClick={() => onNewBooking(slot.startsAt)}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 + i * 0.05 }}
-                  className={cn(
-                    'flex shrink-0 flex-col items-start rounded-2xl px-3.5 py-2 text-left',
-                    i === 0 ? 'bg-[#c9a84c] text-[#1c1c1e]' : 'bg-[color-mix(in_srgb,var(--ios-on-tint)_12%,transparent)]',
-                  )}
-                >
-                  <span className={cn('text-[11px]', i === 0 ? 'opacity-75' : 'opacity-65')}>{dayLabel}</span>
-                  <span className="text-base font-semibold tabular-nums leading-tight">{time}</span>
-                </motion.button>
-              )
-            })}
-            <motion.button
-              type="button"
-              onClick={() => onNewBooking()}
-              whileTap={{ scale: 0.95 }}
-              className="flex shrink-0 items-center gap-2 rounded-2xl border border-dashed border-[color-mix(in_srgb,var(--ios-on-tint)_35%,transparent)] px-3.5 py-2"
-            >
-              <Clock className="size-4 opacity-80" strokeWidth={2} />
-              <span className="text-left">
-                <span className="block text-[11px] opacity-65">Qualquer dia</span>
-                <span className="block text-sm font-semibold leading-tight">Outra hora</span>
-              </span>
-            </motion.button>
-          </div>
-        </div>
+        <Section flush header="Marcar">
+          <button
+            type="button"
+            onClick={() => onNewBooking()}
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--ios-tint)] text-[15px] font-medium text-[var(--ios-on-tint)] active:opacity-70"
+          >
+            <Plus className="size-5" strokeWidth={2.2} />
+            Nova marcação
+          </button>
+          {freeSlots.length > 0 && (
+            <>
+              <p className="mt-4 px-1 text-xs text-[var(--ios-secondary)]">Ou marca já numa vaga livre:</p>
+              <div className="-mx-4 mt-2 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {freeSlots.map((slot) => {
+                  const title = dayTitle(slot.startsAt)
+                  const { time, weekdayShort, day } = dateParts(slot.startsAt)
+                  const dayLabel =
+                    title === 'Hoje' || title === 'Amanhã' ? title : `${weekdayShort.charAt(0).toUpperCase()}${weekdayShort.slice(1)}, ${day}`
+                  return (
+                    <button
+                      key={slot.id}
+                      type="button"
+                      onClick={() => onNewBooking(slot.startsAt)}
+                      className="shrink-0 rounded-2xl border border-[var(--ios-separator)] bg-[var(--ios-bg)] px-4 py-2 text-center active:bg-[var(--ios-cell)]"
+                    >
+                      <span className="block text-xs text-[var(--ios-secondary)]">{dayLabel}</span>
+                      <span className="block text-base font-semibold tabular-nums">{time}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          )}
+        </Section>
       )}
       {items.length > 0 && (
-        <div className={cn('grid grid-cols-2 gap-3', onNewBooking && 'mt-3')}>
-          {items.map((item, i) => (
-            <motion.button
-              key={item.title}
-              type="button"
-              onClick={item.onClick}
-              whileTap={{ scale: 0.97 }}
-              className={cn(
-                'flex min-w-0 flex-col items-start gap-3 rounded-2xl bg-[var(--ios-cell)] p-4 text-left',
-                items.length % 2 === 1 && i === items.length - 1 && 'col-span-2',
-              )}
-            >
-              <span className="flex w-full items-center justify-between">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[var(--ios-bg)] shadow-[0_1px_3px_rgba(0,0,0,0.08),inset_0_0_0_0.5px_var(--ios-separator)]">
-                  <item.Icon className="size-[18px]" strokeWidth={1.9} />
-                </span>
-                <ArrowUpRight className="size-4 text-[var(--ios-tertiary)]" strokeWidth={2} />
-              </span>
-              <span className="min-w-0">
-                <span className="block text-sm font-semibold leading-tight">{item.title}</span>
-                <span className="mt-0.5 block text-xs leading-snug text-[var(--ios-secondary)]">{item.hint}</span>
-              </span>
-            </motion.button>
+        <Section>
+          {items.map((item) => (
+            <Cell key={item.title} Icon={item.Icon} title={item.title} subtitle={item.hint} onClick={item.onClick} />
           ))}
-        </div>
+        </Section>
       )}
-    </Section>
+    </>
   )
 }
 
@@ -161,7 +106,7 @@ function NextSession({ booking }: { booking: Booking }) {
       >
         <Avatar name={booking.customerName} size={48} />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-xs font-medium uppercase tracking-[0.12em] text-[var(--ios-gold)]">A seguir · {when}</span>
+          <span className="block truncate text-xs text-[var(--ios-secondary)]">A seguir · {when}</span>
           <span className="block truncate text-lg font-semibold leading-tight">{booking.customerName}</span>
           <span className="block truncate text-[15px] text-[var(--ios-secondary)]">{bookingName(booking)}</span>
         </span>
@@ -220,13 +165,13 @@ export function HomeScreen() {
     {
       Icon: CalendarPlus,
       title: 'Abrir horários',
-      hint: freeWeek ? `${plural(freeWeek, 'livre', 'livres')} esta semana` : 'Semana sem vagas',
+      hint: freeWeek ? `${plural(freeWeek, 'vaga livre', 'vagas livres')} nos próximos 7 dias` : 'Sem vagas nos próximos 7 dias',
       onClick: () => goTab('agenda', { name: 'agenda', id: 'horarios' }),
       show: can('marcacoes'),
     },
-    { Icon: CalendarX2, title: 'Fechar dias', hint: 'Férias, folgas, feriados', onClick: () => goTab('more', { name: 'closures' }), show: can('marcacoes') },
-    { Icon: BellRing, title: 'Notificar', hint: 'Mensagem às clientes', onClick: () => goTab('more', { name: 'broadcast' }), show: can('notificacoes') },
-    { Icon: Tag, title: 'Promoções', hint: 'Descontos por uns dias', onClick: () => goTab('more', { name: 'promotions' }), show: can('catalogo') },
+    { Icon: CalendarX2, title: 'Fechar dias', hint: 'Folga, feriado ou férias', onClick: () => goTab('more', { name: 'closures' }), show: can('marcacoes') },
+    { Icon: BellRing, title: 'Notificar clientes', hint: 'Uma mensagem a todas ou a algumas', onClick: () => goTab('more', { name: 'broadcast' }), show: can('notificacoes') },
+    { Icon: Tag, title: 'Promoções', hint: 'Descontos num modelo ou em todos', onClick: () => goTab('more', { name: 'promotions' }), show: can('catalogo') },
   ].filter((q) => q.show)
 
   return (
@@ -257,7 +202,6 @@ export function HomeScreen() {
             onNewBooking={(startsAt) => newBooking(null, startsAt)}
             items={quick}
             freeSlots={nextFreeSlots}
-            freeCount={freeWeek}
           />
 
           {upcoming[0] && (

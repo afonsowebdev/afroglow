@@ -29,9 +29,8 @@ function CardShell({
       type="button"
       onClick={onClick}
       disabled={!onClick}
-      whileTap={onClick ? { scale: 0.98 } : undefined}
       className={cn(
-        'flex min-w-0 flex-col overflow-hidden rounded-2xl p-4 text-left',
+        'flex min-w-0 flex-col overflow-hidden rounded-2xl p-4 text-left transition-opacity active:opacity-70 disabled:active:opacity-100',
         dark ? 'bg-[var(--ios-tint)] text-[var(--ios-on-tint)]' : 'bg-[var(--ios-cell)]',
         className,
       )}
@@ -43,7 +42,6 @@ function CardShell({
         <span className={cn('min-w-0 flex-1 truncate text-[13px] font-medium', dark ? 'opacity-80' : 'text-[var(--ios-secondary)]')}>
           {label}
         </span>
-        {onClick && <ArrowUpRight className={cn('size-4 shrink-0', dark ? 'opacity-70' : 'text-[var(--ios-tertiary)]')} strokeWidth={2} />}
       </span>
       {children}
     </motion.button>
