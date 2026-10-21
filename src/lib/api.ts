@@ -39,10 +39,12 @@ export const assetUrl = (path: string) => `${API_URL}${path}`
 export const customerToken = tokenStore('afroglow-customer-token')
 export const adminToken = tokenStore('afroglow-admin-token')
 
-const ADMIN_AUTH_PATHS = ['/auth/login', '/auth/me', '/auth/logout']
+// Everything under /auth is the admin's (login, profile, photo, password), except creating a customer account.
+const CUSTOMER_AUTH_PATHS = ['/auth/register', '/auth/verify-email', '/auth/resend-code']
 
 function tokenFor(path: string) {
-  const isAdmin = path.startsWith('/admin') || ADMIN_AUTH_PATHS.includes(path)
+  const isAdmin =
+    path.startsWith('/admin') || (path.startsWith('/auth/') && !CUSTOMER_AUTH_PATHS.some((p) => path.startsWith(p)))
   return (isAdmin ? adminToken : customerToken).get()
 }
 

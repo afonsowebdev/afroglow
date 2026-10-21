@@ -163,7 +163,7 @@ export function PortfolioView() {
   return (
     <section className="mt-6">
       {/* What it is, and the two actions. */}
-      <div className="rounded-2xl border border-onyx/10 bg-white p-5 shadow-sm shadow-black/5">
+      <div className="rounded-[12px] bg-[var(--ios-cell)] p-4">
         <p className="font-subtitle text-2xl font-semibold lining-nums tracking-tight text-onyx">
           {photos} {photos === 1 ? 'foto' : 'fotos'}
         </p>

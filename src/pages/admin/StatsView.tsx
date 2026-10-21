@@ -38,8 +38,8 @@ export function StatsView() {
   const { newThisMonth, returning, total: clientsTotal } = stats.clients
   const clientsMonth = newThisMonth + returning
 
-  const section = 'mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark'
-  const card = 'rounded-2xl border border-onyx/10 bg-white p-5 shadow-sm shadow-black/5'
+  const section = 'mb-[7px] px-4 text-[13px] uppercase text-[var(--ios-secondary)]'
+  const card = 'rounded-[12px] bg-[var(--ios-cell)] p-4'
 
   return (
     <div className="mt-6 flex flex-col gap-7">
@@ -195,7 +195,7 @@ export function StatsView() {
       {/* Everything so far. */}
       <section>
         <h2 className={section}>Desde o início</h2>
-        <div className="divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] font-subtitle text-[15px]">
+        <div className="divide-y divide-[var(--ios-separator)] overflow-hidden rounded-[10px] bg-[var(--ios-cell)] font-subtitle text-[15px]">
           {[
             ['bx bx-check-circle', 'Sessões confirmadas', String(stats.totals.accepted)],
             ['bx bx-time-five', 'Pedidos por responder', String(stats.totals.pending)],

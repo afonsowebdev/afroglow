@@ -17,6 +17,20 @@ export interface AdminCustomer {
 
 export type AdminCustomerDetail = Omit<AdminCustomer, 'bookingCount' | 'spentCents' | 'lastBookingAt'> & {
   bookings: Booking[]
+  /** Private photos of her hair, newest first (each fetched on its own as a data URL). */
+  photos?: Array<{ id: string; caption: string; createdAt: string }>
+  /** Her visits in numbers (servers before the client file came without it). */
+  summary?: {
+    visits: number
+    spentCents: number
+    averageCents: number
+    firstVisitAt: string | null
+    lastVisitAt: string | null
+    everyDays: number | null
+    favouriteService: string | null
+    cancelled: number
+    nextBookingId: string | null
+  }
 }
 
 export interface AdminStats {

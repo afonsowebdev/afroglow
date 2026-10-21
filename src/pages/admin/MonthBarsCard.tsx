@@ -239,7 +239,7 @@ export function MonthBarsCard({
   const pct = diff !== null && previous && previous.value > 0 ? Math.round((diff / previous.value) * 100) : null
 
   return (
-    <section className="rounded-2xl border border-onyx/10 bg-white p-5 shadow-sm shadow-black/5">
+    <section className="rounded-[12px] bg-[var(--ios-cell)] p-4">
       <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 font-subtitle text-base font-semibold text-onyx">
           <i className={cn(icon, 'text-lg')} aria-hidden="true" />

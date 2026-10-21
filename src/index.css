@@ -361,3 +361,107 @@
   -webkit-appearance: none;
   opacity: 0 !important;
 }
+
+/*
+ * The admin app, as a native iPhone management app: the system's grouped background, white cells with hairlines,
+ * SF Pro, the system colours, and the brand gold as the tint. The shared tokens are mapped too, so the sheets and
+ * pieces the admin shares with the rest of the app follow the same look.
+ */
+.admin-ios {
+  --ios-bg: #f2f2f7;
+  --ios-cell: #ffffff;
+  --ios-cell-pressed: #e5e5ea;
+  --ios-elevated: #ffffff;
+  --ios-label: #000000;
+  --ios-secondary: rgba(60, 60, 67, 0.6);
+  --ios-tertiary: rgba(60, 60, 67, 0.3);
+  --ios-separator: rgba(60, 60, 67, 0.29);
+  --ios-fill: rgba(118, 118, 128, 0.12);
+  --ios-fill-strong: rgba(120, 120, 128, 0.2);
+  --ios-bar: rgba(249, 249, 249, 0.86);
+  --ios-tint: #8a6d14;
+  --ios-red: #ff3b30;
+  --ios-green: #34c759;
+  --ios-orange: #ff9500;
+  --ios-blue: #007aff;
+  --ios-indigo: #5856d6;
+  --ios-teal: #30b0c7;
+  --ios-pink: #ff2d55;
+  --ios-purple: #af52de;
+  --ios-gray: #8e8e93;
+
+  --color-onyx: #000000;
+  --color-white: #ffffff;
+  --color-cream: #f2f2f7;
+  --color-muted: #8e8e93;
+  --color-muted-dark: #6c6c70;
+  --color-gold-deep: #8a6d14;
+  --color-gold-ink: #8a6d14;
+
+  background: var(--ios-bg);
+  color: var(--ios-label);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+.dark .admin-ios {
+  --ios-bg: #000000;
+  --ios-cell: #1c1c1e;
+  --ios-cell-pressed: #2c2c2e;
+  --ios-elevated: #1c1c1e;
+  --ios-label: #ffffff;
+  --ios-secondary: rgba(235, 235, 245, 0.6);
+  --ios-tertiary: rgba(235, 235, 245, 0.3);
+  --ios-separator: rgba(84, 84, 88, 0.65);
+  --ios-fill: rgba(118, 118, 128, 0.24);
+  --ios-fill-strong: rgba(120, 120, 128, 0.36);
+  --ios-bar: rgba(22, 22, 24, 0.86);
+  --ios-tint: #d4b055;
+  --ios-red: #ff453a;
+  --ios-green: #30d158;
+  --ios-orange: #ff9f0a;
+  --ios-blue: #0a84ff;
+  --ios-indigo: #5e5ce6;
+  --ios-teal: #40c8e0;
+  --ios-pink: #ff375f;
+  --ios-purple: #bf5af2;
+  --ios-gray: #98989d;
+
+  --color-onyx: #ffffff;
+  --color-white: #1c1c1e;
+  --color-cream: #000000;
+  --color-muted: #98989d;
+  --color-muted-dark: #aeaeb2;
+  --color-gold-deep: #d4b055;
+  --color-gold-ink: #d4b055;
+}
+/* SF everywhere in the admin, the brand fonts included (the logo keeps its own). */
+.admin-ios h1,
+.admin-ios h2,
+.admin-ios h3,
+.admin-ios .font-subtitle,
+.admin-ios .font-body,
+.admin-ios .font-display {
+  font-family: inherit;
+}
+.admin-ios input:not([type='checkbox'], [type='radio'], [type='range'], [type='file']),
+.admin-ios textarea,
+.admin-ios select {
+  color: var(--ios-label);
+  caret-color: var(--ios-tint);
+}
+.admin-ios .ios-bar {
+  background: var(--ios-bar);
+  -webkit-backdrop-filter: saturate(1.8) blur(20px);
+  backdrop-filter: saturate(1.8) blur(20px);
+}
+.admin-ios .ios-hairline-b {
+  box-shadow: inset 0 -0.5px 0 var(--ios-separator);
+}
+.admin-ios .ios-hairline-t {
+  box-shadow: inset 0 0.5px 0 var(--ios-separator);
+}
+/* Hairlines between the rows of a grouped list, inset to where the text starts (as in Settings). */
+.admin-ios .ios-list > :not(:last-child) .ios-cell-body {
+  box-shadow: inset 0 -0.5px 0 var(--ios-separator);
+}

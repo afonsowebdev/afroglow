@@ -63,7 +63,7 @@ export function ManualBookingSheet({
 }: {
   open: boolean
   services: Service[]
-  presetCustomer?: AdminCustomer | null
+  presetCustomer?: Pick<AdminCustomer, 'id' | 'name' | 'phone'> | null
   /** The agenda's slots: the free ones in the next days are offered as one-tap times. */
   slots?: AvailabilitySlot[]
   onClose: () => void
@@ -72,7 +72,7 @@ export function ManualBookingSheet({
   const [customers, setCustomers] = useState<AdminCustomer[]>([])
   const [mode, setMode] = useState<'new' | 'existing'>('new')
   const [search, setSearch] = useState('')
-  const [picked, setPicked] = useState<AdminCustomer | null>(null)
+  const [picked, setPicked] = useState<Pick<AdminCustomer, 'id' | 'name' | 'phone'> | null>(null)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [date, setDate] = useState('')
@@ -171,9 +171,9 @@ export function ManualBookingSheet({
     ? chosenAt.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' }) + ` · ${time}`
     : ''
 
-  const section = 'mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark'
+  const section = 'mb-[7px] px-4 text-[13px] uppercase text-[var(--ios-secondary)]'
   const group =
-    'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
+    'divide-y divide-[var(--ios-separator)] overflow-hidden rounded-[10px] bg-[var(--ios-cell)]'
   const plain =
     'field-plain block w-full min-w-0 bg-transparent font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35'
   const chip = (on: boolean) =>
@@ -203,18 +203,18 @@ export function ManualBookingSheet({
               e.preventDefault()
               if (canSubmit && !busy) void submit()
             }}
-            className="relative flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
+            className="relative flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-[12px] bg-[var(--ios-bg)] shadow-2xl sm:rounded-[14px]"
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           >
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-onyx/10 px-4 py-3">
+            <div className="flex shrink-0 items-center justify-between gap-3 ios-bar ios-hairline-b px-4 py-3">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={busy}
-                className="min-w-20 text-left font-subtitle text-[15px] text-onyx/60 disabled:opacity-50"
+                className="min-w-20 text-left text-[17px] text-[var(--ios-tint)] disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -222,7 +222,7 @@ export function ManualBookingSheet({
               <button
                 type="submit"
                 disabled={busy || !canSubmit}
-                className="min-w-20 text-right font-subtitle text-[15px] font-semibold text-onyx disabled:opacity-30"
+                className="min-w-20 text-right text-[17px] font-semibold text-[var(--ios-tint)] disabled:opacity-30"
               >
                 {busy ? 'A guardar…' : 'Guardar'}
               </button>
@@ -240,7 +240,7 @@ export function ManualBookingSheet({
                 <h3 className={section}>Cliente</h3>
                 {!presetCustomer && (
                   <div
-                    className="mb-2.5 grid grid-cols-2 rounded-xl bg-onyx/[0.06] p-1"
+                    className="mb-2.5 grid grid-cols-2 rounded-[9px] bg-[var(--ios-fill)] p-[2px]"
                     role="tablist"
                     aria-label="Cliente"
                   >
