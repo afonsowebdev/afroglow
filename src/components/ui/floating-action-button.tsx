@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import { Plus, type LucideIcon } from 'lucide-react'
-import { useEffect, useRef, useState, type ComponentType } from 'react'
+import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/lib/theme'
@@ -151,8 +151,6 @@ export interface MenuAction {
   onClick?: () => void
   /** External link (opens in a new tab). */
   href?: string
-  /** With `grouped`: the title of the card this action sits in (actions in a row with the same one share a card). */
-  group?: string
 }
 
 /**
@@ -169,15 +167,15 @@ export function FloatingActionMenu({
   small = false,
   grid = false,
   brand = false,
-  grouped = false,
+  face,
+  faceLabel = 'menu',
   PlusIcon = Plus,
 }: {
   actions: MenuAction[]
-  /**
-   * Opening upward: the actions in the order given, as white cards under their `group` titles (like the iPhone's
-   * Settings), in a panel that never grows past the top of the screen and scrolls inside instead.
-   */
-  grouped?: boolean
+  /** What fills the round button instead of the "+" (e.g. the account's photo); it stays still instead of turning into an "×". */
+  face?: ReactNode
+  /** With `face`: what the button opens, for screen readers ("Abrir conta"). */
+  faceLabel?: string
   /** The glyph on the round button (turns into an "×" when open). */
   PlusIcon?: ComponentType<{ size?: number; strokeWidth?: number }>
   /** Which way the options open: upward from a bottom button (apps) or downward from a header button (website). */
@@ -217,13 +215,6 @@ export function FloatingActionMenu({
   // A to Z, read from top to bottom. A column that opens upward is built from the bottom, so it is reversed.
   const alphabetical = [...actions].sort((a, b) => a.label.localeCompare(b.label, 'pt'))
   const ordered = direction === 'up' ? alphabetical.reverse() : alphabetical
-  // Actions in a row with the same group share one card.
-  const sections: { title?: string; items: MenuAction[] }[] = []
-  for (const action of actions) {
-    const last = sections[sections.length - 1]
-    if (last && last.title === action.group) last.items.push(action)
-    else sections.push({ title: action.group, items: [action] })
-  }
 
   return (
     <>
@@ -243,81 +234,7 @@ export function FloatingActionMenu({
         style={{ pointerEvents: hidden ? 'none' : 'auto' }}
         aria-hidden={hidden || undefined}
       >
-        {grouped ? (
-          <motion.div
-            className="absolute bottom-full right-0 mb-3 flex max-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-8rem)] w-[min(calc(100vw-1.5rem),17.5rem)] origin-bottom-right flex-col gap-3 overflow-y-auto overscroll-contain"
-            style={{ pointerEvents: open ? 'auto' : 'none' }}
-            initial={false}
-            animate={{
-              opacity: open ? 1 : 0,
-              y: open ? 0 : 24,
-              scale: open ? 1 : 0.95,
-              filter: open ? 'blur(0px)' : 'blur(2px)',
-            }}
-            transition={{ type: 'tween', ease: 'easeInOut', duration: 0.3 }}
-          >
-            {sections.map((section, index) => (
-              <section key={section.title ?? index}>
-                {section.title && (
-                  <h2 className="mb-1.5 px-3 font-subtitle text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#ffffff]/85">
-                    {section.title}
-                  </h2>
-                )}
-                <div className="divide-y divide-onyx/10 overflow-hidden rounded-2xl bg-white shadow-md shadow-black/10">
-                  {section.items.map(({ Icon, iconClass, label, danger, badge, onClick, href }) => {
-                    const content = (
-                      <>
-                        <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-onyx/[0.06]">
-                          {Icon ? (
-                            <Icon size={16} className={danger ? 'text-red-700' : 'text-onyx'} />
-                          ) : (
-                            <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 17 }} aria-hidden="true" />
-                          )}
-                        </span>
-                        <span className="min-w-0 flex-1 truncate">{label}</span>
-                        {badge ? (
-                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] leading-none text-[#ffffff]">
-                            {badge}
-                          </span>
-                        ) : null}
-                      </>
-                    )
-                    const itemClass = cn(
-                      'flex h-10 w-full items-center gap-3 px-3 text-left font-subtitle text-sm font-medium transition-colors hover:bg-onyx/5',
-                      danger ? 'text-red-700' : 'text-onyx',
-                    )
-                    return href ? (
-                      <a
-                        key={label}
-                        href={href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        tabIndex={open ? 0 : -1}
-                        onClick={close}
-                        className={itemClass}
-                      >
-                        {content}
-                      </a>
-                    ) : (
-                      <button
-                        key={label}
-                        type="button"
-                        tabIndex={open ? 0 : -1}
-                        onClick={() => {
-                          onClick?.()
-                          close()
-                        }}
-                        className={itemClass}
-                      >
-                        {content}
-                      </button>
-                    )
-                  })}
-                </div>
-              </section>
-            ))}
-          </motion.div>
-        ) : grid && direction === 'down' ? (
+        {grid && direction === 'down' ? (
           // Two columns under the button, read row by row; the panel only takes taps while open.
           <div
             className="absolute right-0 top-full mt-3 grid w-[min(calc(100vw-2rem),23rem)] grid-cols-2 gap-2"
@@ -455,14 +372,14 @@ export function FloatingActionMenu({
         <motion.button
           ref={round}
           type="button"
-          aria-label={open ? 'Fechar menu' : 'Abrir menu'}
+          aria-label={open ? `Fechar ${faceLabel}` : `Abrir ${faceLabel}`}
           aria-expanded={open}
           onClick={() => {
             // Not while the notifications are open: a tap there only closes them.
             if (document.documentElement.dataset.overlay === 'bell') return
             setOpen((current) => !current)
           }}
-          animate={{ rotate: open ? 45 : 0 }}
+          animate={{ rotate: open && !face ? 45 : 0 }}
           transition={{ type: 'tween', ease: 'easeInOut', duration: 0.5 }}
           // Apps: only the thin rim, no shadow under the button.
           style={
@@ -474,14 +391,14 @@ export function FloatingActionMenu({
             compact
               ? 'flex size-9 items-center justify-center rounded-full border border-onyx/20 text-onyx/60 transition-colors duration-300 hover:text-onyx'
               : cn(
-                  'flex items-center justify-center rounded-full',
+                  'flex items-center justify-center overflow-hidden rounded-full',
                   small ? 'size-12' : 'size-14',
                   'transition-colors duration-500 ease-in-out',
                   brand ? BRAND_CIRCLE : cn('liquid-glass', onDark ? 'text-[#ffffff]' : 'text-[#1a1008]'),
                 )
           }
         >
-          <PlusIcon size={compact ? 18 : small ? 22 : 24} strokeWidth={2.6} />
+          {face ?? <PlusIcon size={compact ? 18 : small ? 22 : 24} strokeWidth={2.6} />}
         </motion.button>
         {dot && !open ? (
           <span

@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import {
@@ -1933,10 +1933,6 @@ function AdminDashboard() {
       .then((data) => setAvatar(data.dataUrl))
       .catch(() => {})
   }, [me?.id, me?.avatarVersion])
-  const AvatarIcon = useMemo(
-    () => (avatar ? () => <img src={avatar} alt="" className="size-full object-cover" /> : null),
-    [avatar],
-  )
   const [broadcastPreset, setBroadcastPreset] = useState<string | null>(null)
   const [tab, setTab] = useState<AdminTab>(() => {
     const fromHash = window.location.hash.slice(1)
@@ -2380,37 +2376,38 @@ function AdminDashboard() {
     setTab(id)
     window.scrollTo({ top: 0 })
   }
-  // Top to bottom: the account, then the pages in groups, and nearest the button what changes the app itself.
+  // The "+" beside the tab bar: the pages that run the business.
   const menuActions: MenuAction[] = [
-    { Icon: AvatarIcon ?? Lock, label: me?.name || 'A tua conta', onClick: open('seguranca') },
+    ...(can('testemunhos')
+      ? [{ Icon: MessageSquareQuote, label: 'Testemunhos', badge: pendingTestimonials.length, onClick: open('testemunhos') }]
+      : []),
     ...(can('catalogo')
       ? [
-          { Icon: Scissors, label: 'Serviços', group: 'Catálogo', onClick: open('servicos') },
-          { Icon: Tag, label: 'Promoções', group: 'Catálogo', onClick: open('promocoes') },
-          { Icon: Images, label: 'Portfólio', group: 'Catálogo', onClick: open('portfolio') },
+          { Icon: Scissors, label: 'Serviços', onClick: open('servicos') },
+          { Icon: Tag, label: 'Promoções', onClick: open('promocoes') },
+          { Icon: Images, label: 'Portfólio', onClick: open('portfolio') },
         ]
       : []),
-    ...(can('testemunhos')
-      ? [{ Icon: MessageSquareQuote, label: 'Testemunhos', group: 'Clientes', badge: pendingTestimonials.length, onClick: open('testemunhos') }]
-      : []),
-    ...(can('notificacoes') ? [{ Icon: BellRing, label: 'Notificar clientes', group: 'Clientes', onClick: open('notificar') }] : []),
-    ...(can('estatisticas') ? [{ Icon: ChartColumn, label: 'Estatísticas', group: 'Negócio', onClick: open('estatisticas') }] : []),
-    ...(can('marcacoes') ? [{ Icon: CalendarX2, label: 'Dias fechados', group: 'Negócio', onClick: open('fechos') }] : []),
-    ...(can('definicoes') ? [{ Icon: Store, label: 'Definições do negócio', group: 'Negócio', onClick: open('definicoes') }] : []),
-    ...(isOwner ? [{ Icon: UsersRound, label: 'Equipa', group: 'Negócio', onClick: open('equipa') }] : []),
+    ...(can('marcacoes') ? [{ Icon: CalendarX2, label: 'Dias fechados', onClick: open('fechos') }] : []),
+    ...(can('notificacoes') ? [{ Icon: BellRing, label: 'Notificar clientes', onClick: open('notificar') }] : []),
+    ...(can('estatisticas') ? [{ Icon: ChartColumn, label: 'Estatísticas', onClick: open('estatisticas') }] : []),
+    ...(can('definicoes') ? [{ Icon: Store, label: 'Definições do negócio', onClick: open('definicoes') }] : []),
+  ]
+  // The account button on the right of the header: who is signed in, the team, and how the app looks.
+  const accountActions: MenuAction[] = [
+    { Icon: Lock, label: 'A tua conta', onClick: open('seguranca') },
+    ...(isOwner ? [{ Icon: UsersRound, label: 'Equipa', onClick: open('equipa') }] : []),
     {
       Icon: hideOnScroll ? PanelTop : PanelTopClose,
       label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
-      group: 'App',
       onClick: () => setHideNavOnScroll(!hideOnScroll),
     },
     {
       Icon: theme.theme === 'dark' ? Sun : Moon,
       label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
-      group: 'App',
       onClick: theme.toggleTheme,
     },
-    { Icon: LogOut, label: 'Terminar sessão', group: 'App', danger: true, onClick: () => void handleLogout() },
+    { Icon: LogOut, label: 'Terminar sessão', danger: true, onClick: () => void handleLogout() },
   ]
 
   if (checkingAuth) {
@@ -2423,12 +2420,27 @@ function AdminDashboard() {
 
   return (
     <div className="app-neutral relative min-h-screen bg-white font-medium">
-      {/* Not fixed: the header scrolls away with the page. */}
-      <div className="absolute inset-x-0 top-0 z-40 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
-        <div className="mx-auto flex max-w-5xl items-center justify-center">
+      {/* Not fixed: the header scrolls away with the page. The logo on the left, the account on the right. */}
+      <div className="absolute inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
+        <div className="mx-auto flex max-w-5xl items-center justify-between">
           <div className={`h-12 ps-2 pe-5 ${pillClasses}`}>
             <BrandLogo size="sm" />
           </div>
+          <FloatingActionMenu
+            actions={accountActions}
+            direction="down"
+            small
+            faceLabel="conta"
+            face={
+              avatar ? (
+                <img src={avatar} alt="" className="size-full object-cover" />
+              ) : (
+                <span className="font-subtitle text-lg font-semibold">
+                  {(me?.name || me?.email || '?').trim().charAt(0).toUpperCase()}
+                </span>
+              )
+            }
+          />
         </div>
       </div>
 
@@ -2990,7 +3002,6 @@ function AdminDashboard() {
           actions={menuActions}
           dot={pendingTestimonials.length > 0}
           hidden={menuForcedHidden}
-          grouped
           PlusIcon={Plus}
         />
       </div>
