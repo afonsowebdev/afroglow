@@ -2430,6 +2430,7 @@ function AdminDashboard() {
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <div className="relative z-[62]">
             <HeaderLogo
+              still
               onClick={() => {
                 // Not while a menu is open: a tap outside it only closes it.
                 if (anyMenuOpen) return

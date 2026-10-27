@@ -34,12 +34,21 @@ function blowAway(el: HTMLElement | null) {
  * The "A" at the top of the customer app. Once per launch, after the opening, AFROGLOW assembles from particles
  * beside its circle (as in the opening), on nothing; a few seconds later the word goes and only the "A" stays.
  */
-export function HeaderLogo({ onClick, onDark = false }: { onClick: () => void; onDark?: boolean }) {
+export function HeaderLogo({
+  onClick,
+  onDark = false,
+  still = false,
+}: {
+  onClick: () => void
+  onDark?: boolean
+  /** Only the "A", without AFROGLOW coming and going beside it (the admin). */
+  still?: boolean
+}) {
   const [word, setWord] = useState(false)
   const letters = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
-    if (played) return
+    if (played || still) return
     let timer = 0
     const stop = afterIntro(() => {
       timer = window.setTimeout(() => {
@@ -55,7 +64,7 @@ export function HeaderLogo({ onClick, onDark = false }: { onClick: () => void; o
       stop()
       window.clearTimeout(timer)
     }
-  }, [])
+  }, [still])
 
   return (
     <span className="pointer-events-auto flex items-center gap-3">
