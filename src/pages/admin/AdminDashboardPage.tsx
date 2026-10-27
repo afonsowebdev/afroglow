@@ -2907,6 +2907,7 @@ function AdminDashboard() {
                 badges={{ testemunhos: pendingTestimonials.length }}
                 can={can}
                 isOwner={isOwner}
+                me={me}
               />
             )}
 
