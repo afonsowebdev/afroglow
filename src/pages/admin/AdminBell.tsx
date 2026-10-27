@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Bell } from 'lucide-react'
+import { Bell, Check, ListFilter } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 import { tap } from '@/lib/haptics'
@@ -61,6 +61,7 @@ export function AdminBell({
 }) {
   const [open, setOpen] = useState(false)
   const [filter, setFilter] = useState<Filter>('todas')
+  const [choosing, setChoosing] = useState(false)
   const root = useRef<HTMLDivElement>(null)
   // The page behind stays still while the list is open.
   useScrollLock(open)
@@ -118,6 +119,7 @@ export function AdminBell({
     if (document.documentElement.dataset.overlay === 'menu') return
     void tap()
     setOpen((current) => !current)
+    setChoosing(false)
   }
 
   return (
@@ -163,37 +165,54 @@ export function AdminBell({
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="absolute right-0 top-full z-[61] mt-4 w-[22rem] max-md:fixed max-md:inset-x-3 max-md:top-[calc(5.25rem+env(safe-area-inset-top))] max-md:mt-0 max-md:w-auto"
           >
-            <p className="px-2 font-subtitle text-[28px] font-bold tracking-tight text-[#ffffff] [text-shadow:0_1px_12px_rgba(0,0,0,0.25)]">
-              Notificações
-            </p>
-
-            {/* The filters as the iPhone's segmented control, in the same frosted material. */}
-            <div
-              className="mt-3 flex rounded-[11px] bg-white/20 p-[3px] ring-1 ring-white/15 backdrop-blur-xl dark:bg-[rgba(255,255,255,0.1)]"
-              role="tablist"
-              aria-label="Filtrar"
-            >
-              {FILTERS.map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={filter === f.id}
-                  onClick={() => setFilter(f.id)}
-                  className="relative h-8 flex-1 rounded-[8px] font-subtitle text-[11.5px] font-medium"
-                >
-                  {filter === f.id && (
-                    <motion.span
-                      layoutId="admin-notif-filter"
-                      className="absolute inset-0 rounded-[8px] bg-white/90 shadow-sm dark:bg-[rgba(255,255,255,0.28)]"
-                      transition={{ type: 'spring', stiffness: 460, damping: 36 }}
-                    />
-                  )}
-                  <span className={cn('relative', filter === f.id ? 'text-[#1c1c1e] dark:text-[#ffffff]' : 'text-[#ffffff]')}>
-                    {f.label}
-                  </span>
-                </button>
-              ))}
+            {/* The title, and one button that opens the filters (all of them by default). */}
+            <div className="relative flex items-center justify-between gap-3 px-2">
+              <p className="font-subtitle text-[28px] font-bold tracking-tight text-[#ffffff] [text-shadow:0_1px_12px_rgba(0,0,0,0.25)]">
+                Notificações
+              </p>
+              <button
+                type="button"
+                onClick={() => setChoosing((current) => !current)}
+                aria-expanded={choosing}
+                className={cn(
+                  'flex h-8 items-center gap-1.5 rounded-full px-3.5 font-subtitle text-[13px] font-semibold backdrop-blur-xl transition-colors',
+                  filter === 'todas'
+                    ? 'bg-white/25 text-[#ffffff] ring-1 ring-white/20 dark:bg-[rgba(255,255,255,0.14)]'
+                    : 'bg-white/90 text-[#1c1c1e] dark:bg-[rgba(255,255,255,0.28)] dark:text-[#ffffff]',
+                )}
+              >
+                <ListFilter className="size-4" strokeWidth={2} />
+                {filter === 'todas' ? 'Filtrar' : FILTERS.find((f) => f.id === filter)?.label}
+              </button>
+              <AnimatePresence>
+                {choosing && (
+                  <motion.div
+                    role="menu"
+                    initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.96, transition: { duration: 0.15 } }}
+                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute right-2 top-full z-10 mt-2 w-48 origin-top-right overflow-hidden rounded-2xl bg-white/90 shadow-lg shadow-black/20 backdrop-blur-xl dark:bg-[rgba(60,45,32,0.92)]"
+                  >
+                    {FILTERS.map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked={filter === f.id}
+                        onClick={() => {
+                          setFilter(f.id)
+                          setChoosing(false)
+                        }}
+                        className="flex h-11 w-full items-center justify-between border-b border-black/5 px-4 text-left font-subtitle text-[14px] text-[#1c1c1e] last:border-0 dark:border-white/10 dark:text-[#ffffff]"
+                      >
+                        {f.label}
+                        {filter === f.id && <Check className="size-4" strokeWidth={2.25} />}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <div className="mt-3 max-h-[calc(100svh-12rem)] overflow-y-auto pb-2">

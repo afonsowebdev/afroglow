@@ -3010,7 +3010,6 @@ function AdminDashboard() {
               label,
               icon,
               Icon,
-              badge: id === 'pedidos' ? pendingBookings.length : 0,
             }))}
           />
         </div>
