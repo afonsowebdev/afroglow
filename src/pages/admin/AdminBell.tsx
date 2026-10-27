@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Bell, Check, ListFilter } from 'lucide-react'
+import { Bell, CalendarClock, CalendarX2, Check, ListFilter, MessageSquareQuote, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 import { tap } from '@/lib/haptics'
@@ -9,11 +9,11 @@ import type { Booking, Testimonial } from '@/lib/types'
 
 type Kind = 'pedido' | 'testemunho' | 'cancelamento'
 type Filter = 'todas' | Kind
-const FILTERS: Array<{ id: Filter; label: string }> = [
-  { id: 'todas', label: 'Todas' },
-  { id: 'pedido', label: 'Pedidos' },
-  { id: 'testemunho', label: 'Testemunhos' },
-  { id: 'cancelamento', label: 'Cancelamentos' },
+const FILTERS: Array<{ id: Filter; label: string; Icon: LucideIcon }> = [
+  { id: 'todas', label: 'Todas', Icon: Bell },
+  { id: 'pedido', label: 'Pedidos', Icon: CalendarClock },
+  { id: 'testemunho', label: 'Testemunhos', Icon: MessageSquareQuote },
+  { id: 'cancelamento', label: 'Cancelamentos', Icon: CalendarX2 },
 ]
 
 interface Item {
@@ -184,38 +184,47 @@ export function AdminBell({
                 <ListFilter className="size-4" strokeWidth={2} />
                 {filter === 'todas' ? 'Filtrar' : FILTERS.find((f) => f.id === filter)?.label}
               </button>
+              {/* The choices as in the "+" and account menus: the name in a pill beside a round white button, on nothing. */}
               <AnimatePresence>
                 {choosing && (
-                  <motion.div
-                    role="menu"
-                    initial={{ opacity: 0, y: -6, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -6, scale: 0.96, transition: { duration: 0.15 } }}
-                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                    className="absolute right-2 top-full z-10 mt-2 w-48 origin-top-right overflow-hidden rounded-2xl bg-white/90 shadow-lg shadow-black/20 backdrop-blur-xl dark:bg-[rgba(60,45,32,0.92)]"
-                  >
-                    {FILTERS.map((f) => (
-                      <button
-                        key={f.id}
+                  <div role="menu" className="absolute right-2 top-full z-10 mt-3 flex flex-col items-end gap-1.5">
+                    {FILTERS.map(({ id, label, Icon }, index) => (
+                      <motion.button
+                        key={id}
                         type="button"
                         role="menuitemradio"
-                        aria-checked={filter === f.id}
+                        aria-checked={filter === id}
                         onClick={() => {
-                          setFilter(f.id)
+                          setFilter(id)
                           setChoosing(false)
                         }}
-                        className="flex h-11 w-full items-center justify-between border-b border-black/5 px-4 text-left font-subtitle text-[14px] text-[#1c1c1e] last:border-0 dark:border-white/10 dark:text-[#ffffff]"
+                        initial={{ opacity: 0, y: -16, scale: 0.9, filter: 'blur(2px)' }}
+                        animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+                        exit={{ opacity: 0, y: -12, scale: 0.9, filter: 'blur(2px)', transition: { duration: 0.15 } }}
+                        transition={{ type: 'tween', ease: 'easeInOut', duration: 0.3, delay: index * 0.04 }}
+                        className="flex items-center gap-3"
                       >
-                        {f.label}
-                        {filter === f.id && <Check className="size-4" strokeWidth={2.25} />}
-                      </button>
+                        <span className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-onyx/10 bg-white px-3.5 py-1.5 font-subtitle text-xs font-medium text-onyx shadow-md shadow-black/10">
+                          {label}
+                          {filter === id && <Check className="size-3.5" strokeWidth={2.5} />}
+                        </span>
+                        <span className="flex size-12 items-center justify-center rounded-full border border-onyx/10 bg-white shadow-md shadow-black/10">
+                          <Icon size={20} className="text-onyx" />
+                        </span>
+                      </motion.button>
                     ))}
-                  </motion.div>
+                  </div>
                 )}
               </AnimatePresence>
             </div>
 
-            <div className="mt-3 max-h-[calc(100svh-12rem)] overflow-y-auto pb-2">
+            {/* Faded while a filter is being chosen, so the choices read clearly over it. */}
+            <div
+              className={cn(
+                'mt-3 max-h-[calc(100svh-12rem)] overflow-y-auto pb-2 transition-opacity duration-200',
+                choosing && 'pointer-events-none opacity-15',
+              )}
+            >
               {shown.length === 0 ? (
                 <div className="py-10 text-center">
                   <Bell className="mx-auto size-7 text-[#ffffff]/70" strokeWidth={1.5} />
