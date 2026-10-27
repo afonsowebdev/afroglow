@@ -172,7 +172,6 @@ export function FloatingActionMenu({
   face,
   faceLabel = 'menu',
   keepOrder = false,
-  heading,
   PlusIcon = Plus,
 }: {
   actions: MenuAction[]
@@ -180,8 +179,6 @@ export function FloatingActionMenu({
   face?: ReactNode
   /** The actions in the order given, read top to bottom, instead of A to Z (see `group`). */
   keepOrder?: boolean
-  /** Shown above the actions, before the first one (e.g. who is signed in). */
-  heading?: ReactNode
   /** With `face`: what the button opens, for screen readers ("Abrir conta"). */
   faceLabel?: string
   /** The glyph on the round button (turns into an "×" when open). */
@@ -224,17 +221,6 @@ export function FloatingActionMenu({
   const alphabetical = [...actions].sort((a, b) => a.label.localeCompare(b.label, 'pt'))
   const listed = keepOrder ? [...actions] : alphabetical
   const ordered = direction === 'up' ? listed.reverse() : listed
-  const headingItem = heading ? (
-    <motion.div
-      key="heading"
-      initial={false}
-      animate={{ opacity: open ? 1 : 0, y: open ? 0 : direction === 'up' ? 24 : -24, filter: open ? 'blur(0px)' : 'blur(2px)' }}
-      transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4 }}
-      className="mb-1"
-    >
-      {heading}
-    </motion.div>
-  ) : null
 
   return (
     <>
@@ -326,7 +312,6 @@ export function FloatingActionMenu({
               direction === 'up' ? 'bottom-full mb-3 flex-col-reverse' : 'top-full mt-3 flex-col',
             )}
           >
-            {direction === 'down' && headingItem}
             {ordered.map(({ Icon, iconClass, label, danger, badge, onClick, href, group }, index) => {
               // The one just above on screen: a new group starts a little apart from it.
               const above = direction === 'up' ? ordered[index + 1] : ordered[index - 1]
@@ -390,7 +375,6 @@ export function FloatingActionMenu({
                 </motion.div>
               )
             })}
-            {direction === 'up' && headingItem}
           </div>
         )}
 

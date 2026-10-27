@@ -2427,15 +2427,6 @@ function AdminDashboard() {
             small
             brand
             keepOrder
-            heading={
-              <span className="flex flex-col items-end rounded-2xl border border-onyx/10 bg-white px-4 py-2 text-right shadow-md shadow-black/10">
-                <span className="max-w-56 truncate font-subtitle text-sm font-semibold text-onyx">{me?.name || 'Sem nome'}</span>
-                <span className="max-w-56 truncate font-subtitle text-xs text-muted-dark">
-                  {me ? (me.role === 'OWNER' ? 'Dona da conta' : 'Equipa') : ''}
-                  {me?.email ? ` · ${me.email}` : ''}
-                </span>
-              </span>
-            }
             faceLabel="conta"
             face={
               avatar ? (
