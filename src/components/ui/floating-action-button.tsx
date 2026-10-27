@@ -151,6 +151,8 @@ export interface MenuAction {
   onClick?: () => void
   /** External link (opens in a new tab). */
   href?: string
+  /** With `keepOrder`: actions in a row with the same group sit together, and the next group starts a little apart. */
+  group?: string
 }
 
 /**
@@ -169,11 +171,17 @@ export function FloatingActionMenu({
   brand = false,
   face,
   faceLabel = 'menu',
+  keepOrder = false,
+  heading,
   PlusIcon = Plus,
 }: {
   actions: MenuAction[]
   /** What fills the round button instead of the "+" (e.g. the account's photo); it stays still instead of turning into an "×". */
   face?: ReactNode
+  /** The actions in the order given, read top to bottom, instead of A to Z (see `group`). */
+  keepOrder?: boolean
+  /** Shown above the actions, before the first one (e.g. who is signed in). */
+  heading?: ReactNode
   /** With `face`: what the button opens, for screen readers ("Abrir conta"). */
   faceLabel?: string
   /** The glyph on the round button (turns into an "×" when open). */
@@ -214,7 +222,19 @@ export function FloatingActionMenu({
   const onDark = tone ? tone === 'onDark' : seen === 'dark'
   // A to Z, read from top to bottom. A column that opens upward is built from the bottom, so it is reversed.
   const alphabetical = [...actions].sort((a, b) => a.label.localeCompare(b.label, 'pt'))
-  const ordered = direction === 'up' ? alphabetical.reverse() : alphabetical
+  const listed = keepOrder ? [...actions] : alphabetical
+  const ordered = direction === 'up' ? listed.reverse() : listed
+  const headingItem = heading ? (
+    <motion.div
+      key="heading"
+      initial={false}
+      animate={{ opacity: open ? 1 : 0, y: open ? 0 : direction === 'up' ? 24 : -24, filter: open ? 'blur(0px)' : 'blur(2px)' }}
+      transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4 }}
+      className="mb-1"
+    >
+      {heading}
+    </motion.div>
+  ) : null
 
   return (
     <>
@@ -306,7 +326,11 @@ export function FloatingActionMenu({
               direction === 'up' ? 'bottom-full mb-3 flex-col-reverse' : 'top-full mt-3 flex-col',
             )}
           >
-            {ordered.map(({ Icon, iconClass, label, danger, badge, onClick, href }, index) => {
+            {direction === 'down' && headingItem}
+            {ordered.map(({ Icon, iconClass, label, danger, badge, onClick, href, group }, index) => {
+              // The one just above on screen: a new group starts a little apart from it.
+              const above = direction === 'up' ? ordered[index + 1] : ordered[index - 1]
+              const apart = keepOrder && above !== undefined && above.group !== group
               const glyph = Icon ? (
                 <Icon size={20} className="text-onyx" />
               ) : (
@@ -321,7 +345,7 @@ export function FloatingActionMenu({
               return (
                 <motion.div
                   key={label}
-                  className="flex items-center gap-3"
+                  className={cn('flex items-center gap-3', apart && 'mt-3')}
                   style={{ pointerEvents: open ? 'auto' : 'none' }}
                   initial={false}
                   animate={{
@@ -366,6 +390,7 @@ export function FloatingActionMenu({
                 </motion.div>
               )
             })}
+            {direction === 'up' && headingItem}
           </div>
         )}
 

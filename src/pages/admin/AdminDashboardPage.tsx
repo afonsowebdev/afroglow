@@ -57,7 +57,7 @@ import { serviceImageUrls } from '@/lib/service-images'
 import { PricingEditor } from './PricingEditor'
 import { draftFromPricing, pricingFromDraft, type PricingDraft } from './pricing-draft'
 import { BookingChoices } from './BookingChoices'
-import { BrandLogo } from '@/components/ui/brand-logo'
+import { HeaderLogo } from '@/customer/HeaderLogo'
 
 const LISBON_TZ = 'Europe/Lisbon'
 
@@ -1940,7 +1940,6 @@ function AdminDashboard() {
       ? (fromHash as AdminTab)
       : 'inicio'
   })
-  const [scrolled, setScrolled] = useState(false)
   useAutoHideNav(hideOnScroll, tab)
 
   // A team member without bookings opens on what they can use.
@@ -2013,13 +2012,6 @@ function AdminDashboard() {
   const [clearError, setClearError] = useState<string | null>(null)
   const [clearAck, setClearAck] = useState(false)
   const [clearResult, setClearResult] = useState<string | null>(null)
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
   const loadDashboard = useCallback(
     async (opts: { silent?: boolean } = {}) => {
@@ -2367,10 +2359,6 @@ function AdminDashboard() {
     .filter((b) => b.status === 'ACCEPTED')
     .reduce((sum, b) => sum + bookingPrice(b), 0)
 
-  const pillClasses = `flex items-center rounded-full bg-white/95 shadow-lg shadow-black/10 backdrop-blur transition-shadow duration-500 ${
-    scrolled ? 'shadow-xl shadow-black/15' : ''
-  }`
-
   // The same entries as the "Mais" tab, one tap away from any screen, plus theme and sign out.
   const open = (id: MoreTarget) => () => {
     setTab(id)
@@ -2393,21 +2381,24 @@ function AdminDashboard() {
     ...(can('estatisticas') ? [{ Icon: ChartColumn, label: 'Estatísticas', onClick: open('estatisticas') }] : []),
     ...(can('definicoes') ? [{ Icon: Store, label: 'Definições do negócio', onClick: open('definicoes') }] : []),
   ]
-  // The account button on the right of the header: who is signed in, the team, and how the app looks.
+  // The account button on the right of the header, top to bottom: the account and the team, how the app looks, then
+  // signing out on its own.
   const accountActions: MenuAction[] = [
-    { Icon: Lock, label: 'A tua conta', onClick: open('seguranca') },
-    ...(isOwner ? [{ Icon: UsersRound, label: 'Equipa', onClick: open('equipa') }] : []),
-    {
-      Icon: hideOnScroll ? PanelTop : PanelTopClose,
-      label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
-      onClick: () => setHideNavOnScroll(!hideOnScroll),
-    },
+    { Icon: Lock, label: 'A tua conta', group: 'conta', onClick: open('seguranca') },
+    ...(isOwner ? [{ Icon: UsersRound, label: 'Equipa', group: 'conta', onClick: open('equipa') }] : []),
     {
       Icon: theme.theme === 'dark' ? Sun : Moon,
       label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
+      group: 'app',
       onClick: theme.toggleTheme,
     },
-    { Icon: LogOut, label: 'Terminar sessão', danger: true, onClick: () => void handleLogout() },
+    {
+      Icon: hideOnScroll ? PanelTop : PanelTopClose,
+      label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
+      group: 'app',
+      onClick: () => setHideNavOnScroll(!hideOnScroll),
+    },
+    { Icon: LogOut, label: 'Terminar sessão', group: 'sair', danger: true, onClick: () => void handleLogout() },
   ]
 
   if (checkingAuth) {
@@ -2420,16 +2411,31 @@ function AdminDashboard() {
 
   return (
     <div className="app-neutral relative min-h-screen bg-white font-medium">
-      {/* Not fixed: the header scrolls away with the page. The logo on the left, the account on the right. */}
+      {/* Not fixed: the header scrolls away with the page. The "A" on the left (AFROGLOW comes and goes beside it once
+          per launch, as in the customer app), the account on the right; both round with a soft shadow. */}
       <div className="absolute inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <div className={`h-12 ps-2 pe-5 ${pillClasses}`}>
-            <BrandLogo size="sm" />
-          </div>
+          <HeaderLogo
+            onClick={() => {
+              setTab('inicio')
+              window.scrollTo({ top: 0 })
+            }}
+          />
           <FloatingActionMenu
             actions={accountActions}
             direction="down"
             small
+            brand
+            keepOrder
+            heading={
+              <span className="flex flex-col items-end rounded-2xl border border-onyx/10 bg-white px-4 py-2 text-right shadow-md shadow-black/10">
+                <span className="max-w-56 truncate font-subtitle text-sm font-semibold text-onyx">{me?.name || 'Sem nome'}</span>
+                <span className="max-w-56 truncate font-subtitle text-xs text-muted-dark">
+                  {me ? (me.role === 'OWNER' ? 'Dona da conta' : 'Equipa') : ''}
+                  {me?.email ? ` · ${me.email}` : ''}
+                </span>
+              </span>
+            }
             faceLabel="conta"
             face={
               avatar ? (
