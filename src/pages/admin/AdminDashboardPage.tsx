@@ -2446,7 +2446,7 @@ function AdminDashboard() {
               face={
                 avatar ? (
                   // A thin ring of the button's own colour around the photo.
-                <span className="size-full p-[3px]">
+                <span className="size-full p-[2px]">
                   <img src={avatar} alt="" className="size-full rounded-full object-cover" />
                 </span>
                 ) : (
