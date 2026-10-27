@@ -17,7 +17,7 @@ function icsText(value: string) {
 }
 
 /** Session length: the first number in labels like "4-6 horas" (hours), otherwise 2 hours. */
-function durationHours(durationLabel: string) {
+export function durationHours(durationLabel: string) {
   const match = durationLabel.match(/\d+(?:[.,]\d+)?/)
   const hours = match ? Number(match[0].replace(',', '.')) : NaN
   return Number.isFinite(hours) && hours > 0 && hours <= 12 ? hours : 2

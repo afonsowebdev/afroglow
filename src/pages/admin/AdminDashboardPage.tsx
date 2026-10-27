@@ -2907,6 +2907,8 @@ function AdminDashboard() {
                   setManualStartsAt(startsAt ?? null)
                   setManualOpen(true)
                 }}
+                busyId={busyId}
+                onDecision={(id, decision) => void handleBookingDecision(id, decision)}
               />
             )}
 
