@@ -172,6 +172,8 @@ export function FloatingActionMenu({
   face,
   faceLabel = 'menu',
   keepOrder = false,
+  raised = false,
+  onOpenChange,
   PlusIcon = Plus,
 }: {
   actions: MenuAction[]
@@ -179,6 +181,10 @@ export function FloatingActionMenu({
   face?: ReactNode
   /** The actions in the order given, read top to bottom, instead of A to Z (see `group`). */
   keepOrder?: boolean
+  /** The button stays clear above the blur of any menu opened beside it (a header that stays sharp). */
+  raised?: boolean
+  /** Told when the menu opens or closes. */
+  onOpenChange?: (open: boolean) => void
   /** With `face`: what the button opens, for screen readers ("Abrir conta"). */
   faceLabel?: string
   /** The glyph on the round button (turns into an "×" when open). */
@@ -212,6 +218,7 @@ export function FloatingActionMenu({
     const timer = window.setTimeout(() => root.dataset.overlay === 'menu' && delete root.dataset.overlay, 400)
     return () => window.clearTimeout(timer)
   }, [open])
+  useEffect(() => onOpenChange?.(open), [open, onOpenChange])
   // The glass button's "+" follows what is behind it on its own, unless told (white over dark, dark over light).
   const round = useRef<HTMLButtonElement>(null)
   const { theme } = useTheme()
@@ -234,7 +241,7 @@ export function FloatingActionMenu({
       )}
 
       <motion.div
-        className={cn('relative z-50', hidden ? 'pointer-events-none' : 'pointer-events-auto')}
+        className={cn('relative', raised ? 'z-[62]' : 'z-50', hidden ? 'pointer-events-none' : 'pointer-events-auto')}
         animate={hidden ? { y: 120, opacity: 0, scale: 0.96 } : { y: 0, opacity: 1, scale: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 28 }}
         style={{ pointerEvents: hidden ? 'none' : 'auto' }}
@@ -387,6 +394,8 @@ export function FloatingActionMenu({
           onClick={() => {
             // Not while the notifications are open: a tap there only closes them.
             if (document.documentElement.dataset.overlay === 'bell') return
+            // Nor while another menu is open.
+            if (!open && document.documentElement.dataset.overlay === 'menu') return
             setOpen((current) => !current)
           }}
           animate={{ rotate: open && !face ? 45 : 0 }}

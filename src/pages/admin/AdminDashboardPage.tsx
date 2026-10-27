@@ -1927,6 +1927,12 @@ function AdminDashboard() {
   const isOwner = !me || me.role === 'OWNER'
   // The signed-in admin's photo, shown on the account entry at the top of the "+" menu.
   const [avatar, setAvatar] = useState<string | null>(null)
+  // While the "+", the account or the bell is open, the header's buttons stay sharp above the blur.
+  const [openMenus, setOpenMenus] = useState<Record<'plus' | 'account' | 'bell', boolean>>({ plus: false, account: false, bell: false })
+  const onPlusOpen = useCallback((open: boolean) => setOpenMenus((m) => ({ ...m, plus: open })), [])
+  const onAccountOpen = useCallback((open: boolean) => setOpenMenus((m) => ({ ...m, account: open })), [])
+  const onBellOpen = useCallback((open: boolean) => setOpenMenus((m) => ({ ...m, bell: open })), [])
+  const anyMenuOpen = openMenus.plus || openMenus.account || openMenus.bell
   useEffect(() => {
     if (!me?.avatarVersion || !me.id) return
     api
@@ -2418,14 +2424,20 @@ function AdminDashboard() {
     <div className="app-neutral relative min-h-screen bg-white font-medium">
       {/* Not fixed: the header scrolls away with the page. The "A" on the left (AFROGLOW comes and goes beside it once
           per launch, as in the customer app), the account on the right; both round with a soft shadow. */}
-      <div className="absolute inset-x-0 top-0 z-50 mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6">
+      <div
+        className={`absolute inset-x-0 top-0 ${anyMenuOpen ? 'z-[55]' : 'z-50'} mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6`}
+      >
         <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <HeaderLogo
-            onClick={() => {
-              setTab('inicio')
-              window.scrollTo({ top: 0 })
-            }}
-          />
+          <div className="relative z-[62]">
+            <HeaderLogo
+              onClick={() => {
+                // Not while a menu is open: a tap outside it only closes it.
+                if (anyMenuOpen) return
+                setTab('inicio')
+                window.scrollTo({ top: 0 })
+              }}
+            />
+          </div>
           <div className="flex items-center gap-2.5">
             <AdminBell
               requests={can('marcacoes') ? pendingBookings : []}
@@ -2435,6 +2447,7 @@ function AdminDashboard() {
                 setTab(kind === 'testemunho' ? 'testemunhos' : 'pedidos')
                 window.scrollTo({ top: 0 })
               }}
+              onOpenChange={onBellOpen}
             />
             <FloatingActionMenu
               actions={accountActions}
@@ -2442,6 +2455,8 @@ function AdminDashboard() {
               small
               brand
               keepOrder
+              raised
+              onOpenChange={onAccountOpen}
               faceLabel="conta"
               face={
                 avatar ? (
@@ -3016,6 +3031,7 @@ function AdminDashboard() {
         <FloatingActionMenu
           actions={menuActions}
           hidden={menuForcedHidden}
+          onOpenChange={onPlusOpen}
           PlusIcon={Plus}
         />
       </div>

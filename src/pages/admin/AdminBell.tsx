@@ -53,11 +53,14 @@ export function AdminBell({
   testimonials,
   cancelled,
   onOpen,
+  onOpenChange,
 }: {
   requests: Booking[]
   testimonials: Testimonial[]
   cancelled: Booking[]
   onOpen: (kind: Kind) => void
+  /** Told when the list opens or closes. */
+  onOpenChange?: (open: boolean) => void
 }) {
   const [open, setOpen] = useState(false)
   const [filter, setFilter] = useState<Filter>('todas')
@@ -75,6 +78,7 @@ export function AdminBell({
     const timer = window.setTimeout(() => html.dataset.overlay === 'bell' && delete html.dataset.overlay, 400)
     return () => window.clearTimeout(timer)
   }, [open])
+  useEffect(() => onOpenChange?.(open), [open, onOpenChange])
 
   // Closes on a tap anywhere else or on Esc.
   useEffect(() => {
@@ -144,7 +148,7 @@ export function AdminBell({
         onClick={toggle}
         aria-label={waiting ? `Notificações, ${waiting} à espera` : 'Notificações'}
         aria-expanded={open}
-        className={cn('relative flex size-12 items-center justify-center rounded-full', open && 'z-[61]', BRAND_CIRCLE)}
+        className={cn('relative z-[62] flex size-12 items-center justify-center rounded-full', BRAND_CIRCLE)}
       >
         <Bell className="size-[18px]" strokeWidth={1.75} />
         {waiting > 0 && (
