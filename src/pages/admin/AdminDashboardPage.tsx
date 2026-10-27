@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import {
@@ -1924,6 +1924,19 @@ function AdminDashboard() {
   const meRef = useRef<AdminMe | null>(null)
   const can = (permission: Permission) => !me || me.permissions.includes(permission)
   const isOwner = !me || me.role === 'OWNER'
+  // The signed-in admin's photo, shown on the account entry at the top of the "+" menu.
+  const [avatar, setAvatar] = useState<string | null>(null)
+  useEffect(() => {
+    if (!me?.avatarVersion || !me.id) return
+    api
+      .get<{ dataUrl: string | null }>(`/auth/avatar/${me.id}`)
+      .then((data) => setAvatar(data.dataUrl))
+      .catch(() => {})
+  }, [me?.id, me?.avatarVersion])
+  const AvatarIcon = useMemo(
+    () => (avatar ? () => <img src={avatar} alt="" className="size-full object-cover" /> : null),
+    [avatar],
+  )
   const [broadcastPreset, setBroadcastPreset] = useState<string | null>(null)
   const [tab, setTab] = useState<AdminTab>(() => {
     const fromHash = window.location.hash.slice(1)
@@ -2367,36 +2380,38 @@ function AdminDashboard() {
     setTab(id)
     window.scrollTo({ top: 0 })
   }
+  // Top to bottom: the account, then the pages in groups, and nearest the button what changes the app itself.
   const menuActions: MenuAction[] = [
-    ...(can('testemunhos')
-      ? [{ Icon: MessageSquareQuote, label: 'Testemunhos', badge: pendingTestimonials.length, onClick: open('testemunhos') }]
-      : []),
+    { Icon: AvatarIcon ?? Lock, label: me?.name || 'A tua conta', onClick: open('seguranca') },
     ...(can('catalogo')
       ? [
-          { Icon: Scissors, label: 'Serviços', onClick: open('servicos') },
-          { Icon: Tag, label: 'Promoções', onClick: open('promocoes') },
-          { Icon: Images, label: 'Portfólio', onClick: open('portfolio') },
+          { Icon: Scissors, label: 'Serviços', group: 'Catálogo', onClick: open('servicos') },
+          { Icon: Tag, label: 'Promoções', group: 'Catálogo', onClick: open('promocoes') },
+          { Icon: Images, label: 'Portfólio', group: 'Catálogo', onClick: open('portfolio') },
         ]
       : []),
-    ...(can('marcacoes') ? [{ Icon: CalendarX2, label: 'Dias fechados', onClick: open('fechos') }] : []),
-    ...(can('notificacoes') ? [{ Icon: BellRing, label: 'Notificar clientes', onClick: open('notificar') }] : []),
-    ...(can('estatisticas') ? [{ Icon: ChartColumn, label: 'Estatísticas', onClick: open('estatisticas') }] : []),
-    ...(can('definicoes') ? [{ Icon: Store, label: 'Definições do negócio', onClick: open('definicoes') }] : []),
-    ...(isOwner ? [{ Icon: UsersRound, label: 'Equipa', onClick: open('equipa') }] : []),
-    { Icon: Lock, label: 'A tua conta', onClick: open('seguranca') },
+    ...(can('testemunhos')
+      ? [{ Icon: MessageSquareQuote, label: 'Testemunhos', group: 'Clientes', badge: pendingTestimonials.length, onClick: open('testemunhos') }]
+      : []),
+    ...(can('notificacoes') ? [{ Icon: BellRing, label: 'Notificar clientes', group: 'Clientes', onClick: open('notificar') }] : []),
+    ...(can('estatisticas') ? [{ Icon: ChartColumn, label: 'Estatísticas', group: 'Negócio', onClick: open('estatisticas') }] : []),
+    ...(can('marcacoes') ? [{ Icon: CalendarX2, label: 'Dias fechados', group: 'Negócio', onClick: open('fechos') }] : []),
+    ...(can('definicoes') ? [{ Icon: Store, label: 'Definições do negócio', group: 'Negócio', onClick: open('definicoes') }] : []),
+    ...(isOwner ? [{ Icon: UsersRound, label: 'Equipa', group: 'Negócio', onClick: open('equipa') }] : []),
     {
       Icon: hideOnScroll ? PanelTop : PanelTopClose,
       label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
+      group: 'App',
       onClick: () => setHideNavOnScroll(!hideOnScroll),
     },
     {
       Icon: theme.theme === 'dark' ? Sun : Moon,
       label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
+      group: 'App',
       onClick: theme.toggleTheme,
     },
-    { Icon: LogOut, label: 'Terminar sessão', danger: true, onClick: () => void handleLogout() },
+    { Icon: LogOut, label: 'Terminar sessão', group: 'App', danger: true, onClick: () => void handleLogout() },
   ]
-
 
   if (checkingAuth) {
     return (
@@ -2907,7 +2922,6 @@ function AdminDashboard() {
                 badges={{ testemunhos: pendingTestimonials.length }}
                 can={can}
                 isOwner={isOwner}
-                me={me}
               />
             )}
 
@@ -2976,6 +2990,7 @@ function AdminDashboard() {
           actions={menuActions}
           dot={pendingTestimonials.length > 0}
           hidden={menuForcedHidden}
+          grouped
           PlusIcon={Plus}
         />
       </div>
