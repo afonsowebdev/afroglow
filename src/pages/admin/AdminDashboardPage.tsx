@@ -2445,7 +2445,10 @@ function AdminDashboard() {
               faceLabel="conta"
               face={
                 avatar ? (
-                  <img src={avatar} alt="" className="size-full object-cover" />
+                  // A thin ring of the button's own colour around the photo.
+                <span className="size-full p-[3px]">
+                  <img src={avatar} alt="" className="size-full rounded-full object-cover" />
+                </span>
                 ) : (
                   <span className="font-subtitle text-lg font-semibold">
                     {(me?.name || me?.email || '?').trim().charAt(0).toUpperCase()}
