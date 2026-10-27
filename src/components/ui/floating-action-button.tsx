@@ -308,7 +308,8 @@ export function FloatingActionMenu({
           // The column itself never takes taps (it would cover the page above the button); each item does when open.
           <div
             className={cn(
-              'pointer-events-none absolute right-0 flex items-end gap-2.5',
+              'pointer-events-none absolute right-0 flex items-end',
+              keepOrder ? 'gap-1.5' : 'gap-2.5',
               direction === 'up' ? 'bottom-full mb-3 flex-col-reverse' : 'top-full mt-3 flex-col',
             )}
           >
@@ -330,7 +331,7 @@ export function FloatingActionMenu({
               return (
                 <motion.div
                   key={label}
-                  className={cn('flex items-center gap-3', apart && 'mt-3')}
+                  className={cn('flex items-center gap-3', apart && 'mt-2')}
                   style={{ pointerEvents: open ? 'auto' : 'none' }}
                   initial={false}
                   animate={{

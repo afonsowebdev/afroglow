@@ -58,6 +58,7 @@ import { PricingEditor } from './PricingEditor'
 import { draftFromPricing, pricingFromDraft, type PricingDraft } from './pricing-draft'
 import { BookingChoices } from './BookingChoices'
 import { HeaderLogo } from '@/customer/HeaderLogo'
+import { AdminBell } from '@/pages/admin/AdminBell'
 
 const LISBON_TZ = 'Europe/Lisbon'
 
@@ -2353,6 +2354,10 @@ function AdminDashboard() {
     .sort((a, b) => new Date(b.slot.startsAt).getTime() - new Date(a.slot.startsAt).getTime())
 
   const pendingTestimonials = testimonials.filter((t) => t.status === 'PENDING')
+  // For the bell: the cancellations of the last seven days.
+  const recentCancellations = bookings.filter(
+    (b) => b.status === 'CANCELLED' && nowMs - new Date(b.updatedAt).getTime() < 7 * 24 * 60 * 60 * 1000,
+  )
 
   const monthConfirmedCount = monthBookings.filter((b) => b.status === 'ACCEPTED').length
   const monthRevenueCents = monthBookings
@@ -2421,23 +2426,34 @@ function AdminDashboard() {
               window.scrollTo({ top: 0 })
             }}
           />
-          <FloatingActionMenu
-            actions={accountActions}
-            direction="down"
-            small
-            brand
-            keepOrder
-            faceLabel="conta"
-            face={
-              avatar ? (
-                <img src={avatar} alt="" className="size-full object-cover" />
-              ) : (
-                <span className="font-subtitle text-lg font-semibold">
-                  {(me?.name || me?.email || '?').trim().charAt(0).toUpperCase()}
-                </span>
-              )
-            }
-          />
+          <div className="flex items-center gap-2.5">
+            <AdminBell
+              requests={can('marcacoes') ? pendingBookings : []}
+              testimonials={can('testemunhos') ? pendingTestimonials : []}
+              cancelled={can('marcacoes') ? recentCancellations : []}
+              onOpen={(kind) => {
+                setTab(kind === 'testemunho' ? 'testemunhos' : 'pedidos')
+                window.scrollTo({ top: 0 })
+              }}
+            />
+            <FloatingActionMenu
+              actions={accountActions}
+              direction="down"
+              small
+              brand
+              keepOrder
+              faceLabel="conta"
+              face={
+                avatar ? (
+                  <img src={avatar} alt="" className="size-full object-cover" />
+                ) : (
+                  <span className="font-subtitle text-lg font-semibold">
+                    {(me?.name || me?.email || '?').trim().charAt(0).toUpperCase()}
+                  </span>
+                )
+              }
+            />
+          </div>
         </div>
       </div>
 
@@ -2997,7 +3013,6 @@ function AdminDashboard() {
         </div>
         <FloatingActionMenu
           actions={menuActions}
-          dot={pendingTestimonials.length > 0}
           hidden={menuForcedHidden}
           PlusIcon={Plus}
         />
