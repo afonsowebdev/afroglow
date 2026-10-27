@@ -2485,10 +2485,12 @@ function AdminDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22, ease: 'easeOut' }}
         >
+          {/* On the Início, the date above the greeting. */}
+          {tab === 'inicio' && <p className="mb-2 font-subtitle text-sm text-muted-dark">{homeDate()}</p>}
           <h1 className="font-subtitle text-[32px] font-semibold leading-none tracking-tight text-onyx">
             {tab === 'inicio' ? homeGreeting(me?.name ?? '') : PAGE[tab].title}
           </h1>
-          <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">{tab === 'inicio' ? homeDate() : PAGE[tab].hint}</p>
+          {tab !== 'inicio' && <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">{PAGE[tab].hint}</p>}
 
           {(tab === 'agenda' || tab === 'disponibilidade') && (
             <MonthStrip value={viewMonth} today={getLisbonYearMonth(new Date())} onSelect={goToMonth} />
@@ -2907,8 +2909,6 @@ function AdminDashboard() {
                   setManualStartsAt(startsAt ?? null)
                   setManualOpen(true)
                 }}
-                busyId={busyId}
-                onDecision={(id, decision) => void handleBookingDecision(id, decision)}
               />
             )}
 

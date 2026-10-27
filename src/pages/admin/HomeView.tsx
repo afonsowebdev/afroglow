@@ -1,17 +1,15 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { durationHours } from '@/lib/calendar'
 import { bookingName, bookingPrice } from '@/lib/pricing'
-import { serviceImageUrls } from '@/lib/service-images'
-import { customerWhatsappUrl } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Testimonial } from '@/lib/types'
 import type { Permission } from './admin-me'
 import type { MoreTarget } from './MoreView'
-import { addDays, dayKey, plural, todayKey } from './admin-ui'
+import { addDays, ago, dayKey, plural, todayKey } from './admin-ui'
 
 /*
- * The Início, made for the owner between two clients. At the top, who comes next over the photo of her hairstyle;
- * then the requests to answer right there; today as a timeline where a long braiding session looks long; the week as
- * how full each day is; and the month as one figure against the last. The full figures live in Estatísticas.
+ * The Início, made for the owner between two clients. A dark card with the day (how many clients, the next one, a
+ * new booking); the business in four figures for the month or the week; today's agenda with where each session is;
+ * and what is left to answer. The full figures live in Estatísticas.
  */
 
 const TZ = 'Europe/Lisbon'
@@ -20,21 +18,19 @@ const BROWN = '#2b1d12'
 const GOLD = '#c9a84c'
 const euros = (cents: number) => formatPrice(cents).replace(/,00/, '')
 const time = (iso: string | number) => new Date(iso).toLocaleTimeString('pt-PT', { timeZone: TZ, hour: '2-digit', minute: '2-digit' })
-const weekdayOf = (key: string, style: 'long' | 'short') =>
-  new Date(`${key}T12:00:00Z`).toLocaleDateString('pt-PT', { timeZone: 'UTC', weekday: style }).replace('.', '').split('-')[0]
 const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
 const monthOf = (iso: string) => new Date(iso).toLocaleDateString('en-CA', { timeZone: TZ }).slice(0, 7)
-const monthName = (key: string) => capital(new Date(`${key}-15T12:00:00Z`).toLocaleDateString('pt-PT', { timeZone: 'UTC', month: 'long' }))
+const monthName = (key: string) => new Date(`${key}-15T12:00:00Z`).toLocaleDateString('pt-PT', { timeZone: 'UTC', month: 'long' })
 const firstName = (name: string) => name.trim().split(/\s+/)[0]
 const endsAt = (b: Booking) => new Date(b.slot.startsAt).getTime() + durationHours(b.service.durationLabel) * HOUR
 
-/** "1 h 30", "45 min", "3 h". */
+/** "1h30", "45 min", "3h". */
 function lengthLabel(ms: number) {
   const minutes = Math.round(ms / 60_000)
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
   if (!h) return `${m} min`
-  return m ? `${h} h ${String(m).padStart(2, '0')}` : `${h} h`
+  return m ? `${h}h${String(m).padStart(2, '0')}` : `${h}h`
 }
 
 export function homeGreeting(name: string) {
@@ -44,32 +40,16 @@ export function homeGreeting(name: string) {
   return first ? `${hello}, ${first}` : hello
 }
 
-/** "Quarta-feira, 21 de outubro". */
+/** "Terça-feira, 27 de outubro". */
 export function homeDate() {
   return capital(new Date().toLocaleDateString('pt-PT', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' }))
 }
 
-/** "daqui a 2 h", "daqui a 25 min", "amanhã", "sexta-feira". */
-function untilLabel(iso: string) {
-  const minutes = Math.round((new Date(iso).getTime() - Date.now()) / 60_000)
-  const key = dayKey(iso)
-  if (key === todayKey()) {
-    if (minutes <= 0) return 'agora'
-    if (minutes < 60) return `daqui a ${minutes} min`
-    return `daqui a ${Math.round(minutes / 60)} h`
-  }
-  if (key === addDays(todayKey(), 1)) return 'amanhã'
-  return weekdayOf(key, 'long')
-}
+const heading = 'font-subtitle text-[17px] font-semibold tracking-tight text-onyx'
+const link = 'font-subtitle text-sm font-medium text-muted-dark'
+const card = 'rounded-3xl border border-onyx/10 bg-white shadow-sm shadow-black/5'
 
-/** "sáb, 12 out · 14:00". */
-function whenLabel(iso: string) {
-  const key = dayKey(iso)
-  const day = new Date(`${key}T12:00:00Z`).toLocaleDateString('pt-PT', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' })
-  return `${day.replace(/\./g, '')} · ${time(iso)}`
-}
-
-const heading = 'font-subtitle text-lg font-semibold tracking-tight text-onyx'
+type Period = 'mes' | 'semana'
 
 export function HomeView({
   bookings,
@@ -78,8 +58,6 @@ export function HomeView({
   can,
   onOpen,
   onNewBooking,
-  busyId,
-  onDecision,
 }: {
   name: string
   bookings: Booking[]
@@ -88,538 +66,368 @@ export function HomeView({
   can: (permission: Permission) => boolean
   onOpen: (tab: 'pedidos' | 'agenda' | 'disponibilidade' | 'clientes' | MoreTarget) => void
   onNewBooking: (startsAt?: string) => void
-  busyId: string | null
-  onDecision: (id: string, decision: 'accept' | 'reject') => void
 }) {
+  const [period, setPeriod] = useState<Period>('mes')
   const now = Date.now()
   const today = todayKey()
   const confirmed = bookings.filter((b) => b.status === 'ACCEPTED')
   const byStart = (a: Booking, b: Booking) => a.slot.startsAt.localeCompare(b.slot.startsAt)
   const todaySessions = confirmed.filter((b) => dayKey(b.slot.startsAt) === today).sort(byStart)
-  // Still going or yet to come, nearest first: the cards at the top.
-  const upcoming = confirmed.filter((b) => endsAt(b) > now).sort(byStart).slice(0, 4)
+  const next = confirmed.filter((b) => new Date(b.slot.startsAt).getTime() >= now).sort(byStart)[0]
+  const live = todaySessions.find((b) => new Date(b.slot.startsAt).getTime() <= now && now < endsAt(b))
   const pending = bookings.filter((b) => b.status === 'PENDING' && new Date(b.slot.startsAt).getTime() >= now).sort(byStart)
-  const pendingTestimonials = can('testemunhos') ? testimonials.filter((t) => t.status === 'PENDING').length : 0
+  const reviews = can('testemunhos') ? testimonials.filter((t) => t.status === 'PENDING') : []
 
   if (!can('marcacoes')) {
     return <p className="mt-6 font-subtitle text-sm text-muted-dark">Usa o menu em baixo para o que tens acesso.</p>
   }
 
-  return (
-    <div className="mt-6 flex flex-col gap-10">
-      <NextUp upcoming={upcoming} now={now} onNewBooking={() => onNewBooking()} />
+  const left = todaySessions.filter((b) => endsAt(b) > now).length
+  const dayTitle =
+    todaySessions.length === 0
+      ? 'Sem clientes hoje'
+      : left === 0
+        ? `${plural(todaySessions.length, 'cliente atendida', 'clientes atendidas')} hoje`
+        : `${plural(todaySessions.length, 'cliente', 'clientes')} na agenda`
+  const dayLine = live
+    ? `${firstName(live.customerName)} está na cadeira até às ${time(endsAt(live))}`
+    : next
+      ? dayKey(next.slot.startsAt) === today
+        ? `Próxima cliente às ${time(next.slot.startsAt)} · ${firstName(next.customerName)}`
+        : `Próxima cliente ${dayKey(next.slot.startsAt) === addDays(today, 1) ? 'amanhã' : 'a ' + new Date(next.slot.startsAt).toLocaleDateString('pt-PT', { timeZone: TZ, day: 'numeric', month: 'short' }).replace('.', '')} às ${time(next.slot.startsAt)}`
+      : 'Ainda sem marcações à frente.'
 
-      {(pending.length > 0 || pendingTestimonials > 0) && (
-        <section>
-          <div className="mb-3 flex items-baseline justify-between px-1">
-            <h2 className={heading}>
-              {pending.length ? `${plural(pending.length, 'pedido espera', 'pedidos esperam')} por ti` : 'Para rever'}
-            </h2>
-            {pending.length > 0 && (
-              <button type="button" onClick={() => onOpen('pedidos')} className="font-subtitle text-sm text-muted-dark">
-                Ver todos
-              </button>
-            )}
-          </div>
-          {pending.length > 0 && (
-            <div className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none]">
-              {pending.map((b) => (
-                <RequestCard key={b.id} booking={b} busy={busyId === b.id} onDecision={onDecision} />
-              ))}
-            </div>
+  return (
+    <div className="mt-6 flex flex-col gap-9">
+      {/* The day, in control. */}
+      <section className="relative overflow-hidden rounded-3xl p-5 text-[#ffffff]" style={{ background: BROWN }}>
+        <span
+          aria-hidden="true"
+          className="absolute -right-8 -top-10 flex size-32 items-center justify-center rounded-full font-logo text-[64px] leading-none logo-weight"
+          style={{ background: '#ffffff0d', color: `${GOLD}55` }}
+        >
+          <span className="translate-x-[-10px] translate-y-[12px]">A</span>
+        </span>
+        <p className="relative font-subtitle text-xs font-medium" style={{ color: GOLD }}>
+          O teu dia
+        </p>
+        <p className="relative mt-1.5 font-subtitle text-[22px] font-semibold leading-tight tracking-tight">{dayTitle}</p>
+        <p className="relative mt-1 font-subtitle text-sm text-[#ffffff]/70">{dayLine}</p>
+        <button
+          type="button"
+          onClick={() => onNewBooking()}
+          className="relative mt-4 flex h-9 items-center gap-1.5 rounded-full px-4 font-subtitle text-[13px] font-semibold"
+          style={{ background: GOLD, color: BROWN }}
+        >
+          <i className="bx bx-plus text-base" aria-hidden="true" />
+          Nova marcação
+        </button>
+      </section>
+
+      <Business
+        period={period}
+        onPeriod={setPeriod}
+        bookings={bookings}
+        confirmed={confirmed}
+        pending={pending}
+        slots={slots}
+        today={today}
+        now={now}
+        canStats={can('estatisticas')}
+        onOpen={onOpen}
+      />
+
+      {/* Today's agenda. */}
+      <section>
+        <div className="mb-3 flex items-baseline justify-between px-1">
+          <h2 className={heading}>Agenda de hoje</h2>
+          <button type="button" onClick={() => onOpen('agenda')} className={link}>
+            Ver agenda
+          </button>
+        </div>
+        <div className={card}>
+          {todaySessions.length === 0 ? (
+            <p className="px-5 py-6 text-center font-subtitle text-sm text-muted-dark">Dia livre, sem sessões marcadas.</p>
+          ) : (
+            <ol className="divide-y divide-onyx/[0.07]">
+              {todaySessions.map((b) => {
+                const start = new Date(b.slot.startsAt).getTime()
+                const end = endsAt(b)
+                const state = end <= now ? 'feita' : start <= now ? 'agora' : 'confirmada'
+                return (
+                  <li key={b.id} className="flex items-center gap-3 px-4 py-3.5">
+                    <span className="w-11 shrink-0 font-subtitle text-sm font-semibold lining-nums text-muted-dark">{time(start)}</span>
+                    <span
+                      aria-hidden="true"
+                      className="h-10 w-[3px] shrink-0 rounded-full"
+                      style={{ background: state === 'agora' ? GOLD : state === 'feita' ? 'color-mix(in srgb, var(--color-onyx) 15%, transparent)' : BROWN }}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-subtitle text-[15px] font-semibold text-onyx">{b.customerName}</span>
+                      <span className="block truncate font-subtitle text-xs text-muted-dark">
+                        {bookingName(b)} · {lengthLabel(end - start)}
+                      </span>
+                    </span>
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-1 font-subtitle text-[11px] font-semibold ${
+                        state === 'confirmada' ? 'bg-onyx/[0.06] text-onyx' : state === 'feita' ? 'text-muted-dark' : ''
+                      }`}
+                      style={state === 'agora' ? { background: `${GOLD}2e`, color: '#8a6d1f' } : undefined}
+                    >
+                      {state === 'agora' ? 'A decorrer' : state === 'feita' ? 'Feita ✓' : 'Confirmada'}
+                    </span>
+                  </li>
+                )
+              })}
+            </ol>
           )}
-          {pendingTestimonials > 0 && (
-            <button
-              type="button"
-              onClick={() => onOpen('testemunhos')}
-              className="mt-2 flex w-full items-center gap-3 rounded-2xl border border-onyx/10 bg-white px-4 py-3 text-left shadow-sm shadow-black/5"
-            >
-              <span className="flex size-9 items-center justify-center rounded-full bg-onyx/5 text-lg text-onyx">
-                <i className="bx bx-message-rounded-dots" aria-hidden="true" />
-              </span>
-              <span className="flex-1 font-subtitle text-sm text-onyx">
-                {pendingTestimonials === 1 ? 'Uma cliente deixou um testemunho' : `${pendingTestimonials} clientes deixaram testemunhos`}
-              </span>
-              <i className="bx bx-chevron-right text-xl text-onyx/30" aria-hidden="true" />
+          <button
+            type="button"
+            onClick={() => onOpen('agenda')}
+            className="w-full border-t border-onyx/[0.07] py-3 font-subtitle text-[13px] font-medium text-onyx"
+          >
+            Abrir calendário completo
+          </button>
+        </div>
+      </section>
+
+      {/* What is left to answer. */}
+      <section>
+        <div className="mb-3 flex items-baseline justify-between px-1">
+          <h2 className={heading}>A resolver</h2>
+          {pending.length > 0 && (
+            <button type="button" onClick={() => onOpen('pedidos')} className={link}>
+              Ver todos
             </button>
           )}
-        </section>
-      )}
-
-      <Today sessions={todaySessions} now={now} onOpen={onOpen} onNewBooking={onNewBooking} />
-
-      <Week bookings={bookings} slots={slots} today={today} onOpen={() => onOpen('agenda')} />
-
-      <Month confirmed={confirmed} enabled={can('estatisticas')} onOpen={() => onOpen('estatisticas')} />
+        </div>
+        <div className={card}>
+          {pending.length === 0 && reviews.length === 0 ? (
+            <p className="flex items-center justify-center gap-2 px-5 py-6 font-subtitle text-sm text-muted-dark">
+              <i className="bx bx-check-circle text-lg" aria-hidden="true" />
+              Tudo em dia, nada à espera.
+            </p>
+          ) : (
+            <ul className="divide-y divide-onyx/[0.07]">
+              {pending.slice(0, 4).map((b) => (
+                <ToDo
+                  key={b.id}
+                  icon="bx-calendar-exclamation"
+                  title="Confirmar pedido de marcação"
+                  line={`${b.customerName} · enviado ${ago(b.createdAt)}`}
+                  onClick={() => onOpen('pedidos')}
+                />
+              ))}
+              {reviews.slice(0, 3).map((t) => (
+                <ToDo
+                  key={t.id}
+                  icon="bx-message-rounded-dots"
+                  title="Aprovar testemunho"
+                  line={`${t.customer.name} · ${ago(t.createdAt)}`}
+                  onClick={() => onOpen('testemunhos')}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
     </div>
   )
 }
 
-/** Who comes next, over the photo of her hairstyle; swipe for the ones after. */
-function NextUp({ upcoming, now, onNewBooking }: { upcoming: Booking[]; now: number; onNewBooking: () => void }) {
-  if (upcoming.length === 0) {
-    return (
-      <section className="overflow-hidden rounded-[28px] p-6 text-[#ffffff]" style={{ background: BROWN }}>
-        <p className="font-subtitle text-sm" style={{ color: GOLD }}>
-          Agenda livre
-        </p>
-        <p className="mt-2 font-subtitle text-2xl font-semibold leading-tight tracking-tight">Ninguém marcado por agora.</p>
-        <p className="mt-1 font-subtitle text-sm text-[#ffffff]/70">Abre horários ou marca tu uma cliente.</p>
-        <button
-          type="button"
-          onClick={onNewBooking}
-          className="mt-5 flex h-11 items-center gap-2 rounded-full bg-[#ffffff] px-5 font-subtitle text-sm font-semibold text-[#1a1008]"
-        >
-          <i className="bx bx-plus text-lg" aria-hidden="true" />
-          Nova marcação
-        </button>
-      </section>
-    )
-  }
-
+function ToDo({ icon, title, line, onClick }: { icon: string; title: string; line: string; onClick: () => void }) {
   return (
-    <section className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 [scrollbar-width:none]">
-      {upcoming.map((b, index) => {
-        const photo = serviceImageUrls(b.service)[0]
-        const start = new Date(b.slot.startsAt).getTime()
-        const inChair = start <= now
-        return (
-          <article
-            key={b.id}
-            className={`relative flex h-72 shrink-0 snap-center flex-col justify-between overflow-hidden rounded-[28px] p-5 text-[#ffffff] ${
-              upcoming.length > 1 ? 'w-[86%]' : 'w-full'
-            }`}
-            style={{ background: BROWN }}
-          >
-            {photo && <img src={photo} alt="" className="absolute inset-0 size-full object-cover" />}
-            {/* Dark at the top and the bottom so the words read over any photo. */}
-            <span
-              aria-hidden="true"
-              className="absolute inset-0"
-              style={{ background: `linear-gradient(to bottom, ${BROWN}cc 0%, ${BROWN}33 35%, ${BROWN}55 55%, ${BROWN}f2 100%)` }}
-            />
-
-            <div className="relative flex items-center justify-between">
-              <span
-                className="rounded-full px-3 py-1 font-subtitle text-xs font-semibold"
-                style={{ background: inChair ? GOLD : `${GOLD}2e`, color: inChair ? BROWN : GOLD }}
-              >
-                {inChair ? 'Na cadeira agora' : index === 0 ? `A seguir · ${untilLabel(b.slot.startsAt)}` : capital(untilLabel(b.slot.startsAt))}
-              </span>
-              <span className="font-subtitle text-xs text-[#ffffff]/70">{durationLabelOf(b)}</span>
-            </div>
-
-            <div className="relative">
-              <div className="flex items-end justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="truncate font-subtitle text-[26px] font-semibold leading-tight tracking-tight">{b.customerName}</p>
-                  <p className="mt-0.5 truncate font-subtitle text-sm text-[#ffffff]/75">{bookingName(b)}</p>
-                </div>
-                <p className="shrink-0 font-subtitle text-[34px] font-semibold lining-nums leading-none tracking-tight">{time(b.slot.startsAt)}</p>
-              </div>
-              <div className="mt-4 flex items-center gap-2">
-                <a
-                  href={customerWhatsappUrl(b.customerPhone, `Olá ${firstName(b.customerName)}! Sobre a tua sessão de ${bookingName(b)}...`)}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={`WhatsApp a ${firstName(b.customerName)}`}
-                  className="flex size-11 items-center justify-center rounded-full bg-[#ffffff]/15 text-xl backdrop-blur-md"
-                >
-                  <i className="bx bxl-whatsapp" aria-hidden="true" />
-                </a>
-                <a
-                  href={`tel:${b.customerPhone.replace(/[^+\d]/g, '')}`}
-                  aria-label={`Ligar a ${firstName(b.customerName)}`}
-                  className="flex size-11 items-center justify-center rounded-full bg-[#ffffff]/15 text-xl backdrop-blur-md"
-                >
-                  <i className="bx bx-phone" aria-hidden="true" />
-                </a>
-                <span className="ml-auto font-subtitle text-lg font-semibold lining-nums" style={{ color: GOLD }}>
-                  {euros(bookingPrice(b))}
-                </span>
-              </div>
-            </div>
-          </article>
-        )
-      })}
-    </section>
+    <li>
+      <button type="button" onClick={onClick} className="flex w-full items-center gap-3 px-4 py-3.5 text-left">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-onyx/[0.06] text-lg text-onyx">
+          <i className={`bx ${icon}`} aria-hidden="true" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-subtitle text-sm font-semibold text-onyx">{title}</span>
+          <span className="block truncate font-subtitle text-xs text-muted-dark">{line}</span>
+        </span>
+        <span className="shrink-0 font-subtitle text-xs font-medium text-muted-dark">Abrir</span>
+        <i className="bx bx-chevron-right -ml-2 text-lg text-onyx/30" aria-hidden="true" />
+      </button>
+    </li>
   )
 }
 
-const durationLabelOf = (b: Booking) => `${lengthLabel(durationHours(b.service.durationLabel) * HOUR)} de sessão`
-
-/** A request to answer without leaving the Início: accept, or refuse after a second tap. */
-function RequestCard({
-  booking,
-  busy,
-  onDecision,
-}: {
-  booking: Booking
-  busy: boolean
-  onDecision: (id: string, decision: 'accept' | 'reject') => void
-}) {
-  const [refusing, setRefusing] = useState(false)
-  const photo = serviceImageUrls(booking.service)[0]
-  return (
-    <article className="w-[78%] max-w-80 shrink-0 snap-start overflow-hidden rounded-3xl border border-onyx/10 bg-white shadow-sm shadow-black/5">
-      <div className="flex items-center gap-3 p-4">
-        {photo ? (
-          <img src={photo} alt="" className="size-14 shrink-0 rounded-2xl object-cover" />
-        ) : (
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-onyx/5 font-subtitle text-xl font-semibold text-onyx">
-            {booking.customerName.charAt(0).toUpperCase()}
-          </span>
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-subtitle text-base font-semibold text-onyx">{booking.customerName}</p>
-          <p className="truncate font-subtitle text-xs text-muted-dark">{bookingName(booking)}</p>
-          <p className="mt-1 font-subtitle text-xs font-medium lining-nums text-onyx">
-            {whenLabel(booking.slot.startsAt)} · {euros(bookingPrice(booking))}
-          </p>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-2 px-4 pb-4">
-        {refusing ? (
-          <>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => setRefusing(false)}
-              className="glass-chip h-10 rounded-full font-subtitle text-sm text-onyx disabled:opacity-50"
-            >
-              Voltar
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => onDecision(booking.id, 'reject')}
-              className="glass-chip-on h-10 rounded-full font-subtitle text-sm font-semibold text-red-700 disabled:opacity-50"
-            >
-              {busy ? 'A recusar…' : 'Sim, recusar'}
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => setRefusing(true)}
-              className="glass-chip h-10 rounded-full font-subtitle text-sm text-onyx disabled:opacity-50"
-            >
-              Recusar
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => onDecision(booking.id, 'accept')}
-              className="h-10 rounded-full bg-onyx font-subtitle text-sm font-semibold text-white disabled:opacity-50"
-            >
-              {busy ? 'A aceitar…' : 'Aceitar'}
-            </button>
-          </>
-        )}
-      </div>
-    </article>
-  )
-}
-
-/** Today as a timeline: each session as tall as it is long, the free stretches between them, and a line for now. */
-function Today({
-  sessions,
-  now,
-  onOpen,
-  onNewBooking,
-}: {
-  sessions: Booking[]
-  now: number
-  onOpen: (tab: 'agenda' | MoreTarget) => void
-  onNewBooking: (startsAt?: string) => void
-}) {
-  const hours = sessions.reduce((sum, b) => sum + durationHours(b.service.durationLabel), 0)
-  const takings = sessions.reduce((sum, b) => sum + bookingPrice(b), 0)
-  const rows: Array<{ kind: 'session'; booking: Booking } | { kind: 'free'; from: number; to: number } | { kind: 'now' }> = []
-  let nowPlaced = false
-  sessions.forEach((b, i) => {
-    const start = new Date(b.slot.startsAt).getTime()
-    if (!nowPlaced && now < start) {
-      rows.push({ kind: 'now' })
-      nowPlaced = true
-    }
-    // A session going on now is marked on its own card.
-    if (start <= now && now < endsAt(b)) nowPlaced = true
-    rows.push({ kind: 'session', booking: b })
-    const next = sessions[i + 1]
-    if (next) {
-      const gapFrom = endsAt(b)
-      const gapTo = new Date(next.slot.startsAt).getTime()
-      if (gapTo - gapFrom >= 30 * 60_000) {
-        if (!nowPlaced && now >= gapFrom && now < gapTo) {
-          rows.push({ kind: 'now' })
-          nowPlaced = true
-        }
-        rows.push({ kind: 'free', from: gapFrom, to: gapTo })
-      }
-    }
-  })
-
-  return (
-    <section>
-      <div className="mb-1 flex items-baseline justify-between px-1">
-        <h2 className={heading}>Hoje</h2>
-        <button type="button" onClick={() => onOpen('agenda')} className="font-subtitle text-sm text-muted-dark">
-          Agenda
-        </button>
-      </div>
-      <p className="mb-4 px-1 font-subtitle text-sm text-muted-dark">
-        {sessions.length === 0
-          ? 'Dia livre. Bom momento para mostrar trabalho novo no portfólio.'
-          : `${plural(sessions.length, 'cliente', 'clientes')}, ${lengthLabel(hours * HOUR)} de tranças e ${euros(takings)} hoje.`}
-      </p>
-
-      {sessions.length === 0 ? (
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => onOpen('portfolio')}
-            className="glass-chip flex h-11 flex-1 items-center justify-center gap-2 rounded-full font-subtitle text-sm text-onyx"
-          >
-            <i className="bx bx-images text-lg" aria-hidden="true" />
-            Portfólio
-          </button>
-          <button
-            type="button"
-            onClick={() => onNewBooking()}
-            className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-onyx font-subtitle text-sm font-medium text-white"
-          >
-            <i className="bx bx-plus text-lg" aria-hidden="true" />
-            Nova marcação
-          </button>
-        </div>
-      ) : (
-        <ol className="relative flex flex-col">
-          {rows.map((row, i) => {
-            if (row.kind === 'now') {
-              return (
-                <li key={`now-${i}`} className="flex items-center gap-3 py-1.5" aria-label={`Agora, ${time(now)}`}>
-                  <span className="w-14 shrink-0 text-right font-subtitle text-xs font-semibold lining-nums" style={{ color: GOLD }}>
-                    {time(now)}
-                  </span>
-                  <span className="size-2 shrink-0 rounded-full" style={{ background: GOLD }} />
-                  <span className="h-px flex-1" style={{ background: GOLD }} />
-                </li>
-              )
-            }
-            if (row.kind === 'free') {
-              return (
-                <li key={`free-${i}`} className="flex items-center gap-3 py-2">
-                  <span className="w-14 shrink-0" />
-                  <button
-                    type="button"
-                    onClick={() => onNewBooking(new Date(row.from).toISOString())}
-                    className="flex-1 rounded-2xl border border-dashed border-onyx/15 px-4 py-2.5 text-left font-subtitle text-xs text-muted-dark"
-                  >
-                    Livre {time(row.from)}–{time(row.to)} · {lengthLabel(row.to - row.from)}
-                  </button>
-                </li>
-              )
-            }
-            const b = row.booking
-            const start = new Date(b.slot.startsAt).getTime()
-            const end = endsAt(b)
-            const done = end <= now
-            const live = start <= now && now < end
-            const photo = serviceImageUrls(b.service)[0]
-            const length = durationHours(b.service.durationLabel)
-            return (
-              <li key={b.id} className={`flex gap-3 py-1 ${done ? 'opacity-45' : ''}`}>
-                <span className="w-14 shrink-0 pt-3 text-right font-subtitle lining-nums">
-                  <span className="block text-sm font-semibold text-onyx">{time(start)}</span>
-                  <span className="block text-[11px] text-muted-dark">{time(end)}</span>
-                </span>
-                <div
-                  className={`flex flex-1 gap-3 rounded-2xl border bg-white p-3 shadow-sm shadow-black/5 ${
-                    live ? 'border-[#c9a84c]' : 'border-onyx/10'
-                  }`}
-                  // A five-hour braiding session looks longer than a one-hour touch-up.
-                  style={{ minHeight: Math.min(64 + (length - 1) * 22, 180) }}
-                >
-                  {photo ? (
-                    <img src={photo} alt="" className="w-12 shrink-0 self-stretch rounded-xl object-cover" />
-                  ) : (
-                    <span className="w-1 shrink-0 self-stretch rounded-full" style={{ background: GOLD }} />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-subtitle text-[15px] font-semibold text-onyx">{b.customerName}</p>
-                    <p className="truncate font-subtitle text-xs text-muted-dark">{bookingName(b)}</p>
-                    <p className="mt-1 font-subtitle text-xs lining-nums text-muted-dark">
-                      {lengthLabel(length * HOUR)} · {euros(bookingPrice(b))}
-                    </p>
-                  </div>
-                  {done ? (
-                    <i className="bx bx-check self-start text-xl text-onyx" aria-label="Feita" />
-                  ) : live ? (
-                    <span className="self-start rounded-full px-2 py-0.5 font-subtitle text-[10px] font-semibold" style={{ background: GOLD, color: BROWN }}>
-                      Agora
-                    </span>
-                  ) : null}
-                </div>
-              </li>
-            )
-          })}
-          {/* After the last session of the day. */}
-          {!nowPlaced && (
-            <li className="flex items-center gap-3 py-1.5" aria-label={`Agora, ${time(now)}`}>
-              <span className="w-14 shrink-0 text-right font-subtitle text-xs font-semibold lining-nums" style={{ color: GOLD }}>
-                {time(now)}
-              </span>
-              <span className="size-2 shrink-0 rounded-full" style={{ background: GOLD }} />
-              <span className="h-px flex-1" style={{ background: GOLD }} />
-            </li>
-          )}
-        </ol>
-      )}
-    </section>
-  )
-}
-
-/** The next seven days as how full each one is: a gold bar filled by the times taken. */
-function Week({
+/** The business in four figures, for this month or this week. */
+function Business({
+  period,
+  onPeriod,
   bookings,
+  confirmed,
+  pending,
   slots,
   today,
+  now,
+  canStats,
   onOpen,
 }: {
+  period: Period
+  onPeriod: (period: Period) => void
   bookings: Booking[]
+  confirmed: Booking[]
+  pending: Booking[]
   slots: AvailabilitySlot[]
   today: string
-  onOpen: () => void
+  now: number
+  canStats: boolean
+  onOpen: (tab: 'pedidos' | 'disponibilidade' | MoreTarget) => void
 }) {
-  const days = [1, 2, 3, 4, 5, 6, 7].map((i) => {
-    const key = addDays(today, i)
-    const taken = bookings.filter((b) => (b.status === 'ACCEPTED' || b.status === 'PENDING') && dayKey(b.slot.startsAt) === key).length
-    const free = slots.filter((s) => s.status === 'OPEN' && dayKey(s.startsAt) === key).length
-    return { key, label: i === 1 ? 'Amanhã' : capital(weekdayOf(key, 'short')), day: Number(key.slice(8)), taken, free }
-  })
-  const totalFree = days.reduce((sum, d) => sum + d.free, 0)
-  const totalTaken = days.reduce((sum, d) => sum + d.taken, 0)
+  // This week runs from Monday; last week is the seven days before it.
+  const weekday = (new Date(`${today}T12:00:00Z`).getUTCDay() + 6) % 7
+  const weekStart = addDays(today, -weekday)
+  const inThis = (iso: string) => {
+    const key = dayKey(iso)
+    return period === 'mes' ? monthOf(iso) === today.slice(0, 7) : key >= weekStart && key <= addDays(weekStart, 6)
+  }
+  // The same stretch of the period before, up to the same day.
+  const lastMonth = (() => {
+    const [y, m] = today.split('-').map(Number)
+    return `${m === 1 ? y - 1 : y}-${String(m === 1 ? 12 : m - 1).padStart(2, '0')}`
+  })()
+  const inBefore = (iso: string) => {
+    const key = dayKey(iso)
+    if (period === 'mes') return key.slice(0, 7) === lastMonth && Number(key.slice(8)) <= Number(today.slice(8))
+    return key >= addDays(weekStart, -7) && key <= addDays(today, -7)
+  }
+  const inThisSoFar = (iso: string) => inThis(iso) && dayKey(iso) <= today
+
+  const periodBookings = confirmed.filter((b) => inThis(b.slot.startsAt))
+  const revenue = periodBookings.reduce((sum, b) => sum + bookingPrice(b), 0)
+  const soFar = confirmed.filter((b) => inThisSoFar(b.slot.startsAt)).reduce((sum, b) => sum + bookingPrice(b), 0)
+  const before = confirmed.filter((b) => inBefore(b.slot.startsAt)).reduce((sum, b) => sum + bookingPrice(b), 0)
+  const change = before ? Math.round(((soFar - before) / before) * 100) : null
+
+  // New clients: those whose first booking ever falls in this period.
+  const firstOf = new Map<string, string>()
+  bookings
+    .filter((b) => b.status === 'ACCEPTED' || b.status === 'PENDING')
+    .forEach((b) => {
+      const seen = firstOf.get(b.customerId)
+      if (!seen || b.slot.startsAt < seen) firstOf.set(b.customerId, b.slot.startsAt)
+    })
+  const newClients = [...firstOf.values()].filter((iso) => inThis(iso)).length
+
+  const urgent = pending.filter((b) => new Date(b.slot.startsAt).getTime() - now < 48 * HOUR).length
+
+  // How full the next seven days are, by times taken against times open.
+  const week = Array.from({ length: 7 }, (_, i) => addDays(today, i))
+  const taken = bookings.filter((b) => (b.status === 'ACCEPTED' || b.status === 'PENDING') && week.includes(dayKey(b.slot.startsAt))).length
+  const free = slots.filter((s) => s.status === 'OPEN' && week.includes(dayKey(s.startsAt)) && new Date(s.startsAt).getTime() > now).length
+  const occupancy = taken + free ? Math.round((taken / (taken + free)) * 100) : null
+
+  const versus = period === 'mes' ? monthName(lastMonth) : 'a semana passada'
 
   return (
     <section>
-      <div className="mb-1 flex items-baseline justify-between px-1">
-        <h2 className={heading}>Próximos 7 dias</h2>
-        <button type="button" onClick={onOpen} className="font-subtitle text-sm text-muted-dark">
-          Agenda
-        </button>
+      <div className="mb-3 flex items-center justify-between px-1">
+        <h2 className={heading}>O negócio</h2>
+        <div className="flex rounded-full bg-onyx/[0.06] p-0.5" role="tablist" aria-label="Período">
+          {(
+            [
+              ['semana', 'Semana'],
+              ['mes', 'Mês'],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={period === id}
+              onClick={() => onPeriod(id)}
+              className={`h-7 rounded-full px-3 font-subtitle text-xs font-medium transition-colors ${
+                period === id ? 'bg-white text-onyx shadow-sm' : 'text-muted-dark'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
-      <p className="mb-4 px-1 font-subtitle text-sm text-muted-dark">
-        {totalTaken === 0 && totalFree === 0
-          ? 'Ainda sem horários abertos para esta semana.'
-          : `${plural(totalTaken, 'sessão marcada', 'sessões marcadas')}${totalFree ? ` e ${plural(totalFree, 'horário livre', 'horários livres')}` : ', semana cheia'}.`}
-      </p>
-      <button
-        type="button"
-        onClick={onOpen}
-        className="grid w-full grid-cols-7 gap-1.5 rounded-3xl border border-onyx/10 bg-white p-3 shadow-sm shadow-black/5"
-      >
-        {days.map((d) => {
-          const total = d.taken + d.free
-          const fill = total ? d.taken / total : 0
-          return (
-            <span key={d.key} className="flex flex-col items-center gap-1.5">
-              <span className="font-subtitle text-[10px] text-muted-dark">{d.label === 'Amanhã' ? 'Amn' : d.label}</span>
-              <span className="relative h-20 w-full max-w-9 overflow-hidden rounded-full bg-onyx/[0.06]">
-                <span
-                  className="absolute inset-x-0 bottom-0 rounded-full"
-                  style={{ height: `${Math.round(fill * 100)}%`, background: GOLD, opacity: total ? 1 : 0 }}
-                />
+      <div className="grid grid-cols-2 gap-2.5">
+        <Figure
+          label="Receita"
+          icon="bx-euro"
+          value={euros(revenue)}
+          note={
+            change === null ? (
+              plural(periodBookings.length, 'sessão', 'sessões')
+            ) : (
+              <span className={change >= 0 ? 'text-[#3d7a5c]' : 'text-red-700'}>
+                {change >= 0 ? '↗' : '↘'} {Math.abs(change)}% face a {versus}
               </span>
-              <span className="font-subtitle text-sm font-semibold lining-nums leading-none text-onyx">{d.day}</span>
-              <span className={`font-subtitle text-[10px] ${total && !d.free ? 'font-medium text-onyx' : 'text-muted-dark'}`}>
-                {!total ? '–' : d.free ? `${d.free} livre${d.free === 1 ? '' : 's'}` : 'cheio'}
+            )
+          }
+          onClick={canStats ? () => onOpen('estatisticas') : undefined}
+        />
+        <Figure
+          label="Marcações"
+          icon="bx-calendar-check"
+          value={String(periodBookings.length)}
+          note={newClients ? plural(newClients, 'cliente nova', 'clientes novas') : 'Sem clientes novas'}
+          onClick={canStats ? () => onOpen('estatisticas') : undefined}
+        />
+        <Figure
+          label="Por confirmar"
+          icon="bx-time-five"
+          value={String(pending.length)}
+          note={
+            pending.length === 0 ? (
+              'Nenhum pedido à espera'
+            ) : urgent ? (
+              <span className="text-[#b5652b]">{plural(urgent, 'é para os próximos 2 dias', 'são para os próximos 2 dias')}</span>
+            ) : (
+              'Sem pressa para responder'
+            )
+          }
+          onClick={() => onOpen('pedidos')}
+        />
+        <Figure
+          label="Ocupação 7 dias"
+          icon="bx-pie-chart-alt-2"
+          value={occupancy === null ? '–' : `${occupancy}%`}
+          note={
+            <>
+              <span className="mb-1.5 block h-1.5 overflow-hidden rounded-full bg-onyx/[0.07]">
+                <span className="block h-full rounded-full" style={{ width: `${occupancy ?? 0}%`, background: GOLD }} />
               </span>
-            </span>
-          )
-        })}
-      </button>
+              {occupancy === null ? 'Sem horários abertos' : free ? plural(free, 'horário livre', 'horários livres') : 'Semana cheia'}
+            </>
+          }
+          onClick={() => onOpen('disponibilidade')}
+        />
+      </div>
     </section>
   )
 }
 
-/**
- * The month in one figure, against the last one up to the same day, with both months drawn as a thin line of what
- * came in day by day.
- */
-function Month({ confirmed, enabled, onOpen }: { confirmed: Booking[]; enabled: boolean; onOpen: () => void }) {
-  const todayIso = new Date().toISOString()
-  const month = monthOf(todayIso)
-  const [y, m] = month.split('-').map(Number)
-  const last = `${m === 1 ? y - 1 : y}-${String(m === 1 ? 12 : m - 1).padStart(2, '0')}`
-  const dayOfMonth = Number(dayKey(todayIso).slice(8))
-  const daysIn = (key: string) => new Date(Number(key.slice(0, 4)), Number(key.slice(5)), 0).getDate()
-
-  // What the confirmed sessions came to by each day of the month.
-  const running = (key: string, upTo: number) => {
-    const perDay = Array<number>(daysIn(key)).fill(0)
-    confirmed.forEach((b) => {
-      if (monthOf(b.slot.startsAt) !== key) return
-      perDay[Number(dayKey(b.slot.startsAt).slice(8)) - 1] += bookingPrice(b)
-    })
-    let sum = 0
-    return perDay.slice(0, upTo).map((v) => (sum += v))
-  }
-  const thisMonth = running(month, dayOfMonth)
-  const lastMonth = running(last, daysIn(last))
-  const total = confirmed.filter((b) => monthOf(b.slot.startsAt) === month).reduce((sum, b) => sum + bookingPrice(b), 0)
-  const soFar = thisMonth[thisMonth.length - 1] ?? 0
-  const lastSameDay = lastMonth[Math.min(dayOfMonth, lastMonth.length) - 1] ?? 0
-  const change = lastSameDay ? Math.round(((soFar - lastSameDay) / lastSameDay) * 100) : null
-  const sessions = confirmed.filter((b) => monthOf(b.slot.startsAt) === month).length
-
-  const W = 300
-  const H = 56
-  const top = Math.max(1, ...thisMonth, ...lastMonth)
-  const line = (values: number[]) =>
-    values.map((v, i) => `${((i / (daysIn(month) - 1 || 1)) * W).toFixed(1)},${(H - (v / top) * (H - 4) - 2).toFixed(1)}`).join(' ')
-
+function Figure({
+  label,
+  icon,
+  value,
+  note,
+  onClick,
+}: {
+  label: string
+  icon: string
+  value: string
+  note: ReactNode
+  onClick?: () => void
+}) {
   return (
-    <button
-      type="button"
-      disabled={!enabled}
-      onClick={onOpen}
-      className="w-full rounded-3xl border border-onyx/10 bg-white p-5 text-left shadow-sm shadow-black/5"
-    >
-      <div className="flex items-baseline justify-between">
-        <span className="font-subtitle text-sm text-muted-dark">{monthName(month)}</span>
-        {enabled && <i className="bx bx-chevron-right text-xl text-onyx/30" aria-hidden="true" />}
-      </div>
-      <p className="mt-1 font-subtitle text-[40px] font-semibold lining-nums leading-none tracking-tight text-onyx">{euros(total)}</p>
-      <p className="mt-2 font-subtitle text-sm text-muted-dark">
-        {plural(sessions, 'sessão', 'sessões')}
-        {change !== null && (
-          <>
-            {' · '}
-            <span className={change >= 0 ? 'font-medium text-onyx' : 'font-medium text-red-700'}>
-              {change >= 0 ? '+' : ''}
-              {change}%
-            </span>{' '}
-            que {monthName(last).toLowerCase()} até dia {dayOfMonth}
-          </>
-        )}
-      </p>
-      <svg viewBox={`0 0 ${W} ${H}`} className="mt-4 h-14 w-full overflow-visible" preserveAspectRatio="none" aria-hidden="true">
-        <polyline points={line(lastMonth)} fill="none" stroke="currentColor" strokeWidth="1.5" className="text-onyx/15" vectorEffect="non-scaling-stroke" />
-        <polyline points={line(thisMonth)} fill="none" stroke={GOLD} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-      </svg>
-      <div className="mt-2 flex items-center gap-4 font-subtitle text-[11px] text-muted-dark">
-        <span className="flex items-center gap-1.5">
-          <span className="h-0.5 w-3 rounded-full" style={{ background: GOLD }} />
-          {monthName(month)}
+    <button type="button" disabled={!onClick} onClick={onClick} className={`${card} flex min-h-[7.25rem] flex-col p-4 text-left`}>
+      <span className="flex items-start justify-between gap-2">
+        <span className="font-subtitle text-xs text-muted-dark">{label}</span>
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-onyx/[0.06] text-base text-onyx">
+          <i className={`bx ${icon}`} aria-hidden="true" />
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-0.5 w-3 rounded-full bg-onyx/20" />
-          {monthName(last)}
-        </span>
-      </div>
+      </span>
+      <span className="mt-1 font-subtitle text-[26px] font-semibold lining-nums leading-tight tracking-tight text-onyx">{value}</span>
+      <span className="mt-auto pt-1.5 font-subtitle text-[11px] leading-snug text-muted-dark">{note}</span>
     </button>
   )
 }
