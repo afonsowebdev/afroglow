@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { ActionButton } from '@/components/ui/action-button'
 import { durationHours } from '@/lib/calendar'
 import { bookingName, bookingPrice } from '@/lib/pricing'
 import { customerWhatsappUrl } from '@/lib/site-config'
@@ -217,7 +218,7 @@ function untilLabel(iso: string, now: number, today: string) {
   return `${day.replace(/\./g, '')} às ${time(iso)}`
 }
 
-/** Who is in the chair or comes next, with what she booked and a way to reach her. */
+/** Who is in the chair or comes next, on the page itself: what she booked and a way to reach her. */
 function NextClient({
   booking,
   inChair,
@@ -233,21 +234,11 @@ function NextClient({
 }) {
   if (!booking) {
     return (
-      <section className="rounded-3xl p-5 text-[#ffffff]" style={{ background: BROWN }}>
-        <p className="font-subtitle text-xs font-medium" style={{ color: GOLD }}>
-          A seguir
-        </p>
-        <p className="mt-1.5 font-subtitle text-[22px] font-semibold leading-tight tracking-tight">Ninguém marcado por agora</p>
-        <p className="mt-1 font-subtitle text-sm text-[#ffffff]/70">Quando aceitares um pedido, a próxima cliente aparece aqui.</p>
-        <button
-          type="button"
-          onClick={onNewBooking}
-          className="mt-4 flex h-9 items-center gap-1.5 rounded-full px-4 font-subtitle text-[13px] font-semibold"
-          style={{ background: GOLD, color: BROWN }}
-        >
-          <i className="bx bx-plus text-base" aria-hidden="true" />
-          Nova marcação
-        </button>
+      <section className="px-1">
+        <p className="font-subtitle text-xs font-medium text-muted-dark">A seguir</p>
+        <p className="mt-1.5 font-subtitle text-[22px] font-semibold leading-tight tracking-tight text-onyx">Ninguém marcado por agora</p>
+        <p className="mt-1 font-subtitle text-sm text-muted-dark">Quando aceitares um pedido, a próxima cliente aparece aqui.</p>
+        <ActionButton label="Nova marcação" icon="bx bx-plus" onClick={onNewBooking} className="mt-4" />
       </section>
     )
   }
@@ -256,41 +247,36 @@ function NextClient({
   const first = firstName(booking.customerName)
   const isToday = dayKey(booking.slot.startsAt) === today
   return (
-    <section className="rounded-3xl p-5 text-[#ffffff]" style={{ background: BROWN }}>
-      <p className="font-subtitle text-xs font-medium" style={{ color: GOLD }}>
+    <section className="px-1">
+      <p className="flex items-center gap-2 font-subtitle text-xs font-medium text-muted-dark">
+        <span className="size-2 rounded-full" style={{ background: GOLD }} aria-hidden="true" />
         {inChair ? `Na cadeira · termina às ${time(end)}` : `A seguir · ${untilLabel(booking.slot.startsAt, now, today)}`}
       </p>
-      <div className="mt-3 flex items-start justify-between gap-4">
+      <div className="mt-2.5 flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="truncate font-subtitle text-[22px] font-semibold leading-tight tracking-tight">{booking.customerName}</p>
-          <p className="mt-1 truncate font-subtitle text-sm text-[#ffffff]/70">
-            {bookingName(booking)} · {lengthLabel(end - start)}
+          <p className="truncate font-subtitle text-[24px] font-semibold leading-tight tracking-tight text-onyx">{booking.customerName}</p>
+          <p className="mt-1 truncate font-subtitle text-sm text-muted-dark">
+            {bookingName(booking)} · {lengthLabel(end - start)} · {euros(bookingPrice(booking))}
           </p>
         </div>
         {isToday && (
-          <p className="shrink-0 font-subtitle text-[28px] font-semibold lining-nums leading-none tracking-tight">{time(start)}</p>
+          <p className="shrink-0 font-subtitle text-[30px] font-semibold lining-nums leading-none tracking-tight text-onyx">{time(start)}</p>
         )}
       </div>
-      <div className="mt-5 flex items-center gap-2">
-        <a
+      <div className="mt-4 flex flex-wrap items-center gap-2.5">
+        <ActionButton
+          label="WhatsApp"
+          icon="bx bxl-whatsapp"
           href={customerWhatsappUrl(booking.customerPhone, `Olá ${first}! Sobre a tua sessão de ${bookingName(booking)}...`)}
-          target="_blank"
-          rel="noreferrer"
-          className="flex h-10 items-center gap-1.5 rounded-full bg-[#ffffff]/12 px-4 font-subtitle text-[13px] font-medium"
-        >
-          <i className="bx bxl-whatsapp text-lg" aria-hidden="true" />
-          WhatsApp
-        </a>
-        <a
-          href={`tel:${booking.customerPhone.replace(/[^+\d]/g, '')}`}
-          className="flex h-10 items-center gap-1.5 rounded-full bg-[#ffffff]/12 px-4 font-subtitle text-[13px] font-medium"
-        >
-          <i className="bx bx-phone text-lg" aria-hidden="true" />
-          Ligar
-        </a>
-        <span className="ml-auto font-subtitle text-lg font-semibold lining-nums" style={{ color: GOLD }}>
-          {euros(bookingPrice(booking))}
-        </span>
+        />
+        <ActionButton
+          label="Ligar"
+          variant="secondary"
+          icon="bx bx-phone"
+          onClick={() => {
+            window.location.href = `tel:${booking.customerPhone.replace(/[^+\d]/g, '')}`
+          }}
+        />
       </div>
     </section>
   )
