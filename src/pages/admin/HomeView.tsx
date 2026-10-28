@@ -40,12 +40,6 @@ export function homeGreeting(name: string) {
   return first ? `${hello}, ${first}` : hello
 }
 
-/** The greeting and the first name apart ("Boa noite", "Ruth"), for the Início's title. */
-export function homeHello(name: string) {
-  const [hello, first = ''] = homeGreeting(name).split(', ')
-  return { hello, first }
-}
-
 /** "Terça-feira, 27 de outubro". */
 export function homeDate() {
   return capital(new Date().toLocaleDateString('pt-PT', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' }))

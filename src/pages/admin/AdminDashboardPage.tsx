@@ -39,7 +39,7 @@ import { BroadcastView } from '@/pages/admin/BroadcastView'
 import { ClosuresView } from '@/pages/admin/ClosuresView'
 import { PromotionsView } from '@/pages/admin/PromotionsView'
 import { TeamView } from '@/pages/admin/TeamView'
-import { HomeView, homeDate, homeHello } from '@/pages/admin/HomeView'
+import { HomeView, homeDate, homeGreeting } from '@/pages/admin/HomeView'
 import { fullMe, type AdminMe, type Permission } from '@/pages/admin/admin-me'
 import { PortfolioView } from '@/pages/admin/PortfolioView'
 import { SecurityView } from '@/pages/admin/SecurityView'
@@ -2485,14 +2485,10 @@ function AdminDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22, ease: 'easeOut' }}
         >
-          {tab === 'inicio' ? (
-            <HomeTitle name={me?.name ?? ''} />
-          ) : (
-            <>
-              <h1 className="font-subtitle text-[32px] font-semibold leading-none tracking-tight text-onyx">{PAGE[tab].title}</h1>
-              <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">{PAGE[tab].hint}</p>
-            </>
-          )}
+          <h1 className="font-subtitle text-[32px] font-semibold leading-none tracking-tight text-onyx">
+            {tab === 'inicio' ? homeGreeting(me?.name ?? '') : PAGE[tab].title}
+          </h1>
+          <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">{tab === 'inicio' ? homeDate() : PAGE[tab].hint}</p>
 
           {(tab === 'agenda' || tab === 'disponibilidade') && (
             <MonthStrip value={viewMonth} today={getLisbonYearMonth(new Date())} onSelect={goToMonth} />
@@ -3040,28 +3036,6 @@ function AdminDashboard() {
           PlusIcon={Plus}
         />
       </div>
-    </div>
-  )
-}
-
-/** The Início's title: the date in a small pill, then the greeting large, light, with her name in bold. */
-function HomeTitle({ name }: { name: string }) {
-  const { hello, first } = homeHello(name)
-  return (
-    <div>
-      <p className="glass-chip inline-flex h-8 items-center gap-2 rounded-full px-3.5 font-subtitle text-[13px] text-onyx">
-        <i className="bx bx-calendar text-base" aria-hidden="true" />
-        {homeDate()}
-      </p>
-      <h1 className="mt-4 font-subtitle text-[36px] leading-[1.1] tracking-tight text-onyx">
-        <span className="font-light text-muted-dark">{hello}{first ? ',' : ''}</span>
-        {first && (
-          <>
-            {' '}
-            <span className="font-semibold">{first}</span>
-          </>
-        )}
-      </h1>
     </div>
   )
 }
