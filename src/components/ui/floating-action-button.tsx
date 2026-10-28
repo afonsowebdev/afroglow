@@ -350,7 +350,7 @@ export function FloatingActionMenu({
             )}
           >
             {/* What "Mais opções" shows in place of the main options: side by side, each a round button with its name
-                below in plain white; the app's own settings (group "app") apart under a thin line. */}
+                below in plain white; the app's own settings (group "app") on their own row, a little apart. */}
             {open && showMore && more && (
               <div className="pointer-events-auto mb-1 flex w-[17.5rem] flex-col gap-3">
                 {[more.filter((a) => a.group !== 'app'), more.filter((a) => a.group === 'app')]
@@ -358,7 +358,7 @@ export function FloatingActionMenu({
                   .map((part, partIndex) => (
                     <div
                       key={partIndex}
-                      className={cn('grid grid-cols-4 gap-x-1.5 gap-y-3', partIndex > 0 && 'border-t border-white/30 pt-3')}
+                      className={cn('grid grid-cols-4 gap-x-1.5 gap-y-3', partIndex > 0 && 'pt-2')}
                     >
                       {part.map(({ Icon, iconClass, label, danger, onClick, confirm }, index) => {
                         const asking = confirming === label
