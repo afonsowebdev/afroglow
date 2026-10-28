@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { durationHours } from '@/lib/calendar'
 import { bookingName, bookingPrice } from '@/lib/pricing'
+import { customerWhatsappUrl } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Testimonial } from '@/lib/types'
 import type { Permission } from './admin-me'
 import type { MoreTarget } from './MoreView'
@@ -82,47 +83,12 @@ export function HomeView({
     return <p className="mt-6 font-subtitle text-sm text-muted-dark">Usa o menu em baixo para o que tens acesso.</p>
   }
 
-  const left = todaySessions.filter((b) => endsAt(b) > now).length
-  const dayTitle =
-    todaySessions.length === 0
-      ? 'Sem clientes hoje'
-      : left === 0
-        ? `${plural(todaySessions.length, 'cliente atendida', 'clientes atendidas')} hoje`
-        : `${plural(todaySessions.length, 'cliente', 'clientes')} na agenda`
-  const dayLine = live
-    ? `${firstName(live.customerName)} está na cadeira até às ${time(endsAt(live))}`
-    : next
-      ? dayKey(next.slot.startsAt) === today
-        ? `Próxima cliente às ${time(next.slot.startsAt)} · ${firstName(next.customerName)}`
-        : `Próxima cliente ${dayKey(next.slot.startsAt) === addDays(today, 1) ? 'amanhã' : 'a ' + new Date(next.slot.startsAt).toLocaleDateString('pt-PT', { timeZone: TZ, day: 'numeric', month: 'short' }).replace('.', '')} às ${time(next.slot.startsAt)}`
-      : 'Ainda sem marcações à frente.'
+  // The one in the chair now, otherwise the next one.
+  const focus = live ?? next
 
   return (
     <div className="mt-6 flex flex-col gap-9">
-      {/* The day, in control. */}
-      <section className="relative overflow-hidden rounded-3xl p-5 text-[#ffffff]" style={{ background: BROWN }}>
-        <span
-          aria-hidden="true"
-          className="absolute -right-8 -top-10 flex size-32 items-center justify-center rounded-full font-logo text-[64px] leading-none logo-weight"
-          style={{ background: '#ffffff0d', color: `${GOLD}55` }}
-        >
-          <span className="translate-x-[-10px] translate-y-[12px]">A</span>
-        </span>
-        <p className="relative font-subtitle text-xs font-medium" style={{ color: GOLD }}>
-          O teu dia
-        </p>
-        <p className="relative mt-1.5 font-subtitle text-[22px] font-semibold leading-tight tracking-tight">{dayTitle}</p>
-        <p className="relative mt-1 font-subtitle text-sm text-[#ffffff]/70">{dayLine}</p>
-        <button
-          type="button"
-          onClick={() => onNewBooking()}
-          className="relative mt-4 flex h-9 items-center gap-1.5 rounded-full px-4 font-subtitle text-[13px] font-semibold"
-          style={{ background: GOLD, color: BROWN }}
-        >
-          <i className="bx bx-plus text-base" aria-hidden="true" />
-          Nova marcação
-        </button>
-      </section>
+      <NextClient booking={focus} inChair={!!live} now={now} today={today} onNewBooking={() => onNewBooking()} />
 
       <Business
         period={period}
@@ -181,13 +147,19 @@ export function HomeView({
               })}
             </ol>
           )}
-          <button
-            type="button"
-            onClick={() => onOpen('agenda')}
-            className="w-full border-t border-onyx/[0.07] py-3 font-subtitle text-[13px] font-medium text-onyx"
-          >
-            Abrir calendário completo
-          </button>
+          <div className="grid grid-cols-2 divide-x divide-onyx/[0.07] border-t border-onyx/[0.07]">
+            <button type="button" onClick={() => onOpen('agenda')} className="py-3 font-subtitle text-[13px] font-medium text-onyx">
+              Calendário completo
+            </button>
+            <button
+              type="button"
+              onClick={() => onNewBooking()}
+              className="flex items-center justify-center gap-1 py-3 font-subtitle text-[13px] font-medium text-onyx"
+            >
+              <i className="bx bx-plus text-base" aria-hidden="true" />
+              Nova marcação
+            </button>
+          </div>
         </div>
       </section>
 
@@ -232,6 +204,95 @@ export function HomeView({
         </div>
       </section>
     </div>
+  )
+}
+
+/** "daqui a 40 min", "daqui a 2 h", "amanhã às 10:30", "sex, 30 out às 10:30". */
+function untilLabel(iso: string, now: number, today: string) {
+  const minutes = Math.round((new Date(iso).getTime() - now) / 60_000)
+  const key = dayKey(iso)
+  if (key === today) return minutes <= 0 ? 'agora' : minutes < 60 ? `daqui a ${minutes} min` : `daqui a ${lengthLabel(minutes * 60_000)}`
+  if (key === addDays(today, 1)) return `amanhã às ${time(iso)}`
+  const day = new Date(iso).toLocaleDateString('pt-PT', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' })
+  return `${day.replace(/\./g, '')} às ${time(iso)}`
+}
+
+/** Who is in the chair or comes next, with what she booked and a way to reach her. */
+function NextClient({
+  booking,
+  inChair,
+  now,
+  today,
+  onNewBooking,
+}: {
+  booking: Booking | undefined
+  inChair: boolean
+  now: number
+  today: string
+  onNewBooking: () => void
+}) {
+  if (!booking) {
+    return (
+      <section className="rounded-3xl p-5 text-[#ffffff]" style={{ background: BROWN }}>
+        <p className="font-subtitle text-xs font-medium" style={{ color: GOLD }}>
+          A seguir
+        </p>
+        <p className="mt-1.5 font-subtitle text-[22px] font-semibold leading-tight tracking-tight">Ninguém marcado por agora</p>
+        <p className="mt-1 font-subtitle text-sm text-[#ffffff]/70">Quando aceitares um pedido, a próxima cliente aparece aqui.</p>
+        <button
+          type="button"
+          onClick={onNewBooking}
+          className="mt-4 flex h-9 items-center gap-1.5 rounded-full px-4 font-subtitle text-[13px] font-semibold"
+          style={{ background: GOLD, color: BROWN }}
+        >
+          <i className="bx bx-plus text-base" aria-hidden="true" />
+          Nova marcação
+        </button>
+      </section>
+    )
+  }
+  const start = new Date(booking.slot.startsAt).getTime()
+  const end = endsAt(booking)
+  const first = firstName(booking.customerName)
+  const isToday = dayKey(booking.slot.startsAt) === today
+  return (
+    <section className="rounded-3xl p-5 text-[#ffffff]" style={{ background: BROWN }}>
+      <p className="font-subtitle text-xs font-medium" style={{ color: GOLD }}>
+        {inChair ? `Na cadeira · termina às ${time(end)}` : `A seguir · ${untilLabel(booking.slot.startsAt, now, today)}`}
+      </p>
+      <div className="mt-3 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="truncate font-subtitle text-[22px] font-semibold leading-tight tracking-tight">{booking.customerName}</p>
+          <p className="mt-1 truncate font-subtitle text-sm text-[#ffffff]/70">
+            {bookingName(booking)} · {lengthLabel(end - start)}
+          </p>
+        </div>
+        {isToday && (
+          <p className="shrink-0 font-subtitle text-[28px] font-semibold lining-nums leading-none tracking-tight">{time(start)}</p>
+        )}
+      </div>
+      <div className="mt-5 flex items-center gap-2">
+        <a
+          href={customerWhatsappUrl(booking.customerPhone, `Olá ${first}! Sobre a tua sessão de ${bookingName(booking)}...`)}
+          target="_blank"
+          rel="noreferrer"
+          className="flex h-10 items-center gap-1.5 rounded-full bg-[#ffffff]/12 px-4 font-subtitle text-[13px] font-medium"
+        >
+          <i className="bx bxl-whatsapp text-lg" aria-hidden="true" />
+          WhatsApp
+        </a>
+        <a
+          href={`tel:${booking.customerPhone.replace(/[^+\d]/g, '')}`}
+          className="flex h-10 items-center gap-1.5 rounded-full bg-[#ffffff]/12 px-4 font-subtitle text-[13px] font-medium"
+        >
+          <i className="bx bx-phone text-lg" aria-hidden="true" />
+          Ligar
+        </a>
+        <span className="ml-auto font-subtitle text-lg font-semibold lining-nums" style={{ color: GOLD }}>
+          {euros(bookingPrice(booking))}
+        </span>
+      </div>
+    </section>
   )
 }
 
