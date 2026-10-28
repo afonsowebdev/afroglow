@@ -39,6 +39,7 @@
 
   /* The admin's Rende+ tokens (set inside .afro-admin), as utilities: bg-surface, text-ink-3, border-line… */
   --color-surface: var(--c-surface);
+  --color-card: var(--c-card);
   --color-surface-2: var(--c-surface-2);
   --color-surface-3: var(--c-surface-3);
   --color-ink: var(--c-ink);
@@ -212,6 +213,8 @@
  */
 .afro-admin {
   --c-surface: var(--color-white);
+  /* The cards: the light grey of the admin's grouped lists, no border. */
+  --c-card: color-mix(in srgb, var(--color-onyx) 4%, var(--color-white));
   --c-surface-2: color-mix(in srgb, var(--color-onyx) 3%, var(--color-white));
   --c-surface-3: color-mix(in srgb, var(--color-onyx) 7%, var(--color-white));
   --c-ink: var(--color-onyx);
@@ -231,12 +234,35 @@
   --c-chart-out: #e2876a;
   --shadow-card: 0 1px 3px rgb(0 0 0 / 0.05);
   --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.2), 0 4px 12px -4px rgb(0 0 0 / 0.1);
+
+  /* The utilities (bg-card, text-ink-3…) read these; set here so they resolve against the values above, not :root. */
+  --color-surface: var(--c-surface);
+  --color-card: var(--c-card);
+  --color-surface-2: var(--c-surface-2);
+  --color-surface-3: var(--c-surface-3);
+  --color-ink: var(--c-ink);
+  --color-ink-2: var(--c-ink-2);
+  --color-ink-3: var(--c-ink-3);
+  --color-line: var(--c-line);
+  --color-line-strong: var(--c-line-strong);
+  --color-accent: var(--c-brand);
+  --color-accent-soft: var(--c-brand-soft);
+  --color-pos: var(--c-pos);
+  --color-neg: var(--c-neg);
+  --color-warn: var(--c-warn);
+  --color-chart-in: var(--c-chart-in);
+  --color-chart-out: var(--c-chart-out);
 }
 .dark .afro-admin {
+  --c-card: color-mix(in srgb, var(--color-onyx) 8%, var(--color-white));
   --c-pos: #57c08b;
   --c-neg: #ff7f73;
   --c-warn: #f0a443;
   --shadow-card: 0 1px 3px rgb(0 0 0 / 0.3);
+  --color-card: var(--c-card);
+  --color-pos: var(--c-pos);
+  --color-neg: var(--c-neg);
+  --color-warn: var(--c-warn);
 }
 .afro-admin .tabular,
 .afro-admin .amount {

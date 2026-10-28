@@ -12,6 +12,7 @@ import {
   Clock,
   Eye,
   EyeOff,
+  FlaskConical,
   Hourglass,
   LayoutGrid,
   ListFilter,
@@ -35,6 +36,7 @@ import type { AvailabilitySlot, Booking, Service, Testimonial } from '@/lib/type
 import type { Permission } from './admin-me'
 import type { MoreTarget } from './MoreView'
 import { addDays, dayKey, plural, todayKey } from './admin-ui'
+import { painelDemo } from './painel-demo'
 
 /*
  * The Painel (Início) of the admin, in the AFROGLOW look (Poppins, the glass buttons, warm neutrals): the greeting, and ten blocks on
@@ -140,11 +142,12 @@ function loadOrder(): Array<WidgetItem & { id: BlockId }> {
 
 export function HomeView({
   name,
-  bookings,
-  slots,
-  services,
-  testimonials,
+  bookings: realBookings,
+  slots: realSlots,
+  services: realServices,
+  testimonials: realTestimonials,
   loaded,
+  startInDemo = false,
   can,
   onOpen,
   onNewBooking,
@@ -155,6 +158,8 @@ export function HomeView({
   services: Service[]
   testimonials: Testimonial[]
   loaded: boolean
+  /** Opens straight in the simulation (the preview page). */
+  startInDemo?: boolean
   can: (permission: Permission) => boolean
   onOpen: (tab: Tab) => void
   onNewBooking: (startsAt?: string) => void
@@ -165,6 +170,14 @@ export function HomeView({
   const [order, setOrder] = useState(loadOrder)
   const [goal, setGoal] = useState<number | null>(null)
   const [goalOpen, setGoalOpen] = useState(false)
+  // "Simulação": the same Painel over sample data, to see every block and chart filled in.
+  const [demo, setDemo] = useState(startInDemo)
+  const [sample] = useState(() => painelDemo())
+  const bookings = demo ? sample.bookings : realBookings
+  const slots = demo ? sample.slots : realSlots
+  const services = demo ? sample.services : realServices
+  const testimonials = demo ? sample.testimonials : realTestimonials
+  const shownGoal = demo ? sample.goalCents : goal
 
   useEffect(() => {
     api
@@ -176,15 +189,30 @@ export function HomeView({
   const header = (
     <div className="mb-7 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
       <div className="min-w-0">
-        <h1 className="text-[32px] font-semibold leading-none tracking-tight text-onyx">{homeGreeting(name)}</h1>
+        <h1 className="font-subtitle text-[32px] font-semibold leading-none tracking-tight text-onyx">{homeGreeting(name)}</h1>
         <p className="mt-2 max-w-xl text-sm text-muted-dark">
           {editing
             ? 'Arrasta os blocos para os reorganizar. No telemóvel, mantém o dedo premido antes de arrastar.'
             : 'Fica a par do teu negócio e acompanha o teu progresso.'}
         </p>
       </div>
-      {loaded && bookings.length > 0 && (
-        <div className="flex items-center gap-2">
+      {loaded && (
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            aria-pressed={demo}
+            onClick={() => {
+              void tap()
+              setDemo(!demo)
+              setEditing(false)
+            }}
+            className={`flex h-9 items-center gap-1.5 rounded-full px-4 text-[13px] font-medium text-onyx ${demo ? 'glass-chip-on' : 'glass-chip'}`}
+          >
+            <FlaskConical size={16} />
+            {demo ? 'Sair da simulação' : 'Simulação'}
+          </button>
+          {bookings.length > 0 && (
+          <>
           <button
             type="button"
             aria-label={hidden ? 'Mostrar valores' : 'Esconder valores'}
@@ -237,7 +265,14 @@ export function HomeView({
               Personalizar
             </button>
           )}
+          </>
+          )}
         </div>
+      )}
+      {demo && (
+        <p className="mt-4 w-full rounded-2xl bg-[#c9a84c]/15 px-4 py-2.5 text-[13px] font-medium text-onyx">
+          A ver dados de exemplo: nada disto é real e nada é guardado.
+        </p>
       )}
     </div>
   )
@@ -251,13 +286,13 @@ export function HomeView({
     )
   }
 
-  if (!loaded) {
+  if (!loaded && !demo) {
     return (
       <div className="font-subtitle">
         {header}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-[340px] animate-pulse rounded-2xl bg-surface-3" />
+            <div key={i} className="h-[340px] animate-pulse rounded-3xl bg-card" />
           ))}
         </div>
       </div>
@@ -336,7 +371,7 @@ export function HomeView({
       case 'grafico':
         return <InOutChart months={data.months} />
       case 'meta':
-        return <Goal goal={goal} revenue={data.month.revenue} canEdit={canStats} onEdit={() => setGoalOpen(true)} />
+        return <Goal goal={shownGoal} revenue={data.month.revenue} canEdit={canStats && !demo} onEdit={() => setGoalOpen(true)} />
       case 'servicos':
         return <Ranking items={data.ranking} total={data.rankingTotal} />
       case 'atividade':
@@ -357,7 +392,7 @@ export function HomeView({
         allowedColumns={ALLOWED_COLUMNS}
         cellSize={190}
         gap={12}
-        radius={16}
+        radius={22}
         rowRatio={0.75}
         narrowRowRatio={0.85}
         maxRowHeight={150}
@@ -519,7 +554,7 @@ type BoardData = ReturnType<typeof boardData>
 function BlockHeader({ title, action }: { title: string; action?: ReactNode }) {
   return (
     <div className="flex min-h-6 items-center justify-between gap-3">
-      <h3 className="truncate text-[14px] font-semibold tracking-tight text-onyx">{title}</h3>
+      <h3 className="truncate font-subtitle text-[14px] font-semibold tracking-tight text-onyx">{title}</h3>
       {action}
     </div>
   )
@@ -564,7 +599,7 @@ function Sparkline({ values, up, label }: { values: number[]; up: boolean | null
 
 function IconCircle({ Icon }: { Icon: LucideIcon }) {
   return (
-    <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-line bg-surface-2 text-ink-2">
+    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white text-onyx">
       <Icon size={15} />
     </span>
   )
@@ -605,7 +640,7 @@ function Stat({
   return (
     <>
       <div className="flex items-start justify-between gap-2">
-        <h3 className="text-[13px] font-semibold leading-tight tracking-tight text-onyx">{label}</h3>
+        <h3 className="font-subtitle text-[13px] font-semibold leading-tight tracking-tight text-onyx">{label}</h3>
         <IconCircle Icon={Icon} />
       </div>
       <p className={`tabular -mt-1 text-[22px] font-semibold tracking-tight text-ink ${amount ? 'amount' : ''}`}>{value}</p>
@@ -661,14 +696,14 @@ function Highlight({
       </div>
       <div className="mt-auto grid grid-cols-3 gap-2 pt-3">
         {cards.map(({ label, Icon, cents, status, tone, tab }) => (
-          <button key={label} type="button" onClick={() => onOpen(tab)} className="min-w-0 rounded-xl border border-line p-2.5 text-left">
+          <button key={label} type="button" onClick={() => onOpen(tab)} className="min-w-0 rounded-2xl bg-white p-2.5 text-left">
             <span
               className="flex size-6 items-center justify-center rounded-full"
               style={{ background: `color-mix(in srgb, ${tone} 14%, transparent)`, color: tone }}
             >
               <Icon size={13} />
             </span>
-            <span className="mt-1.5 block truncate text-xs text-ink-3">{label}</span>
+            <span className="mt-1.5 block truncate text-[11px] text-ink-3">{label}</span>
             <span className="amount tabular block truncate text-[13px] font-semibold text-ink">{euros(cents)}</span>
             <span className="mt-0.5 flex items-center gap-1 truncate text-xs text-ink-3">
               <span className="size-1.5 shrink-0 rounded-full" style={{ background: tone }} aria-hidden="true" />
@@ -705,7 +740,7 @@ function InOutChart({ months }: { months: MonthFigures[] }) {
       <BlockHeader
         title="Receita e cancelamentos"
         action={
-          <div className="flex rounded-full bg-surface-3 p-0.5" role="tablist" aria-label="Tipo de gráfico">
+          <div className="flex rounded-full bg-onyx/[0.06] p-0.5" role="tablist" aria-label="Tipo de gráfico">
             {views.map(({ id, Icon, label }) => (
               <button
                 key={id}
@@ -715,7 +750,7 @@ function InOutChart({ months }: { months: MonthFigures[] }) {
                 aria-label={label}
                 onClick={() => choose(id)}
                 className={`flex size-7 items-center justify-center rounded-full transition-colors ${
-                  view === id ? 'bg-surface text-ink shadow-[var(--shadow-card)]' : 'text-ink-3'
+                  view === id ? 'bg-white text-onyx shadow-sm' : 'text-muted-dark'
                 }`}
               >
                 <Icon size={14} />
@@ -726,11 +761,11 @@ function InOutChart({ months }: { months: MonthFigures[] }) {
       />
       <div className="mt-2 flex items-center gap-3 text-xs text-ink-3">
         <span className="flex items-center gap-1.5">
-          <span className="size-2 rounded-full bg-chart-in" aria-hidden="true" />
+          <span className="size-2 rounded-full" style={{ background: 'var(--c-chart-in)' }} aria-hidden="true" />
           Receita
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="size-2 rounded-full bg-chart-out" aria-hidden="true" />
+          <span className="size-2 rounded-full" style={{ background: 'var(--c-chart-out)' }} aria-hidden="true" />
           Cancelado
         </span>
         <span className="ml-auto">Últimos 6 meses</span>
@@ -758,8 +793,8 @@ function InOutChart({ months }: { months: MonthFigures[] }) {
                 <div className="absolute inset-0 flex items-end gap-2">
                   {months.map((m) => (
                     <div key={m.key} className="flex h-full flex-1 items-end justify-center gap-[3px]">
-                      <span className="w-full max-w-3 rounded-t-[4px] bg-chart-in" style={{ height: `${(m.revenue / top) * 100}%` }} />
-                      <span className="w-full max-w-3 rounded-t-[4px] bg-chart-out" style={{ height: `${(m.cancelled / top) * 100}%` }} />
+                      <span className="block w-full max-w-3 rounded-t-[4px]" style={{ height: `${(m.revenue / top) * 100}%`, background: 'var(--c-chart-in)' }} />
+                      <span className="block w-full max-w-3 rounded-t-[4px]" style={{ height: `${(m.cancelled / top) * 100}%`, background: 'var(--c-chart-out)' }} />
                     </div>
                   ))}
                 </div>
@@ -801,7 +836,7 @@ function Donut({ parts }: { parts: number[] }) {
   const colours = ['var(--c-chart-in)', 'var(--c-chart-out)']
   return (
     <svg viewBox="0 0 42 42" className="size-28 shrink-0 -rotate-0">
-      <circle cx="21" cy="21" r={r} fill="none" stroke="var(--c-surface-3)" strokeWidth="6" />
+      <circle cx="21" cy="21" r={r} fill="none" stroke="color-mix(in srgb, var(--color-onyx) 8%, transparent)" strokeWidth="6" />
       {total > 0 &&
         parts.map((part, i) => {
           const share = (part / total) * 100
@@ -842,7 +877,7 @@ function Goal({ goal, revenue, canEdit, onEdit }: { goal: number | null; revenue
         }
       />
       {goal === null ? (
-        <div className="mt-auto h-2.5 animate-pulse rounded-full bg-surface-3" />
+        <div className="mt-auto h-2.5 animate-pulse rounded-full bg-onyx/[0.08]" />
       ) : !goal ? (
         <Empty
           Icon={Target}
@@ -863,7 +898,7 @@ function Goal({ goal, revenue, canEdit, onEdit }: { goal: number | null; revenue
           </p>
           <div className="mt-auto">
             <div
-              className="h-2.5 overflow-hidden rounded-full bg-surface-3"
+              className="h-2.5 overflow-hidden rounded-full bg-onyx/[0.08]"
               role="progressbar"
               aria-valuemin={0}
               aria-valuemax={100}
@@ -955,24 +990,24 @@ function Ranking({ items, total }: { items: BoardData['ranking']; total: number 
       {items.length === 0 ? (
         <Empty Icon={ChartColumn} text="Sem marcações nos últimos 90 dias." />
       ) : (
-        <ol className="mt-3 flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+        <ol className="mt-3 flex min-h-0 flex-1 flex-col gap-2.5 overflow-hidden">
           {items.map((item, i) => (
             <li key={item.label} className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="size-2 shrink-0 rounded-full" style={{ background: RANK_COLOURS[i] }} aria-hidden="true" />
                 <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-ink">{item.label}</span>
+                <span className="tabular shrink-0 text-xs text-ink-3">
+                  {item.count} · {Math.round(item.share * 100)}%
+                </span>
               </div>
-              <p className="tabular mt-0.5 pl-4 text-xs text-ink-3">
-                {item.count} · {Math.round(item.share * 100)}%
-              </p>
-              <div className="ml-4 mt-1 h-1.5 overflow-hidden rounded-full bg-surface-3">
+              <div className="ml-4 mt-1 h-1.5 overflow-hidden rounded-full bg-onyx/[0.08]">
                 <div className="h-full rounded-full" style={{ width: `${item.share * 100}%`, background: RANK_COLOURS[i] }} />
               </div>
             </li>
           ))}
         </ol>
       )}
-      <p className="tabular mt-auto pt-2 text-xs text-ink-3">{plural(total, 'sessão', 'sessões')} em 90 dias</p>
+      <p className="tabular mt-auto pt-2 text-xs text-ink-3">{total} em 90 dias</p>
     </>
   )
 }
@@ -1006,14 +1041,14 @@ function Activity({ items, onOpen }: { items: ActivityItem[]; onOpen: (tab: Tab)
     <>
       <BlockHeader title="Atividade recente" action={<HeaderLink label="Ver todos" onClick={() => onOpen('pedidos')} />} />
       <div className="mt-3 flex gap-2">
-        <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full border border-line bg-surface-2 px-3">
+        <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full bg-white px-3">
           <Search size={15} className="shrink-0 text-ink-3" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Pesquisar"
             aria-label="Pesquisar na atividade"
-            className="min-w-0 flex-1 bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-3"
+            className="min-w-0 flex-1 !border-0 !bg-transparent !p-0 text-[13px] text-onyx !shadow-none outline-none placeholder:text-muted-dark"
           />
         </label>
         <div className="relative">
@@ -1036,7 +1071,7 @@ function Activity({ items, onOpen }: { items: ActivityItem[]; onOpen: (tab: Tab)
                 exit={{ opacity: 0, y: -4, scale: 0.97 }}
                 transition={{ duration: 0.15 }}
                 role="menu"
-                className="absolute right-0 top-full z-20 mt-1.5 w-44 origin-top-right overflow-hidden rounded-xl border border-line bg-surface p-1 shadow-[var(--shadow-pop)]"
+                className="absolute right-0 top-full z-20 mt-1.5 w-44 origin-top-right overflow-hidden rounded-2xl bg-white p-1 shadow-[var(--shadow-pop)]"
               >
                 {ACTIVITY_FILTERS.map((f) => (
                   <li key={f.id}>
@@ -1048,7 +1083,7 @@ function Activity({ items, onOpen }: { items: ActivityItem[]; onOpen: (tab: Tab)
                         setFilter(f.id)
                         setMenu(false)
                       }}
-                      className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left text-[13px] text-ink hover:bg-surface-2"
+                      className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left text-[13px] text-ink hover:bg-white/70"
                     >
                       {f.label}
                       {filter === f.id && <Check size={15} className="text-onyx" />}
@@ -1067,11 +1102,12 @@ function Activity({ items, onOpen }: { items: ActivityItem[]; onOpen: (tab: Tab)
           {shown.slice(0, 4).map((n, i) => {
             const { Icon, tone } = ACTIVITY_LOOK[n.kind]
             return (
-              <li key={`${n.kind}-${n.id}`} className={i >= 3 ? 'hidden 2xl:block' : ''}>
+              // Three fit on a phone, four on a wider screen.
+              <li key={`${n.kind}-${n.id}`} className={i >= 3 ? 'hidden sm:block' : ''}>
                 <button
                   type="button"
                   onClick={() => onOpen(n.kind === 'testemunho' ? 'testemunhos' : n.kind === 'pedido' ? 'pedidos' : 'agenda')}
-                  className="flex w-full items-center gap-3 rounded-xl px-1.5 py-2 text-left hover:bg-surface-2"
+                  className="flex w-full items-center gap-3 rounded-xl px-1.5 py-1.5 text-left hover:bg-white/70"
                 >
                   <span
                     className="flex size-9 shrink-0 items-center justify-center rounded-full"
@@ -1118,18 +1154,18 @@ function Upcoming({ bookings, onOpen, onNewBooking }: { bookings: Booking[]; onO
         />
       ) : (
         <ul className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden">
-          {bookings.slice(0, 4).map((b, i) => {
+          {bookings.slice(0, 4).map((b) => {
             const start = new Date(b.slot.startsAt).getTime()
             const end = endsAt(b)
             const live = start <= now && now < end
             const key = dayKey(b.slot.startsAt)
             const day = key === today ? 'Hoje' : key === addDays(today, 1) ? 'Amanhã' : capital(weekdayShort(b.slot.startsAt))
             return (
-              <li key={b.id} className={i >= 3 ? 'hidden 2xl:block' : ''}>
-                <div className="flex items-center gap-3 rounded-xl px-1.5 py-2">
+              <li key={b.id}>
+                <div className="flex items-center gap-3 rounded-xl px-1.5 py-1.5">
                   <span
                     className={`tabular flex size-9 shrink-0 flex-col items-center justify-center rounded-full text-[11px] font-semibold leading-none ${
-                      live ? 'brand-gradient' : 'bg-surface-3 text-ink-2'
+                      live ? 'brand-gradient' : 'bg-white text-onyx'
                     }`}
                   >
                     {time(start)}
@@ -1140,7 +1176,7 @@ function Upcoming({ bookings, onOpen, onNewBooking }: { bookings: Booking[]; onO
                       {live ? `A decorrer · termina às ${time(end)}` : `${day} · ${bookingName(b)} · ${lengthLabel(end - start)}`}
                     </span>
                     {live && (
-                      <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-surface-3">
+                      <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-onyx/[0.08]">
                         <span className="brand-gradient block h-full rounded-full" style={{ width: `${((now - start) / (end - start)) * 100}%` }} />
                       </span>
                     )}
@@ -1176,15 +1212,15 @@ function FirstSteps({
     { title: 'Regista a primeira marcação', text: 'Ou espera pelo primeiro pedido de uma cliente.', done: false, label: 'Nova marcação', run: onNewBooking },
   ]
   return (
-    <section className="max-w-2xl rounded-2xl bg-surface p-5 shadow-[var(--shadow-card)] sm:p-6">
-      <h2 className="text-[17px] font-semibold tracking-tight text-onyx">Primeiros passos</h2>
+    <section className="max-w-2xl rounded-3xl bg-card p-5 sm:p-6">
+      <h2 className="font-subtitle text-[17px] font-semibold tracking-tight text-onyx">Primeiros passos</h2>
       <p className="mt-1 text-[14px] text-ink-3">Completa estes passos e o teu painel ganha vida.</p>
       <ol className="mt-5 flex flex-col gap-4">
         {steps.map((step, i) => (
           <li key={step.title} className="flex items-start gap-3">
             <span
               className={`tabular flex size-7 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold ${
-                step.done ? 'brand-gradient' : 'border border-line-strong text-ink-3'
+                step.done ? 'brand-gradient' : 'bg-white text-ink-3'
               }`}
             >
               {step.done ? <Check size={14} /> : i + 1}

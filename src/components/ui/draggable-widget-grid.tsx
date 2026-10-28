@@ -6,7 +6,7 @@
  *
  * - Mouse and pen drag immediately. Touch uses a long press, so the page can still be scrolled.
  * - Keyboard: focus a card, hold Alt and use the arrow keys.
- * - In the admin's colours: surface cards with the card shadow and a hairline rim (both follow the dark theme).
+ * - In the admin's colours: light grey cards with no border or shadow at rest (both follow the dark theme).
  */
 
 import {
@@ -355,7 +355,7 @@ const LONG_PRESS_MS = 350
 /** Touch: movement allowed during the hold before it counts as a scroll. */
 const PRESS_SLOP = 8
 // Same number of layers in both, so the shadow can interpolate.
-const SHADOW_REST = '0px 1px 2px 0px rgba(15,23,42,0.04), 0px 1px 3px 0px rgba(15,23,42,0.03)'
+const SHADOW_REST = '0px 0px 0px 0px rgba(0,0,0,0), 0px 0px 0px 0px rgba(0,0,0,0)'
 const SHADOW_LIFTED = '0px 28px 60px -16px rgba(0,0,0,0.35), 0px 10px 24px -8px rgba(0,0,0,0.22)'
 
 /* Card */
@@ -546,8 +546,8 @@ const Widget = memo(function Widget({
         initial={{ opacity: 0, y: 18, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', visualDuration: 0.6, bounce: 0.12, delay }}
-        className={`relative isolate flex h-full w-full flex-col overflow-hidden rounded-[var(--widget-radius)] bg-surface text-ink ring-inset transition-shadow duration-300 [clip-path:inset(0_round_var(--widget-radius))] ${
-          landed ? 'ring-2 ring-accent/60' : 'ring-1 ring-line/60'
+        className={`relative isolate flex h-full w-full flex-col overflow-hidden rounded-[var(--widget-radius)] bg-card text-ink ring-inset transition-shadow duration-300 [clip-path:inset(0_round_var(--widget-radius))] ${
+          landed ? 'ring-2 ring-accent/60' : ''
         }`}
       >
         {renderItem(item as never, sizeOf(w, h))}
