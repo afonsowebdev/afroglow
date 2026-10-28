@@ -11,7 +11,6 @@ import {
   Clock,
   Images,
   Inbox,
-  Lock,
   LogOut,
   MessageSquareQuote,
   Moon,
@@ -22,9 +21,10 @@ import {
   Store,
   Sun,
   Tag,
+  UserRound,
   Users,
-  UsersRound,
 } from 'lucide-react'
+import { BackToTop } from '@/components/ui/back-to-top'
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import { DatePicker } from '@/components/ui/date-picker'
@@ -50,7 +50,7 @@ import { StatsView } from '@/pages/admin/StatsView'
 import { registerForPushNotifications } from '@/lib/push-notifications'
 import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
 import { useTheme } from '@/lib/theme'
-import { NavVisibilityProvider, useAutoHideNav, useNavForcedHidden, useNavHidden } from '@/customer/nav-visibility'
+import { NavVisibilityProvider, useAutoHideNav, useNavHidden } from '@/customer/nav-visibility'
 import { customerWhatsappUrl } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service, type Testimonial } from '@/lib/types'
 import { bookingName, bookingPrice, optionsOf } from '@/lib/pricing'
@@ -1917,7 +1917,6 @@ function AdminDashboard() {
   const navigate = useNavigate()
   const theme = useTheme()
   const navHidden = useNavHidden()
-  const menuForcedHidden = useNavForcedHidden()
   const hideOnScroll = useHideNavOnScrollSetting()
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [adminEmail, setAdminEmail] = useState<string | null>(null)
@@ -1928,12 +1927,11 @@ function AdminDashboard() {
   const isOwner = !me || me.role === 'OWNER'
   // The signed-in admin's photo, shown on the account entry at the top of the "+" menu.
   const [avatar, setAvatar] = useState<string | null>(null)
-  // While the "+", the account or the bell is open, the header's buttons stay sharp above the blur.
-  const [openMenus, setOpenMenus] = useState<Record<'plus' | 'account' | 'bell', boolean>>({ plus: false, account: false, bell: false })
+  // While the "+" or the bell is open, the header's buttons stay sharp above the blur.
+  const [openMenus, setOpenMenus] = useState<Record<'plus' | 'bell', boolean>>({ plus: false, bell: false })
   const onPlusOpen = useCallback((open: boolean) => setOpenMenus((m) => ({ ...m, plus: open })), [])
-  const onAccountOpen = useCallback((open: boolean) => setOpenMenus((m) => ({ ...m, account: open })), [])
   const onBellOpen = useCallback((open: boolean) => setOpenMenus((m) => ({ ...m, bell: open })), [])
-  const anyMenuOpen = openMenus.plus || openMenus.account || openMenus.bell
+  const anyMenuOpen = openMenus.plus || openMenus.bell
   useEffect(() => {
     if (!me?.avatarVersion || !me.id) return
     api
@@ -2396,24 +2394,19 @@ function AdminDashboard() {
     ...(can('estatisticas') ? [{ Icon: ChartColumn, label: 'Estatísticas', onClick: open('estatisticas') }] : []),
     ...(can('definicoes') ? [{ Icon: Store, label: 'Definições do negócio', onClick: open('definicoes') }] : []),
   ]
-  // The account button beside the tab bar, top to bottom: the account and the team, how the app looks, then
-  // signing out on its own.
-  const accountActions: MenuAction[] = [
-    { Icon: Lock, label: 'A tua conta', group: 'conta', onClick: open('seguranca') },
-    ...(isOwner ? [{ Icon: UsersRound, label: 'Equipa', group: 'conta', onClick: open('equipa') }] : []),
+  // Under "Mais opções" in the "+": how the app looks, and signing out.
+  const moreActions: MenuAction[] = [
     {
       Icon: theme.theme === 'dark' ? Sun : Moon,
       label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
-      group: 'app',
       onClick: theme.toggleTheme,
     },
     {
       Icon: hideOnScroll ? PanelTop : PanelTopClose,
       label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
-      group: 'app',
       onClick: () => setHideNavOnScroll(!hideOnScroll),
     },
-    { Icon: LogOut, label: 'Terminar sessão', group: 'sair', danger: true, onClick: () => void handleLogout() },
+    { Icon: LogOut, label: 'Terminar sessão', danger: true, onClick: () => void handleLogout() },
   ]
 
   if (checkingAuth) {
@@ -2456,6 +2449,7 @@ function AdminDashboard() {
             />
             <FloatingActionMenu
               actions={menuActions}
+              more={moreActions}
               direction="down"
               small
               brand
@@ -3004,7 +2998,7 @@ function AdminDashboard() {
           <BottomNavBar
             glass
             hidden={navHidden}
-            value={(MORE_TARGETS.includes(tab as MoreTarget) ? 'mais' : tab) as NavTab}
+            value={(tab === 'seguranca' ? 'seguranca' : MORE_TARGETS.includes(tab as MoreTarget) ? 'mais' : tab) as NavTab | 'seguranca'}
             onChange={(id) => {
               setTab(id)
               window.scrollTo({ top: 0 })
@@ -3013,34 +3007,13 @@ function AdminDashboard() {
             // Pedidos opens from the bell and the "+" at the top instead.
             items={TABS.filter((t) => t.id !== 'pedidos').filter((t) =>
               t.id === 'clientes' ? can('clientes') : t.id === 'mais' || t.id === 'inicio' ? true : can('marcacoes'),
-            ).map(({ id, label, icon, Icon }) => ({
-              id,
-              label,
-              icon,
-              Icon,
-            }))}
+            )
+              .map(({ id, label, icon, Icon }): BottomNavItem<NavTab | 'seguranca'> => ({ id, label, icon, Icon }))
+              // The account last, with the photo when there is one; it opens the profile.
+              .concat({ id: 'seguranca', label: 'Perfil', icon: 'bx bx-user', Icon: UserRound, image: avatar })}
           />
         </div>
-        {/* The account beside the tab bar, opening upward. */}
-        <FloatingActionMenu
-          actions={accountActions}
-          hidden={menuForcedHidden}
-          keepOrder
-          onOpenChange={onAccountOpen}
-          faceLabel="conta"
-          face={
-            avatar ? (
-              // A thin ring of the button's own glass around the photo.
-              <span className="size-full p-[2px]">
-                <img src={avatar} alt="" className="size-full rounded-full object-cover" />
-              </span>
-            ) : (
-              <span className="font-subtitle text-lg font-semibold">
-                {(me?.name || me?.email || '?').trim().charAt(0).toUpperCase()}
-              </span>
-            )
-          }
-        />
+        <BackToTop hidden={navHidden} />
       </div>
     </div>
   )

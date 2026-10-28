@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { Plus, type LucideIcon } from 'lucide-react'
+import { ChevronUp, Ellipsis, Plus, type LucideIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
@@ -151,8 +151,10 @@ export interface MenuAction {
   onClick?: () => void
   /** External link (opens in a new tab). */
   href?: string
-  /** With `keepOrder`: actions in a row with the same group sit together, and the next group starts a little apart. */
+  /** Actions in a row with the same group sit together, and the next group starts a little apart. */
   group?: string
+  /** The menu stays open after it (e.g. "Mais opções"). */
+  keepOpen?: boolean
 }
 
 /**
@@ -172,6 +174,7 @@ export function FloatingActionMenu({
   face,
   faceLabel = 'menu',
   keepOrder = false,
+  more,
   raised = false,
   onOpenChange,
   PlusIcon = Plus,
@@ -181,6 +184,8 @@ export function FloatingActionMenu({
   face?: ReactNode
   /** The actions in the order given, read top to bottom, instead of A to Z (see `group`). */
   keepOrder?: boolean
+  /** Hidden under a last "Mais opções" until it is tapped, in the order given. */
+  more?: MenuAction[]
   /** The button stays clear above the blur of any menu opened beside it (a header that stays sharp). */
   raised?: boolean
   /** Told when the menu opens or closes. */
@@ -205,7 +210,11 @@ export function FloatingActionMenu({
   tone?: 'onLight' | 'onDark'
 }) {
   const [open, setOpen] = useState(false)
-  const close = () => setOpen(false)
+  const [showMore, setShowMore] = useState(false)
+  const close = () => {
+    setOpen(false)
+    setShowMore(false)
+  }
   // The page behind stays still while the menu is open.
   useScrollLock(open && !hidden)
   // While it is open (and a moment after), the notifications' bell ignores taps.
@@ -226,7 +235,19 @@ export function FloatingActionMenu({
   const onDark = tone ? tone === 'onDark' : seen === 'dark'
   // A to Z, read from top to bottom. A column that opens upward is built from the bottom, so it is reversed.
   const alphabetical = [...actions].sort((a, b) => a.label.localeCompare(b.label, 'pt'))
-  const listed = keepOrder ? [...actions] : alphabetical
+  const extra: MenuAction[] = more?.length
+    ? [
+        {
+          Icon: showMore ? ChevronUp : Ellipsis,
+          label: showMore ? 'Menos opções' : 'Mais opções',
+          group: 'mais',
+          keepOpen: true,
+          onClick: () => setShowMore((current) => !current),
+        },
+        ...(showMore ? more.map((action) => ({ ...action, group: 'mais' })) : []),
+      ]
+    : []
+  const listed = [...(keepOrder ? actions : alphabetical), ...extra]
   const ordered = direction === 'up' ? listed.reverse() : listed
 
   return (
@@ -320,10 +341,12 @@ export function FloatingActionMenu({
               direction === 'up' ? 'bottom-full mb-3 flex-col-reverse' : 'top-full mt-3 flex-col',
             )}
           >
-            {ordered.map(({ Icon, iconClass, label, danger, badge, onClick, href, group }, index) => {
+            {ordered.map(({ Icon, iconClass, label, danger, badge, onClick, href, group, keepOpen }, index) => {
               // The one just above on screen: a new group starts a little apart from it.
               const above = direction === 'up' ? ordered[index + 1] : ordered[index - 1]
-              const apart = keepOrder && above !== undefined && above.group !== group
+              const apart = above !== undefined && above.group !== group
+              // The options under "Mais opções" come in as they are revealed.
+              const revealed = group === 'mais' && !keepOpen
               const glyph = Icon ? (
                 <Icon size={20} className="text-onyx" />
               ) : (
@@ -333,14 +356,14 @@ export function FloatingActionMenu({
                 'flex size-12 items-center justify-center rounded-full border border-onyx/10 bg-white shadow-md shadow-black/10'
               const run = () => {
                 onClick?.()
-                close()
+                if (!keepOpen) close()
               }
               return (
                 <motion.div
                   key={label}
                   className={cn('flex items-center gap-3', apart && 'mt-2')}
                   style={{ pointerEvents: open ? 'auto' : 'none' }}
-                  initial={false}
+                  initial={revealed ? { opacity: 0, y: direction === 'up' ? 16 : -16, filter: 'blur(2px)' } : false}
                   animate={{
                     opacity: open ? 1 : 0,
                     y: open ? 0 : direction === 'up' ? 24 : -24,
@@ -397,6 +420,7 @@ export function FloatingActionMenu({
             // Nor while another menu is open.
             if (!open && document.documentElement.dataset.overlay === 'menu') return
             setOpen((current) => !current)
+            setShowMore(false)
           }}
           animate={{ rotate: open && !face ? 45 : 0 }}
           transition={{ type: 'tween', ease: 'easeInOut', duration: 0.5 }}
