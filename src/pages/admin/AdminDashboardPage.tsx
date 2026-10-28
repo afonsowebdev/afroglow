@@ -2374,8 +2374,8 @@ function AdminDashboard() {
     setTab(id)
     window.scrollTo({ top: 0 })
   }
-  // The "+" at the top: the pages that run the business, most used first. The first five show; the rest wait under
-  // "Mais opções" with how the app looks and signing out.
+  // The "+" at the top: the pages that run the business, most used first (the first one nearest the button). The
+  // first five show; "Mais opções" swaps them for the rest and the app's own settings.
   const pages: MenuAction[] = [
     ...(can('marcacoes')
       ? [{ Icon: Inbox, label: 'Pedidos', badge: pendingBookings.length, onClick: open('pedidos') }]
@@ -2401,14 +2401,16 @@ function AdminDashboard() {
     {
       Icon: theme.theme === 'dark' ? Sun : Moon,
       label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
+      group: 'app',
       onClick: theme.toggleTheme,
     },
     {
       Icon: hideOnScroll ? PanelTop : PanelTopClose,
       label: hideOnScroll ? 'Menu fixo' : 'Ocultar menu',
+      group: 'app',
       onClick: () => setHideNavOnScroll(!hideOnScroll),
     },
-    { Icon: LogOut, label: 'Sair', danger: true, onClick: () => void handleLogout() },
+    { Icon: LogOut, label: 'Sair', group: 'app', danger: true, confirm: 'Sair?', onClick: () => void handleLogout() },
   ]
 
   if (checkingAuth) {
@@ -2452,6 +2454,8 @@ function AdminDashboard() {
             <FloatingActionMenu
               actions={menuActions}
               more={moreActions}
+              keepOrder
+              dot={pendingBookings.length + pendingTestimonials.length > 0}
               direction="down"
               small
               brand

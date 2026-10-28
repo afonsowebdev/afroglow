@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { ChevronUp, Ellipsis, Plus, type LucideIcon } from 'lucide-react'
+import { ArrowLeft, Ellipsis, Plus, type LucideIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
@@ -155,6 +155,8 @@ export interface MenuAction {
   group?: string
   /** The menu stays open after it (e.g. "Mais opções"). */
   keepOpen?: boolean
+  /** Under "Mais opções": asks once more before running (the name turns into this, e.g. "Sair?"). */
+  confirm?: string
 }
 
 /**
@@ -211,9 +213,12 @@ export function FloatingActionMenu({
 }) {
   const [open, setOpen] = useState(false)
   const [showMore, setShowMore] = useState(false)
+  // The option under "Mais opções" waiting for its second tap.
+  const [confirming, setConfirming] = useState<string | null>(null)
   const close = () => {
     setOpen(false)
     setShowMore(false)
+    setConfirming(null)
   }
   // The page behind stays still while the menu is open.
   useScrollLock(open && !hidden)
@@ -238,15 +243,19 @@ export function FloatingActionMenu({
   const extra: MenuAction[] = more?.length
     ? [
         {
-          Icon: showMore ? ChevronUp : Ellipsis,
-          label: showMore ? 'Menos opções' : 'Mais opções',
+          Icon: showMore ? ArrowLeft : Ellipsis,
+          label: showMore ? 'Voltar' : 'Mais opções',
           group: 'mais',
           keepOpen: true,
-          onClick: () => setShowMore((current) => !current),
+          onClick: () => {
+            setShowMore((current) => !current)
+            setConfirming(null)
+          },
         },
       ]
     : []
-  const listed = [...(keepOrder ? actions : alphabetical), ...extra]
+  // "Mais opções" swaps the main options for the rest instead of adding to them, so the menu stays short.
+  const listed = [...(showMore ? [] : keepOrder ? actions : alphabetical), ...extra]
   const ordered = direction === 'up' ? listed.reverse() : listed
 
   return (
@@ -340,6 +349,65 @@ export function FloatingActionMenu({
               direction === 'up' ? 'bottom-full mb-3 flex-col-reverse' : 'top-full mt-3 flex-col',
             )}
           >
+            {/* What "Mais opções" shows in place of the main options: side by side, each a round button with its name
+                below; the app's own settings (group "app") apart under a thin line. */}
+            {open && showMore && more && (
+              <div className="pointer-events-auto mb-1 flex w-[17.5rem] flex-col gap-3">
+                {[more.filter((a) => a.group !== 'app'), more.filter((a) => a.group === 'app')]
+                  .filter((part) => part.length)
+                  .map((part, partIndex) => (
+                    <div
+                      key={partIndex}
+                      className={cn('grid grid-cols-4 gap-x-1.5 gap-y-3', partIndex > 0 && 'border-t border-white/30 pt-3')}
+                    >
+                      {part.map(({ Icon, iconClass, label, danger, onClick, confirm }, index) => {
+                        const asking = confirming === label
+                        return (
+                          <motion.button
+                            key={label}
+                            type="button"
+                            onClick={() => {
+                              if (confirm && !asking) return setConfirming(label)
+                              onClick?.()
+                              close()
+                            }}
+                            initial={{ opacity: 0, y: direction === 'up' ? 12 : -12, scale: 0.9, filter: 'blur(2px)' }}
+                            animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+                            transition={{
+                              type: 'tween',
+                              ease: 'easeInOut',
+                              duration: 0.3,
+                              delay: (partIndex * 4 + index) * 0.035,
+                            }}
+                            className="flex flex-col items-center gap-1.5"
+                          >
+                            <span
+                              className={cn(
+                                'flex size-12 items-center justify-center rounded-full border shadow-md shadow-black/10 transition-colors',
+                                asking ? 'border-red-700 bg-red-700' : 'border-onyx/10 bg-white',
+                              )}
+                            >
+                              {Icon ? (
+                                <Icon size={20} className={asking ? 'text-[#ffffff]' : danger ? 'text-red-700' : 'text-onyx'} />
+                              ) : (
+                                <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 22 }} aria-hidden="true" />
+                              )}
+                            </span>
+                            <span
+                              className={cn(
+                                'line-clamp-2 rounded-full bg-white px-2 py-0.5 text-center font-subtitle text-[10.5px] font-medium leading-tight shadow-sm shadow-black/10',
+                                danger ? 'text-red-700' : 'text-onyx',
+                              )}
+                            >
+                              {asking ? confirm : label}
+                            </span>
+                          </motion.button>
+                        )
+                      })}
+                    </div>
+                  ))}
+              </div>
+            )}
             {ordered.map(({ Icon, iconClass, label, danger, badge, onClick, href, group, keepOpen }, index) => {
               // The one just above on screen: a new group starts a little apart from it.
               const above = direction === 'up' ? ordered[index + 1] : ordered[index - 1]
@@ -403,41 +471,6 @@ export function FloatingActionMenu({
                 </motion.div>
               )
             })}
-            {/* What "Mais opções" reveals: side by side, each a round button with its name below. */}
-            {open && showMore && more && (
-              <div className="pointer-events-auto mt-1 grid w-[17.5rem] grid-cols-4 gap-x-1.5 gap-y-3">
-                {more.map(({ Icon, iconClass, label, danger, onClick }, index) => (
-                  <motion.button
-                    key={label}
-                    type="button"
-                    onClick={() => {
-                      onClick?.()
-                      close()
-                    }}
-                    initial={{ opacity: 0, y: direction === 'up' ? 12 : -12, scale: 0.9, filter: 'blur(2px)' }}
-                    animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-                    transition={{ type: 'tween', ease: 'easeInOut', duration: 0.3, delay: index * 0.035 }}
-                    className="flex flex-col items-center gap-1.5"
-                  >
-                    <span className="flex size-12 items-center justify-center rounded-full border border-onyx/10 bg-white shadow-md shadow-black/10">
-                      {Icon ? (
-                        <Icon size={20} className={danger ? 'text-red-700' : 'text-onyx'} />
-                      ) : (
-                        <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 22 }} aria-hidden="true" />
-                      )}
-                    </span>
-                    <span
-                      className={cn(
-                        'line-clamp-2 rounded-full bg-white px-2 py-0.5 text-center font-subtitle text-[10.5px] font-medium leading-tight shadow-sm shadow-black/10',
-                        danger ? 'text-red-700' : 'text-onyx',
-                      )}
-                    >
-                      {label}
-                    </span>
-                  </motion.button>
-                ))}
-              </div>
-            )}
           </div>
         )}
 
@@ -453,6 +486,7 @@ export function FloatingActionMenu({
             if (!open && document.documentElement.dataset.overlay === 'menu') return
             setOpen((current) => !current)
             setShowMore(false)
+            setConfirming(null)
           }}
           animate={{ rotate: open && !face ? 45 : 0 }}
           transition={{ type: 'tween', ease: 'easeInOut', duration: 0.5 }}
