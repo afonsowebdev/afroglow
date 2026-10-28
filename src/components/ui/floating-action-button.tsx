@@ -350,7 +350,7 @@ export function FloatingActionMenu({
             )}
           >
             {/* What "Mais opções" shows in place of the main options: side by side, each a round button with its name
-                below; the app's own settings (group "app") apart under a thin line. */}
+                below in plain white; the app's own settings (group "app") apart under a thin line. */}
             {open && showMore && more && (
               <div className="pointer-events-auto mb-1 flex w-[17.5rem] flex-col gap-3">
                 {[more.filter((a) => a.group !== 'app'), more.filter((a) => a.group === 'app')]
@@ -395,8 +395,9 @@ export function FloatingActionMenu({
                             </span>
                             <span
                               className={cn(
-                                'line-clamp-2 rounded-full bg-white px-2 py-0.5 text-center font-subtitle text-[10.5px] font-medium leading-tight shadow-sm shadow-black/10',
-                                danger ? 'text-red-700' : 'text-onyx',
+                                // Plain white over the blur, as under the iPhone's icons.
+                                'line-clamp-2 text-center font-subtitle text-[11px] font-medium leading-tight [text-shadow:0_1px_6px_rgba(0,0,0,0.45)]',
+                                danger ? 'text-[#ffb4ac]' : 'text-[#ffffff]',
                               )}
                             >
                               {asking ? confirm : label}
