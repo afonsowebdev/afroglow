@@ -177,6 +177,7 @@ export function FloatingActionMenu({
   faceLabel = 'menu',
   keepOrder = false,
   more,
+  bare = false,
   raised = false,
   onOpenChange,
   PlusIcon = Plus,
@@ -188,6 +189,8 @@ export function FloatingActionMenu({
   keepOrder?: boolean
   /** Hidden under a last "Mais opções" until it is tapped: then side by side, in the order given. */
   more?: MenuAction[]
+  /** A plain 40px round button with no fill, for sitting inside a glass island. */
+  bare?: boolean
   /** The button stays clear above the blur of any menu opened beside it (a header that stays sharp). */
   raised?: boolean
   /** Told when the menu opens or closes. */
@@ -493,12 +496,14 @@ export function FloatingActionMenu({
           transition={{ type: 'tween', ease: 'easeInOut', duration: 0.5 }}
           // Apps: only the thin rim, no shadow under the button.
           style={
-            compact || brand
+            compact || brand || bare
               ? undefined
               : { boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 0 0 0.5px rgba(0, 0, 0, 0.1)' }
           }
           className={
-            compact
+            bare
+              ? 'flex size-10 items-center justify-center rounded-full text-onyx transition-colors hover:bg-onyx/[0.06]'
+              : compact
               ? 'flex size-9 items-center justify-center rounded-full border border-onyx/20 text-onyx/60 transition-colors duration-300 hover:text-onyx'
               : cn(
                   'flex items-center justify-center overflow-hidden rounded-full',
@@ -508,7 +513,7 @@ export function FloatingActionMenu({
                 )
           }
         >
-          {face ?? <PlusIcon size={compact ? 18 : small ? 22 : 24} strokeWidth={2.6} />}
+          {face ?? <PlusIcon size={bare ? 19 : compact ? 18 : small ? 22 : 24} strokeWidth={bare ? 2.2 : 2.6} />}
         </motion.button>
         {dot && !open ? (
           <span

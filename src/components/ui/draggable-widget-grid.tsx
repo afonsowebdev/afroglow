@@ -6,7 +6,7 @@
  *
  * - Mouse and pen drag immediately. Touch uses a long press, so the page can still be scrolled.
  * - Keyboard: focus a card, hold Alt and use the arrow keys.
- * - In the admin's colours: white cards with a thin onyx rim (both follow the warm dark theme).
+ * - In the admin's colours: surface cards with the card shadow and a hairline rim (both follow the dark theme).
  */
 
 import {
@@ -56,6 +56,14 @@ export interface DraggableWidgetGridProps<T extends WidgetItem = WidgetItem> {
   gap?: number
   /** Corner radius of a card in px. */
   radius?: number
+  /** Only these column counts are used (e.g. 2, 3, 4 and 6, so a 24-cell board never leaves a hole). */
+  allowedColumns?: number[]
+  /** Row height as a share of the column width (square by default)… */
+  rowRatio?: number
+  /** …on a phone-wide grid (under 640px). */
+  narrowRowRatio?: number
+  /** Rows never taller than this, in px. */
+  maxRowHeight?: number
   className?: string
 }
 
@@ -347,7 +355,7 @@ const LONG_PRESS_MS = 350
 /** Touch: movement allowed during the hold before it counts as a scroll. */
 const PRESS_SLOP = 8
 // Same number of layers in both, so the shadow can interpolate.
-const SHADOW_REST = '0px 1px 3px 0px rgba(0,0,0,0.06), 0px 0px 0px 0px rgba(0,0,0,0)'
+const SHADOW_REST = '0px 1px 2px 0px rgba(15,23,42,0.04), 0px 1px 3px 0px rgba(15,23,42,0.03)'
 const SHADOW_LIFTED = '0px 28px 60px -16px rgba(0,0,0,0.35), 0px 10px 24px -8px rgba(0,0,0,0.22)'
 
 /* Card */
@@ -538,8 +546,8 @@ const Widget = memo(function Widget({
         initial={{ opacity: 0, y: 18, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', visualDuration: 0.6, bounce: 0.12, delay }}
-        className={`relative isolate flex h-full w-full flex-col overflow-hidden rounded-[var(--widget-radius)] bg-white text-onyx ring-inset transition-shadow duration-300 [clip-path:inset(0_round_var(--widget-radius))] ${
-          landed ? 'ring-2 ring-onyx/40' : 'ring-1 ring-onyx/10'
+        className={`relative isolate flex h-full w-full flex-col overflow-hidden rounded-[var(--widget-radius)] bg-surface text-ink ring-inset transition-shadow duration-300 [clip-path:inset(0_round_var(--widget-radius))] ${
+          landed ? 'ring-2 ring-accent/60' : 'ring-1 ring-line/60'
         }`}
       >
         {renderItem(item as never, sizeOf(w, h))}
@@ -559,6 +567,10 @@ export function DraggableWidgetGrid<T extends WidgetItem>({
   cellSize = 215,
   gap = 12,
   radius = 24,
+  allowedColumns,
+  rowRatio = 1,
+  narrowRowRatio,
+  maxRowHeight = Infinity,
   className = '',
 }: DraggableWidgetGridProps<T>) {
   const [items, setItems] = useState<T[]>(initialItems)
@@ -566,22 +578,30 @@ export function DraggableWidgetGrid<T extends WidgetItem>({
   const hintId = useId()
   const minColumns = Math.min(2, Math.max(1, maxColumns))
 
-  const [metrics, setMetrics] = useState({ unit: 0, columns: 0 })
+  const [metrics, setMetrics] = useState({ unit: 0, columns: 0, rowHeight: 0 })
   useIsoLayoutEffect(() => {
     const el = grid.current
     if (!el) return
     const measure = () => {
       const width = el.getBoundingClientRect().width
       if (width < 1) return
-      const columns = Math.max(minColumns, Math.min(maxColumns, Math.round(width / cellSize)))
+      const wanted = Math.max(minColumns, Math.min(maxColumns, Math.round(width / cellSize)))
+      // The largest allowed count that isn't more than the width asks for.
+      const columns = allowedColumns?.length
+        ? Math.max(...allowedColumns.filter((n) => n <= wanted), Math.min(...allowedColumns))
+        : wanted
       const unit = (width - gap * (columns - 1)) / columns
-      setMetrics((was) => (was.columns === columns && Math.abs(was.unit - unit) < 0.5 ? was : { unit, columns }))
+      const ratio = width < 640 && narrowRowRatio ? narrowRowRatio : rowRatio
+      const rowHeight = Math.round(Math.min(unit * ratio, maxRowHeight))
+      setMetrics((was) =>
+        was.columns === columns && Math.abs(was.unit - unit) < 0.5 && was.rowHeight === rowHeight ? was : { unit, columns, rowHeight },
+      )
     }
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(el)
     return () => observer.disconnect()
-  }, [maxColumns, minColumns, cellSize, gap])
+  }, [maxColumns, minColumns, cellSize, gap, allowedColumns, rowRatio, narrowRowRatio, maxRowHeight])
 
   const columns = metrics.columns || Math.max(minColumns, maxColumns)
   const placements = useMemo(() => layout(items, columns), [items, columns])
@@ -603,10 +623,10 @@ export function DraggableWidgetGrid<T extends WidgetItem>({
   const toSlot = useCallback(
     (box: Box): Slot => {
       const el = grid.current
-      const { unit } = latest.current.metrics
+      const { unit, rowHeight } = latest.current.metrics
       const rect = el?.getBoundingClientRect()
       const colStep = unit + gap
-      const rowStep = Math.round(unit) + gap
+      const rowStep = rowHeight + gap
       const left = (rect?.left ?? 0) + box.col * colStep
       const top = (rect?.top ?? 0) + box.row * rowStep
       return { left, top, right: left + box.w * colStep - gap, bottom: top + box.h * rowStep - gap }
@@ -760,8 +780,7 @@ export function DraggableWidgetGrid<T extends WidgetItem>({
           style={{
             gap,
             gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-            // Square cells: row height equals column width.
-            gridAutoRows: metrics.unit ? `${Math.round(metrics.unit)}px` : `minmax(${cellSize * 0.75}px, auto)`,
+            gridAutoRows: metrics.rowHeight ? `${metrics.rowHeight}px` : `minmax(${cellSize * 0.75}px, auto)`,
           }}
         >
           {domOrder.current.map((id) => {

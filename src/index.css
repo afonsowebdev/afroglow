@@ -36,6 +36,24 @@
   --font-body: 'DM Sans', sans-serif;
   --font-logo: 'Lamoric Rowen', cursive;
   --font-subtitle: 'Poppins', sans-serif;
+
+  /* The admin's Rende+ tokens (set inside .afro-admin), as utilities: bg-surface, text-ink-3, border-line… */
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-surface-2: var(--c-surface-2);
+  --color-surface-3: var(--c-surface-3);
+  --color-ink: var(--c-ink);
+  --color-ink-2: var(--c-ink-2);
+  --color-ink-3: var(--c-ink-3);
+  --color-line: var(--c-line);
+  --color-line-strong: var(--c-line-strong);
+  --color-accent: var(--c-brand);
+  --color-accent-soft: var(--c-brand-soft);
+  --color-pos: var(--c-pos);
+  --color-neg: var(--c-neg);
+  --color-warn: var(--c-warn);
+  --color-chart-in: var(--c-chart-in);
+  --color-chart-out: var(--c-chart-out);
 }
 
 /*
@@ -187,6 +205,139 @@
   --color-muted-dark: #d9c7a8;
   --color-gold-ink: #d4b055;
   --color-gold-deep: #d4b055;
+}
+
+/*
+ * The admin (AFRO ADMIN): the Rende+ system with the AFROGLOW colours. Cool neutrals, white surfaces, a gold brand
+ * and the system font. Only inside .afro-admin; the existing tokens (white, onyx, muted-dark) are re-pointed at the
+ * new neutrals so every admin screen follows without being rewritten.
+ */
+.afro-admin {
+  --c-bg: #f3f5f9;
+  --c-surface: #ffffff;
+  --c-surface-2: #f8f9fc;
+  --c-surface-3: #edf0f6;
+  --c-ink: #0f172a;
+  --c-ink-2: #3b4560;
+  --c-ink-3: #69738c;
+  --c-line: #e2e6ef;
+  --c-line-strong: #cfd5e2;
+  --c-brand: #a37a1f;
+  --c-grad-1: #d7b45c;
+  --c-grad-2: #9a7020;
+  --c-brand-soft: #f6efdc;
+  --c-brand-ink: #1a1306;
+  --c-pos: #2f7d55;
+  --c-neg: #d9443a;
+  --c-warn: #b86e0b;
+  --c-gold: #b7860f;
+  --c-chart-in: #b8902f;
+  --c-chart-out: #f08a6c;
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.03);
+  --shadow-pop: 0 12px 32px -8px rgb(15 23 42 / 0.18), 0 4px 12px -4px rgb(15 23 42 / 0.1);
+
+  --color-white: var(--c-surface);
+  --color-onyx: var(--c-ink);
+  --color-muted: var(--c-ink-3);
+  --color-muted-dark: var(--c-ink-3);
+  --color-cream: var(--c-surface-2);
+  --font-subtitle: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+  font-family: var(--font-subtitle);
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--c-bg);
+}
+.dark .afro-admin {
+  --c-bg: #090d17;
+  --c-surface: #111727;
+  --c-surface-2: #0d1220;
+  --c-surface-3: #1a2234;
+  --c-ink: #eef1f8;
+  --c-ink-2: #c2c9d9;
+  --c-ink-3: #8b95ab;
+  --c-line: #20293b;
+  --c-line-strong: #2d3850;
+  --c-brand: #dcc072;
+  --c-grad-1: #e6ca7b;
+  --c-grad-2: #b88f36;
+  --c-brand-soft: rgb(220 192 114 / 0.14);
+  --c-brand-ink: #1a1306;
+  --c-pos: #57c08b;
+  --c-neg: #ff7f73;
+  --c-warn: #f0a443;
+  --c-gold: #e2b84a;
+  --c-chart-in: #dcc072;
+  --c-chart-out: #f59a7f;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 1px 3px rgb(0 0 0 / 0.2);
+  --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.6), 0 4px 12px -4px rgb(0 0 0 / 0.4);
+}
+.afro-admin .tabular,
+.afro-admin .amount {
+  font-variant-numeric: tabular-nums;
+}
+/* "Esconder valores": every amount blurred. */
+.afro-admin [data-hide-amounts='true'] .amount {
+  filter: blur(7px);
+}
+.brand-gradient {
+  background-image: linear-gradient(135deg, var(--c-grad-1), var(--c-grad-2));
+  color: var(--c-brand-ink);
+}
+/* The Rende+ liquid glass: frosted white, a thin rim, a soft inner light at the top and a specular sheen. */
+.glass-island {
+  position: relative;
+  isolation: isolate;
+  background: rgb(255 255 255 / 0.62);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgb(255 255 255 / 0.7);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.85),
+    0 0 0 0.5px rgb(15 23 42 / 0.06),
+    0 6px 20px -6px rgb(15 23 42 / 0.14);
+}
+.glass-island::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(to bottom, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0) 50%);
+  pointer-events: none;
+}
+.dark .glass-island {
+  background: rgb(26 34 52 / 0.45);
+  border-color: rgb(255 255 255 / 0.08);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 6px 20px -6px rgb(0 0 0 / 0.5);
+}
+.dark .glass-island::before {
+  background: linear-gradient(to bottom, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0) 50%);
+}
+/* The faint pattern of salon symbols behind the admin, never in the way of a tap. */
+.afro-pattern {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.09;
+  background-color: color-mix(in srgb, var(--c-brand) 55%, var(--c-ink));
+  -webkit-mask-image: url('/admin-pattern.svg');
+  mask-image: url('/admin-pattern.svg');
+  -webkit-mask-size: 260px 260px;
+  mask-size: 260px 260px;
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+}
+@media (prefers-reduced-motion: reduce) {
+  .afro-admin *,
+  .afro-admin *::before,
+  .afro-admin *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /*

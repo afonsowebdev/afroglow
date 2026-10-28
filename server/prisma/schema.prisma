@@ -169,6 +169,13 @@ model BusinessSettings {
   updatedAt          DateTime @updatedAt
 }
 
+// The admin Início's monthly revenue goal. Its own table, so the public business settings never depend on it.
+model DashboardGoal {
+  id           String   @id @default("main")
+  monthlyCents Int      @default(0)
+  updatedAt    DateTime @updatedAt
+}
+
 // iPhone push tokens of the customer app (one customer can have several devices).
 model CustomerPushToken {
   id         String   @id @default(cuid())

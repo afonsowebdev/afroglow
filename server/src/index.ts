@@ -10,6 +10,7 @@ import { adminClosuresRouter } from './routes/admin-closures.js'
 import { adminCustomersRouter } from './routes/admin-customers.js'
 import { adminPromotionsRouter } from './routes/admin-promotions.js'
 import { adminTeamRouter } from './routes/admin-team.js'
+import { adminGoalRouter } from './routes/admin-goal.js'
 import { adminStatsRouter } from './routes/admin-stats.js'
 import { adminMaintenanceRouter } from './routes/admin-maintenance.js'
 import { adminAvailabilityRouter, availabilityRouter } from './routes/availability.js'
@@ -74,6 +75,7 @@ app.use('/api/auth', registerRouter)
 app.use('/api/services', servicesRouter)
 app.use('/api/settings', settingsRouter)
 app.use('/api/admin/settings', adminSettingsRouter)
+app.use('/api/admin/goal', adminGoalRouter)
 app.use('/api/admin/customers', adminCustomersRouter)
 app.use('/api/admin/stats', adminStatsRouter)
 app.use('/api/admin/services', adminServicesRouter)

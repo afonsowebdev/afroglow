@@ -54,6 +54,7 @@ export function AdminBell({
   cancelled,
   onOpen,
   onOpenChange,
+  bare = false,
 }: {
   requests: Booking[]
   testimonials: Testimonial[]
@@ -61,6 +62,8 @@ export function AdminBell({
   onOpen: (kind: Kind) => void
   /** Told when the list opens or closes. */
   onOpenChange?: (open: boolean) => void
+  /** A plain 40px round button with no fill, for sitting inside a glass island. */
+  bare?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [filter, setFilter] = useState<Filter>('todas')
@@ -148,7 +151,10 @@ export function AdminBell({
         onClick={toggle}
         aria-label={waiting ? `Notificações, ${waiting} à espera` : 'Notificações'}
         aria-expanded={open}
-        className={cn('relative z-[62] flex size-12 items-center justify-center rounded-full', BRAND_CIRCLE)}
+        className={cn(
+          'relative z-[62] flex items-center justify-center rounded-full',
+          bare ? 'size-10 text-onyx transition-colors hover:bg-onyx/[0.06]' : cn('size-12', BRAND_CIRCLE),
+        )}
       >
         <Bell className="size-[18px]" strokeWidth={1.75} />
         {waiting > 0 && (

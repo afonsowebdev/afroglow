@@ -11,6 +11,8 @@ import {
   Clock,
   Images,
   Inbox,
+  LayoutGrid,
+  Search,
   LogOut,
   MessageSquareQuote,
   Moon,
@@ -24,8 +26,8 @@ import {
   UserRound,
   Users,
 } from 'lucide-react'
-import { BackToTop } from '@/components/ui/back-to-top'
-import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
+import { AdminDock, AdminMoreSheet, AdminRail, AdminTopBar, type NavItem } from '@/pages/admin/AdminShell'
+import type { BottomNavItem } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
 import { DatePicker } from '@/components/ui/date-picker'
 import { MotionButton } from '@/components/ui/motion-button'
@@ -40,7 +42,7 @@ import { BroadcastView } from '@/pages/admin/BroadcastView'
 import { ClosuresView } from '@/pages/admin/ClosuresView'
 import { PromotionsView } from '@/pages/admin/PromotionsView'
 import { TeamView } from '@/pages/admin/TeamView'
-import { HomeView, homeDate, homeGreeting } from '@/pages/admin/HomeView'
+import { HomeView } from '@/pages/admin/HomeView'
 import { fullMe, type AdminMe, type Permission } from '@/pages/admin/admin-me'
 import { PortfolioView } from '@/pages/admin/PortfolioView'
 import { SecurityView } from '@/pages/admin/SecurityView'
@@ -58,7 +60,6 @@ import { serviceImageUrls } from '@/lib/service-images'
 import { PricingEditor } from './PricingEditor'
 import { draftFromPricing, pricingFromDraft, type PricingDraft } from './pricing-draft'
 import { BookingChoices } from './BookingChoices'
-import { HeaderLogo } from '@/customer/HeaderLogo'
 import { AdminBell } from '@/pages/admin/AdminBell'
 
 const LISBON_TZ = 'Europe/Lisbon'
@@ -1968,6 +1969,8 @@ function AdminDashboard() {
   }, [])
 
   const [services, setServices] = useState<Service[]>([])
+  // The first load is in: the Painel shows its blocks instead of placeholders.
+  const [loaded, setLoaded] = useState(false)
   const [slots, setSlots] = useState<AvailabilitySlot[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
@@ -2039,6 +2042,7 @@ function AdminDashboard() {
         setSlots(slotsData)
         setBookings(bookingsData)
         setTestimonials(testimonialsData)
+        setLoaded(true)
         if (!opts.silent) setError(null)
       } catch (err) {
         // An expired/invalid session used to be swallowed by the silent poll, leaving
@@ -2413,61 +2417,150 @@ function AdminDashboard() {
     { Icon: LogOut, label: 'Sair', group: 'app', danger: true, confirm: 'Sair?', onClick: () => void handleLogout() },
   ]
 
+  // Where each page sits: the top bar's pills (wide screens), the computer's rail, the phone's dock and its "Mais".
+  const [moreOpen, setMoreOpen] = useState(false)
+  const closeMore = useCallback(() => setMoreOpen(false), [])
+  const go = (id: string) => {
+    if (id === 'mais') {
+      setMoreOpen(true)
+      return
+    }
+    setTab(id as AdminTab)
+    window.scrollTo({ top: 0 })
+  }
+  const pageNav = (items: Array<NavItem & { show: boolean }>): NavItem[] => items.filter((i) => i.show).map(({ show: _show, ...i }) => i)
+  const topNav = pageNav([
+    { id: 'inicio', label: 'Painel', Icon: House, show: true },
+    { id: 'pedidos', label: 'Pedidos', Icon: Inbox, badge: pendingBookings.length, show: can('marcacoes') },
+    { id: 'agenda', label: 'Agenda', Icon: CalendarCheck, show: can('marcacoes') },
+    { id: 'disponibilidade', label: 'Horários', Icon: Clock, show: can('marcacoes') },
+    { id: 'clientes', label: 'Clientes', Icon: Users, show: can('clientes') },
+  ])
+  const railNav = [
+    ...topNav,
+    ...pageNav([
+      { id: 'servicos', label: 'Serviços', Icon: Scissors, show: can('catalogo') },
+      { id: 'testemunhos', label: 'Testemunhos', Icon: MessageSquareQuote, badge: pendingTestimonials.length, show: can('testemunhos') },
+      { id: 'estatisticas', label: 'Estatísticas', Icon: ChartColumn, show: can('estatisticas') },
+    ]),
+  ]
+  const railQuick = pageNav([
+    { id: 'definicoes', label: 'Definições do negócio', Icon: Store, show: can('definicoes') },
+    { id: 'seguranca', label: 'A tua conta', Icon: UserRound, show: true },
+  ])
+  const dockNav = [
+    ...topNav.filter((n) => n.id !== 'pedidos'),
+    { id: 'mais', label: 'Mais', Icon: LayoutGrid, badge: pendingBookings.length + pendingTestimonials.length },
+  ]
+  const moreNav = pageNav([
+    { id: 'pedidos', label: 'Pedidos', Icon: Inbox, badge: pendingBookings.length, show: can('marcacoes') },
+    { id: 'servicos', label: 'Serviços', Icon: Scissors, show: can('catalogo') },
+    { id: 'testemunhos', label: 'Testemunhos', Icon: MessageSquareQuote, badge: pendingTestimonials.length, show: can('testemunhos') },
+    { id: 'estatisticas', label: 'Estatísticas', Icon: ChartColumn, show: can('estatisticas') },
+    { id: 'fechos', label: 'Dias fechados', Icon: CalendarX2, show: can('marcacoes') },
+    { id: 'promocoes', label: 'Promoções', Icon: Tag, show: can('catalogo') },
+    { id: 'portfolio', label: 'Portfólio', Icon: Images, show: can('catalogo') },
+    { id: 'notificar', label: 'Notificar', Icon: BellRing, show: can('notificacoes') },
+    { id: 'definicoes', label: 'Definições', Icon: Store, show: can('definicoes') },
+    { id: 'seguranca', label: 'Perfil', Icon: UserRound, show: true },
+  ])
+
   if (checkingAuth) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white font-subtitle text-muted-dark">
+      <div className="afro-admin flex min-h-screen items-center justify-center text-[14px] text-ink-3">
         A verificar sessão...
       </div>
     )
   }
 
   return (
-    <div className="app-neutral relative min-h-screen bg-white font-medium">
-      {/* Not fixed: the header scrolls away with the page. The "A" on the left, the bell and the "+" on the right; all
-          round with a soft shadow. The account sits beside the tab bar. */}
-      <div
-        className={`absolute inset-x-0 top-0 ${anyMenuOpen ? 'z-[55]' : 'z-50'} mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6`}
-      >
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <div className="relative z-[62]">
-            <HeaderLogo
-              still
-              onClick={() => {
-                // Not while a menu is open: a tap outside it only closes it.
-                if (anyMenuOpen) return
-                setTab('inicio')
-                window.scrollTo({ top: 0 })
-              }}
-            />
-          </div>
-          <div className="flex items-center gap-2.5">
+    <div className="app-neutral afro-admin relative min-h-screen font-medium">
+      <div className="afro-pattern" aria-hidden="true" />
+
+      <AdminTopBar
+        raised={anyMenuOpen}
+        logo={
+          <button
+            type="button"
+            onClick={() => {
+              if (anyMenuOpen) return
+              go('inicio')
+            }}
+            aria-label="AFRO ADMIN, Painel"
+            className="glass-island flex h-12 items-center gap-2.5 rounded-full p-1 sm:pe-4"
+          >
+            <span className="brand-gradient flex size-10 items-center justify-center rounded-full font-logo text-[22px] leading-none logo-weight">
+              <span className="translate-y-[0.1em]">A</span>
+            </span>
+            <span className="hidden text-[13px] font-semibold tracking-[0.06em] text-ink sm:inline">AFRO ADMIN</span>
+          </button>
+        }
+        nav={topNav}
+        active={tab}
+        onNavigate={go}
+        tools={
+          <>
+            {can('clientes') && (
+              <button
+                type="button"
+                aria-label="Pesquisar clientes"
+                onClick={() => go('clientes')}
+                className="flex size-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-onyx/[0.06]"
+              >
+                <Search size={19} />
+              </button>
+            )}
             <AdminBell
+              bare
               requests={can('marcacoes') ? pendingBookings : []}
               testimonials={can('testemunhos') ? pendingTestimonials : []}
               cancelled={can('marcacoes') ? recentCancellations : []}
-              onOpen={(kind) => {
-                setTab(kind === 'testemunho' ? 'testemunhos' : 'pedidos')
-                window.scrollTo({ top: 0 })
-              }}
+              onOpen={(kind) => go(kind === 'testemunho' ? 'testemunhos' : 'pedidos')}
               onOpenChange={onBellOpen}
             />
             <FloatingActionMenu
               actions={menuActions}
               more={moreActions}
               keepOrder
+              bare
               dot={pendingBookings.length + pendingTestimonials.length > 0}
               direction="down"
-              small
-              brand
               raised
               onOpenChange={onPlusOpen}
               PlusIcon={Plus}
             />
-          </div>
-        </div>
-      </div>
+          </>
+        }
+        profile={
+          <button
+            type="button"
+            aria-label="O teu perfil"
+            onClick={() => go('seguranca')}
+            className="glass-island flex size-12 items-center justify-center overflow-hidden rounded-full p-1"
+          >
+            {avatar ? (
+              <img src={avatar} alt="" className="size-full rounded-full object-cover" />
+            ) : (
+              <span className="brand-gradient flex size-full items-center justify-center rounded-full text-[15px] font-semibold">
+                {(me?.name || me?.email || '?').trim().charAt(0).toUpperCase()}
+              </span>
+            )}
+          </button>
+        }
+      />
 
-      <main className="mx-auto max-w-4xl px-5 pb-36 pt-[calc(7rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(8rem+env(safe-area-inset-top))]">
+      <AdminRail
+        nav={railNav}
+        quick={railQuick}
+        active={tab}
+        dark={theme.theme === 'dark'}
+        onToggleTheme={theme.toggleTheme}
+        onNavigate={go}
+        onSignOut={() => void handleLogout()}
+      />
+
+      <main className="relative z-10 pb-36 pt-[calc(env(safe-area-inset-top)+0.75rem+3rem+clamp(24px,7vh,80px))] lg:pb-16 px-4 lg:pl-[max(124px,clamp(32px,8vw,180px))] lg:pr-[clamp(32px,8vw,180px)]">
+        <div className={tab === 'inicio' ? '' : 'mx-auto max-w-4xl'}>
         {error && <p className="mt-6 font-subtitle text-sm text-red-700">{error}</p>}
 
         <motion.div
@@ -2476,10 +2569,13 @@ function AdminDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22, ease: 'easeOut' }}
         >
-          <h1 className="font-subtitle text-[32px] font-semibold leading-none tracking-tight text-onyx">
-            {tab === 'inicio' ? homeGreeting(me?.name ?? '') : PAGE[tab].title}
-          </h1>
-          <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">{tab === 'inicio' ? homeDate() : PAGE[tab].hint}</p>
+          {/* The Painel has its own title, with its board buttons. */}
+          {tab !== 'inicio' && (
+            <>
+              <h1 className="text-[28px] font-semibold leading-tight tracking-tight text-ink sm:text-[32px]">{PAGE[tab].title}</h1>
+              <p className="mt-1.5 text-[14px] text-ink-3 sm:text-[15px]">{PAGE[tab].hint}</p>
+            </>
+          )}
 
           {(tab === 'agenda' || tab === 'disponibilidade') && (
             <MonthStrip value={viewMonth} today={getLisbonYearMonth(new Date())} onSelect={goToMonth} />
@@ -2887,7 +2983,9 @@ function AdminDashboard() {
                 name={me?.name ?? ''}
                 bookings={bookings}
                 slots={slots}
+                services={services}
                 testimonials={testimonials}
+                loaded={loaded}
                 can={can}
                 onOpen={(target) => {
                   setTab(target)
@@ -2974,6 +3072,7 @@ function AdminDashboard() {
             )}
           </div>
         </motion.div>
+        </div>
       </main>
 
       <ManualBookingSheet
@@ -2998,29 +3097,34 @@ function AdminDashboard() {
       />
 
 
-      {/* Tab bar with the round options button beside it, same as the customer app. */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center gap-2.5 px-3">
-        <div className={`min-w-0 ${navHidden ? 'pointer-events-none' : 'pointer-events-auto'}`}>
-          <BottomNavBar
-            glass
-            hidden={navHidden}
-            value={(tab === 'seguranca' ? 'seguranca' : MORE_TARGETS.includes(tab as MoreTarget) ? 'mais' : tab) as NavTab | 'seguranca'}
-            onChange={(id) => {
-              setTab(id)
-              window.scrollTo({ top: 0 })
-            }}
-            compact
-            // Pedidos opens from the bell and the "+" at the top instead.
-            items={TABS.filter((t) => t.id !== 'pedidos').filter((t) =>
-              t.id === 'clientes' ? can('clientes') : t.id === 'mais' || t.id === 'inicio' ? true : can('marcacoes'),
-            )
-              .map(({ id, label, icon, Icon }): BottomNavItem<NavTab | 'seguranca'> => ({ id, label, icon, Icon }))
-              // The account last, with the photo when there is one; it opens the profile.
-              .concat({ id: 'seguranca', label: 'Perfil', icon: 'bx bx-user', Icon: UserRound, image: avatar })}
-          />
-        </div>
-        <BackToTop hidden={navHidden} />
-      </div>
+      {/* Phone and tablet: the dock. */}
+      <AdminDock
+        items={dockNav}
+        active={dockNav.some((n) => n.id === tab) ? tab : 'mais'}
+        hidden={navHidden}
+        onNavigate={go}
+      />
+      <AdminMoreSheet
+        open={moreOpen}
+        items={moreNav}
+        extras={[
+          {
+            id: 'tema',
+            label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
+            Icon: theme.theme === 'dark' ? Sun : Moon,
+            run: theme.toggleTheme,
+          },
+          {
+            id: 'menu',
+            label: hideOnScroll ? 'Menu fixo' : 'Ocultar menu',
+            Icon: hideOnScroll ? PanelTop : PanelTopClose,
+            run: () => setHideNavOnScroll(!hideOnScroll),
+          },
+          { id: 'sair', label: 'Sair', Icon: LogOut, danger: true, confirm: 'Sair?', run: () => void handleLogout() },
+        ]}
+        onNavigate={go}
+        onClose={closeMore}
+      />
     </div>
   )
 }
