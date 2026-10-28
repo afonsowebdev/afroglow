@@ -157,13 +157,12 @@ export function HomeView({
             label="Receita"
             icon="bx-euro"
             value={euros(figures.revenue)}
+            chart={figures.revenueSeries}
             note={
               figures.change === null ? (
                 plural(figures.sessions, 'sessão', 'sessões')
               ) : (
-                <span className={figures.change >= 0 ? 'text-[#3d7a5c]' : 'text-red-700'}>
-                  {figures.change >= 0 ? '↗' : '↘'} {Math.abs(figures.change)}% face a {figures.versus}
-                </span>
+                <Trend change={figures.change} versus={figures.versus} />
               )
             }
             onClick={canStats ? () => onOpen('estatisticas') : undefined}
@@ -175,7 +174,17 @@ export function HomeView({
             label="Marcações"
             icon="bx-calendar-check"
             value={String(figures.sessions)}
-            note={figures.newClients ? plural(figures.newClients, 'cliente nova', 'clientes novas') : 'Sem clientes novas'}
+            chart={figures.countSeries}
+            note={
+              figures.countChange === null ? (
+                figures.newClients ? plural(figures.newClients, 'cliente nova', 'clientes novas') : 'Sem clientes novas'
+              ) : (
+                <>
+                  <Trend change={figures.countChange} versus={figures.versus} />
+                  {figures.newClients > 0 && ` · ${plural(figures.newClients, 'nova', 'novas')}`}
+                </>
+              )
+            }
             onClick={canStats ? () => onOpen('estatisticas') : undefined}
           />
         )
@@ -409,6 +418,19 @@ function businessFigures({
   const periodBookings = confirmed.filter((b) => inThis(b.slot.startsAt))
   const soFar = sum(confirmed.filter((b) => inThis(b.slot.startsAt) && dayKey(b.slot.startsAt) <= today))
   const before = sum(confirmed.filter((b) => inBefore(b.slot.startsAt)))
+  const countSoFar = confirmed.filter((b) => inThis(b.slot.startsAt) && dayKey(b.slot.startsAt) <= today).length
+  const countBefore = confirmed.filter((b) => inBefore(b.slot.startsAt)).length
+
+  // Day by day up to today, and the same days of the period before, as running totals for the charts.
+  const first = period === 'mes' ? `${today.slice(0, 7)}-01` : weekStart
+  const days: string[] = []
+  for (let key = first; key <= today; key = addDays(key, 1)) days.push(key)
+  const beforeDays = period === 'mes' ? days.map((key) => `${lastMonth}${key.slice(7)}`) : days.map((key) => addDays(key, -7))
+  const running = (keys: string[], value: (list: Booking[]) => number) => {
+    let total = 0
+    return keys.map((key) => (total += value(confirmed.filter((b) => dayKey(b.slot.startsAt) === key))))
+  }
+  const pct = (a: number, b: number) => (b ? Math.round(((a - b) / b) * 100) : null)
 
   // New clients: those whose first booking ever falls in this period.
   const firstOf = new Map<string, string>()
@@ -427,7 +449,10 @@ function businessFigures({
   return {
     revenue: sum(periodBookings),
     sessions: periodBookings.length,
-    change: before ? Math.round(((soFar - before) / before) * 100) : null,
+    change: pct(soFar, before),
+    countChange: pct(countSoFar, countBefore),
+    revenueSeries: { now: running(days, sum), before: running(beforeDays, sum) },
+    countSeries: { now: running(days, (list) => list.length), before: running(beforeDays, (list) => list.length) },
     versus: period === 'mes' ? monthName(lastMonth) : 'a semana passada',
     newClients: [...firstOf.values()].filter((iso) => inThis(iso)).length,
     urgent: pending.filter((b) => new Date(b.slot.startsAt).getTime() - now < 48 * HOUR).length,
@@ -663,17 +688,61 @@ function ToDo({ icon, title, line, onClick }: { icon: string; title: string; lin
   )
 }
 
+const UP = '#2f7d55'
+const DOWN = '#c0392b'
+
+/** "↗ 12% face a setembro", green when growing and red when falling. */
+function Trend({ change, versus }: { change: number; versus: string }) {
+  return (
+    <span className="font-medium" style={{ color: change >= 0 ? UP : DOWN }}>
+      {change >= 0 ? '↗' : '↘'} {Math.abs(change)}% <span className="font-normal text-muted-dark">face a {versus}</span>
+    </span>
+  )
+}
+
+/**
+ * The period so far as a running total, over a faint line of the period before up to the same day: green while ahead
+ * of it, red while behind.
+ */
+function Growth({ now, before }: { now: number[]; before: number[] }) {
+  if (now.length < 2) return null
+  const W = 100
+  const H = 32
+  const top = Math.max(1, ...now, ...before)
+  const point = (v: number, i: number) => `${((i / (now.length - 1)) * W).toFixed(2)},${(H - (v / top) * (H - 3) - 1.5).toFixed(2)}`
+  const line = (values: number[]) => values.map(point).join(' ')
+  const ahead = (now[now.length - 1] ?? 0) >= (before[before.length - 1] ?? 0)
+  const colour = ahead ? UP : DOWN
+  const id = `growth-${ahead ? 'up' : 'down'}`
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="mt-2 h-8 w-full overflow-visible" aria-hidden="true">
+      <defs>
+        <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor={colour} stopOpacity="0.22" />
+          <stop offset="100%" stopColor={colour} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polyline points={line(before)} fill="none" stroke="currentColor" strokeWidth="1.25" strokeDasharray="3 3" className="text-onyx/20" vectorEffect="non-scaling-stroke" />
+      <polygon points={`0,${H} ${line(now)} ${W},${H}`} fill={`url(#${id})`} />
+      <polyline points={line(now)} fill="none" stroke={colour} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+    </svg>
+  )
+}
+
 function Figure({
   label,
   icon,
   value,
   note,
+  chart,
   onClick,
 }: {
   label: string
   icon: string
   value: string
   note: ReactNode
+  /** A growth chart under the figure. */
+  chart?: { now: number[]; before: number[] }
   onClick?: () => void
 }) {
   return (
@@ -684,8 +753,11 @@ function Figure({
           <i className={`bx ${icon}`} aria-hidden="true" />
         </span>
       </span>
-      <span className="mt-1 font-subtitle text-[28px] font-semibold lining-nums leading-tight tracking-tight text-onyx">{value}</span>
-      <span className="mt-auto pt-1.5 font-subtitle text-[11px] leading-snug text-muted-dark">{note}</span>
+      <span className={`mt-1 font-subtitle font-semibold lining-nums leading-tight tracking-tight text-onyx ${chart ? 'text-[24px]' : 'text-[28px]'}`}>
+        {value}
+      </span>
+      {chart && <Growth now={chart.now} before={chart.before} />}
+      <span className="mt-auto line-clamp-2 pt-1.5 font-subtitle text-[11px] leading-snug text-muted-dark">{note}</span>
     </button>
   )
 }
