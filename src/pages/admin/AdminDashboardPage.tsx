@@ -39,7 +39,7 @@ import { BroadcastView } from '@/pages/admin/BroadcastView'
 import { ClosuresView } from '@/pages/admin/ClosuresView'
 import { PromotionsView } from '@/pages/admin/PromotionsView'
 import { TeamView } from '@/pages/admin/TeamView'
-import { HomeView, homeDate, homeDay, homeHello } from '@/pages/admin/HomeView'
+import { HomeView, homeDate, homeHello } from '@/pages/admin/HomeView'
 import { fullMe, type AdminMe, type Permission } from '@/pages/admin/admin-me'
 import { PortfolioView } from '@/pages/admin/PortfolioView'
 import { SecurityView } from '@/pages/admin/SecurityView'
@@ -3044,26 +3044,24 @@ function AdminDashboard() {
   )
 }
 
-/** The Início's title: today as a small calendar page, and beside it the greeting with her name large. */
+/** The Início's title: the date in a small pill, then the greeting large, light, with her name in bold. */
 function HomeTitle({ name }: { name: string }) {
-  const { weekday, day, month } = homeDay()
   const { hello, first } = homeHello(name)
   return (
-    <div className="flex items-center gap-4">
-      <div
-        aria-label={homeDate()}
-        className="w-[4.25rem] shrink-0 overflow-hidden rounded-2xl border border-onyx/10 bg-white text-center shadow-sm shadow-black/5"
-      >
-        <p className="bg-[#2b1d12] py-1 font-subtitle text-[11px] font-semibold capitalize text-[#c9a84c]">{weekday}</p>
-        <p className="pt-1.5 font-subtitle text-[28px] font-semibold lining-nums leading-none tracking-tight text-onyx">{day}</p>
-        <p className="pb-2 pt-1 font-subtitle text-[10px] text-muted-dark">{month}</p>
-      </div>
-      <div className="min-w-0">
-        <p className="font-subtitle text-[15px] text-muted-dark">{hello}{first ? ',' : ''}</p>
+    <div>
+      <p className="glass-chip inline-flex h-8 items-center gap-2 rounded-full px-3.5 font-subtitle text-[13px] text-onyx">
+        <i className="bx bx-calendar text-base" aria-hidden="true" />
+        {homeDate()}
+      </p>
+      <h1 className="mt-4 font-subtitle text-[36px] leading-[1.1] tracking-tight text-onyx">
+        <span className="font-light text-muted-dark">{hello}{first ? ',' : ''}</span>
         {first && (
-          <h1 className="truncate font-subtitle text-[34px] font-semibold leading-[1.05] tracking-tight text-onyx">{first}</h1>
+          <>
+            {' '}
+            <span className="font-semibold">{first}</span>
+          </>
         )}
-      </div>
+      </h1>
     </div>
   )
 }
