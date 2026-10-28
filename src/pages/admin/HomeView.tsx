@@ -40,6 +40,19 @@ export function homeGreeting(name: string) {
   return first ? `${hello}, ${first}` : hello
 }
 
+/** The greeting and the first name apart ("Boa noite", "Ruth"), for the Início's title. */
+export function homeHello(name: string) {
+  const [hello, first = ''] = homeGreeting(name).split(', ')
+  return { hello, first }
+}
+
+/** Today as a calendar page: "qua", 28, "outubro". */
+export function homeDay() {
+  const d = new Date()
+  const part = (o: Intl.DateTimeFormatOptions) => d.toLocaleDateString('pt-PT', { timeZone: TZ, ...o }).replace('.', '')
+  return { weekday: part({ weekday: 'short' }), day: part({ day: 'numeric' }), month: part({ month: 'long' }) }
+}
+
 /** "Terça-feira, 27 de outubro". */
 export function homeDate() {
   return capital(new Date().toLocaleDateString('pt-PT', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' }))
