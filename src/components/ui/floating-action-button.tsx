@@ -177,6 +177,7 @@ export function FloatingActionMenu({
   faceLabel = 'menu',
   keepOrder = false,
   more,
+  plainLabels = false,
   raised = false,
   onOpenChange,
   PlusIcon = Plus,
@@ -188,6 +189,8 @@ export function FloatingActionMenu({
   keepOrder?: boolean
   /** Hidden under a last "Mais opções" until it is tapped: then side by side, in the order given. */
   more?: MenuAction[]
+  /** The names in plain white over the blur instead of white pills. */
+  plainLabels?: boolean
   /** The button stays clear above the blur of any menu opened beside it (a header that stays sharp). */
   raised?: boolean
   /** Told when the menu opens or closes. */
@@ -441,8 +444,10 @@ export function FloatingActionMenu({
                 >
                   <span
                     className={cn(
-                      'flex items-center gap-2 whitespace-nowrap rounded-full border border-onyx/10 bg-white px-3.5 py-1.5 font-subtitle text-xs font-medium shadow-md shadow-black/10',
-                      danger ? 'text-red-700' : 'text-onyx',
+                      plainLabels
+                        ? 'flex items-center gap-2 whitespace-nowrap font-subtitle text-[13px] font-medium [text-shadow:0_1px_6px_rgba(0,0,0,0.45)]'
+                        : 'flex items-center gap-2 whitespace-nowrap rounded-full border border-onyx/10 bg-white px-3.5 py-1.5 font-subtitle text-xs font-medium shadow-md shadow-black/10',
+                      plainLabels ? (danger ? 'text-[#ffb4ac]' : 'text-[#ffffff]') : danger ? 'text-red-700' : 'text-onyx',
                     )}
                   >
                     {label}

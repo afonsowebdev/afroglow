@@ -2455,6 +2455,7 @@ function AdminDashboard() {
               actions={menuActions}
               more={moreActions}
               keepOrder
+              plainLabels
               dot={pendingBookings.length + pendingTestimonials.length > 0}
               direction="down"
               small
