@@ -10,6 +10,7 @@ import {
   ChartColumn,
   Clock,
   Images,
+  Inbox,
   Lock,
   LogOut,
   MessageSquareQuote,
@@ -2371,12 +2372,15 @@ function AdminDashboard() {
     .reduce((sum, b) => sum + bookingPrice(b), 0)
 
   // The same entries as the "Mais" tab, one tap away from any screen, plus theme and sign out.
-  const open = (id: MoreTarget) => () => {
+  const open = (id: MoreTarget | 'pedidos') => () => {
     setTab(id)
     window.scrollTo({ top: 0 })
   }
-  // The "+" beside the tab bar: the pages that run the business.
+  // The "+" at the top: the pages that run the business.
   const menuActions: MenuAction[] = [
+    ...(can('marcacoes')
+      ? [{ Icon: Inbox, label: 'Pedidos', badge: pendingBookings.length, onClick: open('pedidos') }]
+      : []),
     ...(can('testemunhos')
       ? [{ Icon: MessageSquareQuote, label: 'Testemunhos', badge: pendingTestimonials.length, onClick: open('testemunhos') }]
       : []),
@@ -2392,7 +2396,7 @@ function AdminDashboard() {
     ...(can('estatisticas') ? [{ Icon: ChartColumn, label: 'Estatísticas', onClick: open('estatisticas') }] : []),
     ...(can('definicoes') ? [{ Icon: Store, label: 'Definições do negócio', onClick: open('definicoes') }] : []),
   ]
-  // The account button on the right of the header, top to bottom: the account and the team, how the app looks, then
+  // The account button beside the tab bar, top to bottom: the account and the team, how the app looks, then
   // signing out on its own.
   const accountActions: MenuAction[] = [
     { Icon: Lock, label: 'A tua conta', group: 'conta', onClick: open('seguranca') },
@@ -2422,8 +2426,8 @@ function AdminDashboard() {
 
   return (
     <div className="app-neutral relative min-h-screen bg-white font-medium">
-      {/* Not fixed: the header scrolls away with the page. The "A" on the left (AFROGLOW comes and goes beside it once
-          per launch, as in the customer app), the account on the right; both round with a soft shadow. */}
+      {/* Not fixed: the header scrolls away with the page. The "A" on the left, the bell and the "+" on the right; all
+          round with a soft shadow. The account sits beside the tab bar. */}
       <div
         className={`absolute inset-x-0 top-0 ${anyMenuOpen ? 'z-[55]' : 'z-50'} mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6`}
       >
@@ -2451,26 +2455,13 @@ function AdminDashboard() {
               onOpenChange={onBellOpen}
             />
             <FloatingActionMenu
-              actions={accountActions}
+              actions={menuActions}
               direction="down"
               small
               brand
-              keepOrder
               raised
-              onOpenChange={onAccountOpen}
-              faceLabel="conta"
-              face={
-                avatar ? (
-                  // A thin ring of the button's own colour around the photo.
-                <span className="size-full p-[2px]">
-                  <img src={avatar} alt="" className="size-full rounded-full object-cover" />
-                </span>
-                ) : (
-                  <span className="font-subtitle text-lg font-semibold">
-                    {(me?.name || me?.email || '?').trim().charAt(0).toUpperCase()}
-                  </span>
-                )
-              }
+              onOpenChange={onPlusOpen}
+              PlusIcon={Plus}
             />
           </div>
         </div>
@@ -3019,7 +3010,8 @@ function AdminDashboard() {
               window.scrollTo({ top: 0 })
             }}
             compact
-            items={TABS.filter((t) =>
+            // Pedidos opens from the bell and the "+" at the top instead.
+            items={TABS.filter((t) => t.id !== 'pedidos').filter((t) =>
               t.id === 'clientes' ? can('clientes') : t.id === 'mais' || t.id === 'inicio' ? true : can('marcacoes'),
             ).map(({ id, label, icon, Icon }) => ({
               id,
@@ -3029,11 +3021,25 @@ function AdminDashboard() {
             }))}
           />
         </div>
+        {/* The account beside the tab bar, opening upward. */}
         <FloatingActionMenu
-          actions={menuActions}
+          actions={accountActions}
           hidden={menuForcedHidden}
-          onOpenChange={onPlusOpen}
-          PlusIcon={Plus}
+          keepOrder
+          onOpenChange={onAccountOpen}
+          faceLabel="conta"
+          face={
+            avatar ? (
+              // A thin ring of the button's own glass around the photo.
+              <span className="size-full p-[2px]">
+                <img src={avatar} alt="" className="size-full rounded-full object-cover" />
+              </span>
+            ) : (
+              <span className="font-subtitle text-lg font-semibold">
+                {(me?.name || me?.email || '?').trim().charAt(0).toUpperCase()}
+              </span>
+            )
+          }
         />
       </div>
     </div>
