@@ -2374,28 +2374,30 @@ function AdminDashboard() {
     setTab(id)
     window.scrollTo({ top: 0 })
   }
-  // The "+" at the top: the pages that run the business.
-  const menuActions: MenuAction[] = [
+  // The "+" at the top: the pages that run the business, most used first. The first five show; the rest wait under
+  // "Mais opções" with how the app looks and signing out.
+  const pages: MenuAction[] = [
     ...(can('marcacoes')
       ? [{ Icon: Inbox, label: 'Pedidos', badge: pendingBookings.length, onClick: open('pedidos') }]
       : []),
+    ...(can('catalogo') ? [{ Icon: Scissors, label: 'Serviços', onClick: open('servicos') }] : []),
     ...(can('testemunhos')
       ? [{ Icon: MessageSquareQuote, label: 'Testemunhos', badge: pendingTestimonials.length, onClick: open('testemunhos') }]
       : []),
+    ...(can('estatisticas') ? [{ Icon: ChartColumn, label: 'Estatísticas', onClick: open('estatisticas') }] : []),
+    ...(can('marcacoes') ? [{ Icon: CalendarX2, label: 'Dias fechados', onClick: open('fechos') }] : []),
     ...(can('catalogo')
       ? [
-          { Icon: Scissors, label: 'Serviços', onClick: open('servicos') },
           { Icon: Tag, label: 'Promoções', onClick: open('promocoes') },
           { Icon: Images, label: 'Portfólio', onClick: open('portfolio') },
         ]
       : []),
-    ...(can('marcacoes') ? [{ Icon: CalendarX2, label: 'Dias fechados', onClick: open('fechos') }] : []),
     ...(can('notificacoes') ? [{ Icon: BellRing, label: 'Notificar clientes', onClick: open('notificar') }] : []),
-    ...(can('estatisticas') ? [{ Icon: ChartColumn, label: 'Estatísticas', onClick: open('estatisticas') }] : []),
-    ...(can('definicoes') ? [{ Icon: Store, label: 'Definições do negócio', onClick: open('definicoes') }] : []),
+    ...(can('definicoes') ? [{ Icon: Store, label: 'Definições', onClick: open('definicoes') }] : []),
   ]
-  // Under "Mais opções" in the "+": how the app looks, and signing out.
+  const menuActions = pages.slice(0, 5)
   const moreActions: MenuAction[] = [
+    ...pages.slice(5),
     {
       Icon: theme.theme === 'dark' ? Sun : Moon,
       label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
@@ -2403,10 +2405,10 @@ function AdminDashboard() {
     },
     {
       Icon: hideOnScroll ? PanelTop : PanelTopClose,
-      label: hideOnScroll ? 'Menu sempre visível' : 'Ocultar menu ao descer',
+      label: hideOnScroll ? 'Menu fixo' : 'Ocultar menu',
       onClick: () => setHideNavOnScroll(!hideOnScroll),
     },
-    { Icon: LogOut, label: 'Terminar sessão', danger: true, onClick: () => void handleLogout() },
+    { Icon: LogOut, label: 'Sair', danger: true, onClick: () => void handleLogout() },
   ]
 
   if (checkingAuth) {

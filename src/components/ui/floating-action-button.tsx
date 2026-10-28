@@ -184,7 +184,7 @@ export function FloatingActionMenu({
   face?: ReactNode
   /** The actions in the order given, read top to bottom, instead of A to Z (see `group`). */
   keepOrder?: boolean
-  /** Hidden under a last "Mais opções" until it is tapped, in the order given. */
+  /** Hidden under a last "Mais opções" until it is tapped: then side by side, in the order given. */
   more?: MenuAction[]
   /** The button stays clear above the blur of any menu opened beside it (a header that stays sharp). */
   raised?: boolean
@@ -244,7 +244,6 @@ export function FloatingActionMenu({
           keepOpen: true,
           onClick: () => setShowMore((current) => !current),
         },
-        ...(showMore ? more.map((action) => ({ ...action, group: 'mais' })) : []),
       ]
     : []
   const listed = [...(keepOrder ? actions : alphabetical), ...extra]
@@ -345,8 +344,6 @@ export function FloatingActionMenu({
               // The one just above on screen: a new group starts a little apart from it.
               const above = direction === 'up' ? ordered[index + 1] : ordered[index - 1]
               const apart = above !== undefined && above.group !== group
-              // The options under "Mais opções" come in as they are revealed.
-              const revealed = group === 'mais' && !keepOpen
               const glyph = Icon ? (
                 <Icon size={20} className="text-onyx" />
               ) : (
@@ -363,7 +360,7 @@ export function FloatingActionMenu({
                   key={label}
                   className={cn('flex items-center gap-3', apart && 'mt-2')}
                   style={{ pointerEvents: open ? 'auto' : 'none' }}
-                  initial={revealed ? { opacity: 0, y: direction === 'up' ? 16 : -16, filter: 'blur(2px)' } : false}
+                  initial={false}
                   animate={{
                     opacity: open ? 1 : 0,
                     y: open ? 0 : direction === 'up' ? 24 : -24,
@@ -406,6 +403,41 @@ export function FloatingActionMenu({
                 </motion.div>
               )
             })}
+            {/* What "Mais opções" reveals: side by side, each a round button with its name below. */}
+            {open && showMore && more && (
+              <div className="pointer-events-auto mt-1 grid w-[17.5rem] grid-cols-4 gap-x-1.5 gap-y-3">
+                {more.map(({ Icon, iconClass, label, danger, onClick }, index) => (
+                  <motion.button
+                    key={label}
+                    type="button"
+                    onClick={() => {
+                      onClick?.()
+                      close()
+                    }}
+                    initial={{ opacity: 0, y: direction === 'up' ? 12 : -12, scale: 0.9, filter: 'blur(2px)' }}
+                    animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+                    transition={{ type: 'tween', ease: 'easeInOut', duration: 0.3, delay: index * 0.035 }}
+                    className="flex flex-col items-center gap-1.5"
+                  >
+                    <span className="flex size-12 items-center justify-center rounded-full border border-onyx/10 bg-white shadow-md shadow-black/10">
+                      {Icon ? (
+                        <Icon size={20} className={danger ? 'text-red-700' : 'text-onyx'} />
+                      ) : (
+                        <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 22 }} aria-hidden="true" />
+                      )}
+                    </span>
+                    <span
+                      className={cn(
+                        'line-clamp-2 rounded-full bg-white px-2 py-0.5 text-center font-subtitle text-[10.5px] font-medium leading-tight shadow-sm shadow-black/10',
+                        danger ? 'text-red-700' : 'text-onyx',
+                      )}
+                    >
+                      {label}
+                    </span>
+                  </motion.button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
