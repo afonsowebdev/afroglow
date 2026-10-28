@@ -37,7 +37,7 @@ import type { MoreTarget } from './MoreView'
 import { addDays, dayKey, plural, todayKey } from './admin-ui'
 
 /*
- * The Painel (Início) of AFRO ADMIN, in the Rende+ system with the AFROGLOW colours: the greeting, and ten blocks on
+ * The Painel (Início) of the admin, in the AFROGLOW look (Poppins, the glass buttons, warm neutrals): the greeting, and ten blocks on
  * a board she can rearrange (4 large, 4 small, 1 wide, 1 tall = 24 cells, so 2, 3, 4 or 6 columns never leave a hole).
  * Everything comes from the bookings, slots, services and testimonials the panel already loads; only the monthly goal
  * is kept on the server. Amounts can be hidden for privacy.
@@ -176,8 +176,8 @@ export function HomeView({
   const header = (
     <div className="mb-7 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
       <div className="min-w-0">
-        <h1 className="text-[28px] font-semibold leading-tight tracking-tight text-ink sm:text-[32px]">{homeGreeting(name)}</h1>
-        <p className="mt-1.5 max-w-xl text-[14px] text-ink-3 sm:text-[15px]">
+        <h1 className="text-[32px] font-semibold leading-none tracking-tight text-onyx">{homeGreeting(name)}</h1>
+        <p className="mt-2 max-w-xl text-sm text-muted-dark">
           {editing
             ? 'Arrasta os blocos para os reorganizar. No telemóvel, mantém o dedo premido antes de arrastar.'
             : 'Fica a par do teu negócio e acompanha o teu progresso.'}
@@ -194,7 +194,7 @@ export function HomeView({
               setHidden(!hidden)
               writeStore(HIDE_KEY, !hidden)
             }}
-            className="flex size-9 items-center justify-center rounded-full border border-line bg-surface text-ink-2 shadow-[var(--shadow-card)]"
+            className="glass-chip flex size-9 items-center justify-center rounded-full text-onyx"
           >
             {hidden ? <EyeOff size={17} /> : <Eye size={17} />}
           </button>
@@ -208,7 +208,7 @@ export function HomeView({
                   setOrder(loadOrder())
                   setBoardKey((k) => k + 1)
                 }}
-                className="h-9 rounded-full px-4 text-[13px] font-medium text-ink-2 hover:bg-surface-3"
+                className="h-9 px-2 text-[13px] font-medium text-muted-dark underline underline-offset-4"
               >
                 Repor
               </button>
@@ -218,7 +218,7 @@ export function HomeView({
                   void tap()
                   setEditing(false)
                 }}
-                className="brand-gradient flex h-9 items-center gap-1.5 rounded-full px-4 text-[13px] font-semibold shadow-[var(--shadow-card)]"
+                className="flex h-9 items-center gap-1.5 rounded-full bg-onyx px-4 text-[13px] font-semibold text-white"
               >
                 <Check size={16} />
                 Concluir
@@ -231,7 +231,7 @@ export function HomeView({
                 void tap()
                 setEditing(true)
               }}
-              className="flex h-9 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-[13px] font-medium text-ink shadow-[var(--shadow-card)]"
+              className="glass-chip flex h-9 items-center gap-1.5 rounded-full px-4 text-[13px] font-medium text-onyx"
             >
               <LayoutGrid size={16} />
               Personalizar
@@ -244,7 +244,7 @@ export function HomeView({
 
   if (!can('marcacoes')) {
     return (
-      <div>
+      <div className="font-subtitle">
         {header}
         <p className="text-sm text-ink-3">Usa o menu para o que tens acesso.</p>
       </div>
@@ -253,7 +253,7 @@ export function HomeView({
 
   if (!loaded) {
     return (
-      <div>
+      <div className="font-subtitle">
         {header}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[0, 1, 2].map((i) => (
@@ -266,7 +266,7 @@ export function HomeView({
 
   if (bookings.length === 0) {
     return (
-      <div>
+      <div className="font-subtitle">
         {header}
         <FirstSteps services={services} slots={slots} onOpen={onOpen} onNewBooking={() => onNewBooking()} />
       </div>
@@ -347,7 +347,7 @@ export function HomeView({
   }
 
   return (
-    <div data-hide-amounts={hidden ? 'true' : 'false'}>
+    <div className="font-subtitle" data-hide-amounts={hidden ? 'true' : 'false'}>
       {header}
       <DraggableWidgetGrid
         key={boardKey}
@@ -519,7 +519,7 @@ type BoardData = ReturnType<typeof boardData>
 function BlockHeader({ title, action }: { title: string; action?: ReactNode }) {
   return (
     <div className="flex min-h-6 items-center justify-between gap-3">
-      <h3 className="truncate text-[13px] font-medium text-ink-3">{title}</h3>
+      <h3 className="truncate text-[14px] font-semibold tracking-tight text-onyx">{title}</h3>
       {action}
     </div>
   )
@@ -527,7 +527,7 @@ function BlockHeader({ title, action }: { title: string; action?: ReactNode }) {
 
 function HeaderLink({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="flex shrink-0 items-center gap-1 text-[12px] font-medium text-accent">
+    <button type="button" onClick={onClick} className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-muted-dark">
       {label}
       <ArrowRight size={13} />
     </button>
@@ -605,7 +605,7 @@ function Stat({
   return (
     <>
       <div className="flex items-start justify-between gap-2">
-        <h3 className="text-[13px] font-medium leading-tight text-ink-3">{label}</h3>
+        <h3 className="text-[13px] font-semibold leading-tight tracking-tight text-onyx">{label}</h3>
         <IconCircle Icon={Icon} />
       </div>
       <p className={`tabular -mt-1 text-[22px] font-semibold tracking-tight text-ink ${amount ? 'amount' : ''}`}>{value}</p>
@@ -646,7 +646,7 @@ function Highlight({
         <button
           type="button"
           onClick={onNewBooking}
-          className="brand-gradient flex h-9 items-center justify-center gap-1.5 rounded-full text-[13px] font-semibold"
+          className="flex h-10 items-center justify-center gap-1.5 rounded-full bg-onyx text-[13px] font-semibold text-white"
         >
           <Plus size={15} />
           Nova marcação
@@ -654,7 +654,7 @@ function Highlight({
         <button
           type="button"
           onClick={() => onOpen('pedidos')}
-          className="flex h-9 items-center justify-center gap-1.5 rounded-full border border-line-strong text-[13px] font-medium text-ink"
+          className="glass-chip flex h-10 items-center justify-center gap-1.5 rounded-full text-[13px] font-medium text-onyx"
         >
           Ver pedidos
         </button>
@@ -668,9 +668,9 @@ function Highlight({
             >
               <Icon size={13} />
             </span>
-            <span className="mt-1.5 block truncate text-[11px] text-ink-3">{label}</span>
-            <span className="amount tabular block truncate text-[12.5px] font-semibold text-ink">{euros(cents)}</span>
-            <span className="mt-0.5 flex items-center gap-1 truncate text-[10.5px] text-ink-3">
+            <span className="mt-1.5 block truncate text-xs text-ink-3">{label}</span>
+            <span className="amount tabular block truncate text-[13px] font-semibold text-ink">{euros(cents)}</span>
+            <span className="mt-0.5 flex items-center gap-1 truncate text-xs text-ink-3">
               <span className="size-1.5 shrink-0 rounded-full" style={{ background: tone }} aria-hidden="true" />
               {status}
             </span>
@@ -724,7 +724,7 @@ function InOutChart({ months }: { months: MonthFigures[] }) {
           </div>
         }
       />
-      <div className="mt-2 flex items-center gap-3 text-[11px] text-ink-3">
+      <div className="mt-2 flex items-center gap-3 text-xs text-ink-3">
         <span className="flex items-center gap-1.5">
           <span className="size-2 rounded-full bg-chart-in" aria-hidden="true" />
           Receita
@@ -780,7 +780,7 @@ function InOutChart({ months }: { months: MonthFigures[] }) {
                 </svg>
               )}
             </div>
-            <div className="mt-1.5 flex justify-between text-[10.5px] text-ink-3">
+            <div className="mt-1.5 flex justify-between text-xs text-ink-3">
               {months.map((m) => (
                 <span key={m.key} className="flex-1 text-center capitalize">
                   {monthLabel(m.key)}
@@ -835,7 +835,7 @@ function Goal({ goal, revenue, canEdit, onEdit }: { goal: number | null; revenue
         action={
           canEdit &&
           !!goal && (
-            <button type="button" onClick={onEdit} className="text-[12px] font-medium text-accent">
+            <button type="button" onClick={onEdit} className="text-[13px] font-medium text-muted-dark">
               Editar
             </button>
           )
@@ -849,7 +849,7 @@ function Goal({ goal, revenue, canEdit, onEdit }: { goal: number | null; revenue
           text="Ainda sem meta para o mês."
           action={
             canEdit && (
-              <button type="button" onClick={onEdit} className="h-7 rounded-full border border-line-strong px-3 text-[12px] font-medium text-ink">
+              <button type="button" onClick={onEdit} className="glass-chip h-8 rounded-full px-3.5 text-xs font-semibold text-onyx">
                 Definir
               </button>
             )
@@ -962,7 +962,7 @@ function Ranking({ items, total }: { items: BoardData['ranking']; total: number 
                 <span className="size-2 shrink-0 rounded-full" style={{ background: RANK_COLOURS[i] }} aria-hidden="true" />
                 <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-ink">{item.label}</span>
               </div>
-              <p className="tabular mt-0.5 pl-4 text-[11.5px] text-ink-3">
+              <p className="tabular mt-0.5 pl-4 text-xs text-ink-3">
                 {item.count} · {Math.round(item.share * 100)}%
               </p>
               <div className="ml-4 mt-1 h-1.5 overflow-hidden rounded-full bg-surface-3">
@@ -972,7 +972,7 @@ function Ranking({ items, total }: { items: BoardData['ranking']; total: number 
           ))}
         </ol>
       )}
-      <p className="tabular mt-auto pt-2 text-[11.5px] text-ink-3">{plural(total, 'sessão', 'sessões')} em 90 dias</p>
+      <p className="tabular mt-auto pt-2 text-xs text-ink-3">{plural(total, 'sessão', 'sessões')} em 90 dias</p>
     </>
   )
 }
@@ -1021,8 +1021,8 @@ function Activity({ items, onOpen }: { items: ActivityItem[]; onOpen: (tab: Tab)
             type="button"
             onClick={() => setMenu(!menu)}
             aria-expanded={menu}
-            className={`flex h-9 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium ${
-              filter === 'todas' ? 'border-line text-ink' : 'border-accent bg-accent-soft text-ink'
+            className={`flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium text-onyx ${
+              filter === 'todas' ? 'glass-chip' : 'glass-chip-on'
             }`}
           >
             <ListFilter size={15} />
@@ -1051,7 +1051,7 @@ function Activity({ items, onOpen }: { items: ActivityItem[]; onOpen: (tab: Tab)
                       className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left text-[13px] text-ink hover:bg-surface-2"
                     >
                       {f.label}
-                      {filter === f.id && <Check size={15} className="text-accent" />}
+                      {filter === f.id && <Check size={15} className="text-onyx" />}
                     </button>
                   </li>
                 ))}
@@ -1111,7 +1111,7 @@ function Upcoming({ bookings, onOpen, onNewBooking }: { bookings: Booking[]; onO
           Icon={Clock}
           text="Sem marcações à frente."
           action={
-            <button type="button" onClick={onNewBooking} className="h-7 rounded-full border border-line-strong px-3 text-[12px] font-medium text-ink">
+            <button type="button" onClick={onNewBooking} className="glass-chip h-8 rounded-full px-3.5 text-xs font-semibold text-onyx">
               Adicionar
             </button>
           }
@@ -1128,7 +1128,7 @@ function Upcoming({ bookings, onOpen, onNewBooking }: { bookings: Booking[]; onO
               <li key={b.id} className={i >= 3 ? 'hidden 2xl:block' : ''}>
                 <div className="flex items-center gap-3 rounded-xl px-1.5 py-2">
                   <span
-                    className={`tabular flex size-9 shrink-0 flex-col items-center justify-center rounded-full text-[10.5px] font-semibold leading-none ${
+                    className={`tabular flex size-9 shrink-0 flex-col items-center justify-center rounded-full text-[11px] font-semibold leading-none ${
                       live ? 'brand-gradient' : 'bg-surface-3 text-ink-2'
                     }`}
                   >
@@ -1177,7 +1177,7 @@ function FirstSteps({
   ]
   return (
     <section className="max-w-2xl rounded-2xl bg-surface p-5 shadow-[var(--shadow-card)] sm:p-6">
-      <h2 className="text-[17px] font-semibold tracking-tight text-ink">Primeiros passos</h2>
+      <h2 className="text-[17px] font-semibold tracking-tight text-onyx">Primeiros passos</h2>
       <p className="mt-1 text-[14px] text-ink-3">Completa estes passos e o teu painel ganha vida.</p>
       <ol className="mt-5 flex flex-col gap-4">
         {steps.map((step, i) => (
@@ -1197,7 +1197,7 @@ function FirstSteps({
               <button
                 type="button"
                 onClick={step.run}
-                className="h-8 shrink-0 rounded-full border border-line-strong px-3 text-[12px] font-medium text-ink"
+                className="glass-chip h-8 shrink-0 rounded-full px-3.5 text-xs font-semibold text-onyx"
               >
                 {step.label}
               </button>
