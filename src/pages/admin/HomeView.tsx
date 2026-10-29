@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import {
@@ -11,6 +11,7 @@ import {
   ChartLine,
   ChartPie,
   Check,
+  ChevronDown,
   ChevronRight,
   Clock,
   Eye,
@@ -828,6 +829,19 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
   const doneShare = month.revenue ? month.doneCents / month.revenue : 0
   const compareTop = Math.max(1, month.revenue, month.lastSoFarCents, month.lastFullCents)
   const change = month.revenueChange
+  // Whether there is more above or below, to show that the card scrolls.
+  const body = useRef<HTMLDivElement>(null)
+  const [edges, setEdges] = useState({ top: false, bottom: false })
+  const measure = useCallback(() => {
+    const el = body.current
+    if (!el) return
+    setEdges({ top: el.scrollTop > 4, bottom: el.scrollTop + el.clientHeight < el.scrollHeight - 4 })
+  }, [])
+  useEffect(() => {
+    if (!open) return
+    const frame = requestAnimationFrame(measure)
+    return () => cancelAnimationFrame(frame)
+  }, [open, measure])
 
   return createPortal(
     <AnimatePresence>
@@ -850,7 +864,7 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 10 }}
             transition={{ type: 'spring', stiffness: 360, damping: 32 }}
-            className="relative flex max-h-[min(88dvh,780px)] w-full max-w-md flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_30px_70px_-15px_rgba(0,0,0,0.4)]"
+            className="relative flex max-h-[min(72dvh,620px)] w-full max-w-md flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_30px_70px_-15px_rgba(0,0,0,0.4)]"
           >
             {/* Stays at the top while the rest scrolls. */}
             <header className="flex items-center gap-3 border-b border-onyx/[0.06] px-5 py-4">
@@ -871,7 +885,13 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
               </button>
             </header>
 
-            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
+            <div className="relative flex min-h-0 flex-1 flex-col">
+            {/* Soft edges where there is more to scroll to. */}
+            <span
+              aria-hidden="true"
+              className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-6 bg-gradient-to-b from-white to-transparent transition-opacity duration-200 ${edges.top ? 'opacity-100' : 'opacity-0'}`}
+            />
+            <div ref={body} onScroll={measure} className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4">
               {/* The total, with the change and how much of it is done. */}
               <section className="rounded-3xl bg-onyx/[0.04] p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -1040,21 +1060,45 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
                 )}
               </DetailSection>
             </div>
+            <span
+              aria-hidden="true"
+              className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-white to-transparent transition-opacity duration-200 ${edges.bottom ? 'opacity-100' : 'opacity-0'}`}
+            />
+            {/* Says there is more below until the end is reached; a tap scrolls down a little. */}
+            <AnimatePresence>
+              {edges.bottom && (
+                <motion.button
+                  type="button"
+                  onClick={() => body.current?.scrollBy({ top: body.current.clientHeight * 0.7, behavior: 'smooth' })}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 6 }}
+                  transition={{ duration: 0.2 }}
+                  className="glass-chip absolute bottom-3 left-1/2 z-20 flex h-8 -translate-x-1/2 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold text-onyx"
+                >
+                  Desliza para ver mais
+                  <motion.span animate={{ y: [0, 3, 0] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }} className="flex">
+                    <ChevronDown size={14} strokeWidth={2.4} />
+                  </motion.span>
+                </motion.button>
+              )}
+            </AnimatePresence>
+            </div>
 
             {onStats && (
-              <div className="border-t border-onyx/[0.06] p-4">
+              <div className="flex justify-center border-t border-onyx/[0.06] px-4 py-3">
                 <button
                   type="button"
                   onClick={() => {
                     void tap()
                     onStats()
                   }}
-                  className="glass-chip flex h-12 w-full items-center gap-2 rounded-full pe-1.5 ps-5 text-[14px] font-semibold text-onyx transition-transform active:scale-[0.98]"
+                  className="glass-chip flex h-11 items-center gap-2 rounded-full pe-1.5 ps-4 text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
                 >
-                  <ChartColumn size={17} />
+                  <ChartColumn size={16} />
                   Ver estatísticas
-                  <span className="ms-auto flex size-9 items-center justify-center rounded-full bg-white text-onyx shadow-sm">
-                    <ArrowRight size={17} />
+                  <span className="ms-1 flex size-8 items-center justify-center rounded-full bg-white text-onyx shadow-sm">
+                    <ArrowRight size={16} />
                   </span>
                 </button>
               </div>
