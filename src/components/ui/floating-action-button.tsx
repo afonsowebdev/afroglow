@@ -178,6 +178,7 @@ export function FloatingActionMenu({
   keepOrder = false,
   more,
   bare = false,
+  shrink = false,
   raised = false,
   onOpenChange,
   PlusIcon = Plus,
@@ -191,6 +192,8 @@ export function FloatingActionMenu({
   more?: MenuAction[]
   /** A plain 40px round button with no fill, for sitting inside a glass island. */
   bare?: boolean
+  /** The round button a little smaller (a header that has scrolled); the menu keeps its place. */
+  shrink?: boolean
   /** The button stays clear above the blur of any menu opened beside it (a header that stays sharp). */
   raised?: boolean
   /** Told when the menu opens or closes. */
@@ -492,8 +495,8 @@ export function FloatingActionMenu({
             setShowMore(false)
             setConfirming(null)
           }}
-          animate={{ rotate: open && !face ? 45 : 0 }}
-          transition={{ type: 'tween', ease: 'easeInOut', duration: 0.5 }}
+          animate={{ rotate: open && !face ? 45 : 0, scale: shrink ? 0.84 : 1 }}
+          transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4 }}
           // Apps: only the thin rim, no shadow under the button.
           style={
             compact || brand || bare

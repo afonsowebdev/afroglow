@@ -42,6 +42,8 @@ import { PromotionsView } from '@/pages/admin/PromotionsView'
 import { TeamView } from '@/pages/admin/TeamView'
 import { HomeView } from '@/pages/admin/HomeView'
 import { HeaderLogo } from '@/customer/HeaderLogo'
+import { tap } from '@/lib/haptics'
+import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
 import { fullMe, type AdminMe, type Permission } from '@/pages/admin/admin-me'
 import { PortfolioView } from '@/pages/admin/PortfolioView'
 import { SecurityView } from '@/pages/admin/SecurityView'
@@ -1932,6 +1934,14 @@ function AdminDashboard() {
   const onPlusOpen = useCallback((open: boolean) => setOpenMenus((m) => ({ ...m, plus: open })), [])
   const onBellOpen = useCallback((open: boolean) => setOpenMenus((m) => ({ ...m, bell: open })), [])
   const anyMenuOpen = openMenus.plus || openMenus.bell
+  // The fixed header shrinks a little once the page has scrolled.
+  const [headerScrolled, setHeaderScrolled] = useState(false)
+  useEffect(() => {
+    const update = () => setHeaderScrolled(window.scrollY > 16)
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    return () => window.removeEventListener('scroll', update)
+  }, [])
   useEffect(() => {
     if (!me?.avatarVersion || !me.id) return
     api
@@ -2426,13 +2436,25 @@ function AdminDashboard() {
 
   return (
     <div className="app-neutral afro-admin relative min-h-screen bg-white font-medium">
-      {/* Not fixed: the header scrolls away with the page. The "A" on the left, the bell and the "+" on the right; all
-          round with a soft shadow. The account sits beside the tab bar. */}
+      {/* Fixed at the top: the "A" on the left, the theme, the bell and the "+" on the right, all round with a soft shadow.
+          Once the page scrolls they shrink a little (each button on its own, so the bell's list and the "+" menu keep
+          their place) over a soft fade of the page; back at the top they return to full size. */}
       <div
-        className={`absolute inset-x-0 top-0 ${anyMenuOpen ? 'z-[55]' : 'z-50'} mt-[calc(1rem+env(safe-area-inset-top))] px-4 sm:mt-[calc(1.5rem+env(safe-area-inset-top))] sm:px-6`}
+        aria-hidden="true"
+        className={`pointer-events-none fixed inset-x-0 top-0 z-40 h-[calc(5.5rem+env(safe-area-inset-top))] transition-opacity duration-300 ${
+          headerScrolled ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{ background: 'linear-gradient(to bottom, var(--color-white) 55%, transparent)' }}
+      />
+      <div
+        className={`fixed inset-x-0 top-0 ${anyMenuOpen ? 'z-[55]' : 'z-50'} px-4 transition-[padding] duration-300 sm:px-6 ${
+          headerScrolled
+            ? 'pt-[calc(0.5rem+env(safe-area-inset-top))]'
+            : 'pt-[calc(1rem+env(safe-area-inset-top))] sm:pt-[calc(1.5rem+env(safe-area-inset-top))]'
+        }`}
       >
         <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <div className="relative z-[62]">
+          <div className={`relative z-[62] origin-left transition-transform duration-300 ease-out ${headerScrolled ? 'scale-[0.84]' : ''}`}>
             <HeaderLogo
               still
               onClick={() => {
@@ -2443,8 +2465,24 @@ function AdminDashboard() {
               }}
             />
           </div>
-          <div className="flex items-center gap-2.5">
+          <div className={`flex items-center transition-[gap] duration-300 ${headerScrolled ? 'gap-1' : 'gap-2.5'}`}>
+            <button
+              type="button"
+              aria-label={theme.theme === 'dark' ? 'Mudar para o tema claro' : 'Mudar para o tema escuro'}
+              title={theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro'}
+              onClick={() => {
+                if (anyMenuOpen) return
+                void tap()
+                theme.toggleTheme()
+              }}
+              className={`relative z-[62] flex size-12 items-center justify-center rounded-full transition-transform duration-300 ease-out active:scale-90 ${BRAND_CIRCLE} ${
+                headerScrolled ? 'scale-[0.84]' : ''
+              }`}
+            >
+              {theme.theme === 'dark' ? <Sun size={19} strokeWidth={1.9} /> : <Moon size={18} strokeWidth={1.9} />}
+            </button>
             <AdminBell
+              shrink={headerScrolled}
               requests={can('marcacoes') ? pendingBookings : []}
               testimonials={can('testemunhos') ? pendingTestimonials : []}
               cancelled={can('marcacoes') ? recentCancellations : []}
@@ -2463,6 +2501,7 @@ function AdminDashboard() {
               small
               brand
               raised
+              shrink={headerScrolled}
               onOpenChange={onPlusOpen}
               PlusIcon={Plus}
             />
