@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import {
   ArrowRight,
   CalendarCheck,
+  CalendarPlus,
   CalendarClock,
   CalendarX2,
   ChartColumn,
@@ -752,9 +753,9 @@ function Highlight({
             void tap('medium')
             onNewBooking()
           }}
-          className="flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-onyx px-4 text-[13px] font-semibold text-white transition-transform active:scale-[0.97]"
+          className="glass-chip flex h-11 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
         >
-          <i className="bx bx-plus text-lg" aria-hidden="true" />
+          <CalendarPlus size={16} strokeWidth={2.2} />
           Nova marcação
         </button>
         <button
@@ -764,12 +765,16 @@ function Highlight({
             onOpen('pedidos')
           }}
           aria-label={month.pendingCount ? `Pedidos, ${month.pendingCount} à espera` : 'Pedidos'}
-          className="flex h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-onyx/[0.05] pe-1.5 ps-3.5 text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
+          className="relative flex h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-onyx/[0.05] pe-1.5 ps-3.5 text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
         >
           <span>Pedidos</span>
+          {/* The requests waiting, as a badge on the button's top right corner. */}
           {month.pendingCount > 0 && (
-            <span className="tabular flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-[#1a1008]" style={{ background: STATUS.waiting }}>
-              {month.pendingCount}
+            <span
+              className="tabular absolute -right-1 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-[#1a1008] ring-2 ring-white"
+              style={{ background: STATUS.waiting }}
+            >
+              {month.pendingCount > 9 ? '9+' : month.pendingCount}
             </span>
           )}
           <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-onyx shadow-sm">
