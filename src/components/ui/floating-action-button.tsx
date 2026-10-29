@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { ChevronUp, Ellipsis, Plus, type LucideIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
@@ -195,7 +195,7 @@ export function FloatingActionMenu({
   bare?: boolean
   /** The round button a little smaller (a header that has scrolled); the menu keeps its place. */
   shrink?: boolean
-  /** Every option, main or under "Mais opções", the same size (44px buttons, names a little larger). */
+  /** Every option, main or under "Mais opções", the same size (42px buttons, slightly larger names). */
   smallItems?: boolean
   /** The button stays clear above the blur of any menu opened beside it (a header that stays sharp). */
   raised?: boolean
@@ -354,8 +354,8 @@ export function FloatingActionMenu({
           <div
             className={cn(
               'pointer-events-none absolute right-0 flex items-end',
-              // 44px buttons centred under the 48px round one.
-              smallItems ? 'gap-2.5 pe-0.5' : keepOrder ? 'gap-1.5' : 'gap-2.5',
+              // 42px buttons centred under the 48px round one.
+              smallItems ? 'gap-2 pe-[3px]' : keepOrder ? 'gap-1.5' : 'gap-2.5',
               direction === 'up' ? 'bottom-full mb-3 flex-col-reverse' : 'top-full mt-3 flex-col',
             )}
           >
@@ -364,14 +364,14 @@ export function FloatingActionMenu({
               const above = direction === 'up' ? ordered[index + 1] : ordered[index - 1]
               const apart = above !== undefined && above.group !== group
               const glyph = Icon ? (
-                <Icon size={smallItems ? 19 : 20} className="text-onyx" />
+                <Icon size={smallItems ? 18 : 20} className="text-onyx" />
               ) : (
-                <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: smallItems ? 21 : 22 }} aria-hidden="true" />
+                <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: smallItems ? 20 : 22 }} aria-hidden="true" />
               )
               const circle =
                 cn(
                   'flex items-center justify-center rounded-full border border-onyx/10 bg-white shadow-md shadow-black/10',
-                  smallItems ? 'size-11' : 'size-12',
+                  smallItems ? 'size-[2.625rem]' : 'size-12',
                 )
               const run = () => {
                 onClick?.()
@@ -380,7 +380,7 @@ export function FloatingActionMenu({
               return (
                 <motion.div
                   key={label}
-                  className={cn('flex items-center', smallItems ? 'gap-2.5' : 'gap-3', apart && 'mt-2')}
+                  className={cn('flex items-center', smallItems ? 'gap-2' : 'gap-3', apart && 'mt-2')}
                   style={{ pointerEvents: open ? 'auto' : 'none' }}
                   initial={false}
                   animate={{
@@ -395,7 +395,7 @@ export function FloatingActionMenu({
                   <span
                     className={cn(
                       'flex items-center gap-2 whitespace-nowrap rounded-full border border-onyx/10 bg-white font-subtitle font-medium shadow-md shadow-black/10',
-                      smallItems ? 'px-4 py-2 text-[13px]' : 'px-3.5 py-1.5 text-xs',
+                      smallItems ? 'px-3.5 py-[7px] text-[12.5px]' : 'px-3.5 py-1.5 text-xs',
                       danger ? 'text-red-700' : 'text-onyx',
                     )}
                   >
@@ -429,11 +429,15 @@ export function FloatingActionMenu({
             {/* What "Mais opções" opens: a column to the left of the main one, starting level with "Mais opções" and going
                 down from there, smaller and closer together, each like the options beside it (the name in a white pill
                 and its round button); the app's own settings (group "app") a little apart at the end. */}
+            {/* They leave as they came in, the last one first. */}
+            <AnimatePresence>
             {open && showMore && more && (
-              <div
+              <motion.div
+                key="more"
+                exit={{ opacity: 1 }}
                 className={cn(
                   'pointer-events-auto absolute right-[calc(100%+0.5rem)] flex flex-col items-end',
-                  smallItems ? 'top-[calc(100%-2.75rem)] gap-2.5' : 'top-[calc(100%-2.625rem)] gap-1.5',
+                  smallItems ? 'top-[calc(100%-2.625rem)] gap-2' : 'top-[calc(100%-2.625rem)] gap-1.5',
                 )}
               >
                 {more.map(({ Icon, iconClass, label, danger, onClick, confirm, group }, index) => {
@@ -449,14 +453,19 @@ export function FloatingActionMenu({
                         close()
                       }}
                       initial={{ opacity: 0, x: 12, filter: 'blur(2px)' }}
-                      animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-                      transition={{ type: 'tween', ease: 'easeOut', duration: 0.25, delay: index * 0.03 }}
+                      animate={{ opacity: 1, x: 0, filter: 'blur(0px)', transition: { type: 'tween', ease: 'easeOut', duration: 0.25, delay: index * 0.03 } }}
+                      exit={{
+                        opacity: 0,
+                        x: 12,
+                        filter: 'blur(2px)',
+                        transition: { type: 'tween', ease: 'easeIn', duration: 0.2, delay: (more.length - 1 - index) * 0.03 },
+                      }}
                       className={cn('flex items-center gap-2', apart && 'mt-2')}
                     >
                       <span
                         className={cn(
                           'whitespace-nowrap rounded-full border border-onyx/10 bg-white font-subtitle font-medium shadow-md shadow-black/10',
-                          smallItems ? 'px-4 py-2 text-[13px]' : 'px-3 py-1 text-xs',
+                          smallItems ? 'px-3.5 py-[7px] text-[12.5px]' : 'px-3 py-1 text-xs',
                           danger || asking ? 'text-red-700' : 'text-onyx',
                         )}
                       >
@@ -465,12 +474,12 @@ export function FloatingActionMenu({
                       <span
                         className={cn(
                           'flex shrink-0 items-center justify-center rounded-full border shadow-md shadow-black/10 transition-colors',
-                          smallItems ? 'size-11' : 'size-9',
+                          smallItems ? 'size-[2.625rem]' : 'size-9',
                           asking ? 'border-red-700 bg-red-700' : 'border-onyx/10 bg-white',
                         )}
                       >
                         {Icon ? (
-                          <Icon size={smallItems ? 19 : 16} className={asking ? 'text-[#ffffff]' : danger ? 'text-red-700' : 'text-onyx'} />
+                          <Icon size={smallItems ? 18 : 16} className={asking ? 'text-[#ffffff]' : danger ? 'text-red-700' : 'text-onyx'} />
                         ) : (
                           <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 18 }} aria-hidden="true" />
                         )}
@@ -478,8 +487,9 @@ export function FloatingActionMenu({
                     </motion.button>
                   )
                 })}
-              </div>
+              </motion.div>
             )}
+            </AnimatePresence>
           </div>
         )}
 
