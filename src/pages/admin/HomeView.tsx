@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import {
   ArrowRight,
+  ArrowLeftRight,
   CalendarCheck,
   CalendarPlus,
   CalendarClock,
@@ -11,10 +12,12 @@ import {
   ChartLine,
   ChartPie,
   Check,
+  ChevronDown,
   ChevronRight,
   Clock,
   Eye,
   EyeOff,
+  Hash,
   Hourglass,
   LayoutGrid,
   ListFilter,
@@ -53,6 +56,7 @@ const TZ = 'Europe/Lisbon'
 const HOUR = 60 * 60 * 1000
 const ORDER_KEY = 'afroadmin:painel-ordem'
 const CHART_KEY = 'afroadmin:painel-grafico'
+const COMPARE_KEY = 'afroadmin:painel-comparacao'
 const HIDE_KEY = 'afroadmin:esconder-valores'
 
 type Tab = 'pedidos' | 'agenda' | 'disponibilidade' | 'clientes' | MoreTarget
@@ -461,6 +465,17 @@ function boardData({ bookings, testimonials }: { bookings: Booking[]; testimonia
     }
   }
   const months = [-5, -4, -3, -2, -1, 0].map((by) => figuresFor(shiftMonth(thisMonth, by)))
+  // For the comparison in the Faturação detail: the last twelve months, each day by day as a running total.
+  const daily = Array.from({ length: 12 }, (_, i) => {
+    const key = shiftMonth(thisMonth, -i)
+    const length = new Date(Number(key.slice(0, 4)), Number(key.slice(5)), 0).getDate()
+    const perDay = Array<number>(length).fill(0)
+    confirmed.forEach((b) => {
+      if (monthOf(b.slot.startsAt) === key) perDay[Number(dayKey(b.slot.startsAt).slice(8)) - 1] += bookingPrice(b)
+    })
+    let total = 0
+    return { key, running: perDay.map((v) => (total += v)) }
+  })
   const current = months[5]
   // Against last month up to the same day, so a month just begun isn't "down".
   const lastSoFar = figuresFor(shiftMonth(thisMonth, -1), dayOfMonth)
@@ -540,6 +555,7 @@ function boardData({ bookings, testimonials }: { bookings: Booking[]; testimonia
 
   return {
     months,
+    daily,
     month: {
       revenue: current.revenue,
       revenueChange: pct(currentSoFar.revenue, lastSoFar.revenue),
@@ -825,7 +841,6 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
     })
   const servicesTotal = services.reduce((a, sv) => a + sv.value, 0)
   const doneShare = month.revenue ? month.doneCents / month.revenue : 0
-  const compareTop = Math.max(1, month.revenue, month.lastSoFarCents, month.lastFullCents)
   const change = month.revenueChange
   // Whether there is more above or below, to show that the card scrolls.
   const body = useRef<HTMLDivElement>(null)
@@ -946,29 +961,8 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
                 </div>
               </section>
 
-              {/* Against last month. */}
-              <DetailSection Icon={ChartColumn} title={`Comparação com ${last}`}>
-                <ul className="space-y-3">
-                  {[
-                    { label: capital(name), cents: month.revenue, strong: true },
-                    { label: `${capital(last)} até dia ${month.dayOfMonth}`, cents: month.lastSoFarCents },
-                    { label: `${capital(last)}, o mês todo`, cents: month.lastFullCents },
-                  ].map((row) => (
-                    <li key={row.label}>
-                      <div className="flex items-baseline justify-between gap-3">
-                        <span className={`truncate text-[13px] ${row.strong ? 'font-semibold text-onyx' : 'text-ink-3'}`}>{row.label}</span>
-                        <span className="amount tabular shrink-0 text-[13px] font-bold text-onyx">{euros(row.cents)}</span>
-                      </div>
-                      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-onyx/[0.08]">
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: `${(row.cents / compareTop) * 100}%`, background: row.strong ? 'var(--c-pos)' : 'color-mix(in srgb, var(--color-onyx) 30%, transparent)' }}
-                        />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </DetailSection>
+              {/* Against any of the last months. */}
+              <MonthCompare daily={data.daily} dayOfMonth={month.dayOfMonth} />
 
               {/* Confirmed, waiting, cancelled. */}
               <DetailSection Icon={CalendarCheck} title="Estado das marcações">
@@ -1066,6 +1060,223 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
       )}
     </AnimatePresence>,
     document.body,
+  )
+}
+
+type CompareView = 'barras' | 'linhas' | 'numeros'
+
+/**
+ * This month against any of the last eleven (the one before by default), in three ways: bars (this month so far, the
+ * other to the same day and in full), lines (both day by day as running totals, today marked) or figures (side by
+ * side with the difference). The chosen way is remembered on the device.
+ */
+function MonthCompare({ daily, dayOfMonth }: { daily: BoardData['daily']; dayOfMonth: number }) {
+  const [otherKey, setOtherKey] = useState(daily[1]?.key ?? daily[0].key)
+  const [view, setView] = useState<CompareView>(() => readStore<CompareView>(COMPARE_KEY, 'barras'))
+  const choose = (next: CompareView) => {
+    void tap()
+    setView(next)
+    writeStore(COMPARE_KEY, next)
+  }
+  const current = daily[0]
+  const other = daily.find((d) => d.key === otherKey) ?? daily[1] ?? current
+  const now = current.running[dayOfMonth - 1] ?? 0
+  const otherSameDay = other.running[Math.min(dayOfMonth, other.running.length) - 1] ?? 0
+  const otherFull = other.running[other.running.length - 1] ?? 0
+  const diff = now - otherSameDay
+  const pctDiff = otherSameDay ? Math.round((diff / otherSameDay) * 100) : null
+  const up = diff >= 0
+  const tone = up ? 'var(--c-pos)' : 'var(--c-neg)'
+  const thisName = capital(monthName(current.key))
+  const otherName = capital(monthName(other.key))
+  const otherYear = other.key.slice(0, 4) !== current.key.slice(0, 4) ? ` ${other.key.slice(0, 4)}` : ''
+  const views: Array<{ id: CompareView; Icon: LucideIcon; label: string }> = [
+    { id: 'barras', Icon: ChartColumn, label: 'Barras' },
+    { id: 'linhas', Icon: ChartLine, label: 'Linhas' },
+    { id: 'numeros', Icon: Hash, label: 'Números' },
+  ]
+
+  return (
+    <section className="rounded-3xl bg-onyx/[0.04] p-4">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h3 className="flex items-center gap-2 font-subtitle text-[14px] font-semibold tracking-tight text-onyx">
+          <span className="flex size-7 items-center justify-center rounded-full bg-white text-onyx">
+            <ArrowLeftRight size={14} />
+          </span>
+          Comparação
+        </h3>
+        <div className="flex rounded-full bg-white p-0.5 shadow-sm" role="tablist" aria-label="Forma de ver a comparação">
+          {views.map(({ id, Icon, label }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={view === id}
+              aria-label={label}
+              onClick={() => choose(id)}
+              className={`flex size-7 items-center justify-center rounded-full transition-colors ${view === id ? 'bg-onyx text-white' : 'text-muted-dark'}`}
+            >
+              <Icon size={14} />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Which month to compare with. */}
+      <label className="glass-chip relative flex h-9 w-fit items-center gap-2 rounded-full ps-3.5 pe-3 text-[13px] font-semibold text-onyx">
+        <span className="text-muted-dark font-medium">{thisName} vs</span>
+        <span>
+          {otherName}
+          {otherYear}
+        </span>
+        <ChevronDown size={14} className="text-muted-dark" />
+        <select
+          value={other.key}
+          onChange={(e) => setOtherKey(e.target.value)}
+          aria-label="Comparar com o mês"
+          className="absolute inset-0 cursor-pointer opacity-0"
+        >
+          {daily.slice(1).map((d) => (
+            <option key={d.key} value={d.key}>
+              {capital(monthName(d.key))} {d.key.slice(0, 4)}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <div className="mt-4">
+        {view === 'barras' && (
+          <CompareBars
+            bars={[
+              { label: `${thisName} até dia ${dayOfMonth}`, cents: now, colour: tone, strong: true },
+              { label: `${otherName} até dia ${dayOfMonth}`, cents: otherSameDay, colour: 'color-mix(in srgb, var(--color-onyx) 28%, transparent)' },
+              { label: `${otherName} completo`, cents: otherFull, colour: 'color-mix(in srgb, var(--color-onyx) 14%, transparent)' },
+            ]}
+          />
+        )}
+        {view === 'linhas' && (
+          <CompareLines current={current.running.slice(0, dayOfMonth)} other={other.running} tone={tone} thisName={thisName} otherName={otherName} />
+        )}
+        {view === 'numeros' && (
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-2xl bg-white p-3">
+              <p className="truncate text-xs text-ink-3">{thisName} até dia {dayOfMonth}</p>
+              <p className="amount tabular mt-0.5 text-[20px] font-bold tracking-tight text-onyx">{euros(now)}</p>
+            </div>
+            <div className="rounded-2xl bg-white p-3">
+              <p className="truncate text-xs text-ink-3">{otherName} até dia {dayOfMonth}</p>
+              <p className="amount tabular mt-0.5 text-[20px] font-bold tracking-tight text-onyx">{euros(otherSameDay)}</p>
+            </div>
+            <div className="col-span-2 flex items-center justify-between gap-3 rounded-2xl p-3" style={{ background: `color-mix(in srgb, ${tone} 12%, transparent)` }}>
+              <span className="text-[13px] font-medium text-onyx">{up ? 'Estás à frente' : 'Estás atrás'}</span>
+              <span className="amount tabular text-[15px] font-bold" style={{ color: tone }}>
+                {up ? '+' : '−'}
+                {euros(Math.abs(diff))}
+                {pctDiff !== null && ` · ${up ? '↑' : '↓'}${Math.abs(pctDiff)}%`}
+              </span>
+            </div>
+            <p className="col-span-2 px-1 text-xs text-ink-3">
+              {now >= otherFull ? (
+                <>
+                  Já passaste {otherName.toLowerCase()} completo ({<span className="amount">{euros(otherFull)}</span>}).
+                </>
+              ) : (
+                <>
+                  Faltam <span className="amount font-semibold text-onyx">{euros(otherFull - now)}</span> para igualar {otherName.toLowerCase()} completo.
+                </>
+              )}
+            </p>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+/** Three upright bars side by side, each with its amount above and its name below. */
+function CompareBars({ bars }: { bars: Array<{ label: string; cents: number; colour: string; strong?: boolean }> }) {
+  const top = Math.max(1, ...bars.map((b) => b.cents))
+  return (
+    <div>
+      <div role="img" aria-label={bars.map((b) => `${b.label}: ${euros(b.cents)}`).join('; ')} className="flex h-36 items-end gap-3 px-2">
+        {bars.map((b) => (
+          <div key={b.label} className="relative flex h-full flex-1 items-end justify-center">
+            <span aria-hidden="true" className="absolute inset-x-0 bottom-0 top-0 mx-auto w-full max-w-14 rounded-2xl bg-onyx/[0.05]" />
+            <span
+              className="relative block w-full max-w-14 rounded-2xl"
+              style={{
+                height: `${Math.max((b.cents / top) * 100, b.cents ? 6 : 0)}%`,
+                background: b.strong ? `linear-gradient(to bottom, color-mix(in srgb, ${b.colour} 70%, white), ${b.colour})` : b.colour,
+              }}
+            >
+              <span className={`amount tabular absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[12px] ${b.strong ? 'font-bold text-onyx' : 'font-semibold text-muted-dark'}`}>
+                {euros(b.cents)}
+              </span>
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 flex gap-3 px-2">
+        {bars.map((b) => (
+          <span key={b.label} className={`flex-1 text-center text-[11px] leading-tight ${b.strong ? 'font-semibold text-onyx' : 'text-ink-3'}`}>
+            {b.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** Both months day by day as running totals: this month up to today in its colour, the other in full, dashed. */
+function CompareLines({ current, other, tone, thisName, otherName }: { current: number[]; other: number[]; tone: string; thisName: string; otherName: string }) {
+  const days = 31
+  const top = Math.max(1, ...current, ...other)
+  const W = 300
+  const H = 120
+  const x = (i: number) => (i / (days - 1)) * W
+  const y = (v: number) => H - (v / top) * (H - 6) - 3
+  const path = (values: number[]) => values.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ')
+  const last = current.length - 1
+  return (
+    <div>
+      <svg
+        role="img"
+        aria-label={`${thisName} até hoje: ${euros(current[last] ?? 0)}; ${otherName} completo: ${euros(other[other.length - 1] ?? 0)}`}
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="none"
+        className="h-36 w-full overflow-visible"
+      >
+        <defs>
+          <linearGradient id="compare-area" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor={tone} stopOpacity="0.22" />
+            <stop offset="100%" stopColor={tone} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {[0, 0.5, 1].map((p) => (
+          <line key={p} x1="0" x2={W} y1={H * p} y2={H * p} stroke="color-mix(in srgb, var(--color-onyx) 8%, transparent)" vectorEffect="non-scaling-stroke" />
+        ))}
+        <polyline points={path(other)} fill="none" stroke="color-mix(in srgb, var(--color-onyx) 35%, transparent)" strokeWidth="1.75" strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
+        {current.length > 1 && <polygon points={`0,${H} ${path(current)} ${x(last)},${H}`} fill="url(#compare-area)" />}
+        <polyline points={path(current)} fill="none" stroke={tone} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+        {/* Today. */}
+        <line x1={x(last)} x2={x(last)} y1="0" y2={H} stroke={tone} strokeOpacity="0.4" strokeDasharray="2 3" vectorEffect="non-scaling-stroke" />
+      </svg>
+      <div className="mt-1 flex justify-between text-[10px] text-ink-3">
+        <span>dia 1</span>
+        <span>15</span>
+        <span>31</span>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-ink-3">
+        <span className="flex items-center gap-1.5">
+          <span className="h-0.5 w-3 rounded-full" style={{ background: tone }} aria-hidden="true" />
+          {thisName} <span className="amount tabular font-semibold text-onyx">{euros(current[last] ?? 0)}</span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 border-t-[1.5px] border-dashed border-onyx/40" aria-hidden="true" />
+          {otherName} <span className="amount tabular font-semibold text-onyx">{euros(other[other.length - 1] ?? 0)}</span>
+        </span>
+      </div>
+    </div>
   )
 }
 
