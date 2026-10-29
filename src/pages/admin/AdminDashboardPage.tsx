@@ -13,6 +13,7 @@ import {
   CalendarRange,
   CalendarX2,
   Check,
+  ChevronLeft,
   ChevronRight,
   ChartColumn,
   Clock,
@@ -2347,6 +2348,15 @@ function AdminDashboard() {
       : 'inicio'
   })
   useAutoHideNav(hideOnScroll, tab)
+  // The page before this one, for the back button on Dias fechados (Horários when there is none).
+  const shownTab = useRef<AdminTab>(tab)
+  const previousTab = useRef<AdminTab>('disponibilidade')
+  useEffect(() => {
+    if (shownTab.current !== tab) {
+      previousTab.current = shownTab.current
+      shownTab.current = tab
+    }
+  }, [tab])
 
   // A team member without bookings opens on what they can use.
   useEffect(() => {
@@ -2821,15 +2831,33 @@ function AdminDashboard() {
           }`}
         >
           <div className={`relative z-[62] origin-left transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${headerScrolled ? 'scale-[0.86]' : ''}`}>
-            <HeaderLogo
-              still
-              onClick={() => {
-                // Not while a menu is open: a tap outside it only closes it.
-                if (anyMenuOpen) return
-                setTab('inicio')
-                window.scrollTo({ top: 0 })
-              }}
-            />
+            {tab === 'fechos' ? (
+              // Dias fechados is a page reached from another: a round back button where the logo is.
+              <button
+                type="button"
+                aria-label="Voltar"
+                onClick={() => {
+                  if (anyMenuOpen) return
+                  void tap()
+                  const back = previousTab.current
+                  setTab(back === 'fechos' ? 'disponibilidade' : back)
+                  window.scrollTo({ top: 0 })
+                }}
+                className={`flex size-12 items-center justify-center rounded-full ${INK_CIRCLE}`}
+              >
+                <ChevronLeft size={22} strokeWidth={2} />
+              </button>
+            ) : (
+              <HeaderLogo
+                still
+                onClick={() => {
+                  // Not while a menu is open: a tap outside it only closes it.
+                  if (anyMenuOpen) return
+                  setTab('inicio')
+                  window.scrollTo({ top: 0 })
+                }}
+              />
+            )}
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2">
             <button
