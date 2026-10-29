@@ -387,7 +387,7 @@ export function FloatingActionMenu({
                 onClick?.()
                 if (!keepOpen) close()
               }
-              // "Mais opções" / "Menos opções" stays the same item while its name and icon change, so it doesn't jump.
+              // "Mais opções" / "Menos opções" stays the same item while its name (at once) and icon (turning) change.
               const toggle = keepOpen && group === 'mais'
               // Calm and in turn, overlapping: opening, the name and icon start to change and the options follow halfway
               // through; closing, the options start to leave and it changes back halfway through.
@@ -408,37 +408,20 @@ export function FloatingActionMenu({
                   }}
                   transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4, delay: open ? index * 0.05 : 0 }}
                 >
-                  <motion.span
-                    layout={toggle ? 'size' : false}
-                    transition={swap}
+                  <span
                     className={cn(
-                      'flex items-center gap-2 overflow-hidden whitespace-nowrap rounded-full border border-onyx/10 bg-white font-subtitle font-medium shadow-md shadow-black/10',
+                      'flex items-center gap-2 whitespace-nowrap rounded-full border border-onyx/10 bg-white font-subtitle font-medium shadow-md shadow-black/10',
                       smallItems ? 'px-3.5 py-[7px] text-[12.5px]' : 'px-3.5 py-1.5 text-xs',
                       danger ? 'text-red-700' : 'text-onyx',
                     )}
                   >
-                    {toggle ? (
-                      <AnimatePresence mode="popLayout" initial={false}>
-                        <motion.span
-                          key={label}
-                          layout="position"
-                          initial={{ opacity: 0, y: 8, filter: 'blur(3px)' }}
-                          animate={swapIn}
-                          exit={{ opacity: 0, y: -8, filter: 'blur(3px)' }}
-                          transition={swap}
-                        >
-                          {label}
-                        </motion.span>
-                      </AnimatePresence>
-                    ) : (
-                      label
-                    )}
+                    {label}
                     {badge ? (
                       <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none text-[#ffffff]">
                         {badge}
                       </span>
                     ) : null}
-                  </motion.span>
+                  </span>
                   {href ? (
                     <a
                       href={href}
