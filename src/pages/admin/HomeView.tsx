@@ -715,21 +715,38 @@ function Highlight({
           ]}
         />
       </button>
-      <div className="mt-3 grid shrink-0 grid-cols-2 gap-2">
+      <div className="mt-3 flex shrink-0 gap-2">
         <button
           type="button"
-          onClick={onNewBooking}
-          className="flex h-9 items-center justify-center gap-1.5 rounded-full bg-onyx text-[13px] font-semibold text-white"
+          onClick={() => {
+            void tap('medium')
+            onNewBooking()
+          }}
+          className="flex h-11 min-w-0 flex-1 items-center gap-2 whitespace-nowrap rounded-full bg-onyx pe-3 ps-1.5 text-[13px] font-semibold text-white shadow-[0_6px_16px_-6px_rgba(0,0,0,0.45)] transition-transform active:scale-[0.97]"
         >
-          <Plus size={15} />
-          Nova marcação
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/15">
+            <Plus size={16} strokeWidth={2.4} />
+          </span>
+          <span className="truncate">Nova marcação</span>
         </button>
         <button
           type="button"
-          onClick={() => onOpen('pedidos')}
-          className="glass-chip flex h-9 items-center justify-center gap-1.5 rounded-full text-[13px] font-medium text-onyx"
+          onClick={() => {
+            void tap()
+            onOpen('pedidos')
+          }}
+          aria-label={month.pendingCount ? `Pedidos, ${month.pendingCount} à espera` : 'Pedidos'}
+          className="flex h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-onyx/[0.05] pe-1.5 ps-3.5 text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
         >
-          Ver pedidos
+          <span>Pedidos</span>
+          {month.pendingCount > 0 && (
+            <span className="tabular flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-white" style={{ background: STATUS.waiting }}>
+              {month.pendingCount}
+            </span>
+          )}
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-onyx shadow-sm">
+            <ArrowRight size={16} />
+          </span>
         </button>
       </div>
     </>
