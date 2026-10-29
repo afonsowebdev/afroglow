@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import { CalendarRange, Check, Plus, Sunrise, Sunset, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
 import { api, ApiError } from '@/lib/api'
@@ -150,9 +151,7 @@ export function GenerateSlotsSheet({
     setPattern((p) => ({ ...p, week: { ...p.week, [day]: { ...p.week[day], [shift]: !p.week[day]?.[shift] } } }))
 
   const lastDay = times.length ? times[times.length - 1] : null
-  const section = 'mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark'
-  const group =
-    'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
+  const label = 'mb-2 px-1 font-subtitle text-[12px] font-semibold text-muted-dark'
   const openDays = WEEKDAYS.filter((d) => pattern.week[d.id]?.am || pattern.week[d.id]?.pm).length
 
   return (
@@ -163,7 +162,7 @@ export function GenerateSlotsSheet({
             type="button"
             aria-label="Fechar"
             onClick={() => !busy && onClose()}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -176,117 +175,117 @@ export function GenerateSlotsSheet({
               e.preventDefault()
               if (times.length && !busy) void submit()
             }}
-            className="relative flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
+            className="relative flex max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl sm:rounded-[28px]"
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           >
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-onyx/10 px-4 py-3">
+            <div className="flex items-center gap-3 px-5 pb-3 pt-5">
+              <span className="glass-chip flex size-11 shrink-0 items-center justify-center rounded-full text-onyx">
+                <CalendarRange size={18} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-subtitle text-[19px] font-semibold tracking-tight text-onyx">Abrir semanas</h2>
+                <p className="truncate font-subtitle text-xs text-muted-dark">A tua rotina, de uma vez. O que já existe fica.</p>
+              </div>
               <button
                 type="button"
+                aria-label="Fechar"
                 onClick={onClose}
                 disabled={busy}
-                className="min-w-20 text-left font-subtitle text-[15px] text-onyx/60 disabled:opacity-50"
+                className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-onyx"
               >
-                Cancelar
-              </button>
-              <h2 className="font-subtitle text-base font-semibold text-onyx">Abrir semanas</h2>
-              <button
-                type="submit"
-                disabled={busy || times.length === 0}
-                className="min-w-20 text-right font-subtitle text-[15px] font-semibold text-onyx disabled:opacity-30"
-              >
-                {busy ? 'A criar…' : 'Criar'}
+                <X size={16} />
               </button>
             </div>
 
-            <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-5">
-              <p className="px-1 font-subtitle text-sm text-muted-dark">
-                Abre as próximas semanas com a tua rotina. Os horários que já existem ficam como estão.
-              </p>
+            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-5 pb-4 pt-1">
               {error && (
-                <p role="alert" className="rounded-xl bg-red-700/10 px-4 py-3 font-subtitle text-sm text-red-700">
+                <p role="alert" className="rounded-2xl px-4 py-3 font-subtitle text-sm text-onyx" style={{ background: 'color-mix(in srgb, var(--c-cancelled) 12%, transparent)' }}>
                   {error}
                 </p>
               )}
 
-              {/* The two times of the day. */}
+              {/* The two times of the day, side by side; a tap changes one. */}
               <section>
-                <h3 className={section}>Horas das sessões</h3>
-                <div className={group}>
+                <p className={label}>Horas · uma cliente em cada</p>
+                <div className="grid grid-cols-2 gap-2">
                   {(
                     [
-                      ['Manhã', 'amTime'],
-                      ['Tarde', 'pmTime'],
+                      ['Manhã', 'amTime', Sunrise],
+                      ['Tarde', 'pmTime', Sunset],
                     ] as const
-                  ).map(([label, field]) => (
-                    <label key={field} className="relative flex h-[52px] items-center gap-3 px-4">
-                      <span className="flex-1 font-subtitle text-[15px] text-onyx">{label}</span>
-                      <span className="font-subtitle text-base lining-nums tabular-nums text-onyx">
-                        {pattern[field]}
-                      </span>
-                      <i className="bx bx-time-five text-lg text-onyx/40" aria-hidden="true" />
+                  ).map(([name, field, Icon]) => (
+                    <label key={field} className="glass-chip relative flex h-12 items-center gap-2.5 rounded-full px-4">
+                      <Icon size={16} className="text-ink-3" />
+                      <span className="flex-1 font-subtitle text-[13px] text-muted-dark">{name}</span>
+                      <span className="tabular font-subtitle text-[16px] font-semibold text-onyx">{pattern[field]}</span>
                       <input
                         type="time"
                         value={pattern[field]}
                         onChange={(e) => setPattern({ ...pattern, [field]: e.target.value })}
-                        aria-label={`Hora da ${label.toLowerCase()}`}
-                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                        aria-label={`Hora da ${name.toLowerCase()}`}
+                        className="absolute inset-0 size-full cursor-pointer opacity-0"
                       />
                     </label>
                   ))}
                 </div>
-                <p className="mt-2 px-1 font-subtitle text-xs text-muted-dark">Uma cliente em cada hora.</p>
               </section>
 
-              {/* Which of the two each weekday has. */}
+              {/* The week as a small grid: a day per column, the morning and the afternoon as two rows. */}
               <section>
-                <h3 className={section}>
+                <p className={label}>
                   A tua semana · {openDays} {openDays === 1 ? 'dia aberto' : 'dias abertos'}
-                </h3>
-                <ul className={group}>
-                  {WEEKDAYS.map((day) => {
-                    const shifts = pattern.week[day.id] ?? { am: false, pm: false }
-                    const closed = !shifts.am && !shifts.pm
-                    return (
-                      <li key={day.id} className="flex items-center gap-3 px-4 py-2.5">
-                        <span className="min-w-0 flex-1">
-                          <span
-                            className={cn('block font-subtitle text-[15px]', closed ? 'text-onyx/45' : 'text-onyx')}
-                          >
-                            {DAY_NAMES[day.id]}
-                          </span>
-                          <span className="block font-subtitle text-xs text-muted-dark">
-                            {closed
-                              ? 'Fechado'
-                              : [shifts.am && pattern.amTime, shifts.pm && pattern.pmTime].filter(Boolean).join(' e ')}
-                          </span>
-                        </span>
-                        {(['am', 'pm'] as const).map((shift) => (
-                          <button
-                            key={shift}
-                            type="button"
-                            aria-pressed={shifts[shift]}
-                            aria-label={`${DAY_NAMES[day.id]}, ${shift === 'am' ? 'manhã' : 'tarde'}`}
-                            onClick={() => toggleShift(day.id, shift)}
-                            className={cn(
-                              'h-9 w-[4.25rem] rounded-full font-subtitle text-xs transition-colors',
-                              shifts[shift] ? 'glass-chip-on font-semibold text-onyx' : 'glass-chip text-onyx/45',
-                            )}
-                          >
-                            {shift === 'am' ? 'Manhã' : 'Tarde'}
-                          </button>
-                        ))}
-                      </li>
-                    )
-                  })}
-                </ul>
+                </p>
+                <div className="rounded-[22px] bg-onyx/[0.04] p-2.5">
+                  <div className="grid grid-cols-[2.75rem_repeat(7,minmax(0,1fr))] items-center gap-1.5">
+                    <span />
+                    {WEEKDAYS.map((day) => (
+                      <span key={day.id} className="text-center font-subtitle text-[11px] font-semibold text-muted-dark">
+                        {day.label}
+                      </span>
+                    ))}
+                    {(['am', 'pm'] as const).map((shift) => (
+                      <Fragment key={shift}>
+                        <span className="font-subtitle text-[11px] text-muted-dark">{shift === 'am' ? 'Manhã' : 'Tarde'}</span>
+                        {WEEKDAYS.map((day) => {
+                          const on = !!pattern.week[day.id]?.[shift]
+                          return (
+                            <button
+                              key={day.id}
+                              type="button"
+                              aria-pressed={on}
+                              aria-label={`${DAY_NAMES[day.id]}, ${shift === 'am' ? 'manhã' : 'tarde'}`}
+                              onClick={() => toggleShift(day.id, shift)}
+                              className={cn(
+                                'flex h-9 items-center justify-center rounded-xl transition-colors',
+                                on ? '' : 'bg-white/70 text-transparent shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)] dark:bg-onyx/[0.06]',
+                              )}
+                              // Open: a soft green, the colour of a free time.
+                              style={
+                                on
+                                  ? {
+                                      background: 'color-mix(in srgb, var(--c-confirmed) 18%, transparent)',
+                                      color: 'var(--c-confirmed)',
+                                      boxShadow: 'inset 0 0 0 1.5px color-mix(in srgb, var(--c-confirmed) 45%, transparent)',
+                                    }
+                                  : undefined
+                              }
+                            >
+                              <Check size={14} strokeWidth={3} />
+                            </button>
+                          )
+                        })}
+                      </Fragment>
+                    ))}
+                  </div>
+                </div>
               </section>
 
               {/* For how long. */}
               <section>
-                <h3 className={section}>Durante</h3>
+                <p className={label}>Durante</p>
                 <div className="grid grid-cols-6 rounded-full bg-onyx/[0.06] p-1" role="radiogroup" aria-label="Semanas">
                   {[1, 2, 3, 4, 6, 8].map((w) => (
                     <button
@@ -296,45 +295,38 @@ export function GenerateSlotsSheet({
                       aria-checked={pattern.weeks === w}
                       onClick={() => setPattern({ ...pattern, weeks: w })}
                       className={cn(
-                        'flex h-11 flex-col items-center justify-center rounded-full font-subtitle leading-none',
+                        'flex h-9 items-center justify-center gap-0.5 rounded-full font-subtitle text-[13px] transition-colors',
                         pattern.weeks === w
-                          ? 'bg-white text-onyx shadow-sm shadow-black/10 dark:bg-onyx/[0.14]'
-                          : 'text-onyx/55',
+                          ? 'bg-white font-semibold text-onyx shadow-[0_3px_8px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.04)] dark:bg-onyx/[0.16]'
+                          : 'text-muted-dark',
                       )}
                     >
-                      <span className="text-sm font-semibold">{w}</span>
-                      <span className="mt-0.5 text-[10px]">{w === 1 ? 'semana' : 'semanas'}</span>
+                      {w}
+                      <span className="text-[10px] font-normal">sem</span>
                     </button>
                   ))}
                 </div>
               </section>
 
-              {/* Days off inside that time. */}
+              {/* Days off inside that time, as chips. */}
               <section>
-                <h3 className={section}>Folgas a saltar</h3>
-                <div className={group}>
+                <p className={label}>Folgas a saltar</p>
+                <div className="flex flex-wrap gap-2">
                   {daysOff.map((d) => (
-                    <div key={d} className="flex h-[52px] items-center gap-3 px-4">
-                      <span className="flex-1 font-subtitle text-[15px] capitalize text-onyx">
-                        {new Date(`${d}T12:00:00`).toLocaleDateString('pt-PT', {
-                          weekday: 'long',
-                          day: 'numeric',
-                          month: 'long',
-                        })}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setDaysOff((list) => list.filter((x) => x !== d))}
-                        aria-label={`Remover a folga de ${d.split('-').reverse().join('/')}`}
-                        className="text-lg text-onyx/35 hover:text-red-700"
-                      >
-                        <i className="bx bx-minus-circle" aria-hidden="true" />
-                      </button>
-                    </div>
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setDaysOff((list) => list.filter((x) => x !== d))}
+                      aria-label={`Remover a folga de ${d.split('-').reverse().join('/')}`}
+                      className="glass-chip flex h-9 items-center gap-1.5 rounded-full pe-2 ps-3.5 font-subtitle text-[12px] font-medium text-onyx"
+                    >
+                      {new Date(`${d}T12:00:00`).toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' })}
+                      <X size={13} className="text-muted-dark" />
+                    </button>
                   ))}
-                  <label className="relative flex h-[52px] items-center gap-2 px-4 font-subtitle text-[15px] text-onyx">
-                    <i className="bx bx-plus-circle text-lg" aria-hidden="true" />
-                    Adicionar folga
+                  <label className="glass-chip relative flex h-9 items-center gap-1.5 rounded-full px-3.5 font-subtitle text-[12px] font-semibold text-onyx">
+                    <Plus size={14} strokeWidth={2.4} />
+                    Folga
                     <input
                       type="date"
                       value=""
@@ -343,21 +335,28 @@ export function GenerateSlotsSheet({
                         if (d) setDaysOff((list) => (list.includes(d) ? list : [...list, d].sort()))
                       }}
                       aria-label="Dia de folga"
-                      className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                      className="absolute inset-0 size-full cursor-pointer opacity-0"
                     />
                   </label>
                 </div>
               </section>
+            </div>
 
-              {/* What will be created. */}
-              <div className="rounded-2xl border border-onyx/10 p-4 text-center">
-                <p className="font-subtitle text-3xl font-semibold lining-nums text-onyx">{times.length}</p>
-                <p className="font-subtitle text-sm text-muted-dark">
-                  {times.length === 0
-                    ? 'Escolhe pelo menos um dia e uma hora.'
-                    : `${times.length === 1 ? 'horário novo' : 'horários novos'} até ${lastDay!.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'long' })}`}
-                </p>
-              </div>
+            {/* What will be created, and the button. */}
+            <div className="px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]">
+              <p className="mb-2.5 px-1 font-subtitle text-xs text-muted-dark">
+                {times.length === 0
+                  ? 'Escolhe pelo menos um dia.'
+                  : `Até ${lastDay!.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'long' })}`}
+              </p>
+              <button
+                type="submit"
+                disabled={busy || times.length === 0}
+                className="glass-chip-on flex h-12 w-full items-center justify-center gap-2 rounded-full font-subtitle text-[15px] font-semibold text-onyx transition-opacity disabled:opacity-40"
+              >
+                <Check size={17} strokeWidth={2.4} />
+                {busy ? 'A abrir…' : `Abrir ${times.length} ${times.length === 1 ? 'horário' : 'horários'}`}
+              </button>
             </div>
           </motion.form>
         </div>
