@@ -179,6 +179,7 @@ export function FloatingActionMenu({
   more,
   bare = false,
   shrink = false,
+  smallItems = false,
   raised = false,
   onOpenChange,
   PlusIcon = Plus,
@@ -194,6 +195,8 @@ export function FloatingActionMenu({
   bare?: boolean
   /** The round button a little smaller (a header that has scrolled); the menu keeps its place. */
   shrink?: boolean
+  /** Every option, main or under "Mais opções", the same smaller size (40px buttons, compact names). */
+  smallItems?: boolean
   /** The button stays clear above the blur of any menu opened beside it (a header that stays sharp). */
   raised?: boolean
   /** Told when the menu opens or closes. */
@@ -351,7 +354,8 @@ export function FloatingActionMenu({
           <div
             className={cn(
               'pointer-events-none absolute right-0 flex items-end',
-              keepOrder ? 'gap-1.5' : 'gap-2.5',
+              // Smaller buttons centred under the 48px round one.
+              smallItems ? 'gap-2 pe-1' : keepOrder ? 'gap-1.5' : 'gap-2.5',
               direction === 'up' ? 'bottom-full mb-3 flex-col-reverse' : 'top-full mt-3 flex-col',
             )}
           >
@@ -360,12 +364,15 @@ export function FloatingActionMenu({
               const above = direction === 'up' ? ordered[index + 1] : ordered[index - 1]
               const apart = above !== undefined && above.group !== group
               const glyph = Icon ? (
-                <Icon size={20} className="text-onyx" />
+                <Icon size={smallItems ? 17 : 20} className="text-onyx" />
               ) : (
-                <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 22 }} aria-hidden="true" />
+                <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: smallItems ? 19 : 22 }} aria-hidden="true" />
               )
               const circle =
-                'flex size-12 items-center justify-center rounded-full border border-onyx/10 bg-white shadow-md shadow-black/10'
+                cn(
+                  'flex items-center justify-center rounded-full border border-onyx/10 bg-white shadow-md shadow-black/10',
+                  smallItems ? 'size-10' : 'size-12',
+                )
               const run = () => {
                 onClick?.()
                 if (!keepOpen) close()
@@ -373,7 +380,7 @@ export function FloatingActionMenu({
               return (
                 <motion.div
                   key={label}
-                  className={cn('flex items-center gap-3', apart && 'mt-2')}
+                  className={cn('flex items-center', smallItems ? 'gap-2' : 'gap-3', apart && 'mt-2')}
                   style={{ pointerEvents: open ? 'auto' : 'none' }}
                   initial={false}
                   animate={{
@@ -387,7 +394,8 @@ export function FloatingActionMenu({
                 >
                   <span
                     className={cn(
-                      'flex items-center gap-2 whitespace-nowrap rounded-full border border-onyx/10 bg-white px-3.5 py-1.5 font-subtitle text-xs font-medium shadow-md shadow-black/10',
+                      'flex items-center gap-2 whitespace-nowrap rounded-full border border-onyx/10 bg-white font-subtitle text-xs font-medium shadow-md shadow-black/10',
+                      smallItems ? 'px-3 py-1.5' : 'px-3.5 py-1.5',
                       danger ? 'text-red-700' : 'text-onyx',
                     )}
                   >
@@ -422,7 +430,12 @@ export function FloatingActionMenu({
                 down from there, smaller and closer together, each like the options beside it (the name in a white pill
                 and its round button); the app's own settings (group "app") a little apart at the end. */}
             {open && showMore && more && (
-              <div className="pointer-events-auto absolute right-[calc(100%+0.75rem)] top-[calc(100%-2.625rem)] flex flex-col items-end gap-1.5">
+              <div
+                className={cn(
+                  'pointer-events-auto absolute right-[calc(100%+0.75rem)] flex flex-col items-end',
+                  smallItems ? 'top-[calc(100%-2.5rem)] gap-2' : 'top-[calc(100%-2.625rem)] gap-1.5',
+                )}
+              >
                 {more.map(({ Icon, iconClass, label, danger, onClick, confirm, group }, index) => {
                   const asking = confirming === label
                   const apart = group === 'app' && more[index - 1]?.group !== 'app'
@@ -442,7 +455,8 @@ export function FloatingActionMenu({
                     >
                       <span
                         className={cn(
-                          'whitespace-nowrap rounded-full border border-onyx/10 bg-white px-3 py-1 font-subtitle text-xs font-medium shadow-md shadow-black/10',
+                          'whitespace-nowrap rounded-full border border-onyx/10 bg-white px-3 font-subtitle text-xs font-medium shadow-md shadow-black/10',
+                          smallItems ? 'py-1.5' : 'py-1',
                           danger || asking ? 'text-red-700' : 'text-onyx',
                         )}
                       >
@@ -450,12 +464,13 @@ export function FloatingActionMenu({
                       </span>
                       <span
                         className={cn(
-                          'flex size-9 shrink-0 items-center justify-center rounded-full border shadow-md shadow-black/10 transition-colors',
+                          'flex shrink-0 items-center justify-center rounded-full border shadow-md shadow-black/10 transition-colors',
+                          smallItems ? 'size-10' : 'size-9',
                           asking ? 'border-red-700 bg-red-700' : 'border-onyx/10 bg-white',
                         )}
                       >
                         {Icon ? (
-                          <Icon size={16} className={asking ? 'text-[#ffffff]' : danger ? 'text-red-700' : 'text-onyx'} />
+                          <Icon size={smallItems ? 17 : 16} className={asking ? 'text-[#ffffff]' : danger ? 'text-red-700' : 'text-onyx'} />
                         ) : (
                           <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 18 }} aria-hidden="true" />
                         )}

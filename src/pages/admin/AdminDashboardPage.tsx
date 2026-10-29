@@ -2497,6 +2497,7 @@ function AdminDashboard() {
               actions={menuActions}
               more={moreActions}
               keepOrder
+              smallItems
               direction="down"
               small
               brand
