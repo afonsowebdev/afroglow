@@ -753,12 +753,14 @@ function Highlight({
             void tap('medium')
             onNewBooking()
           }}
-          // The same glass pill as Detalhes: icon, the words, and a soft chevron at the end.
-          className="glass-chip flex h-11 min-w-0 flex-1 items-center gap-2 whitespace-nowrap rounded-full pe-3 ps-4 text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
+          // The same glass pill as Detalhes: icon and words, with the arrow in a round white chip like Pedidos.
+          className="glass-chip flex h-11 min-w-0 flex-1 items-center gap-2 whitespace-nowrap rounded-full pe-1.5 ps-4 text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
         >
           <CalendarPlus size={16} strokeWidth={2.2} className="shrink-0" />
           <span className="truncate">Nova marcação</span>
-          <ChevronRight size={15} strokeWidth={2.4} className="ms-auto shrink-0 text-muted-dark" />
+          <span className="ms-auto flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-onyx shadow-sm">
+            <ArrowRight size={16} />
+          </span>
         </button>
         <button
           type="button"
