@@ -471,6 +471,8 @@ function dayHeading(iso: string) {
 
 /** The soft shadow of the Painel's cards, so the Agenda's cards sit the same way on the page. */
 const CARD_SHADOW = '0px 1px 3px 0px rgba(0,0,0,0.08), 0px 12px 32px -10px rgba(0,0,0,0.2)'
+/** The same shadow on a glass control, keeping its thin rim. */
+const GLASS_SHADOW = `inset 0 0 0 1px color-mix(in srgb, var(--color-onyx) 14%, transparent), ${CARD_SHADOW}`
 
 /** The status colours of the Painel: confirmed green, waiting yellow, cancelled red. */
 const STATUS_COLOUR: Record<Booking['status'], string> = {
@@ -572,6 +574,7 @@ function AgendaView({
               target="_blank"
               rel="noreferrer"
               className="glass-chip flex h-11 items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
+              style={{ boxShadow: GLASS_SHADOW }}
             >
               <i className="bx bxl-whatsapp text-lg" aria-hidden="true" />
               WhatsApp
@@ -579,6 +582,7 @@ function AgendaView({
             <a
               href={`tel:${next.customerPhone.replace(/[^+\d]/g, '')}`}
               className="glass-chip flex h-11 items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
+              style={{ boxShadow: GLASS_SHADOW }}
             >
               <Phone size={15} strokeWidth={2.2} />
               Ligar
@@ -589,7 +593,7 @@ function AgendaView({
 
       {/* Search, and a new booking as the Painel's glass pill with its arrow chip. */}
       <div className="mt-5 flex gap-2">
-        <label className="glass-chip flex min-w-0 flex-1 items-center gap-2 rounded-full ps-4 pe-2">
+        <label className="glass-chip flex min-w-0 flex-1 items-center gap-2 rounded-full ps-4 pe-2" style={{ boxShadow: GLASS_SHADOW }}>
           <Search size={16} className="shrink-0 text-ink-3" />
           <input
             value={search}
@@ -611,6 +615,7 @@ function AgendaView({
             onNew()
           }}
           aria-label="Nova marcação"
+          style={{ boxShadow: GLASS_SHADOW }}
           className="glass-chip flex h-11 shrink-0 items-center gap-2 rounded-full pe-1.5 ps-3.5 font-subtitle text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
         >
           <CalendarPlus size={16} strokeWidth={2.2} />
@@ -624,7 +629,7 @@ function AgendaView({
       {/* Upcoming or past, like an iOS segmented control: a frosted glass track, the chosen side a raised white pill. */}
       <div
         className="glass-chip mt-4 grid grid-cols-2 rounded-full p-1"
-        style={{ background: 'color-mix(in srgb, var(--color-onyx) 6%, transparent)' }}
+        style={{ background: 'color-mix(in srgb, var(--color-onyx) 6%, transparent)', boxShadow: GLASS_SHADOW }}
         role="tablist"
         aria-label="Agenda"
       >
@@ -687,7 +692,7 @@ function AgendaView({
                     {heading.title}
                     {heading.sub && <span className="ml-2 text-xs font-normal text-muted-dark">{heading.sub}</span>}
                   </h3>
-                  <span className="tabular shrink-0 rounded-full bg-onyx/[0.05] px-2.5 py-1 font-subtitle text-[11px] font-medium text-muted-dark">
+                  <span className="tabular shrink-0 rounded-full bg-card px-2.5 py-1 font-subtitle text-[11px] font-medium text-muted-dark" style={{ boxShadow: CARD_SHADOW }}>
                     {dayBookings.length} {dayBookings.length === 1 ? 'sessão' : 'sessões'} ·{' '}
                     <span className="amount">{formatPrice(total).replace(/,00/, '')}</span>
                   </span>
@@ -843,7 +848,7 @@ function PersonHistory({ person, bookings, onClose }: { person: Booking | null; 
                   { label: 'Gastou', value: formatPrice(spent).replace(/,00/, ''), amount: true },
                   { label: 'Canceladas', value: String(cancelled), colour: 'var(--c-cancelled)' },
                 ].map((f) => (
-                  <div key={f.label} className="min-w-0 rounded-2xl bg-onyx/[0.04] px-3 py-2.5">
+                  <div key={f.label} className="min-w-0 rounded-2xl bg-card px-3 py-2.5" style={{ boxShadow: CARD_SHADOW }}>
                     <p className="flex items-center gap-1.5 truncate font-subtitle text-[11px] text-ink-3">
                       {f.colour && <span className="size-1.5 shrink-0 rounded-full" style={{ background: f.colour }} aria-hidden="true" />}
                       {f.label}
@@ -859,6 +864,7 @@ function PersonHistory({ person, bookings, onClose }: { person: Booking | null; 
                   target="_blank"
                   rel="noreferrer"
                   className="glass-chip flex h-10 items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px] font-semibold text-onyx"
+                  style={{ boxShadow: GLASS_SHADOW }}
                 >
                   <i className="bx bxl-whatsapp text-lg" aria-hidden="true" />
                   WhatsApp
@@ -866,6 +872,7 @@ function PersonHistory({ person, bookings, onClose }: { person: Booking | null; 
                 <a
                   href={`tel:${person.customerPhone.replace(/[^+\d]/g, '')}`}
                   className="glass-chip flex h-10 items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px] font-semibold text-onyx"
+                  style={{ boxShadow: GLASS_SHADOW }}
                 >
                   <Phone size={15} strokeWidth={2.2} />
                   Ligar
@@ -875,7 +882,7 @@ function PersonHistory({ person, bookings, onClose }: { person: Booking | null; 
               <h3 className="mb-2 mt-5 px-1 font-subtitle text-[14px] font-semibold tracking-tight text-onyx">
                 Todas as marcações <span className="font-normal text-muted-dark">· {list.length}</span>
               </h3>
-              <div className="overflow-hidden rounded-[20px] bg-onyx/[0.03]">
+              <div className="overflow-hidden rounded-[20px] bg-card" style={{ boxShadow: CARD_SHADOW }}>
                 {list.map((booking, i) => {
                   const { day, month, time } = dateParts(booking.slot.startsAt)
                   const year = new Date(booking.slot.startsAt).getFullYear()
@@ -883,7 +890,7 @@ function PersonHistory({ person, bookings, onClose }: { person: Booking | null; 
                   const colour = STATUS_COLOUR[booking.status]
                   return (
                     <div key={booking.id} className={`flex items-center gap-3 px-3.5 py-3 ${i ? 'border-t border-onyx/[0.06]' : ''}`}>
-                      <div className="flex size-11 shrink-0 flex-col items-center justify-center rounded-2xl bg-white shadow-sm">
+                      <div className="flex size-11 shrink-0 flex-col items-center justify-center rounded-2xl bg-onyx/[0.04]">
                         <p className="tabular font-subtitle text-[15px] font-semibold leading-none text-onyx">{day}</p>
                         <p className="mt-0.5 font-subtitle text-[9px] uppercase text-muted-dark">{month}</p>
                       </div>
