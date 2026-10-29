@@ -21,10 +21,12 @@ import {
   RotateCcw,
   MessageSquareQuote,
   Receipt,
+  Scissors,
   Search,
   Target,
   UserPlus,
   X,
+  Wallet,
   type LucideIcon,
 } from 'lucide-react'
 import { DraggableWidgetGrid, type WidgetItem, type WidgetSize } from '@/components/ui/draggable-widget-grid'
@@ -822,6 +824,11 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
       colour: OTHER,
       count: others.reduce((a, sv) => a + sv.count, 0),
     })
+  const servicesTotal = services.reduce((a, sv) => a + sv.value, 0)
+  const doneShare = month.revenue ? month.doneCents / month.revenue : 0
+  const compareTop = Math.max(1, month.revenue, month.lastSoFarCents, month.lastFullCents)
+  const change = month.revenueChange
+
   return createPortal(
     <AnimatePresence>
       {open && (
@@ -833,22 +840,26 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 cursor-default bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 cursor-default bg-black/45 backdrop-blur-md"
           />
           <motion.section
             role="dialog"
             aria-modal="true"
             aria-label={`Faturação de ${name}`}
-            initial={{ opacity: 0, scale: 0.94, y: 12 }}
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-            className="relative flex max-h-[min(88dvh,760px)] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-[0_24px_60px_-12px_rgba(0,0,0,0.35)]"
+            exit={{ opacity: 0, scale: 0.97, y: 10 }}
+            transition={{ type: 'spring', stiffness: 360, damping: 32 }}
+            className="relative flex max-h-[min(88dvh,780px)] w-full max-w-md flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_30px_70px_-15px_rgba(0,0,0,0.4)]"
           >
-            <div className="flex items-start justify-between gap-3 px-5 pb-1 pt-5">
-              <div>
-                <h2 className="font-subtitle text-[17px] font-semibold tracking-tight text-onyx">Faturação de {name}</h2>
-                <p className="mt-0.5 text-xs text-ink-3">Até dia {month.dayOfMonth}, com o que já está marcado</p>
+            {/* Stays at the top while the rest scrolls. */}
+            <header className="flex items-center gap-3 border-b border-onyx/[0.06] px-5 py-4">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-onyx/[0.05] text-onyx">
+                <Wallet size={18} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate font-subtitle text-[16px] font-semibold tracking-tight text-onyx">Faturação de {name}</h2>
+                <p className="text-xs text-ink-3">Até dia {month.dayOfMonth}, com o que já está marcado</p>
               </div>
               <button
                 type="button"
@@ -858,124 +869,193 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
               >
                 <X size={17} />
               </button>
-            </div>
+            </header>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5">
-              <p className="amount tabular mt-3 text-[36px] font-semibold leading-none tracking-tight text-onyx">{euros(month.revenue)}</p>
-              <div className="mt-2">
-                <Change value={month.revenueChange} label={`face a ${last} até ao mesmo dia`} withLabel />
-              </div>
+            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
+              {/* The total, with the change and how much of it is done. */}
+              <section className="rounded-3xl bg-onyx/[0.04] p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="amount tabular text-[34px] font-semibold leading-none tracking-tight text-onyx">{euros(month.revenue)}</p>
+                  {change !== null && (
+                    <span
+                      className="tabular flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold"
+                      style={{
+                        background: `color-mix(in srgb, ${change >= 0 ? 'var(--c-pos)' : 'var(--c-neg)'} 14%, transparent)`,
+                        color: change >= 0 ? 'var(--c-pos)' : 'var(--c-neg)',
+                      }}
+                    >
+                      {change >= 0 ? '↑' : '↓'} {Math.abs(change)}%
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1.5 text-xs text-ink-3">{change === null ? 'Ainda sem mês anterior para comparar' : `Face a ${last} até ao mesmo dia`}</p>
 
-              <dl className="mt-4 grid grid-cols-2 gap-2">
-                {[
-                  { label: 'Já feito', cents: month.doneCents },
-                  { label: 'Ainda por vir', cents: month.toComeCents },
-                  { label: `${capital(last)} até dia ${month.dayOfMonth}`, cents: month.lastSoFarCents },
-                  { label: `${capital(last)}, o mês todo`, cents: month.lastFullCents },
-                ].map((item) => (
-                  <div key={item.label} className="rounded-2xl bg-onyx/[0.04] p-3">
-                    <dt className="truncate text-xs text-ink-3">{item.label}</dt>
-                    <dd className="amount tabular mt-0.5 text-[16px] font-semibold text-onyx">{euros(item.cents)}</dd>
+                <div className="mt-4 flex h-2.5 overflow-hidden rounded-full bg-onyx/[0.08]">
+                  <span className="h-full rounded-full" style={{ width: `${doneShare * 100}%`, background: STATUS.confirmed }} />
+                </div>
+                <div className="mt-2.5 grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="flex items-center gap-1.5 text-xs text-ink-3">
+                      <span className="size-2 rounded-full" style={{ background: STATUS.confirmed }} aria-hidden="true" />
+                      Já feito
+                    </p>
+                    <p className="amount tabular mt-0.5 text-[15px] font-bold text-onyx">{euros(month.doneCents)}</p>
                   </div>
-                ))}
-              </dl>
+                  <div className="text-right">
+                    <p className="flex items-center justify-end gap-1.5 text-xs text-ink-3">
+                      <span className="size-2 rounded-full bg-onyx/20" aria-hidden="true" />
+                      Ainda por vir
+                    </p>
+                    <p className="amount tabular mt-0.5 text-[15px] font-bold text-onyx">{euros(month.toComeCents)}</p>
+                  </div>
+                </div>
+              </section>
 
-              <h3 className="mt-6 font-subtitle text-[14px] font-semibold tracking-tight text-onyx">Estado das marcações</h3>
-              <div className="mt-3 flex items-center gap-5">
-                <Ring
-                  label="Estado das marcações"
-                  size={132}
-                  thickness={15}
-                  parts={statuses}
-                  center={
-                    <>
-                      <span className="amount tabular text-[16px] font-semibold leading-tight text-onyx">
-                        {euros(statuses.reduce((a, p) => a + p.value, 0))}
-                      </span>
-                      <span className="text-[11px] text-ink-3">no mês</span>
-                    </>
-                  }
-                />
-                <RingLegend
-                  format={euros}
-                  parts={statuses}
-                  notes={[
-                    plural(month.sessions, 'sessão', 'sessões'),
-                    plural(month.pendingCount, 'pedido', 'pedidos'),
-                    plural(month.cancelledCount, 'sessão', 'sessões'),
-                  ]}
-                />
-              </div>
-              <div className="mt-4 flex items-center justify-between rounded-2xl bg-onyx/[0.04] px-4 py-3">
-                <span className="text-[13px] text-onyx">Valor médio por sessão</span>
-                <span className="amount tabular text-[14px] font-bold text-onyx">{euros(month.average)}</span>
-              </div>
+              {/* Against last month. */}
+              <DetailSection Icon={ChartColumn} title={`Comparação com ${last}`}>
+                <ul className="space-y-3">
+                  {[
+                    { label: capital(name), cents: month.revenue, strong: true },
+                    { label: `${capital(last)} até dia ${month.dayOfMonth}`, cents: month.lastSoFarCents },
+                    { label: `${capital(last)}, o mês todo`, cents: month.lastFullCents },
+                  ].map((row) => (
+                    <li key={row.label}>
+                      <div className="flex items-baseline justify-between gap-3">
+                        <span className={`truncate text-[13px] ${row.strong ? 'font-semibold text-onyx' : 'text-ink-3'}`}>{row.label}</span>
+                        <span className="amount tabular shrink-0 text-[13px] font-bold text-onyx">{euros(row.cents)}</span>
+                      </div>
+                      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-onyx/[0.08]">
+                        <div
+                          className="h-full rounded-full"
+                          style={{ width: `${(row.cents / compareTop) * 100}%`, background: row.strong ? 'var(--c-pos)' : 'color-mix(in srgb, var(--color-onyx) 30%, transparent)' }}
+                        />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </DetailSection>
 
-              <h3 className="mt-6 font-subtitle text-[14px] font-semibold tracking-tight text-onyx">Semana a semana</h3>
-              <div
-                role="img"
-                aria-label={month.weeks.map((w) => `dias ${w.label}: ${euros(w.cents)}`).join('; ')}
-                className="mt-3 flex h-32 items-end gap-2"
-              >
-                {month.weeks.map((w, i) => {
-                  // By the day, so the month's short last week isn't "down" just for having fewer days.
-                  const before = month.weeks[i - 1]
-                  const colour = before && w.cents / w.days < before.cents / before.days ? 'var(--c-neg)' : 'var(--c-pos)'
-                  return (
-                    <div key={w.label} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
-                      <span className="amount tabular text-[11px] text-ink-3">{w.cents ? euros(w.cents) : ''}</span>
-                      <span
-                        className="block w-full max-w-9 rounded-t-xl"
-                        style={{
-                          height: `${Math.max((w.cents / weekTop) * 100, w.cents ? 6 : 2)}%`,
-                          background: w.cents
-                            ? `linear-gradient(to bottom, color-mix(in srgb, ${colour} 70%, white), ${colour})`
-                            : 'color-mix(in srgb, var(--color-onyx) 10%, transparent)',
-                        }}
-                      />
-                    </div>
-                  )
-                })}
-              </div>
-              <div className="mt-1.5 flex gap-2">
-                {month.weeks.map((w) => (
-                  <span key={w.label} className="flex-1 text-center text-[11px] text-ink-3">
-                    {w.label}
-                  </span>
-                ))}
-              </div>
-
-              <h3 className="mt-6 font-subtitle text-[14px] font-semibold tracking-tight text-onyx">Por penteado</h3>
-              {month.services.length === 0 ? (
-                <p className="mt-2 text-[13px] text-ink-3">Sem sessões confirmadas neste mês.</p>
-              ) : (
-                <div className="mt-3 flex items-center gap-5">
+              {/* Confirmed, waiting, cancelled. */}
+              <DetailSection Icon={CalendarCheck} title="Estado das marcações">
+                <div className="flex items-center gap-5">
                   <Ring
-                    label="Faturação por penteado"
-                    size={132}
+                    label="Estado das marcações"
+                    size={116}
                     thickness={15}
-                    parts={services}
+                    parts={statuses}
                     center={
                       <>
-                        <span className="amount tabular text-[16px] font-semibold leading-tight text-onyx">{euros(month.revenue)}</span>
-                        <span className="text-[11px] text-ink-3">{plural(services.length, 'penteado', 'penteados')}</span>
+                        <span className="amount tabular text-[14px] font-semibold leading-tight text-onyx">
+                          {euros(statuses.reduce((a, p) => a + p.value, 0))}
+                        </span>
+                        <span className="text-[10px] text-ink-3">no mês</span>
                       </>
                     }
                   />
-                  <RingLegend format={euros} parts={services} notes={services.map((sv) => plural(sv.count, 'sessão', 'sessões'))} />
+                  <RingLegend
+                    format={euros}
+                    parts={statuses}
+                    notes={[
+                      plural(month.sessions, 'sessão', 'sessões'),
+                      plural(month.pendingCount, 'pedido', 'pedidos'),
+                      plural(month.cancelledCount, 'sessão', 'sessões'),
+                    ]}
+                  />
                 </div>
-              )}
+                <div className="mt-4 flex items-center justify-between rounded-2xl bg-white px-4 py-3">
+                  <span className="text-[13px] text-onyx">Valor médio por sessão</span>
+                  <span className="amount tabular text-[14px] font-bold text-onyx">{euros(month.average)}</span>
+                </div>
+              </DetailSection>
+
+              {/* Week by week. */}
+              <DetailSection Icon={CalendarClock} title="Semana a semana">
+                <div
+                  role="img"
+                  aria-label={month.weeks.map((w) => `dias ${w.label}: ${euros(w.cents)}`).join('; ')}
+                  className="flex h-36 items-end gap-2.5"
+                >
+                  {month.weeks.map((w, i) => {
+                    // By the day, so the month's short last week isn't "down" just for having fewer days.
+                    const before = month.weeks[i - 1]
+                    const colour = before && w.cents / w.days < before.cents / before.days ? 'var(--c-neg)' : 'var(--c-pos)'
+                    const now = month.dayOfMonth >= w.from && month.dayOfMonth < w.from + w.days
+                    return (
+                      <div key={w.label} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
+                        <span className={`amount tabular text-[11px] ${now ? 'font-bold text-onyx' : 'text-ink-3'}`}>
+                          {w.cents ? euros(w.cents) : '–'}
+                        </span>
+                        <span
+                          className="block w-full max-w-10 rounded-full"
+                          style={{
+                            height: `${Math.max((w.cents / weekTop) * 100, w.cents ? 8 : 3)}%`,
+                            background: w.cents
+                              ? `linear-gradient(to bottom, color-mix(in srgb, ${colour} 70%, white), ${colour})`
+                              : 'color-mix(in srgb, var(--color-onyx) 10%, transparent)',
+                            boxShadow: now ? `0 0 0 2px var(--color-white), 0 0 0 3.5px ${colour}` : undefined,
+                          }}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="mt-2 flex gap-2.5">
+                  {month.weeks.map((w) => {
+                    const now = month.dayOfMonth >= w.from && month.dayOfMonth < w.from + w.days
+                    return (
+                      <span key={w.label} className={`flex-1 text-center text-[11px] ${now ? 'font-bold text-onyx' : 'text-ink-3'}`}>
+                        {now ? 'Esta' : w.label}
+                      </span>
+                    )
+                  })}
+                </div>
+              </DetailSection>
+
+              {/* By hairstyle. */}
+              <DetailSection Icon={Scissors} title="Por penteado">
+                {services.length === 0 ? (
+                  <p className="text-[13px] text-ink-3">Sem sessões confirmadas neste mês.</p>
+                ) : (
+                  <div className="flex items-center gap-5">
+                    <Ring
+                      label="Faturação por penteado"
+                      size={116}
+                      thickness={15}
+                      parts={services}
+                      center={
+                        <>
+                          <span className="tabular text-[18px] font-semibold leading-none text-onyx">{services.length}</span>
+                          <span className="mt-0.5 text-[10px] text-ink-3">{services.length === 1 ? 'penteado' : 'penteados'}</span>
+                        </>
+                      }
+                    />
+                    <RingLegend
+                      format={euros}
+                      parts={services}
+                      notes={services.map(
+                        (sv) => `${plural(sv.count, 'sessão', 'sessões')} · ${servicesTotal ? Math.round((sv.value / servicesTotal) * 100) : 0}%`,
+                      )}
+                    />
+                  </div>
+                )}
+              </DetailSection>
             </div>
 
             {onStats && (
-              <div className="border-t border-onyx/[0.07] p-4">
+              <div className="border-t border-onyx/[0.06] p-4">
                 <button
                   type="button"
-                  onClick={onStats}
-                  className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-onyx text-[14px] font-semibold text-white"
+                  onClick={() => {
+                    void tap()
+                    onStats()
+                  }}
+                  className="glass-chip flex h-12 w-full items-center gap-2 rounded-full pe-1.5 ps-5 text-[14px] font-semibold text-onyx transition-transform active:scale-[0.98]"
                 >
+                  <ChartColumn size={17} />
                   Ver estatísticas
-                  <ArrowRight size={16} />
+                  <span className="ms-auto flex size-9 items-center justify-center rounded-full bg-white text-onyx shadow-sm">
+                    <ArrowRight size={17} />
+                  </span>
                 </button>
               </div>
             )}
@@ -984,6 +1064,21 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
       )}
     </AnimatePresence>,
     document.body,
+  )
+}
+
+/** A part of the Faturação detail: a light block with a small icon and its title. */
+function DetailSection({ Icon, title, children }: { Icon: LucideIcon; title: string; children: ReactNode }) {
+  return (
+    <section className="rounded-3xl bg-onyx/[0.04] p-4">
+      <h3 className="mb-3 flex items-center gap-2 font-subtitle text-[14px] font-semibold tracking-tight text-onyx">
+        <span className="flex size-7 items-center justify-center rounded-full bg-white text-onyx">
+          <Icon size={14} />
+        </span>
+        {title}
+      </h3>
+      {children}
+    </section>
   )
 }
 
