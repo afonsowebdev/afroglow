@@ -377,9 +377,14 @@ export function FloatingActionMenu({
                 onClick?.()
                 if (!keepOpen) close()
               }
+              // "Mais opções" / "Menos opções" stays the same item while its name and icon change, so it doesn't jump.
+              const toggle = keepOpen && group === 'mais'
+              // The swap of name and icon, as quick as the options it opens appear.
+              const swap = { type: 'tween', ease: 'easeOut', duration: 0.22 } as const
+              const swapIn = { opacity: 1, y: 0, filter: 'blur(0px)', rotate: 0 }
               return (
                 <motion.div
-                  key={label}
+                  key={toggle ? 'mais-toggle' : label}
                   className={cn('flex items-center', smallItems ? 'gap-2' : 'gap-3', apart && 'mt-2')}
                   style={{ pointerEvents: open ? 'auto' : 'none' }}
                   initial={false}
@@ -392,20 +397,37 @@ export function FloatingActionMenu({
                   }}
                   transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4, delay: open ? index * 0.05 : 0 }}
                 >
-                  <span
+                  <motion.span
+                    layout={toggle ? 'size' : false}
+                    transition={swap}
                     className={cn(
-                      'flex items-center gap-2 whitespace-nowrap rounded-full border border-onyx/10 bg-white font-subtitle font-medium shadow-md shadow-black/10',
+                      'flex items-center gap-2 overflow-hidden whitespace-nowrap rounded-full border border-onyx/10 bg-white font-subtitle font-medium shadow-md shadow-black/10',
                       smallItems ? 'px-3.5 py-[7px] text-[12.5px]' : 'px-3.5 py-1.5 text-xs',
                       danger ? 'text-red-700' : 'text-onyx',
                     )}
                   >
-                    {label}
+                    {toggle ? (
+                      <AnimatePresence mode="popLayout" initial={false}>
+                        <motion.span
+                          key={label}
+                          layout="position"
+                          initial={{ opacity: 0, y: 8, filter: 'blur(3px)' }}
+                          animate={swapIn}
+                          exit={{ opacity: 0, y: -8, filter: 'blur(3px)' }}
+                          transition={swap}
+                        >
+                          {label}
+                        </motion.span>
+                      </AnimatePresence>
+                    ) : (
+                      label
+                    )}
                     {badge ? (
                       <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none text-[#ffffff]">
                         {badge}
                       </span>
                     ) : null}
-                  </span>
+                  </motion.span>
                   {href ? (
                     <a
                       href={href}
@@ -420,7 +442,22 @@ export function FloatingActionMenu({
                     </a>
                   ) : (
                     <button type="button" aria-label={label} tabIndex={open ? 0 : -1} onClick={run} className={circle}>
-                      {glyph}
+                      {toggle ? (
+                        <AnimatePresence mode="popLayout" initial={false}>
+                          <motion.span
+                            key={label}
+                            className="flex"
+                            initial={{ opacity: 0, rotate: -90, filter: 'blur(3px)' }}
+                            animate={swapIn}
+                            exit={{ opacity: 0, rotate: 90, filter: 'blur(3px)' }}
+                            transition={swap}
+                          >
+                            {glyph}
+                          </motion.span>
+                        </AnimatePresence>
+                      ) : (
+                        glyph
+                      )}
                     </button>
                   )}
                 </motion.div>
