@@ -4,9 +4,11 @@ import { AnimatePresence, motion } from 'motion/react'
 import {
   Bell,
   BellRing,
+  History,
   House,
   ArrowRight,
   CalendarCheck,
+  CalendarClock,
   CalendarPlus,
   CalendarX2,
   ChartColumn,
@@ -613,14 +615,14 @@ function AgendaView({
         </button>
       </div>
 
-      {/* Upcoming or past, as the Painel's round switch. */}
-      <div className="mt-4 grid grid-cols-2 rounded-full bg-onyx/[0.06] p-1" role="tablist" aria-label="Agenda">
+      {/* Upcoming or past: a white pill with the Painel's shadow, the chosen side dark, like the Comparação's switch. */}
+      <div className="mt-4 grid grid-cols-2 rounded-full bg-card p-1" style={{ boxShadow: CARD_SHADOW }} role="tablist" aria-label="Agenda">
         {(
           [
-            ['proximas', 'Próximas', upcoming.length],
-            ['historico', 'Histórico', history.length],
+            ['proximas', 'Próximas', upcoming.length, CalendarClock],
+            ['historico', 'Histórico', history.length, History],
           ] as const
-        ).map(([id, label, count]) => (
+        ).map(([id, label, count, Icon]) => (
           <button
             key={id}
             type="button"
@@ -630,17 +632,24 @@ function AgendaView({
               void tap()
               setView(id)
             }}
-            className="relative flex h-9 items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px]"
+            className="relative flex h-10 items-center justify-center gap-2 rounded-full font-subtitle text-[13px]"
           >
             {view === id && (
               <motion.span
                 layoutId="agenda-segment"
-                className="absolute inset-0 rounded-full bg-white shadow-sm shadow-black/10 dark:bg-onyx/[0.14]"
+                className="absolute inset-0 rounded-full bg-onyx"
                 transition={{ type: 'spring', stiffness: 420, damping: 36 }}
               />
             )}
-            <span className={`relative ${view === id ? 'font-semibold text-onyx' : 'text-onyx/55'}`}>{label}</span>
-            <span className={`tabular relative rounded-full px-1.5 text-[11px] ${view === id ? 'bg-onyx/[0.07] text-onyx/70' : 'text-onyx/40'}`}>{count}</span>
+            <Icon size={15} strokeWidth={2.2} className={`relative transition-colors ${view === id ? 'text-white' : 'text-muted-dark'}`} />
+            <span className={`relative transition-colors ${view === id ? 'font-semibold text-white' : 'font-medium text-muted-dark'}`}>{label}</span>
+            <span
+              className={`tabular relative min-w-5 rounded-full px-1.5 py-px text-center text-[11px] font-semibold transition-colors ${
+                view === id ? 'bg-white/20 text-white' : 'bg-onyx/[0.06] text-muted-dark'
+              }`}
+            >
+              {count}
+            </span>
           </button>
         ))}
       </div>
