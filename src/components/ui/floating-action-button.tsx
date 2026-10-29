@@ -159,9 +159,13 @@ export interface MenuAction {
   confirm?: string
 }
 
-/** "Mais opções": how long its name and icon take to change, and the step between one option and the next. */
-const SWAP = 0.45
-const STAGGER = 0.06
+/**
+ * "Mais opções": how long its name and icon take to change, the step between one option and the next, and how far into
+ * one movement the other begins (they overlap, so it reads as one calm motion rather than two with a pause between).
+ */
+const SWAP = 0.4
+const STAGGER = 0.05
+const OVERLAP = 0.5
 
 /**
  * Round "+" button for the corner next to the tab bar. Same idea as `AnimatedSocialIcons` (the "+" turns into
@@ -385,9 +389,9 @@ export function FloatingActionMenu({
               }
               // "Mais opções" / "Menos opções" stays the same item while its name and icon change, so it doesn't jump.
               const toggle = keepOpen && group === 'mais'
-              // Calm and in turn: opening, the name and icon change first and the options follow; closing, the options
-              // leave first and then it changes back.
-              const swap = { type: 'tween', ease: 'easeInOut', duration: SWAP, delay: showMore ? 0 : moreExit } as const
+              // Calm and in turn, overlapping: opening, the name and icon start to change and the options follow halfway
+              // through; closing, the options start to leave and it changes back halfway through.
+              const swap = { type: 'tween', ease: 'easeInOut', duration: SWAP, delay: showMore ? 0 : moreExit * OVERLAP } as const
               const swapIn = { opacity: 1, y: 0, filter: 'blur(0px)', rotate: 0 }
               return (
                 <motion.div
@@ -501,7 +505,7 @@ export function FloatingActionMenu({
                         opacity: 1,
                         x: 0,
                         filter: 'blur(0px)',
-                        transition: { type: 'tween', ease: 'easeOut', duration: 0.4, delay: SWAP + index * STAGGER },
+                        transition: { type: 'tween', ease: 'easeOut', duration: 0.4, delay: SWAP * OVERLAP + index * STAGGER },
                       }}
                       exit={{
                         opacity: 0,
