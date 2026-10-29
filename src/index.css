@@ -229,6 +229,10 @@
   --c-brand-ink: #1a1008;
   --c-pos: #34c759;
   --c-neg: #ff3b30;
+  /* The three states of a booking, each its own colour (apart from the green and red of up and down). */
+  --c-confirmed: #0a84ff;
+  --c-waiting: #ff9f0a;
+  --c-cancelled: #ff375f;
   --c-warn: #b5652b;
   --c-chart-in: #c9a84c;
   --c-chart-out: #e2876a;
@@ -257,6 +261,9 @@
   --c-card: color-mix(in srgb, var(--color-onyx) 8%, var(--color-white));
   --c-pos: #30d158;
   --c-neg: #ff453a;
+  --c-confirmed: #409cff;
+  --c-waiting: #ffb340;
+  --c-cancelled: #ff6482;
   --c-warn: #f0a443;
   --shadow-card: 0 1px 3px rgb(0 0 0 / 0.3);
   --color-card: var(--c-card);

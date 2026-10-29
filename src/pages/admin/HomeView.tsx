@@ -1101,7 +1101,7 @@ function InOutChart({ months }: { months: MonthFigures[] }) {
 /** One colour per category (hairstyles, statuses…), in order; anything past them is grey. */
 const PALETTE = ['#16a34a', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6']
 const OTHER = 'color-mix(in srgb, var(--color-onyx) 25%, transparent)'
-const STATUS = { confirmed: 'var(--c-pos)', waiting: '#f59e0b', cancelled: 'var(--c-neg)' }
+const STATUS = { confirmed: 'var(--c-confirmed)', waiting: 'var(--c-waiting)', cancelled: 'var(--c-cancelled)' }
 
 interface RingPart {
   label: string
@@ -1338,9 +1338,9 @@ function Ranking({ items, total }: { items: BoardData['ranking']; total: number 
 }
 
 const ACTIVITY_LOOK: Record<ActivityItem['kind'], { Icon: LucideIcon; tone: string }> = {
-  pedido: { Icon: Hourglass, tone: 'var(--c-warn)' },
-  confirmada: { Icon: CalendarCheck, tone: 'var(--c-pos)' },
-  cancelada: { Icon: CalendarX2, tone: 'var(--c-neg)' },
+  pedido: { Icon: Hourglass, tone: 'var(--c-waiting)' },
+  confirmada: { Icon: CalendarCheck, tone: 'var(--c-confirmed)' },
+  cancelada: { Icon: CalendarX2, tone: 'var(--c-cancelled)' },
   recusada: { Icon: CalendarX2, tone: 'var(--c-ink-3)' },
   testemunho: { Icon: MessageSquareQuote, tone: 'var(--c-brand)' },
 }
