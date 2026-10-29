@@ -771,7 +771,8 @@ function Highlight({
           {/* The requests waiting, as a badge on the button's top right corner. */}
           {month.pendingCount > 0 && (
             <span
-              className="tabular absolute -right-1 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-bold text-[#ffffff] ring-2 ring-white"
+              className="tabular absolute -right-1 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-[#ffffff] ring-2 ring-white"
+              style={{ background: STATUS.cancelled }}
             >
               {month.pendingCount > 9 ? '9+' : month.pendingCount}
             </span>
