@@ -2406,7 +2406,7 @@ function AdminDashboard() {
           { Icon: Images, label: 'Portfólio', onClick: open('portfolio') },
         ]
       : []),
-    ...(can('notificacoes') ? [{ Icon: BellRing, label: 'Notificar clientes', onClick: open('notificar') }] : []),
+    ...(can('notificacoes') ? [{ Icon: BellRing, label: 'Notificar', onClick: open('notificar') }] : []),
     ...(can('definicoes') ? [{ Icon: Store, label: 'Definições', onClick: open('definicoes') }] : []),
   ]
   const menuActions = pages.slice(0, 5)
