@@ -615,8 +615,13 @@ function AgendaView({
         </button>
       </div>
 
-      {/* Upcoming or past: a white pill with the Painel's shadow, the chosen side dark, like the Comparação's switch. */}
-      <div className="mt-4 grid grid-cols-2 rounded-full bg-card p-1" style={{ boxShadow: CARD_SHADOW }} role="tablist" aria-label="Agenda">
+      {/* Upcoming or past, like an iOS segmented control: a frosted glass track, the chosen side a raised white pill. */}
+      <div
+        className="glass-chip mt-4 grid grid-cols-2 rounded-full p-1"
+        style={{ background: 'color-mix(in srgb, var(--color-onyx) 6%, transparent)' }}
+        role="tablist"
+        aria-label="Agenda"
+      >
         {(
           [
             ['proximas', 'Próximas', upcoming.length, CalendarClock],
@@ -637,15 +642,15 @@ function AgendaView({
             {view === id && (
               <motion.span
                 layoutId="agenda-segment"
-                className="absolute inset-0 rounded-full bg-onyx"
+                className="absolute inset-0 rounded-full bg-white shadow-[0_3px_8px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.04)] dark:bg-onyx/[0.16]"
                 transition={{ type: 'spring', stiffness: 420, damping: 36 }}
               />
             )}
-            <Icon size={15} strokeWidth={2.2} className={`relative transition-colors ${view === id ? 'text-white' : 'text-muted-dark'}`} />
-            <span className={`relative transition-colors ${view === id ? 'font-semibold text-white' : 'font-medium text-muted-dark'}`}>{label}</span>
+            <Icon size={15} strokeWidth={2.2} className={`relative transition-colors ${view === id ? 'text-onyx' : 'text-muted-dark'}`} />
+            <span className={`relative transition-colors ${view === id ? 'font-semibold text-onyx' : 'font-medium text-muted-dark'}`}>{label}</span>
             <span
               className={`tabular relative min-w-5 rounded-full px-1.5 py-px text-center text-[11px] font-semibold transition-colors ${
-                view === id ? 'bg-white/20 text-white' : 'bg-onyx/[0.06] text-muted-dark'
+                view === id ? 'bg-onyx/[0.07] text-onyx' : 'bg-onyx/[0.05] text-muted-dark'
               }`}
             >
               {count}
