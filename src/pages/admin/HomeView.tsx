@@ -10,6 +10,7 @@ import {
   ChartLine,
   ChartPie,
   Check,
+  ChevronRight,
   Clock,
   Eye,
   EyeOff,
@@ -702,7 +703,20 @@ function Highlight({
   ]
   return (
     <>
-      <BlockHeader title={`Faturação de ${monthName(data.months[5].key)}`} action={<HeaderLink label="Detalhes" onClick={onDetail} />} />
+      <BlockHeader title={`Faturação de ${monthName(data.months[5].key)}`} action={
+          <button
+            type="button"
+            onClick={() => {
+              void tap()
+              onDetail()
+            }}
+            className="flex h-8 shrink-0 items-center gap-1 rounded-full bg-onyx/[0.05] pe-2 ps-3 text-[12px] font-semibold text-onyx transition-[transform,background-color] hover:bg-onyx/[0.08] active:scale-[0.96]"
+          >
+            Detalhes
+            <ChevronRight size={15} strokeWidth={2.4} />
+          </button>
+        }
+      />
       <div className="mt-2 flex items-end justify-between gap-3">
         <p className="amount tabular text-[30px] font-semibold leading-none tracking-tight text-ink">{euros(month.revenue)}</p>
         <Change value={month.revenueChange} />
