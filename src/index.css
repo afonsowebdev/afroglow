@@ -233,6 +233,8 @@
   --c-confirmed: #5f935d;
   --c-waiting: #fabf00;
   --c-cancelled: #fa2e23;
+  /* Words in the Confirmado green, readable on a light background. */
+  --c-confirmed-ink: color-mix(in srgb, var(--c-confirmed) 78%, var(--color-onyx));
   --c-warn: #b5652b;
   --c-chart-in: #c9a84c;
   --c-chart-out: #e2876a;
@@ -264,6 +266,7 @@
   --c-confirmed: #5f935d;
   --c-waiting: #fabf00;
   --c-cancelled: #fa2e23;
+  --c-confirmed-ink: color-mix(in srgb, var(--c-confirmed) 45%, var(--color-onyx));
   --c-warn: #f0a443;
   --shadow-card: 0 1px 3px rgb(0 0 0 / 0.3);
   --color-card: var(--c-card);

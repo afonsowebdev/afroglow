@@ -753,9 +753,15 @@ function Highlight({
             void tap('medium')
             onNewBooking()
           }}
-          className="glass-chip flex h-11 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
+          // In the Confirmado green: a soft tint, the words and icon a deeper shade of it.
+          className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 text-[13px] font-semibold transition-[transform,filter] hover:brightness-[0.97] active:scale-[0.97]"
+          style={{
+            background: 'color-mix(in srgb, var(--c-confirmed) 14%, var(--color-white))',
+            color: 'var(--c-confirmed-ink)',
+            boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--c-confirmed) 22%, transparent)',
+          }}
         >
-          <CalendarPlus size={16} strokeWidth={2.2} />
+          <CalendarPlus size={16} strokeWidth={2.3} />
           Nova marcação
         </button>
         <button
