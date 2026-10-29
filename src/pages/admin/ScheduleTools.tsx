@@ -171,7 +171,7 @@ export function GenerateSlotsSheet({
           <motion.form
             role="dialog"
             aria-modal="true"
-            aria-label="Abrir a semana"
+            aria-label="Abrir semanas"
             onSubmit={(e) => {
               e.preventDefault()
               if (times.length && !busy) void submit()
@@ -191,7 +191,7 @@ export function GenerateSlotsSheet({
               >
                 Cancelar
               </button>
-              <h2 className="font-subtitle text-base font-semibold text-onyx">Abrir a semana</h2>
+              <h2 className="font-subtitle text-base font-semibold text-onyx">Abrir semanas</h2>
               <button
                 type="submit"
                 disabled={busy || times.length === 0}
@@ -272,7 +272,7 @@ export function GenerateSlotsSheet({
                             onClick={() => toggleShift(day.id, shift)}
                             className={cn(
                               'h-9 w-[4.25rem] rounded-full font-subtitle text-xs transition-colors',
-                              shifts[shift] ? 'bg-onyx font-medium text-white' : 'border border-onyx/15 text-onyx/45',
+                              shifts[shift] ? 'glass-chip-on font-semibold text-onyx' : 'glass-chip text-onyx/45',
                             )}
                           >
                             {shift === 'am' ? 'Manhã' : 'Tarde'}
@@ -287,7 +287,7 @@ export function GenerateSlotsSheet({
               {/* For how long. */}
               <section>
                 <h3 className={section}>Durante</h3>
-                <div className="grid grid-cols-6 rounded-xl bg-onyx/[0.06] p-1" role="radiogroup" aria-label="Semanas">
+                <div className="grid grid-cols-6 rounded-full bg-onyx/[0.06] p-1" role="radiogroup" aria-label="Semanas">
                   {[1, 2, 3, 4, 6, 8].map((w) => (
                     <button
                       key={w}
@@ -296,7 +296,7 @@ export function GenerateSlotsSheet({
                       aria-checked={pattern.weeks === w}
                       onClick={() => setPattern({ ...pattern, weeks: w })}
                       className={cn(
-                        'flex h-11 flex-col items-center justify-center rounded-[9px] font-subtitle leading-none',
+                        'flex h-11 flex-col items-center justify-center rounded-full font-subtitle leading-none',
                         pattern.weeks === w
                           ? 'bg-white text-onyx shadow-sm shadow-black/10 dark:bg-onyx/[0.14]'
                           : 'text-onyx/55',

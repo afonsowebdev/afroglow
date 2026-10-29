@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import {
@@ -10,7 +10,9 @@ import {
   CalendarCheck,
   CalendarClock,
   CalendarPlus,
+  CalendarRange,
   CalendarX2,
+  Check,
   ChevronRight,
   ChartColumn,
   Clock,
@@ -18,8 +20,10 @@ import {
   Inbox,
   LogOut,
   MessageSquareQuote,
+  Minus,
   Moon,
   Phone,
+  RotateCcw,
   PanelTop,
   PanelTopClose,
   Plus,
@@ -35,8 +39,6 @@ import {
 import { BackToTop } from '@/components/ui/back-to-top'
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
 import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
-import { DatePicker } from '@/components/ui/date-picker'
-import { MotionButton } from '@/components/ui/motion-button'
 import { adminToken, api, ApiError } from '@/lib/api'
 import { CustomersView } from '@/pages/admin/CustomersView'
 import type { AdminCustomer } from '@/pages/admin/admin-types'
@@ -167,93 +169,213 @@ const TABS: Array<BottomNavItem<NavTab>> = [
   { id: 'clientes', label: 'Clientes', icon: 'bx bx-user', Icon: Users },
 ]
 
-/** Step 2 of "Criar horários": the times of the day in three groups, with one-tap presets. */
-function TimePicker({
-  enabled,
-  chosen,
+/** A slot's colour, as on the Painel: free green, waiting yellow, taken red. */
+const SLOT_COLOUR: Record<AvailabilitySlot['status'], string> = {
+  OPEN: 'var(--c-confirmed)',
+  PENDING: 'var(--c-waiting)',
+  BOOKED: 'var(--c-cancelled)',
+}
+
+/** The two times of the usual day, as saved in "Abrir semanas" (09:00 and 14:00 until then). */
+function routineTimes() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('afroglow-admin-schedule-week') ?? '{}') as { amTime?: string; pmTime?: string }
+    return [saved.amTime ?? '09:00', saved.pmTime ?? '14:00']
+  } catch {
+    return ['09:00', '14:00']
+  }
+}
+
+/**
+ * "Abrir horas" for one day, in a sheet from the bottom: the usual routine or a whole morning or afternoon in one tap,
+ * the times of the day as chips in three groups (those already open greyed out), any other time, and one button that
+ * says how many it opens.
+ */
+function AddTimesSheet({
+  day,
   taken,
-  onChange,
+  busy,
+  onClose,
+  onCreate,
 }: {
-  enabled: boolean
-  chosen: string[]
+  /** The day, "2026-10-30", or null when closed. */
+  day: string | null
   taken: Set<string>
-  onChange: (times: string[]) => void
+  busy: boolean
+  onClose: () => void
+  onCreate: (times: string[]) => void
 }) {
+  const [chosen, setChosen] = useState<string[]>([])
+  const [other, setOther] = useState('')
+  useScrollLock(!!day)
+  useEffect(() => {
+    if (day) {
+      setChosen([])
+      setOther('')
+    }
+  }, [day])
   const groups = [
     { label: 'Manhã', times: SLOT_TIMES.filter((t) => t < '13:00') },
     { label: 'Tarde', times: SLOT_TIMES.filter((t) => t >= '13:00' && t < '18:00') },
     { label: 'Fim do dia', times: SLOT_TIMES.filter((t) => t >= '18:00') },
   ]
-  const add = (times: string[]) => onChange([...new Set([...chosen, ...times.filter((t) => !taken.has(t))])].sort())
-  const presets = [
-    { label: 'Rotina 8h + 14h', run: () => onChange(['08:00', '14:00'].filter((t) => !taken.has(t))) },
-    { label: 'Manhã', run: () => add(groups[0].times) },
-    { label: 'Tarde', run: () => add(groups[1].times) },
-  ]
+  const free = (times: string[]) => times.filter((t) => !taken.has(t))
+  const add = (times: string[]) => {
+    void tap()
+    setChosen((list) => [...new Set([...list, ...free(times)])].sort())
+  }
+  const toggle = (time: string) => {
+    void tap()
+    setChosen((list) => (list.includes(time) ? list.filter((t) => t !== time) : [...list, time].sort()))
+  }
+  const routine = routineTimes()
+  const title = day ? new Date(`${day}T12:00:00`).toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long' }) : ''
 
   return (
-    <div className={enabled ? '' : 'opacity-50'}>
-      <div className="flex flex-wrap gap-2">
-        {presets.map((preset) => (
-          <button
-            key={preset.label}
+    <AnimatePresence>
+      {day && (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center">
+          <motion.button
             type="button"
-            disabled={!enabled}
-            onClick={preset.run}
-            className="glass-chip rounded-full px-3.5 py-2 font-subtitle text-xs font-medium text-onyx disabled:cursor-not-allowed"
+            aria-label="Fechar"
+            onClick={() => !busy && onClose()}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Abrir horas, ${title}`}
+            className="relative flex max-h-[90dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl sm:rounded-[28px]"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           >
-            {preset.label}
-          </button>
-        ))}
-        <button
-          type="button"
-          disabled={!enabled || chosen.length === 0}
-          onClick={() => onChange([])}
-          className="rounded-full px-3 py-2 font-subtitle text-xs text-muted-dark underline underline-offset-4 disabled:opacity-40"
-        >
-          Limpar
-        </button>
-      </div>
+            <div className="flex items-center gap-3 px-5 pb-3 pt-5">
+              <span className="glass-chip flex size-11 shrink-0 items-center justify-center rounded-full text-onyx">
+                <Clock size={18} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-subtitle text-[19px] font-semibold tracking-tight text-onyx">Abrir horas</h2>
+                <p className="truncate font-subtitle text-xs text-muted-dark first-letter:uppercase">{title}</p>
+              </div>
+              <button type="button" aria-label="Fechar" onClick={onClose} disabled={busy} className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-onyx">
+                <X size={16} />
+              </button>
+            </div>
 
-      {groups.map((group) => (
-        <div key={group.label} className="mt-4">
-          <p className="mb-2 font-subtitle text-[11px] font-medium uppercase tracking-wide text-muted-dark">
-            {group.label}
-          </p>
-          <div className="grid grid-cols-4 gap-2">
-            {group.times.map((time) => {
-              const isTaken = taken.has(time)
-              const on = chosen.includes(time)
-              return (
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4">
+              {/* One tap for the usual ones. */}
+              <div className="flex flex-wrap gap-2">
                 <button
-                  key={time}
                   type="button"
-                  disabled={isTaken || !enabled}
-                  aria-pressed={on}
-                  onClick={() => onChange(on ? chosen.filter((t) => t !== time) : [...chosen, time].sort())}
-                  title={isTaken ? 'Já existe uma vaga a esta hora' : undefined}
-                  className={`h-11 rounded-xl font-subtitle text-sm lining-nums disabled:cursor-not-allowed ${
-                    on
-                      ? 'glass-chip-on font-semibold text-onyx'
-                      : isTaken
-                        ? 'text-onyx/30 line-through'
-                        : 'glass-chip text-onyx'
-                  } ${isTaken ? 'bg-onyx/5' : ''}`}
+                  onClick={() => add(routine)}
+                  disabled={free(routine).length === 0}
+                  className="glass-chip flex h-9 items-center gap-1.5 rounded-full px-3.5 font-subtitle text-[12px] font-semibold text-onyx disabled:opacity-40"
                 >
-                  {time}
+                  <RotateCcw size={13} strokeWidth={2.2} />A tua rotina · {routine.join(' e ')}
                 </button>
-              )
-            })}
-          </div>
+                {groups.slice(0, 2).map((g) => (
+                  <button
+                    key={g.label}
+                    type="button"
+                    onClick={() => add(g.times)}
+                    className="glass-chip flex h-9 items-center rounded-full px-3.5 font-subtitle text-[12px] font-medium text-onyx"
+                  >
+                    {g.label} toda
+                  </button>
+                ))}
+              </div>
+
+              {groups.map((group) => (
+                <div key={group.label} className="mt-4">
+                  <p className="mb-2 px-1 font-subtitle text-[12px] font-semibold text-muted-dark">{group.label}</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {group.times.map((time) => {
+                      const isTaken = taken.has(time)
+                      const on = chosen.includes(time)
+                      return (
+                        <button
+                          key={time}
+                          type="button"
+                          disabled={isTaken}
+                          aria-pressed={on}
+                          onClick={() => toggle(time)}
+                          title={isTaken ? 'Esta hora já está aberta' : undefined}
+                          className={`tabular h-10 rounded-full font-subtitle text-[13px] transition-colors disabled:cursor-not-allowed ${
+                            on ? 'glass-chip-on font-semibold text-onyx' : isTaken ? 'bg-onyx/[0.04] text-onyx/30 line-through' : 'glass-chip text-onyx'
+                          }`}
+                        >
+                          {time}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              {/* Any other time. */}
+              <div className="mt-4 flex items-center gap-2">
+                <label className="glass-chip relative flex h-10 flex-1 items-center gap-2 rounded-full px-3.5 font-subtitle text-[13px] text-onyx">
+                  <Clock size={14} className="text-ink-3" />
+                  <span className={other ? 'tabular font-semibold' : 'text-muted-dark'}>{other || 'Outra hora'}</span>
+                  <input
+                    type="time"
+                    value={other}
+                    onChange={(e) => setOther(e.target.value)}
+                    aria-label="Outra hora"
+                    className="absolute inset-0 size-full cursor-pointer opacity-0"
+                  />
+                </label>
+                <button
+                  type="button"
+                  disabled={!other || taken.has(other) || chosen.includes(other)}
+                  onClick={() => {
+                    add([other])
+                    setOther('')
+                  }}
+                  className="glass-chip flex h-10 items-center gap-1 rounded-full px-3.5 font-subtitle text-[13px] font-semibold text-onyx disabled:opacity-40"
+                >
+                  <Plus size={14} strokeWidth={2.4} />
+                  Juntar
+                </button>
+              </div>
+            </div>
+
+            {/* What will be opened, and the button. */}
+            <div className="px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]">
+              <div className="mb-2.5 flex items-center justify-between gap-3 px-1 font-subtitle text-xs text-muted-dark">
+                <span className="min-w-0 truncate">{chosen.length ? chosen.join(' · ') : 'Escolhe uma ou mais horas'}</span>
+                {chosen.length > 0 && (
+                  <button type="button" onClick={() => setChosen([])} className="shrink-0 font-medium text-onyx">
+                    Limpar
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                disabled={busy || chosen.length === 0}
+                onClick={() => onCreate(chosen)}
+                className="glass-chip-on flex h-12 w-full items-center justify-center gap-2 rounded-full font-subtitle text-[15px] font-semibold text-onyx transition-opacity disabled:opacity-40"
+              >
+                <Check size={17} strokeWidth={2.4} />
+                {busy ? 'A abrir…' : chosen.length > 1 ? `Abrir ${chosen.length} horas` : 'Abrir hora'}
+              </button>
+            </div>
+          </motion.div>
         </div>
-      ))}
-    </div>
+      )}
+    </AnimatePresence>
   )
 }
 
 /**
- * The month's times as a day view: a strip with every day of the month (a coloured bar tells at a glance whether the
- * day has free times, is full or is closed), and the chosen day's times below as large tiles with the client's name.
+ * The month's times: a calendar in a white card (a short bar under each day: green with free times, yellow waiting,
+ * red full; nothing when closed) and the chosen day below as tiles, one per time, with who has it; free ones can be
+ * closed (tap twice). The day can be opened or given more times from here ("Abrir horas"); past days only show.
  */
 function SlotsDayView({
   slotsByDate,
@@ -261,62 +383,59 @@ function SlotsDayView({
   viewMonth,
   busyId,
   onDelete,
+  onAddTimes,
 }: {
   slotsByDate: Array<[string, AvailabilitySlot[]]>
   bookings: Booking[]
   viewMonth: { year: number; month: number }
   busyId: string | null
   onDelete: (id: string) => void
+  onAddTimes: (day: string) => void
 }) {
   const byKey = new Map(slotsByDate)
   const todayKey = dateKey(new Date().toISOString())
   const prefix = `${viewMonth.year}-${String(viewMonth.month).padStart(2, '0')}`
   const daysInMonth = new Date(viewMonth.year, viewMonth.month, 0).getDate()
   const pickDefault = () =>
-    (byKey.has(todayKey) ? todayKey : slotsByDate.find(([key]) => key >= todayKey)?.[0]) ?? slotsByDate[0]?.[0] ?? ''
+    todayKey.startsWith(prefix) ? todayKey : (slotsByDate.find(([key]) => key >= todayKey)?.[0] ?? slotsByDate[0]?.[0] ?? `${prefix}-01`)
   const [selected, setSelected] = useState(pickDefault)
 
   useEffect(() => {
-    if (!selected.startsWith(prefix) || !byKey.has(selected)) setSelected(pickDefault())
+    if (!selected.startsWith(prefix)) setSelected(pickDefault())
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prefix, slotsByDate])
+  }, [prefix])
 
   const clientOf = (slot: AvailabilitySlot) =>
     bookings.find((b) => b.slot.id === slot.id && (b.status === 'PENDING' || b.status === 'ACCEPTED'))?.customerName
 
   const list = byKey.get(selected) ?? []
   const free = list.filter((slot) => slot.status === 'OPEN').length
-  const heading = list[0] ? dayHeading(list[0].startsAt) : null
-  const parts = list[0] ? dateParts(list[0].startsAt) : null
+  const past = selected < todayKey
+  const heading = dayHeading(new Date(`${selected}T12:00:00`).toISOString())
   // The month as a grid, Monday first: blanks before the 1st.
   const lead = (new Date(viewMonth.year, viewMonth.month - 1, 1).getDay() + 6) % 7
   const [confirmId, setConfirmId] = useState<string | null>(null)
+  const dayColour = (slots: AvailabilitySlot[] | undefined) =>
+    !slots
+      ? 'transparent'
+      : slots.some((s) => s.status === 'OPEN')
+        ? SLOT_COLOUR.OPEN
+        : slots.some((s) => s.status === 'PENDING')
+          ? SLOT_COLOUR.PENDING
+          : SLOT_COLOUR.BOOKED
 
   return (
-    <div className="mt-6">
-      <div className="mb-2 flex items-center justify-between gap-3 px-1">
-        <h2 className="font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">Calendário</h2>
-        {selected !== todayKey && byKey.has(todayKey) && (
-          <button
-            type="button"
-            onClick={() => setSelected(todayKey)}
-            className="shrink-0 font-subtitle text-xs font-medium text-onyx underline underline-offset-4"
-          >
-            Ir para hoje
-          </button>
-        )}
-      </div>
-
-      {/* The whole month at once: a dot for days with free times, a ring for days that are full. */}
-      <div className="rounded-2xl border border-onyx/10 bg-white p-3 shadow-sm shadow-black/5">
-        <div className="grid grid-cols-7 text-center font-subtitle text-[10px] font-medium uppercase tracking-wide text-muted-dark">
+    <div className="mt-5">
+      {/* The whole month at once. */}
+      <div className="rounded-[22px] bg-card p-3" style={{ boxShadow: CARD_SHADOW }}>
+        <div className="grid grid-cols-7 text-center font-subtitle text-[11px] font-semibold text-ink-3">
           {['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map((d, i) => (
-            <span key={i} className="py-1">
+            <span key={i} className="py-1.5">
               {d}
             </span>
           ))}
         </div>
-        <div role="grid" aria-label="Dias do mês" className="mt-1 grid grid-cols-7 gap-y-1">
+        <div role="grid" aria-label="Dias do mês" className="grid grid-cols-7 gap-1">
           {Array.from({ length: lead }, (_, i) => (
             <span key={`b${i}`} />
           ))}
@@ -326,114 +445,145 @@ function SlotsDayView({
             const open = slots?.filter((slot) => slot.status === 'OPEN').length ?? 0
             const active = key === selected
             const isToday = key === todayKey
-            const past = key < todayKey
+            const gone = key < todayKey
             return (
               <button
                 key={key}
                 type="button"
                 aria-pressed={active}
-                aria-label={`${day}, ${slots ? (open > 0 ? `${open} livres` : 'completo') : 'sem horários'}`}
-                onClick={() => setSelected(key)}
-                className="flex flex-col items-center py-0.5"
+                aria-label={`${day}, ${slots ? (open > 0 ? `${open} livres` : 'completo') : 'fechado'}`}
+                onClick={() => {
+                  void tap()
+                  setSelected(key)
+                  setConfirmId(null)
+                }}
+                className={`relative flex h-12 flex-col items-center justify-center rounded-2xl transition-colors ${
+                  active ? 'bg-onyx/[0.07] ring-1 ring-onyx/15' : 'active:bg-onyx/[0.04]'
+                }`}
               >
                 <span
-                  className={`flex size-9 items-center justify-center rounded-full font-subtitle text-sm lining-nums transition-colors ${
-                    active
-                      ? 'bg-onyx font-semibold text-white'
-                      : isToday
-                        ? 'font-semibold text-onyx ring-1 ring-onyx'
-                        : slots
-                          ? past
-                            ? 'text-onyx/45'
-                            : 'font-medium text-onyx'
-                          : 'text-onyx/30'
+                  className={`tabular font-subtitle text-[15px] leading-none ${
+                    active || isToday ? 'font-bold text-onyx' : slots ? (gone ? 'text-onyx/45' : 'font-medium text-onyx') : 'text-onyx/30'
                   }`}
                 >
                   {day}
                 </span>
-                <span
-                  className={`mt-0.5 size-1.5 rounded-full ${
-                    !slots ? 'bg-transparent' : open > 0 ? 'bg-emerald-500' : 'bg-red-600'
-                  }`}
-                  aria-hidden="true"
-                />
+                <span className="mt-1.5 h-1 w-4 rounded-full" style={{ background: dayColour(slots), opacity: gone ? 0.45 : 1 }} aria-hidden="true" />
+                {isToday && !active && <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-onyx/60" aria-label="hoje" />}
               </button>
             )
           })}
         </div>
-        <div className="mt-2 flex items-center justify-center gap-4 border-t border-onyx/[0.08] pt-2.5 font-subtitle text-[11px] text-muted-dark">
-          <span className="flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" /> Com horas livres
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-red-600" aria-hidden="true" /> Completo
-          </span>
-          <span className="text-onyx/35">Sem ponto: fechado</span>
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 pb-1 font-subtitle text-[11px] text-muted-dark">
+          {(
+            [
+              ['OPEN', 'Com horas livres'],
+              ['PENDING', 'Por confirmar'],
+              ['BOOKED', 'Completo'],
+            ] as const
+          ).map(([status, label]) => (
+            <span key={status} className="flex items-center gap-1.5">
+              <span className="h-1 w-3 rounded-full" style={{ background: SLOT_COLOUR[status] }} aria-hidden="true" /> {label}
+            </span>
+          ))}
         </div>
       </div>
 
-      {/* The chosen day: its times as a list. */}
-      <div className="mt-5">
-        {list.length === 0 ? (
-          <div className="rounded-2xl bg-onyx/[0.04] px-4 py-6 text-center">
-            <p className="font-subtitle text-base font-semibold text-onyx">Dia fechado</p>
-            <p className="mt-1 font-subtitle text-sm text-muted-dark">Sem horários. Usa “Abrir um dia” acima para o abrir.</p>
-          </div>
-        ) : (
-          <>
-            <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
-              <h3 className="font-subtitle text-base font-semibold tracking-tight text-onyx first-letter:uppercase">
-                {heading?.sub ? `${heading.title} · ${parts?.day} ${parts?.month}` : heading?.title}
-              </h3>
-              <span className="shrink-0 font-subtitle text-xs text-muted-dark">
-                {free} {free === 1 ? 'livre' : 'livres'} · {list.length - free}{' '}
-                {list.length - free === 1 ? 'ocupado' : 'ocupados'}
-              </span>
-            </div>
-            <ul className="divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
-              {list.map((slot) => {
-                const isFree = slot.status === 'OPEN'
-                const time = dateParts(slot.startsAt).time
-                const who = clientOf(slot)
-                const confirming = confirmId === slot.id
-                return (
-                  <li key={slot.id} className="flex items-center gap-3 px-4 py-3">
-                    <span className="w-14 shrink-0 font-subtitle text-lg font-semibold lining-nums text-onyx">{time}</span>
-                    <span className="flex min-w-0 flex-1 items-center gap-2 font-subtitle text-sm">
-                      <span
-                        className={`size-2 shrink-0 rounded-full ${
-                          isFree ? 'bg-emerald-500' : slot.status === 'PENDING' ? 'bg-amber-500' : 'bg-red-600'
-                        }`}
-                        aria-hidden="true"
-                      />
-                      <span className={`truncate ${isFree ? 'text-muted-dark' : 'font-medium text-onyx'}`}>
-                        {isFree ? 'Livre' : (who ?? SLOT_STATUS_LABEL[slot.status])}
-                      </span>
-                      {slot.status === 'PENDING' && (
-                        <span className="shrink-0 text-xs text-muted-dark">· por confirmar</span>
-                      )}
-                    </span>
-                    {isFree && (
-                      <button
-                        type="button"
-                        onClick={() => (confirming ? onDelete(slot.id) : setConfirmId(slot.id))}
-                        onBlur={() => setConfirmId(null)}
-                        disabled={busyId === slot.id}
-                        aria-label={`Fechar a vaga das ${time}`}
-                        className={`shrink-0 rounded-full px-3 py-1.5 font-subtitle text-xs transition-colors disabled:opacity-40 ${
-                          confirming ? 'bg-red-600 font-medium text-[#ffffff]' : 'text-onyx/50'
-                        }`}
-                      >
-                        {confirming ? 'Fechar' : <i className="bx bx-minus-circle text-lg" aria-hidden="true" />}
-                      </button>
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
-          </>
+      {/* The chosen day. */}
+      <div className="mt-6 flex items-center justify-between gap-3 px-1">
+        <h3 className="min-w-0 truncate font-subtitle text-[15px] font-semibold tracking-tight text-onyx">
+          {heading.title}
+          {heading.sub && <span className="ml-2 text-xs font-normal text-muted-dark">{heading.sub}</span>}
+        </h3>
+        {list.length > 0 && (
+          <span className="tabular shrink-0 rounded-full bg-card px-2.5 py-1 font-subtitle text-[11px] font-medium text-muted-dark" style={{ boxShadow: CARD_SHADOW }}>
+            {free} {free === 1 ? 'livre' : 'livres'} · {list.length - free} {list.length - free === 1 ? 'ocupada' : 'ocupadas'}
+          </span>
         )}
       </div>
+
+      {list.length === 0 ? (
+        <div className="mt-2.5 flex flex-col items-center rounded-[22px] bg-card px-6 py-8 text-center" style={{ boxShadow: CARD_SHADOW }}>
+          <span className="glass-chip flex size-14 items-center justify-center rounded-full text-onyx">
+            <CalendarX2 size={22} />
+          </span>
+          <p className="mt-4 font-subtitle text-[17px] font-semibold tracking-tight text-onyx">Dia fechado</p>
+          <p className="mt-1 max-w-xs font-subtitle text-sm text-muted-dark">
+            {past ? 'Este dia já passou.' : 'Ainda não há horas abertas neste dia.'}
+          </p>
+          {!past && (
+            <button
+              type="button"
+              onClick={() => onAddTimes(selected)}
+              className="glass-chip mt-4 flex h-11 items-center gap-2 rounded-full pe-1.5 ps-4 font-subtitle text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
+            >
+              <Plus size={16} strokeWidth={2.4} />
+              Abrir horas
+              <span className="flex size-8 items-center justify-center rounded-full bg-white text-onyx shadow-sm">
+                <ArrowRight size={16} />
+              </span>
+            </button>
+          )}
+        </div>
+      ) : (
+        <ul className="mt-2.5 grid grid-cols-2 gap-2.5">
+          {list.map((slot) => {
+            const isFree = slot.status === 'OPEN'
+            const time = dateParts(slot.startsAt).time
+            const who = clientOf(slot)
+            const confirming = confirmId === slot.id
+            return (
+              <li key={slot.id} className="flex min-h-[5.5rem] flex-col justify-between rounded-[20px] bg-card p-3.5" style={{ boxShadow: CARD_SHADOW }}>
+                <div className="flex items-start justify-between gap-2">
+                  <span className="tabular font-subtitle text-[20px] font-semibold leading-none tracking-tight text-onyx">{time}</span>
+                  {isFree && !past && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void tap()
+                        if (confirming) onDelete(slot.id)
+                        else setConfirmId(slot.id)
+                      }}
+                      onBlur={() => setConfirmId(null)}
+                      disabled={busyId === slot.id}
+                      aria-label={confirming ? `Confirmar: fechar as ${time}` : `Fechar as ${time}`}
+                      className={
+                        confirming
+                          ? '-mr-1 -mt-1 flex h-7 items-center rounded-full px-2.5 font-subtitle text-[11px] font-semibold text-[#ffffff] disabled:opacity-40'
+                          : 'glass-chip -mr-1 -mt-1 flex size-7 items-center justify-center rounded-full text-muted-dark disabled:opacity-40'
+                      }
+                      style={confirming ? { background: 'var(--c-cancelled)' } : undefined}
+                    >
+                      {confirming ? 'Fechar?' : <Minus size={14} strokeWidth={2.4} />}
+                    </button>
+                  )}
+                </div>
+                <span className="mt-3 flex min-w-0 items-center gap-1.5 font-subtitle text-[12px]">
+                  <span className="size-2 shrink-0 rounded-full" style={{ background: SLOT_COLOUR[slot.status] }} aria-hidden="true" />
+                  <span className={`truncate ${isFree ? 'text-muted-dark' : 'font-semibold text-onyx'}`}>
+                    {isFree ? 'Livre' : (who ?? SLOT_STATUS_LABEL[slot.status])}
+                  </span>
+                </span>
+                {slot.status === 'PENDING' && <span className="mt-0.5 font-subtitle text-[11px] text-muted-dark">por confirmar</span>}
+              </li>
+            )
+          })}
+          {!past && (
+            <li>
+              <button
+                type="button"
+                onClick={() => onAddTimes(selected)}
+                className="glass-chip flex size-full min-h-[5.5rem] flex-col items-center justify-center gap-1.5 rounded-[20px] font-subtitle text-[13px] font-semibold text-onyx transition-transform active:scale-[0.98]"
+              >
+                <span className="flex size-8 items-center justify-center rounded-full bg-onyx/[0.06]">
+                  <Plus size={16} strokeWidth={2.4} />
+                </span>
+                Abrir horas
+              </button>
+            </li>
+          )}
+        </ul>
+      )}
     </div>
   )
 }
@@ -2225,25 +2375,8 @@ function AdminDashboard() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [error, setError] = useState<string | null>(null)
 
-  const [newDate, setNewDate] = useState('')
-  // The "Criar horários" card can be folded away; the choice is remembered on this phone.
-  const [createOpen, setCreateOpen] = useState(() => {
-    try {
-      return localStorage.getItem('afroglow-admin-create-open') === '1'
-    } catch {
-      return false
-    }
-  })
-  const toggleCreate = () =>
-    setCreateOpen((open) => {
-      try {
-        localStorage.setItem('afroglow-admin-create-open', open ? '0' : '1')
-      } catch {
-        /* just not remembered */
-      }
-      return !open
-    })
-  const [batchTimes, setBatchTimes] = useState<string[]>([])
+  // The day whose "Abrir horas" sheet is open.
+  const [addDay, setAddDay] = useState<string | null>(null)
   const [addingSlot, setAddingSlot] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
 
@@ -2357,16 +2490,14 @@ function AdminDashboard() {
     }
   }
 
-  async function handleCreateSlots(e: FormEvent) {
-    e.preventDefault()
-    if (!newDate || batchTimes.length === 0) return
+  async function createSlots(day: string, times: string[]) {
+    if (times.length === 0) return
     setAddingSlot(true)
     setError(null)
     try {
-      const startsAtList = batchTimes.map((time) => new Date(`${newDate}T${time}:00`).toISOString())
+      const startsAtList = times.map((time) => new Date(`${day}T${time}:00`).toISOString())
       await api.post('/admin/availability/batch', { startsAtList })
-      setNewDate('')
-      setBatchTimes([])
+      setAddDay(null)
       await loadDashboard()
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Erro ao criar vagas.')
@@ -2590,7 +2721,7 @@ function AdminDashboard() {
 
   // Times already opened on the chosen day (so they can't be created twice).
   const takenTimes = new Set(
-    slots.filter((slot) => newDate && dateKey(slot.startsAt) === newDate).map((slot) => dateParts(slot.startsAt).time),
+    slots.filter((slot) => addDay && dateKey(slot.startsAt) === addDay).map((slot) => dateParts(slot.startsAt).time),
   )
 
   const nowMs = Date.now()
@@ -2942,7 +3073,7 @@ function AdminDashboard() {
             {tab === 'disponibilidade' && (
               <section className="mt-4">
                 {scheduleNotice && (
-                  <p className="mb-4 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4 font-subtitle text-sm text-onyx">
+                  <p className="mb-4 rounded-[22px] bg-card p-4 font-subtitle text-sm text-onyx" style={{ boxShadow: CARD_SHADOW }}>
                     {scheduleNotice}
                   </p>
                 )}
@@ -2960,176 +3091,58 @@ function AdminDashboard() {
                     </button>
                   </div>
                 )}
-                {/* The month in one line, each state with its colour (as in the calendar below). */}
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1 font-subtitle text-sm text-muted-dark">
-                  {(
-                    [
-                      ['bg-emerald-500', monthSlots.filter((slot) => slot.status === 'OPEN').length, 'livres'],
-                      ['bg-amber-500', monthSlots.filter((slot) => slot.status === 'PENDING').length, 'por confirmar'],
-                      ['bg-red-600', monthSlots.filter((slot) => slot.status === 'BOOKED').length, 'reservadas'],
-                    ] as const
-                  ).map(([dot, count, label]) => (
-                    <span key={label} className="flex items-center gap-1.5">
-                      <span className={`size-2 rounded-full ${dot}`} />
-                      <strong className="font-semibold lining-nums text-onyx">{count}</strong> {label}
-                    </span>
-                  ))}
+                {/* The month in three figures, as in the Agenda. */}
+                <div className="grid grid-cols-3 gap-2.5">
+                  <AgendaFigure label="Livres" value={String(monthSlots.filter((slot) => slot.status === 'OPEN').length)} colour={SLOT_COLOUR.OPEN} />
+                  <AgendaFigure label="Por confirmar" value={String(monthSlots.filter((slot) => slot.status === 'PENDING').length)} colour={SLOT_COLOUR.PENDING} />
+                  <AgendaFigure label="Reservadas" value={String(monthSlots.filter((slot) => slot.status === 'BOOKED').length)} colour={SLOT_COLOUR.BOOKED} />
                 </div>
 
-                {/* What can be done, as one list. */}
-                <div className="mt-4 divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
+                {/* Many days at once, or closing days; a single day is opened from the calendar below. */}
+                <div className="mt-3 grid grid-cols-2 gap-2.5">
                   {[
+                    { Icon: CalendarRange, title: 'Abrir semanas', text: 'A tua rotina, de uma vez', onClick: () => setGenerateOpen(true) },
                     {
-                      icon: 'bx bx-calendar-week',
-                      title: 'Abrir a semana',
-                      text: 'O teu horário habitual em várias semanas de uma vez.',
-                      onClick: () => setGenerateOpen(true),
-                      expands: false,
-                    },
-                    {
-                      icon: 'bx bx-calendar-plus',
-                      title: 'Abrir um dia',
-                      text: 'Escolhe o dia e as horas.',
-                      onClick: toggleCreate,
-                      expands: true,
-                    },
-                    {
-                      icon: 'bx bx-calendar-x',
+                      Icon: CalendarX2,
                       title: 'Dias fechados',
-                      text: 'Folga, feriado ou férias: fecha um ou vários dias.',
+                      text: 'Folgas, feriados, férias',
                       onClick: () => {
                         setTab('fechos')
                         window.scrollTo({ top: 0 })
                       },
-                      expands: false,
                     },
-                  ].map((row) => (
+                  ].map(({ Icon, title, text, onClick }) => (
                     <button
-                      key={row.title}
+                      key={title}
                       type="button"
-                      onClick={row.onClick}
-                      aria-expanded={row.expands ? createOpen : undefined}
-                      className="flex w-full items-center gap-3.5 px-4 py-3 text-left active:bg-onyx/[0.04]"
+                      onClick={() => {
+                        void tap()
+                        onClick()
+                      }}
+                      className="flex min-w-0 flex-col items-start rounded-[22px] bg-card p-3.5 text-left transition-transform active:scale-[0.98]"
+                      style={{ boxShadow: CARD_SHADOW }}
                     >
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-onyx text-lg text-white">
-                        <i className={row.icon} aria-hidden="true" />
+                      <span className="flex w-full items-center justify-between">
+                        <span className="glass-chip flex size-9 items-center justify-center rounded-full text-onyx">
+                          <Icon size={17} />
+                        </span>
+                        <ChevronRight size={18} className="text-ink-3" />
                       </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-subtitle text-[15px] font-medium text-onyx">{row.title}</span>
-                        <span className="block font-subtitle text-xs text-muted-dark">{row.text}</span>
-                      </span>
-                      <i
-                        className={`bx ${row.expands ? 'bx-chevron-down' : 'bx-chevron-right'} text-xl text-onyx/30 transition-transform ${
-                          row.expands && createOpen ? 'rotate-180' : ''
-                        }`}
-                        aria-hidden="true"
-                      />
+                      <span className="mt-3 block font-subtitle text-[14px] font-semibold text-onyx">{title}</span>
+                      <span className="block truncate font-subtitle text-[12px] text-muted-dark">{text}</span>
                     </button>
                   ))}
                 </div>
 
-                {/* "Abrir um dia", opened from the list above. */}
-                <form onSubmit={handleCreateSlots}>
-
-                  <AnimatePresence initial={false}>
-                    {createOpen && (
-                      <motion.div
-                        key="create-body"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25, ease: 'easeInOut' }}
-                        className="overflow-hidden"
-                      >
-                        <div className="mt-3 rounded-2xl border border-onyx/10 bg-white p-4 shadow-sm shadow-black/5">
-                          <p className="mb-3 flex items-center gap-2 font-subtitle text-sm font-semibold text-onyx">
-                            <span className="flex size-6 items-center justify-center rounded-full bg-onyx text-xs text-white">
-                              1
-                            </span>
-                            Escolhe o dia
-                          </p>
-                          <DatePicker value={newDate} onChange={setNewDate} />
-                          <div className="mt-3 flex gap-2">
-                            {[
-                              ['Hoje', 0],
-                              ['Amanhã', 1],
-                            ].map(([label, offset]) => {
-                              const d = new Date()
-                              d.setDate(d.getDate() + Number(offset))
-                              const value = dateKey(d.toISOString())
-                              return (
-                                <button
-                                  key={label}
-                                  type="button"
-                                  onClick={() => setNewDate(value)}
-                                  className={`rounded-full px-3.5 py-2 font-subtitle text-xs font-medium text-onyx ${
-                                    newDate === value ? 'glass-chip-on' : 'glass-chip'
-                                  }`}
-                                >
-                                  {label}
-                                </button>
-                              )
-                            })}
-                          </div>
-                        </div>
-
-                        <div className="mt-3 rounded-2xl border border-onyx/10 bg-white p-4 shadow-sm shadow-black/5">
-                          <p className="mb-3 flex items-center gap-2 font-subtitle text-sm font-semibold text-onyx">
-                            <span className="flex size-6 items-center justify-center rounded-full bg-onyx text-xs text-white">
-                              2
-                            </span>
-                            Escolhe as horas
-                          </p>
-                          <TimePicker
-                            enabled={Boolean(newDate)}
-                            chosen={batchTimes}
-                            taken={takenTimes}
-                            onChange={setBatchTimes}
-                          />
-                          {!newDate && (
-                            <p className="mt-3 font-subtitle text-xs text-muted-dark">
-                              Escolhe primeiro o dia para ativar as horas.
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="mt-5 flex items-center justify-between gap-3 border-t border-onyx/10 pt-4">
-                          <span className="min-w-0 font-subtitle text-sm text-muted-dark">
-                            {batchTimes.length === 0 ? 'Nenhuma hora selecionada' : batchTimes.join(' · ')}
-                          </span>
-                          <MotionButton
-                            label={
-                              addingSlot
-                                ? 'A criar...'
-                                : batchTimes.length > 1
-                                  ? `Criar ${batchTimes.length} vagas`
-                                  : 'Criar vaga'
-                            }
-                            size="sm"
-                            type="submit"
-                            disabled={addingSlot || !newDate || batchTimes.length === 0}
-                          />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </form>
-
-                {slotsByDate.length === 0 ? (
-                  <EmptyState
-                    icon="bx bx-time-five"
-                    title="Sem horários neste mês"
-                    text="Abre vagas em “Abrir a semana” ou “Abrir um dia”, acima, para as clientes poderem marcar."
-                  />
-                ) : (
-                  <SlotsDayView
-                    slotsByDate={slotsByDate}
-                    bookings={bookings}
-                    viewMonth={viewMonth}
-                    busyId={busyId}
-                    onDelete={handleDeleteSlot}
-                  />
-                )}
+                <SlotsDayView
+                  slotsByDate={slotsByDate}
+                  bookings={bookings}
+                  viewMonth={viewMonth}
+                  busyId={busyId}
+                  onDelete={handleDeleteSlot}
+                  onAddTimes={setAddDay}
+                />
+                <AddTimesSheet day={addDay} taken={takenTimes} busy={addingSlot} onClose={() => setAddDay(null)} onCreate={(times) => addDay && void createSlots(addDay, times)} />
 
                 {/* Only when the month has something to clear. */}
                 {monthSlots.length > 0 && (
