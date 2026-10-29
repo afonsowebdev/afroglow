@@ -753,16 +753,12 @@ function Highlight({
             void tap('medium')
             onNewBooking()
           }}
-          // In the Confirmado green: a soft tint, the words and icon a deeper shade of it.
-          className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 text-[13px] font-semibold transition-[transform,filter] hover:brightness-[0.97] active:scale-[0.97]"
-          style={{
-            background: 'color-mix(in srgb, var(--c-confirmed) 14%, var(--color-white))',
-            color: 'var(--c-confirmed-ink)',
-            boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--c-confirmed) 22%, transparent)',
-          }}
+          // The same glass pill as Detalhes: icon, the words, and a soft chevron at the end.
+          className="glass-chip flex h-11 min-w-0 flex-1 items-center gap-2 whitespace-nowrap rounded-full pe-3 ps-4 text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
         >
-          <CalendarPlus size={16} strokeWidth={2.3} />
-          Nova marcação
+          <CalendarPlus size={16} strokeWidth={2.2} className="shrink-0" />
+          <span className="truncate">Nova marcação</span>
+          <ChevronRight size={15} strokeWidth={2.4} className="ms-auto shrink-0 text-muted-dark" />
         </button>
         <button
           type="button"
