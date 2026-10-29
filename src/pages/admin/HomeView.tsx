@@ -808,7 +808,6 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
   const { month } = data
   const name = monthName(data.months[5].key)
   const last = monthName(data.months[4].key)
-  const weekTop = Math.max(1, ...month.weeks.map((w) => w.cents))
   const statuses = [
     { label: 'Confirmado', value: month.revenue, colour: STATUS.confirmed },
     { label: 'Por confirmar', value: month.pendingCents, colour: STATUS.waiting },
@@ -1006,45 +1005,7 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
 
               {/* Week by week. */}
               <DetailSection Icon={CalendarClock} title="Semana a semana">
-                <div
-                  role="img"
-                  aria-label={month.weeks.map((w) => `dias ${w.label}: ${euros(w.cents)}`).join('; ')}
-                  className="flex h-36 items-end gap-2.5"
-                >
-                  {month.weeks.map((w, i) => {
-                    // By the day, so the month's short last week isn't "down" just for having fewer days.
-                    const before = month.weeks[i - 1]
-                    const colour = before && w.cents / w.days < before.cents / before.days ? 'var(--c-neg)' : 'var(--c-pos)'
-                    const now = month.dayOfMonth >= w.from && month.dayOfMonth < w.from + w.days
-                    return (
-                      <div key={w.label} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
-                        <span className={`amount tabular text-[11px] ${now ? 'font-bold text-onyx' : 'text-ink-3'}`}>
-                          {w.cents ? euros(w.cents) : '–'}
-                        </span>
-                        <span
-                          className="block w-full max-w-10 rounded-full"
-                          style={{
-                            height: `${Math.max((w.cents / weekTop) * 100, w.cents ? 8 : 3)}%`,
-                            background: w.cents
-                              ? `linear-gradient(to bottom, color-mix(in srgb, ${colour} 70%, white), ${colour})`
-                              : 'color-mix(in srgb, var(--color-onyx) 10%, transparent)',
-                            boxShadow: now ? `0 0 0 2px var(--color-white), 0 0 0 3.5px ${colour}` : undefined,
-                          }}
-                        />
-                      </div>
-                    )
-                  })}
-                </div>
-                <div className="mt-2 flex gap-2.5">
-                  {month.weeks.map((w) => {
-                    const now = month.dayOfMonth >= w.from && month.dayOfMonth < w.from + w.days
-                    return (
-                      <span key={w.label} className={`flex-1 text-center text-[11px] ${now ? 'font-bold text-onyx' : 'text-ink-3'}`}>
-                        {now ? 'Esta' : w.label}
-                      </span>
-                    )
-                  })}
-                </div>
+                <WeekChart weeks={month.weeks} dayOfMonth={month.dayOfMonth} />
               </DetailSection>
 
               {/* By hairstyle. */}
@@ -1105,6 +1066,125 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
       )}
     </AnimatePresence>,
     document.body,
+  )
+}
+
+/** A round, easy-to-read top for the chart's scale (e.g. 1140 € → 1200 €). */
+function niceTop(cents: number) {
+  const whole = Math.max(cents / 100, 1)
+  const step = 10 ** Math.floor(Math.log10(whole))
+  const nice = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].map((n) => n * step).find((n) => n >= whole) ?? whole
+  return nice * 100
+}
+
+/**
+ * The month week by week, as easy to read as possible: a scale at the side with soft guide lines, each bar on a light
+ * track with its amount in bold above, a dashed line for the average week, and under each week how much it rose or fell
+ * against the one before (by the day, so the month's short last week isn't "down" just for having fewer days); the
+ * current week ringed and named.
+ */
+function WeekChart({ weeks, dayOfMonth }: { weeks: BoardData['month']['weeks']; dayOfMonth: number }) {
+  const top = niceTop(Math.max(...weeks.map((w) => w.cents)))
+  const done = weeks.filter((w) => w.from <= dayOfMonth)
+  const average = done.length ? done.reduce((a, w) => a + w.cents, 0) / done.length : 0
+  const changes = weeks.map((w, i) => {
+    const before = weeks[i - 1]
+    if (!before || !before.cents || !w.cents) return null
+    return Math.round(((w.cents / w.days - before.cents / before.days) / (before.cents / before.days)) * 100)
+  })
+  const isNow = (w: (typeof weeks)[number]) => dayOfMonth >= w.from && dayOfMonth < w.from + w.days
+  return (
+    <div>
+      <div className="flex gap-2">
+        {/* The scale. */}
+        <div className="flex h-40 w-10 shrink-0 flex-col justify-between pb-0 text-right">
+          {[top, top / 2, 0].map((v) => (
+            <span key={v} className="amount tabular -translate-y-1/2 text-[10px] text-ink-3 first:translate-y-0 last:translate-y-0">
+              {v ? euros(v) : '0'}
+            </span>
+          ))}
+        </div>
+        <div
+          role="img"
+          aria-label={weeks.map((w) => `dias ${w.label}: ${euros(w.cents)}`).join('; ')}
+          className="relative h-40 flex-1"
+        >
+          {/* Guide lines at the top, the middle and the bottom. */}
+          {[0, 50, 100].map((p) => (
+            <span key={p} aria-hidden="true" className="absolute inset-x-0 border-t border-onyx/[0.08]" style={{ top: `${p}%` }} />
+          ))}
+          {/* The average week. */}
+          {average > 0 && (
+            // Behind the bars and their amounts, so it never covers a number; its value is in the legend.
+            <span
+              aria-hidden="true"
+              className="absolute inset-x-0 border-t-[1.5px] border-dashed border-onyx/35"
+              style={{ bottom: `${(average / top) * 100}%` }}
+            />
+          )}
+          <div className="absolute inset-0 flex items-end gap-2.5 px-1">
+            {weeks.map((w, i) => {
+              const before = weeks[i - 1]
+              const colour = before && w.cents / w.days < before.cents / before.days ? 'var(--c-neg)' : 'var(--c-pos)'
+              const now = isNow(w)
+              const height = (w.cents / top) * 100
+              return (
+                <div key={w.label} className="relative flex h-full flex-1 items-end justify-center">
+                  {/* The track, so a small week still reads against the full height. */}
+                  <span aria-hidden="true" className="absolute inset-x-0 bottom-0 top-0 mx-auto w-full max-w-9 rounded-full bg-onyx/[0.05]" />
+                  <span
+                    className="relative block w-full max-w-9 rounded-full"
+                    style={{
+                      height: `${Math.max(height, w.cents ? 6 : 0)}%`,
+                      background: `linear-gradient(to bottom, color-mix(in srgb, ${colour} 70%, white), ${colour})`,
+                      boxShadow: now ? `0 0 0 2px var(--color-white), 0 0 0 3.5px ${colour}` : undefined,
+                    }}
+                  >
+                    {w.cents > 0 && (
+                      <span className="amount tabular absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] font-bold text-onyx">
+                        {euros(w.cents)}
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+      {/* Under each week: its days and how it moved. */}
+      <div className="mt-2 flex gap-2 pl-12">
+        {weeks.map((w, i) => {
+          const now = isNow(w)
+          const change = changes[i]
+          return (
+            <div key={w.label} className="flex flex-1 flex-col items-center gap-0.5 px-0.5">
+              <span className={`text-[11px] ${now ? 'font-bold text-onyx' : 'text-ink-3'}`}>{now ? 'Esta' : w.label}</span>
+              <span
+                className="tabular text-[10px] font-semibold"
+                style={{ color: change === null ? 'var(--c-ink-3)' : change >= 0 ? 'var(--c-pos)' : 'var(--c-neg)' }}
+              >
+                {change === null ? '–' : `${change >= 0 ? '↑' : '↓'}${Math.abs(change)}%`}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-ink-3">
+        <span className="flex items-center gap-1.5">
+          <span className="size-2 rounded-full" style={{ background: 'var(--c-pos)' }} aria-hidden="true" />
+          Subiu
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="size-2 rounded-full" style={{ background: 'var(--c-neg)' }} aria-hidden="true" />
+          Desceu
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 border-t-[1.5px] border-dashed border-onyx/40" aria-hidden="true" />
+          Média por semana <span className="amount tabular font-semibold text-onyx">{euros(average)}</span>
+        </span>
+      </div>
+    </div>
   )
 }
 
