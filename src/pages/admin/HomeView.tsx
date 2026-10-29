@@ -1198,12 +1198,12 @@ function CompareBars({ bars }: { bars: Array<{ label: string; cents: number; col
   const top = Math.max(1, ...bars.map((b) => b.cents))
   return (
     <div>
-      <div role="img" aria-label={bars.map((b) => `${b.label}: ${euros(b.cents)}`).join('; ')} className="flex h-36 items-end gap-3 px-2">
+      <div role="img" aria-label={bars.map((b) => `${b.label}: ${euros(b.cents)}`).join('; ')} className="flex h-28 items-end gap-3 px-2">
         {bars.map((b) => (
           <div key={b.label} className="relative flex h-full flex-1 items-end justify-center">
-            <span aria-hidden="true" className="absolute inset-x-0 bottom-0 top-0 mx-auto w-full max-w-14 rounded-2xl bg-onyx/[0.05]" />
+            <span aria-hidden="true" className="absolute inset-x-0 bottom-0 top-0 mx-auto w-full max-w-8 rounded-full bg-onyx/[0.05]" />
             <span
-              className="relative block w-full max-w-14 rounded-2xl"
+              className="relative block w-full max-w-8 rounded-full"
               style={{
                 height: `${Math.max((b.cents / top) * 100, b.cents ? 6 : 0)}%`,
                 background: b.strong ? `linear-gradient(to bottom, color-mix(in srgb, ${b.colour} 70%, white), ${b.colour})` : b.colour,
@@ -1244,7 +1244,7 @@ function CompareLines({ current, other, tone, thisName, otherName }: { current: 
         aria-label={`${thisName} até hoje: ${euros(current[last] ?? 0)}; ${otherName} completo: ${euros(other[other.length - 1] ?? 0)}`}
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="none"
-        className="h-36 w-full overflow-visible"
+        className="h-28 w-full overflow-visible"
       >
         <defs>
           <linearGradient id="compare-area" x1="0" x2="0" y1="0" y2="1">
@@ -1255,9 +1255,9 @@ function CompareLines({ current, other, tone, thisName, otherName }: { current: 
         {[0, 0.5, 1].map((p) => (
           <line key={p} x1="0" x2={W} y1={H * p} y2={H * p} stroke="color-mix(in srgb, var(--color-onyx) 8%, transparent)" vectorEffect="non-scaling-stroke" />
         ))}
-        <polyline points={path(other)} fill="none" stroke="color-mix(in srgb, var(--color-onyx) 35%, transparent)" strokeWidth="1.75" strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
+        <polyline points={path(other)} fill="none" stroke="color-mix(in srgb, var(--color-onyx) 35%, transparent)" strokeWidth="1.25" strokeDasharray="3 4" vectorEffect="non-scaling-stroke" />
         {current.length > 1 && <polygon points={`0,${H} ${path(current)} ${x(last)},${H}`} fill="url(#compare-area)" />}
-        <polyline points={path(current)} fill="none" stroke={tone} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+        <polyline points={path(current)} fill="none" stroke={tone} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
         {/* Today. */}
         <line x1={x(last)} x2={x(last)} y1="0" y2={H} stroke={tone} strokeOpacity="0.4" strokeDasharray="2 3" vectorEffect="non-scaling-stroke" />
       </svg>
