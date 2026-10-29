@@ -491,15 +491,15 @@ function groupByDay(bookings: Booking[]) {
   return [...groups.values()]
 }
 
-/** One of the month's figures, in a white card like the Painel's: a dot in its colour, its name, the number. */
+/** One of the month's figures, in a white card like the Painel's, centred: a dot in its colour, its name, the number. */
 function AgendaFigure({ label, value, colour, amount = false }: { label: string; value: string; colour?: string; amount?: boolean }) {
   return (
-    <div className="min-w-0 rounded-[22px] bg-card p-3.5" style={{ boxShadow: CARD_SHADOW }}>
-      <p className="flex items-center gap-1.5 truncate font-subtitle text-[12px] text-ink-3">
+    <div className="flex min-w-0 flex-col items-center rounded-[22px] bg-card px-2 py-3.5 text-center" style={{ boxShadow: CARD_SHADOW }}>
+      <p className="flex max-w-full items-center justify-center gap-1.5 truncate font-subtitle text-[12px] text-ink-3">
         {colour && <span className="size-2 shrink-0 rounded-full" style={{ background: colour }} aria-hidden="true" />}
         {label}
       </p>
-      <p className={`tabular mt-1 truncate font-subtitle text-[22px] font-semibold leading-tight tracking-tight text-onyx ${amount ? 'amount' : ''}`}>
+      <p className={`tabular mt-1 max-w-full truncate font-subtitle text-[22px] font-semibold leading-tight tracking-tight text-onyx ${amount ? 'amount' : ''}`}>
         {value}
       </p>
     </div>
@@ -574,7 +574,6 @@ function AgendaView({
               target="_blank"
               rel="noreferrer"
               className="glass-chip flex h-11 items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
-              style={{ boxShadow: GLASS_SHADOW }}
             >
               <i className="bx bxl-whatsapp text-lg" aria-hidden="true" />
               WhatsApp
@@ -582,7 +581,6 @@ function AgendaView({
             <a
               href={`tel:${next.customerPhone.replace(/[^+\d]/g, '')}`}
               className="glass-chip flex h-11 items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
-              style={{ boxShadow: GLASS_SHADOW }}
             >
               <Phone size={15} strokeWidth={2.2} />
               Ligar
@@ -848,8 +846,8 @@ function PersonHistory({ person, bookings, onClose }: { person: Booking | null; 
                   { label: 'Gastou', value: formatPrice(spent).replace(/,00/, ''), amount: true },
                   { label: 'Canceladas', value: String(cancelled), colour: 'var(--c-cancelled)' },
                 ].map((f) => (
-                  <div key={f.label} className="min-w-0 rounded-2xl bg-card px-3 py-2.5" style={{ boxShadow: CARD_SHADOW }}>
-                    <p className="flex items-center gap-1.5 truncate font-subtitle text-[11px] text-ink-3">
+                  <div key={f.label} className="min-w-0 rounded-2xl bg-card px-2 py-2.5 text-center" style={{ boxShadow: CARD_SHADOW }}>
+                    <p className="flex items-center justify-center gap-1.5 truncate font-subtitle text-[11px] text-ink-3">
                       {f.colour && <span className="size-1.5 shrink-0 rounded-full" style={{ background: f.colour }} aria-hidden="true" />}
                       {f.label}
                     </p>
@@ -864,7 +862,6 @@ function PersonHistory({ person, bookings, onClose }: { person: Booking | null; 
                   target="_blank"
                   rel="noreferrer"
                   className="glass-chip flex h-10 items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px] font-semibold text-onyx"
-                  style={{ boxShadow: GLASS_SHADOW }}
                 >
                   <i className="bx bxl-whatsapp text-lg" aria-hidden="true" />
                   WhatsApp
@@ -872,7 +869,6 @@ function PersonHistory({ person, bookings, onClose }: { person: Booking | null; 
                 <a
                   href={`tel:${person.customerPhone.replace(/[^+\d]/g, '')}`}
                   className="glass-chip flex h-10 items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px] font-semibold text-onyx"
-                  style={{ boxShadow: GLASS_SHADOW }}
                 >
                   <Phone size={15} strokeWidth={2.2} />
                   Ligar
