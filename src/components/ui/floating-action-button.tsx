@@ -163,9 +163,9 @@ export interface MenuAction {
  * "Mais opções": how long its name and icon take to change, the step between one option and the next, and how far into
  * one movement the other begins (they overlap, so it reads as one calm motion rather than two with a pause between).
  */
-const SWAP = 0.4
-const STAGGER = 0.05
-const OVERLAP = 0.5
+const SWAP = 0.28
+const STAGGER = 0.035
+const OVERLAP = 0.4
 
 /**
  * Round "+" button for the corner next to the tab bar. Same idea as `AnimatedSocialIcons` (the "+" turns into
@@ -274,7 +274,7 @@ export function FloatingActionMenu({
   // "Mais opções" opens the rest just below it, like a dropdown; the main options stay.
   const listed = [...(keepOrder ? actions : alphabetical), ...extra]
   // How long the options under "Mais opções" take to leave (the last one starts first), before the toggle changes back.
-  const moreExit = more?.length ? 0.3 + (more.length - 1) * STAGGER : 0
+  const moreExit = more?.length ? 0.22 + (more.length - 1) * STAGGER : 0
   const ordered = direction === 'up' ? listed.reverse() : listed
 
   return (
@@ -505,13 +505,13 @@ export function FloatingActionMenu({
                         opacity: 1,
                         x: 0,
                         filter: 'blur(0px)',
-                        transition: { type: 'tween', ease: 'easeOut', duration: 0.4, delay: SWAP * OVERLAP + index * STAGGER },
+                        transition: { type: 'tween', ease: 'easeOut', duration: 0.28, delay: SWAP * OVERLAP + index * STAGGER },
                       }}
                       exit={{
                         opacity: 0,
                         x: 12,
                         filter: 'blur(2px)',
-                        transition: { type: 'tween', ease: 'easeIn', duration: 0.3, delay: (more.length - 1 - index) * STAGGER },
+                        transition: { type: 'tween', ease: 'easeIn', duration: 0.22, delay: (more.length - 1 - index) * STAGGER },
                       }}
                       className={cn('flex items-center gap-2', apart && 'mt-2')}
                     >
