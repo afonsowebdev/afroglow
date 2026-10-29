@@ -11,7 +11,6 @@ import {
   ChartLine,
   ChartPie,
   Check,
-  ChevronDown,
   ChevronRight,
   Clock,
   Eye,
@@ -840,7 +839,24 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
   useEffect(() => {
     if (!open) return
     const frame = requestAnimationFrame(measure)
-    return () => cancelAnimationFrame(frame)
+    // As the customer app's photo strips do sideways: the first time it opens, the content dips a little and comes
+    // back, to show that it scrolls.
+    let timers: number[] = []
+    if (!detailNudged) {
+      timers = [
+        window.setTimeout(() => {
+          const el = body.current
+          if (!el || el.scrollHeight <= el.clientHeight + 4) return
+          detailNudged = true
+          el.scrollTo({ top: 72, behavior: 'smooth' })
+          timers.push(window.setTimeout(() => el.scrollTo({ top: 0, behavior: 'smooth' }), 650))
+        }, 500),
+      ]
+    }
+    return () => {
+      cancelAnimationFrame(frame)
+      timers.forEach(clearTimeout)
+    }
   }, [open, measure])
 
   return createPortal(
@@ -1064,25 +1080,6 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
               aria-hidden="true"
               className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-white to-transparent transition-opacity duration-200 ${edges.bottom ? 'opacity-100' : 'opacity-0'}`}
             />
-            {/* Says there is more below until the end is reached; a tap scrolls down a little. */}
-            <AnimatePresence>
-              {edges.bottom && (
-                <motion.button
-                  type="button"
-                  onClick={() => body.current?.scrollBy({ top: body.current.clientHeight * 0.7, behavior: 'smooth' })}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  transition={{ duration: 0.2 }}
-                  className="glass-chip absolute bottom-3 left-1/2 z-20 flex h-8 -translate-x-1/2 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold text-onyx"
-                >
-                  Desliza para ver mais
-                  <motion.span animate={{ y: [0, 3, 0] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }} className="flex">
-                    <ChevronDown size={14} strokeWidth={2.4} />
-                  </motion.span>
-                </motion.button>
-              )}
-            </AnimatePresence>
             </div>
 
             {onStats && (
@@ -1110,6 +1107,9 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
     document.body,
   )
 }
+
+/** The Faturação detail has shown that it scrolls (once per launch of the app, like the photo strips). */
+let detailNudged = false
 
 /** A part of the Faturação detail: a light block with a small icon and its title. */
 function DetailSection({ Icon, title, children }: { Icon: LucideIcon; title: string; children: ReactNode }) {
