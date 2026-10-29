@@ -710,10 +710,11 @@ function Highlight({
               void tap()
               onDetail()
             }}
-            className="flex h-8 shrink-0 items-center gap-1 rounded-full bg-onyx/[0.05] pe-2 ps-3 text-[12px] font-semibold text-onyx transition-[transform,background-color] hover:bg-onyx/[0.08] active:scale-[0.96]"
+            className="glass-chip flex h-8 shrink-0 items-center gap-1.5 rounded-full pe-2 ps-2.5 text-[12px] font-semibold text-onyx transition-transform active:scale-[0.96]"
           >
+            <ChartPie size={14} strokeWidth={2.2} />
             Detalhes
-            <ChevronRight size={15} strokeWidth={2.4} />
+            <ChevronRight size={14} strokeWidth={2.4} className="text-muted-dark" />
           </button>
         }
       />
