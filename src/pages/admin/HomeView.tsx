@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import {
   ArrowRight,
@@ -22,6 +23,7 @@ import {
   Target,
   UserPlus,
   Wallet,
+  X,
   type LucideIcon,
 } from 'lucide-react'
 import { DraggableWidgetGrid, type WidgetItem, type WidgetSize } from '@/components/ui/draggable-widget-grid'
@@ -29,6 +31,7 @@ import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
 import { api, ApiError } from '@/lib/api'
 import { durationHours } from '@/lib/calendar'
 import { tap } from '@/lib/haptics'
+import { useScrollLock } from '@/lib/use-scroll-lock'
 import { bookingName, bookingPrice } from '@/lib/pricing'
 import { getBusinessInfo } from '@/lib/site-config'
 import type { AvailabilitySlot, Booking, Service, Testimonial } from '@/lib/types'
@@ -165,6 +168,7 @@ export function HomeView({
   const [order, setOrder] = useState(loadOrder)
   const [goal, setGoal] = useState<number | null>(null)
   const [goalOpen, setGoalOpen] = useState(false)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   useEffect(() => {
     api
@@ -280,12 +284,7 @@ export function HomeView({
     switch (id) {
       case 'faturacao':
         return (
-          <Highlight
-            data={data}
-            onNewBooking={() => onNewBooking()}
-            onStats={canStats ? () => onOpen('estatisticas') : undefined}
-            onOpen={onOpen}
-          />
+          <Highlight data={data} onNewBooking={() => onNewBooking()} onDetail={() => setDetailOpen(true)} onOpen={onOpen} />
         )
       case 'sessoes':
         return (
@@ -365,6 +364,19 @@ export function HomeView({
         renderItem={(item) => (
           <div className={`flex h-full flex-col p-4 2xl:p-5 ${editing ? 'pointer-events-none' : ''}`}>{render(item.id)}</div>
         )}
+      />
+      <RevenueDetail
+        open={detailOpen}
+        data={data}
+        onClose={() => setDetailOpen(false)}
+        onStats={
+          canStats
+            ? () => {
+                setDetailOpen(false)
+                onOpen('estatisticas')
+              }
+            : undefined
+        }
       />
       {goalOpen && (
         <GoalSheet
@@ -479,6 +491,30 @@ function boardData({ bookings, testimonials }: { bookings: Booking[]; testimonia
     ),
   ].sort((a, b) => b.at.localeCompare(a.at))
 
+  // For the Faturação detail: what is already done and what is still to come this month, week by week and by hairstyle.
+  const monthConfirmed = confirmed.filter((b) => monthOf(b.slot.startsAt) === thisMonth)
+  const doneCents = sum(monthConfirmed.filter((b) => endsAt(b) <= now))
+  const monthDays = new Date(Number(thisMonth.slice(0, 4)), Number(thisMonth.slice(5)), 0).getDate()
+  const weeks = [0, 1, 2, 3, 4]
+    .map((w) => {
+      const from = w * 7 + 1
+      const to = Math.min(from + 6, 31)
+      const inWeek = monthConfirmed.filter((b) => {
+        const d = Number(dayKey(b.slot.startsAt).slice(8))
+        return d >= from && d <= to
+      })
+      const days = Math.min(to, monthDays) - from + 1
+      return { label: `${from}–${to === 31 ? 'fim' : to}`, cents: sum(inWeek), count: inWeek.length, from, days }
+    })
+    .filter((w) => w.from <= monthDays)
+  const byService = new Map<string, { cents: number; count: number }>()
+  monthConfirmed.forEach((b) => {
+    const row = byService.get(b.service.name) ?? { cents: 0, count: 0 }
+    row.cents += bookingPrice(b)
+    row.count += 1
+    byService.set(b.service.name, row)
+  })
+
   const upcoming = confirmed
     .filter((b) => endsAt(b) > now)
     .sort((a, b) => a.slot.startsAt.localeCompare(b.slot.startsAt))
@@ -499,6 +535,13 @@ function boardData({ bookings, testimonials }: { bookings: Booking[]; testimonia
       pendingCount: pendingAll.length,
       cancelledCents: sum(monthCancelled),
       cancelledCount: monthCancelled.length,
+      doneCents,
+      toComeCents: current.revenue - doneCents,
+      lastSoFarCents: lastSoFar.revenue,
+      lastFullCents: last.revenue,
+      dayOfMonth,
+      weeks,
+      services: [...byService.entries()].map(([name, row]) => ({ name, ...row })).sort((a, b) => b.cents - a.cents),
     },
     today: {
       count: todayCount,
@@ -629,12 +672,12 @@ function Stat({
 function Highlight({
   data,
   onNewBooking,
-  onStats,
+  onDetail,
   onOpen,
 }: {
   data: BoardData
   onNewBooking: () => void
-  onStats?: () => void
+  onDetail: () => void
   onOpen: (tab: Tab) => void
 }) {
   const { month } = data
@@ -645,7 +688,7 @@ function Highlight({
   ]
   return (
     <>
-      <BlockHeader title={`Faturação de ${monthName(data.months[5].key)}`} action={onStats && <HeaderLink label="Detalhes" onClick={onStats} />} />
+      <BlockHeader title={`Faturação de ${monthName(data.months[5].key)}`} action={<HeaderLink label="Detalhes" onClick={onDetail} />} />
       <p className="amount tabular mt-2 text-[30px] font-semibold leading-none tracking-tight text-ink">{euros(month.revenue)}</p>
       <div className="mt-2">
         <Change value={month.revenueChange} withLabel />
@@ -686,6 +729,179 @@ function Highlight({
         ))}
       </div>
     </>
+  )
+}
+
+/**
+ * The month's takings in full, in a card in the middle of the page: the total against last month, what is already done
+ * and what is still to come, confirmed / waiting / cancelled, week by week and by hairstyle; Estatísticas from there.
+ * In a portal so no card's transform moves it, inside .afro-admin so it keeps the Painel's colours.
+ */
+function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: BoardData; onClose: () => void; onStats?: () => void }) {
+  useScrollLock(open)
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open, onClose])
+  const { month } = data
+  const name = monthName(data.months[5].key)
+  const last = monthName(data.months[4].key)
+  const weekTop = Math.max(1, ...month.weeks.map((w) => w.cents))
+  const serviceTop = Math.max(1, ...month.services.map((s) => s.cents))
+  const rows = [
+    { label: 'Confirmado', cents: month.revenue, note: plural(month.sessions, 'sessão', 'sessões'), tone: 'var(--c-pos)' },
+    { label: 'Por confirmar', cents: month.pendingCents, note: plural(month.pendingCount, 'pedido', 'pedidos'), tone: 'var(--c-warn)' },
+    { label: 'Cancelado', cents: month.cancelledCents, note: plural(month.cancelledCount, 'sessão', 'sessões'), tone: 'var(--c-neg)' },
+  ]
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <div className="app-neutral afro-admin fixed inset-0 z-[80] flex items-center justify-center p-4 font-subtitle font-medium">
+          <motion.button
+            type="button"
+            aria-label="Fechar"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 cursor-default bg-black/40 backdrop-blur-sm"
+          />
+          <motion.section
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Faturação de ${name}`}
+            initial={{ opacity: 0, scale: 0.94, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+            className="relative flex max-h-[min(88dvh,760px)] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-[0_24px_60px_-12px_rgba(0,0,0,0.35)]"
+          >
+            <div className="flex items-start justify-between gap-3 px-5 pb-1 pt-5">
+              <div>
+                <h2 className="font-subtitle text-[17px] font-semibold tracking-tight text-onyx">Faturação de {name}</h2>
+                <p className="mt-0.5 text-xs text-ink-3">Até dia {month.dayOfMonth}, com o que já está marcado</p>
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar"
+                onClick={onClose}
+                className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-onyx"
+              >
+                <X size={17} />
+              </button>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5">
+              <p className="amount tabular mt-3 text-[36px] font-semibold leading-none tracking-tight text-onyx">{euros(month.revenue)}</p>
+              <div className="mt-2">
+                <Change value={month.revenueChange} label={`face a ${last} até ao mesmo dia`} withLabel />
+              </div>
+
+              <dl className="mt-4 grid grid-cols-2 gap-2">
+                {[
+                  { label: 'Já feito', cents: month.doneCents },
+                  { label: 'Ainda por vir', cents: month.toComeCents },
+                  { label: `${capital(last)} até dia ${month.dayOfMonth}`, cents: month.lastSoFarCents },
+                  { label: `${capital(last)}, o mês todo`, cents: month.lastFullCents },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-2xl bg-onyx/[0.04] p-3">
+                    <dt className="truncate text-xs text-ink-3">{item.label}</dt>
+                    <dd className="amount tabular mt-0.5 text-[16px] font-semibold text-onyx">{euros(item.cents)}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              <h3 className="mt-6 font-subtitle text-[14px] font-semibold tracking-tight text-onyx">Estado das marcações</h3>
+              <ul className="mt-2 divide-y divide-onyx/[0.07]">
+                {rows.map((row) => (
+                  <li key={row.label} className="flex items-center gap-3 py-2.5">
+                    <span className="size-2.5 shrink-0 rounded-full" style={{ background: row.tone }} aria-hidden="true" />
+                    <span className="flex-1 text-[13px] text-onyx">{row.label}</span>
+                    <span className="text-xs text-ink-3">{row.note}</span>
+                    <span className="amount tabular w-20 text-right text-[13px] font-semibold text-onyx">{euros(row.cents)}</span>
+                  </li>
+                ))}
+                <li className="flex items-center gap-3 py-2.5">
+                  <span className="size-2.5 shrink-0" aria-hidden="true" />
+                  <span className="flex-1 text-[13px] text-onyx">Valor médio por sessão</span>
+                  <span className="amount tabular w-20 text-right text-[13px] font-semibold text-onyx">{euros(month.average)}</span>
+                </li>
+              </ul>
+
+              <h3 className="mt-6 font-subtitle text-[14px] font-semibold tracking-tight text-onyx">Semana a semana</h3>
+              <div
+                role="img"
+                aria-label={month.weeks.map((w) => `dias ${w.label}: ${euros(w.cents)}`).join('; ')}
+                className="mt-3 flex h-32 items-end gap-2"
+              >
+                {month.weeks.map((w, i) => {
+                  // By the day, so the month's short last week isn't "down" just for having fewer days.
+                  const before = month.weeks[i - 1]
+                  const colour = before && w.cents / w.days < before.cents / before.days ? 'var(--c-neg)' : 'var(--c-pos)'
+                  return (
+                    <div key={w.label} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
+                      <span className="amount tabular text-[11px] text-ink-3">{w.cents ? euros(w.cents) : ''}</span>
+                      <span
+                        className="block w-full max-w-9 rounded-t-xl"
+                        style={{
+                          height: `${Math.max((w.cents / weekTop) * 100, w.cents ? 6 : 2)}%`,
+                          background: w.cents
+                            ? `linear-gradient(to bottom, color-mix(in srgb, ${colour} 70%, white), ${colour})`
+                            : 'color-mix(in srgb, var(--color-onyx) 10%, transparent)',
+                        }}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="mt-1.5 flex gap-2">
+                {month.weeks.map((w) => (
+                  <span key={w.label} className="flex-1 text-center text-[11px] text-ink-3">
+                    {w.label}
+                  </span>
+                ))}
+              </div>
+
+              <h3 className="mt-6 font-subtitle text-[14px] font-semibold tracking-tight text-onyx">Por penteado</h3>
+              {month.services.length === 0 ? (
+                <p className="mt-2 text-[13px] text-ink-3">Sem sessões confirmadas neste mês.</p>
+              ) : (
+                <ul className="mt-2 flex flex-col gap-3">
+                  {month.services.map((sv) => (
+                    <li key={sv.name}>
+                      <div className="flex items-baseline gap-2">
+                        <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-onyx">{sv.name}</span>
+                        <span className="text-xs text-ink-3">{plural(sv.count, 'sessão', 'sessões')}</span>
+                        <span className="amount tabular w-20 text-right text-[13px] font-semibold text-onyx">{euros(sv.cents)}</span>
+                      </div>
+                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-onyx/[0.08]">
+                        <div className="h-full rounded-full" style={{ width: `${(sv.cents / serviceTop) * 100}%`, background: 'var(--c-pos)' }} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {onStats && (
+              <div className="border-t border-onyx/[0.07] p-4">
+                <button
+                  type="button"
+                  onClick={onStats}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-onyx text-[14px] font-semibold text-white"
+                >
+                  Ver estatísticas
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            )}
+          </motion.section>
+        </div>
+      )}
+    </AnimatePresence>,
+    document.body,
   )
 }
 
