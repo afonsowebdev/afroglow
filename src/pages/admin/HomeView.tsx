@@ -737,7 +737,7 @@ function Highlight({
         >
           <span>Pedidos</span>
           {month.pendingCount > 0 && (
-            <span className="tabular flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-white" style={{ background: STATUS.waiting }}>
+            <span className="tabular flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-[#1a1008]" style={{ background: STATUS.waiting }}>
               {month.pendingCount}
             </span>
           )}
