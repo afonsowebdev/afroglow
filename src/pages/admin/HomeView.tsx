@@ -1065,14 +1065,22 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
 
 type CompareView = 'barras' | 'linhas' | 'numeros'
 
+/** How much a running total grew between two days (both counted, 1-based); 0 when the days aren't in the month. */
+function spanOf(running: number[], from: number, to: number) {
+  const end = Math.min(to, running.length)
+  if (end < from) return 0
+  return running[end - 1] - (from > 1 ? running[from - 2] : 0)
+}
+
 /**
- * This month against any of the last eleven (the one before by default), in three ways: bars (this month so far, the
- * other to the same day and in full), lines (both day by day as running totals, today marked) or figures (side by
- * side with the difference). The chosen way is remembered on the device.
+ * This month against any of the last eleven (the one before by default). On top, always, how far ahead or behind this
+ * month is up to the same day; then one of three ways to look at it: lines (both months day by day, a finger along the
+ * chart reads any day, the rest of this month projected at its pace), bars (week against week, a tap reads a week) or
+ * figures (a small table: so far, per day, best day, the whole month). The chosen way is remembered on the device.
  */
 function MonthCompare({ daily, dayOfMonth }: { daily: BoardData['daily']; dayOfMonth: number }) {
   const [otherKey, setOtherKey] = useState(daily[1]?.key ?? daily[0].key)
-  const [view, setView] = useState<CompareView>(() => readStore<CompareView>(COMPARE_KEY, 'barras'))
+  const [view, setView] = useState<CompareView>(() => readStore<CompareView>(COMPARE_KEY, 'linhas'))
   const choose = (next: CompareView) => {
     void tap()
     setView(next)
@@ -1082,7 +1090,6 @@ function MonthCompare({ daily, dayOfMonth }: { daily: BoardData['daily']; dayOfM
   const other = daily.find((d) => d.key === otherKey) ?? daily[1] ?? current
   const now = current.running[dayOfMonth - 1] ?? 0
   const otherSameDay = other.running[Math.min(dayOfMonth, other.running.length) - 1] ?? 0
-  const otherFull = other.running[other.running.length - 1] ?? 0
   const diff = now - otherSameDay
   const pctDiff = otherSameDay ? Math.round((diff / otherSameDay) * 100) : null
   const up = diff >= 0
@@ -1091,8 +1098,8 @@ function MonthCompare({ daily, dayOfMonth }: { daily: BoardData['daily']; dayOfM
   const otherName = capital(monthName(other.key))
   const otherYear = other.key.slice(0, 4) !== current.key.slice(0, 4) ? ` ${other.key.slice(0, 4)}` : ''
   const views: Array<{ id: CompareView; Icon: LucideIcon; label: string }> = [
-    { id: 'barras', Icon: ChartColumn, label: 'Barras' },
     { id: 'linhas', Icon: ChartLine, label: 'Linhas' },
+    { id: 'barras', Icon: ChartColumn, label: 'Semanas' },
     { id: 'numeros', Icon: Hash, label: 'Números' },
   ]
 
@@ -1144,138 +1151,329 @@ function MonthCompare({ daily, dayOfMonth }: { daily: BoardData['daily']; dayOfM
         </select>
       </label>
 
+      {/* The answer first, the same in every view. */}
+      <div className="mt-4 flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs text-ink-3">
+            {up ? 'À frente de' : 'Atrás de'} {otherName.toLowerCase()} até dia {dayOfMonth}
+          </p>
+          <p className="amount tabular text-[26px] font-bold leading-tight tracking-tight" style={{ color: tone }}>
+            {up ? '+' : '−'}
+            {euros(Math.abs(diff))}
+          </p>
+        </div>
+        {pctDiff !== null && (
+          <span
+            className="tabular mb-1 shrink-0 rounded-full px-2.5 py-1 text-xs font-bold"
+            style={{ color: tone, background: `color-mix(in srgb, ${tone} 13%, transparent)` }}
+          >
+            {up ? '↑' : '↓'}
+            {Math.abs(pctDiff)}%
+          </span>
+        )}
+      </div>
+
       <div className="mt-4">
-        {view === 'barras' && (
-          <CompareBars
-            bars={[
-              { label: `${thisName} até dia ${dayOfMonth}`, cents: now, colour: tone, strong: true },
-              { label: `${otherName} até dia ${dayOfMonth}`, cents: otherSameDay, colour: 'color-mix(in srgb, var(--color-onyx) 28%, transparent)' },
-              { label: `${otherName} completo`, cents: otherFull, colour: 'color-mix(in srgb, var(--color-onyx) 14%, transparent)' },
-            ]}
-          />
-        )}
         {view === 'linhas' && (
-          <CompareLines current={current.running.slice(0, dayOfMonth)} other={other.running} tone={tone} thisName={thisName} otherName={otherName} />
+          <CompareLines current={current.running} other={other.running} dayOfMonth={dayOfMonth} tone={tone} thisName={thisName} otherName={otherName} />
         )}
+        {view === 'barras' && <CompareWeeks current={current.running} other={other.running} dayOfMonth={dayOfMonth} thisName={thisName} otherName={otherName} />}
         {view === 'numeros' && (
-          <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-2xl bg-white p-3">
-              <p className="truncate text-xs text-ink-3">{thisName} até dia {dayOfMonth}</p>
-              <p className="amount tabular mt-0.5 text-[20px] font-bold tracking-tight text-onyx">{euros(now)}</p>
-            </div>
-            <div className="rounded-2xl bg-white p-3">
-              <p className="truncate text-xs text-ink-3">{otherName} até dia {dayOfMonth}</p>
-              <p className="amount tabular mt-0.5 text-[20px] font-bold tracking-tight text-onyx">{euros(otherSameDay)}</p>
-            </div>
-            <div className="col-span-2 flex items-center justify-between gap-3 rounded-2xl p-3" style={{ background: `color-mix(in srgb, ${tone} 12%, transparent)` }}>
-              <span className="text-[13px] font-medium text-onyx">{up ? 'Estás à frente' : 'Estás atrás'}</span>
-              <span className="amount tabular text-[15px] font-bold" style={{ color: tone }}>
-                {up ? '+' : '−'}
-                {euros(Math.abs(diff))}
-                {pctDiff !== null && ` · ${up ? '↑' : '↓'}${Math.abs(pctDiff)}%`}
-              </span>
-            </div>
-            <p className="col-span-2 px-1 text-xs text-ink-3">
-              {now >= otherFull ? (
-                <>
-                  Já passaste {otherName.toLowerCase()} completo ({<span className="amount">{euros(otherFull)}</span>}).
-                </>
-              ) : (
-                <>
-                  Faltam <span className="amount font-semibold text-onyx">{euros(otherFull - now)}</span> para igualar {otherName.toLowerCase()} completo.
-                </>
-              )}
-            </p>
-          </div>
+          <CompareFigures current={current.running} other={other.running} dayOfMonth={dayOfMonth} thisName={thisName} otherName={otherName} />
         )}
       </div>
     </section>
   )
 }
 
-/** Three upright bars side by side, each with its amount above and its name below. */
-function CompareBars({ bars }: { bars: Array<{ label: string; cents: number; colour: string; strong?: boolean }> }) {
-  const top = Math.max(1, ...bars.map((b) => b.cents))
+/** The scale at the side of a comparison chart: its top, the middle and zero. */
+function CompareScale({ top }: { top: number }) {
+  return (
+    <div className="flex h-36 w-10 shrink-0 flex-col justify-between text-right">
+      {[top, top / 2, 0].map((v) => (
+        <span key={v} className="amount tabular -translate-y-1/2 text-[10px] text-ink-3 first:translate-y-0 last:translate-y-0">
+          {v ? euros(v) : '0'}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+/** The line above a comparison chart that reads the chosen day or week: this month and the other side by side. */
+function CompareReadout({ title, mine, theirs, thisName, otherName, tone }: { title: string; mine: number | null; theirs: number | null; thisName: string; otherName: string; tone: string }) {
+  return (
+    <div className="mb-3 flex items-center gap-3 rounded-2xl bg-white px-3 py-2 text-[12px]">
+      <span className="min-w-0 flex-1 truncate font-semibold text-onyx">{title}</span>
+      <span className="flex items-center gap-1.5 text-ink-3">
+        <span className="size-2 rounded-full" style={{ background: tone }} aria-hidden="true" />
+        <span className="sr-only">{thisName}</span>
+        <span className="amount tabular font-bold text-onyx">{mine === null ? '–' : euros(mine)}</span>
+      </span>
+      <span className="flex items-center gap-1.5 text-ink-3">
+        <span className="size-2 rounded-full bg-onyx/25" aria-hidden="true" />
+        <span className="sr-only">{otherName}</span>
+        <span className="amount tabular font-semibold text-muted-dark">{theirs === null ? '–' : euros(theirs)}</span>
+      </span>
+    </div>
+  )
+}
+
+/**
+ * Both months day by day as running totals: this month up to today in its colour over a soft area, then dotted to the
+ * month's end at the pace so far; the other in full, dashed. A finger along the chart picks a day (today to start with)
+ * and the line above reads both months on it.
+ */
+function CompareLines({ current, other, dayOfMonth, tone, thisName, otherName }: { current: number[]; other: number[]; dayOfMonth: number; tone: string; thisName: string; otherName: string }) {
+  const [day, setDay] = useState(dayOfMonth)
+  const length = current.length
+  const days = Math.max(length, other.length)
+  const mine = current.slice(0, dayOfMonth)
+  const now = mine[mine.length - 1] ?? 0
+  const forecast = dayOfMonth ? Math.round((now / dayOfMonth) * length) : 0
+  const top = niceTop(Math.max(1, now, forecast, ...other))
+  const W = 300
+  const H = 144
+  const x = (d: number) => ((d - 1) / (days - 1)) * W
+  const y = (v: number) => H - (v / top) * H
+  const path = (values: number[]) => values.map((v, i) => `${x(i + 1).toFixed(1)},${y(v).toFixed(1)}`).join(' ')
+  const pick = (e: React.PointerEvent<HTMLDivElement>) => {
+    const box = e.currentTarget.getBoundingClientRect()
+    const next = Math.min(days, Math.max(1, Math.round(((e.clientX - box.left) / box.width) * (days - 1)) + 1))
+    setDay(next)
+  }
+  const mineAt = day <= dayOfMonth ? mine[day - 1] : null
+  const theirsAt = day <= other.length ? other[day - 1] : null
+  const at = (d: number) => `${(x(d) / W) * 100}%`
+  const height = (v: number) => `${(v / top) * 100}%`
+  const ticks = [1, 8, 15, 22, days]
+
   return (
     <div>
-      <div role="img" aria-label={bars.map((b) => `${b.label}: ${euros(b.cents)}`).join('; ')} className="flex h-28 items-end gap-3 px-2">
-        {bars.map((b) => (
-          <div key={b.label} className="relative flex h-full flex-1 items-end justify-center">
-            <span aria-hidden="true" className="absolute inset-x-0 bottom-0 top-0 mx-auto w-full max-w-8 rounded-full bg-onyx/[0.05]" />
-            <span
-              className="relative block w-full max-w-8 rounded-full"
-              style={{
-                height: `${Math.max((b.cents / top) * 100, b.cents ? 6 : 0)}%`,
-                background: b.strong ? `linear-gradient(to bottom, color-mix(in srgb, ${b.colour} 70%, white), ${b.colour})` : b.colour,
-              }}
-            >
-              <span className={`amount tabular absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[12px] ${b.strong ? 'font-bold text-onyx' : 'font-semibold text-muted-dark'}`}>
-                {euros(b.cents)}
-              </span>
-            </span>
-          </div>
-        ))}
+      <CompareReadout
+        title={day === dayOfMonth ? `Hoje, dia ${day}` : day > dayOfMonth ? `Dia ${day} · ainda não chegou` : `Até dia ${day}`}
+        mine={mineAt}
+        theirs={theirsAt}
+        thisName={thisName}
+        otherName={otherName}
+        tone={tone}
+      />
+      <div className="flex gap-2">
+        <CompareScale top={top} />
+        <div
+          role="img"
+          aria-label={`${thisName} até hoje: ${euros(now)}; ${otherName} completo: ${euros(other[other.length - 1] ?? 0)}; previsão de ${thisName}: ${euros(forecast)}`}
+          className="relative h-36 flex-1 touch-pan-y select-none"
+          onPointerDown={pick}
+          onPointerMove={(e) => e.buttons && pick(e)}
+        >
+          {[0, 50, 100].map((p) => (
+            <span key={p} aria-hidden="true" className="absolute inset-x-0 border-t border-onyx/[0.08]" style={{ top: `${p}%` }} />
+          ))}
+          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="absolute inset-0 size-full overflow-visible" aria-hidden="true">
+            <defs>
+              <linearGradient id="compare-area" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stopColor={tone} stopOpacity="0.2" />
+                <stop offset="100%" stopColor={tone} stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <polyline points={path(other)} fill="none" stroke="color-mix(in srgb, var(--color-onyx) 32%, transparent)" strokeWidth="1.25" strokeDasharray="3 4" vectorEffect="non-scaling-stroke" />
+            {mine.length > 1 && <polygon points={`${x(1)},${H} ${path(mine)} ${x(dayOfMonth)},${H}`} fill="url(#compare-area)" />}
+            {dayOfMonth < length && (
+              <line x1={x(dayOfMonth)} y1={y(now)} x2={x(length)} y2={y(forecast)} stroke={tone} strokeOpacity="0.5" strokeWidth="1.75" strokeDasharray="0.5 4" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            )}
+            <polyline points={path(mine)} fill="none" stroke={tone} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+          </svg>
+          {/* The chosen day: a soft line down and a dot on each month. */}
+          <span aria-hidden="true" className="absolute inset-y-0 w-px -translate-x-1/2 bg-onyx/20" style={{ left: at(day) }} />
+          {theirsAt !== null && (
+            <span aria-hidden="true" className="absolute size-2.5 -translate-x-1/2 translate-y-1/2 rounded-full bg-onyx/40 ring-2 ring-white" style={{ left: at(day), bottom: height(theirsAt) }} />
+          )}
+          {mineAt !== null && (
+            <span aria-hidden="true" className="absolute size-3 -translate-x-1/2 translate-y-1/2 rounded-full ring-2 ring-white" style={{ left: at(day), bottom: height(mineAt), background: tone }} />
+          )}
+        </div>
       </div>
-      <div className="mt-2 flex gap-3 px-2">
-        {bars.map((b) => (
-          <span key={b.label} className={`flex-1 text-center text-[11px] leading-tight ${b.strong ? 'font-semibold text-onyx' : 'text-ink-3'}`}>
-            {b.label}
+      <div className="relative ml-12 mt-1.5 h-3.5 text-[10px] text-ink-3">
+        {ticks.map((d, i) => (
+          <span key={d} className={`absolute ${i === 0 ? '' : i === ticks.length - 1 ? '-translate-x-full' : '-translate-x-1/2'}`} style={{ left: at(d) }}>
+            {i === 0 ? 'dia 1' : d}
           </span>
         ))}
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-ink-3">
+        <span className="flex items-center gap-1.5">
+          <span className="h-0.5 w-3 rounded-full" style={{ background: tone }} aria-hidden="true" />
+          {thisName}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 border-t-[1.5px] border-dashed border-onyx/40" aria-hidden="true" />
+          {otherName}
+        </span>
+        {dayOfMonth < length && (
+          <span className="flex items-center gap-1.5">
+            <span className="w-3 border-t-2 border-dotted" style={{ borderColor: tone }} aria-hidden="true" />
+            Previsão <span className="amount tabular font-semibold text-onyx">{euros(forecast)}</span>
+          </span>
+        )}
       </div>
     </div>
   )
 }
 
-/** Both months day by day as running totals: this month up to today in its colour, the other in full, dashed. */
-function CompareLines({ current, other, tone, thisName, otherName }: { current: number[]; other: number[]; tone: string; thisName: string; otherName: string }) {
-  const days = 31
-  const top = Math.max(1, ...current, ...other)
-  const W = 300
-  const H = 120
-  const x = (i: number) => (i / (days - 1)) * W
-  const y = (v: number) => H - (v / top) * (H - 6) - 3
-  const path = (values: number[]) => values.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ')
-  const last = current.length - 1
+/**
+ * Week against week (days 1–7, 8–14, 15–21, 22–28 and the rest): for each, this month's bar beside the other's, green
+ * when it's ahead and red when behind. The week now is set against the same days of the other month, so it isn't
+ * "behind" just for not being over. A tap picks a week (this one to start with) and the line above reads it.
+ */
+function CompareWeeks({ current, other, dayOfMonth, thisName, otherName }: { current: number[]; other: number[]; dayOfMonth: number; thisName: string; otherName: string }) {
+  const days = Math.max(current.length, other.length)
+  const weeks = [1, 8, 15, 22, 29]
+    .filter((from) => from <= days)
+    .map((from) => {
+      const to = from === 29 ? days : from + 6
+      const upTo = Math.min(to, dayOfMonth)
+      return {
+        from,
+        to,
+        label: from === to ? `${from}` : `${from}–${to}`,
+        mine: from > dayOfMonth ? null : spanOf(current, from, upTo),
+        theirs: spanOf(other, from, to),
+        theirsSoFar: spanOf(other, from, upTo),
+        now: dayOfMonth >= from && dayOfMonth <= to,
+      }
+    })
+  const [chosen, setChosen] = useState(() => Math.max(0, weeks.findIndex((w) => w.now)))
+  const week = weeks[Math.min(chosen, weeks.length - 1)]
+  const top = niceTop(Math.max(1, ...weeks.map((w) => Math.max(w.mine ?? 0, w.theirs))))
+  const colourOf = (w: (typeof weeks)[number]) => ((w.mine ?? 0) >= (w.now ? w.theirsSoFar : w.theirs) ? 'var(--c-pos)' : 'var(--c-neg)')
+
   return (
     <div>
-      <svg
-        role="img"
-        aria-label={`${thisName} até hoje: ${euros(current[last] ?? 0)}; ${otherName} completo: ${euros(other[other.length - 1] ?? 0)}`}
-        viewBox={`0 0 ${W} ${H}`}
-        preserveAspectRatio="none"
-        className="h-28 w-full overflow-visible"
-      >
-        <defs>
-          <linearGradient id="compare-area" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor={tone} stopOpacity="0.22" />
-            <stop offset="100%" stopColor={tone} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {[0, 0.5, 1].map((p) => (
-          <line key={p} x1="0" x2={W} y1={H * p} y2={H * p} stroke="color-mix(in srgb, var(--color-onyx) 8%, transparent)" vectorEffect="non-scaling-stroke" />
+      <CompareReadout
+        title={week.now ? `Dias ${week.label} · até hoje` : week.mine === null ? `Dias ${week.label} · ainda não chegou` : `Dias ${week.label}`}
+        mine={week.mine}
+        theirs={week.now ? week.theirsSoFar : week.theirs}
+        thisName={thisName}
+        otherName={otherName}
+        tone={colourOf(week)}
+      />
+      <div className="flex gap-2">
+        <CompareScale top={top} />
+        <div className="relative h-36 flex-1">
+          {[0, 50, 100].map((p) => (
+            <span key={p} aria-hidden="true" className="absolute inset-x-0 border-t border-onyx/[0.08]" style={{ top: `${p}%` }} />
+          ))}
+          <div className="absolute inset-0 flex items-end gap-1">
+            {weeks.map((w, i) => {
+              const selected = w === week
+              return (
+                <button
+                  key={w.from}
+                  type="button"
+                  aria-label={`Dias ${w.label}: ${thisName} ${w.mine === null ? 'ainda não chegou' : euros(w.mine)}, ${otherName} ${euros(w.theirs)}`}
+                  aria-pressed={selected}
+                  onClick={() => {
+                    void tap()
+                    setChosen(i)
+                  }}
+                  className={`relative flex h-full flex-1 items-end justify-center gap-1 rounded-xl transition-colors ${selected ? 'bg-white/80' : ''}`}
+                >
+                  {/* The other month's week; while this week is still going, only its same days are solid, the rest faint behind. */}
+                  <span className="relative flex w-2.5 items-end rounded-full bg-onyx/[0.08]" style={{ height: `${Math.max((w.theirs / top) * 100, w.theirs ? 3 : 0)}%` }}>
+                    <span className="block w-full rounded-full bg-onyx/[0.22]" style={{ height: `${w.now ? (w.theirs ? (w.theirsSoFar / w.theirs) * 100 : 0) : 100}%` }} />
+                  </span>
+                  {w.mine === null ? (
+                    <span className="block h-1.5 w-2.5 rounded-full bg-onyx/[0.08]" />
+                  ) : (
+                    <span className="block w-2.5 rounded-full" style={{ height: `${Math.max((w.mine / top) * 100, w.mine ? 3 : 0)}%`, background: colourOf(w) }} />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+      <div className="ml-12 mt-1.5 flex gap-1">
+        {weeks.map((w) => (
+          <span key={w.from} className={`flex-1 text-center text-[10px] ${w === week ? 'font-bold text-onyx' : 'text-ink-3'}`}>
+            {w.now ? 'Esta' : w.label}
+          </span>
         ))}
-        <polyline points={path(other)} fill="none" stroke="color-mix(in srgb, var(--color-onyx) 35%, transparent)" strokeWidth="1.25" strokeDasharray="3 4" vectorEffect="non-scaling-stroke" />
-        {current.length > 1 && <polygon points={`0,${H} ${path(current)} ${x(last)},${H}`} fill="url(#compare-area)" />}
-        <polyline points={path(current)} fill="none" stroke={tone} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-        {/* Today. */}
-        <line x1={x(last)} x2={x(last)} y1="0" y2={H} stroke={tone} strokeOpacity="0.4" strokeDasharray="2 3" vectorEffect="non-scaling-stroke" />
-      </svg>
-      <div className="mt-1 flex justify-between text-[10px] text-ink-3">
-        <span>dia 1</span>
-        <span>15</span>
-        <span>31</span>
       </div>
-      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-ink-3">
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-ink-3">
         <span className="flex items-center gap-1.5">
-          <span className="h-0.5 w-3 rounded-full" style={{ background: tone }} aria-hidden="true" />
-          {thisName} <span className="amount tabular font-semibold text-onyx">{euros(current[last] ?? 0)}</span>
+          <span className="size-2 rounded-full bg-onyx/25" aria-hidden="true" />
+          {otherName}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-3 border-t-[1.5px] border-dashed border-onyx/40" aria-hidden="true" />
-          {otherName} <span className="amount tabular font-semibold text-onyx">{euros(other[other.length - 1] ?? 0)}</span>
+          <span className="size-2 rounded-full" style={{ background: 'var(--c-pos)' }} aria-hidden="true" />
+          {thisName} à frente
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="size-2 rounded-full" style={{ background: 'var(--c-neg)' }} aria-hidden="true" />
+          atrás
         </span>
       </div>
+    </div>
+  )
+}
+
+/** The two months in a small table (so far, per day, best day, the whole month) and what it takes to match the other. */
+function CompareFigures({ current, other, dayOfMonth, thisName, otherName }: { current: number[]; other: number[]; dayOfMonth: number; thisName: string; otherName: string }) {
+  const length = current.length
+  const now = current[dayOfMonth - 1] ?? 0
+  const otherSameDay = other[Math.min(dayOfMonth, other.length) - 1] ?? 0
+  const otherFull = other[other.length - 1] ?? 0
+  const forecast = dayOfMonth ? Math.round((now / dayOfMonth) * length) : 0
+  const best = (running: number[], upTo: number) => Math.max(0, ...running.slice(0, upTo).map((v, i) => v - (i ? running[i - 1] : 0)))
+  const left = length - dayOfMonth
+  const missing = otherFull - now
+  const rows: Array<{ label: string; mine: number; theirs: number; note?: string }> = [
+    { label: `Até dia ${dayOfMonth}`, mine: now, theirs: otherSameDay },
+    { label: 'Média por dia', mine: dayOfMonth ? Math.round(now / dayOfMonth) : 0, theirs: Math.round(otherFull / other.length) },
+    { label: 'Melhor dia', mine: best(current, dayOfMonth), theirs: best(other, other.length) },
+    { label: 'Mês completo', mine: forecast, theirs: otherFull, note: dayOfMonth < length ? 'previsão' : undefined },
+  ]
+  return (
+    <div>
+      <div className="rounded-2xl bg-white px-3 py-1">
+        <div className="flex items-center gap-2 py-2 text-[11px] font-semibold text-ink-3">
+          <span className="flex-1" />
+          <span className="w-[5.5rem] text-right text-onyx">{thisName}</span>
+          <span className="w-[5.5rem] text-right">{otherName}</span>
+        </div>
+        {rows.map((r) => {
+          const ahead = r.mine >= r.theirs
+          return (
+            <div key={r.label} className="flex items-center gap-2 border-t border-onyx/[0.06] py-2.5 text-[13px]">
+              <span className="min-w-0 flex-1 truncate text-muted-dark">{r.label}</span>
+              <span className="w-[5.5rem] text-right">
+                <span className="amount tabular font-bold" style={{ color: ahead ? 'var(--c-pos)' : 'var(--c-neg)' }}>
+                  {euros(r.mine)}
+                </span>
+                {r.note && <span className="block text-[10px] font-normal text-ink-3">{r.note}</span>}
+              </span>
+              <span className="amount tabular w-[5.5rem] text-right font-semibold text-onyx">{euros(r.theirs)}</span>
+            </div>
+          )
+        })}
+      </div>
+      <p className="mt-3 px-1 text-xs text-ink-3">
+        {missing <= 0 ? (
+          <>
+            Já passaste {otherName.toLowerCase()} completo ({<span className="amount">{euros(otherFull)}</span>}).
+          </>
+        ) : left > 0 ? (
+          <>
+            Faltam <span className="amount font-semibold text-onyx">{euros(missing)}</span> para igualar {otherName.toLowerCase()} completo: cerca de{' '}
+            <span className="amount font-semibold text-onyx">{euros(Math.ceil(missing / left))}</span> por dia nos {left} dias que faltam.
+          </>
+        ) : (
+          <>
+            Ficaste a <span className="amount font-semibold text-onyx">{euros(missing)}</span> de {otherName.toLowerCase()} completo.
+          </>
+        )}
+      </p>
     </div>
   )
 }
