@@ -188,7 +188,7 @@ export function FloatingActionMenu({
   face?: ReactNode
   /** The actions in the order given, read top to bottom, instead of A to Z (see `group`). */
   keepOrder?: boolean
-  /** Hidden under a last "Mais opções" until it is tapped: then just below it, two by two, in the order given. */
+  /** Hidden under a last "Mais opções" until it is tapped: then in a column to the left, in the order given. */
   more?: MenuAction[]
   /** A plain 40px round button with no fill, for sitting inside a glass island. */
   bare?: boolean
@@ -418,55 +418,51 @@ export function FloatingActionMenu({
                 </motion.div>
               )
             })}
-            {/* What "Mais opções" opens just below it: two by two, each like the options above (the name in a white
-                pill beside its round button); the app's own settings (group "app") in their own rows, a little apart. */}
+            {/* What "Mais opções" opens: one column to the left of the main one, top to bottom, smaller and closer
+                together, each like the options beside it (the name in a white pill and its round button); the app's
+                own settings (group "app") a little apart at the end. */}
             {open && showMore && more && (
-              <div className="pointer-events-auto flex w-[min(21.5rem,calc(100vw-2rem))] flex-col gap-2">
-                {[more.filter((a) => a.group !== 'app'), more.filter((a) => a.group === 'app')]
-                  .filter((part) => part.length)
-                  .map((part, partIndex) => (
-                    <div key={partIndex} className={cn('grid grid-cols-2 gap-x-2 gap-y-2', partIndex > 0 && 'pt-2')}>
-                      {part.map(({ Icon, iconClass, label, danger, onClick, confirm }, index) => {
-                        const asking = confirming === label
-                        return (
-                          <motion.button
-                            key={label}
-                            type="button"
-                            onClick={() => {
-                              if (confirm && !asking) return setConfirming(label)
-                              onClick?.()
-                              close()
-                            }}
-                            initial={{ opacity: 0, y: direction === 'up' ? 10 : -10, filter: 'blur(2px)' }}
-                            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                            transition={{ type: 'tween', ease: 'easeOut', duration: 0.25, delay: (partIndex * 4 + index) * 0.03 }}
-                            className="flex min-w-0 items-center justify-end gap-2"
-                          >
-                            <span
-                              className={cn(
-                                'min-w-0 truncate rounded-full border border-onyx/10 bg-white px-3 py-1.5 font-subtitle text-xs font-medium shadow-md shadow-black/10',
-                                danger || asking ? 'text-red-700' : 'text-onyx',
-                              )}
-                            >
-                              {asking ? confirm : label}
-                            </span>
-                            <span
-                              className={cn(
-                                'flex size-10 shrink-0 items-center justify-center rounded-full border shadow-md shadow-black/10 transition-colors',
-                                asking ? 'border-red-700 bg-red-700' : 'border-onyx/10 bg-white',
-                              )}
-                            >
-                              {Icon ? (
-                                <Icon size={18} className={asking ? 'text-[#ffffff]' : danger ? 'text-red-700' : 'text-onyx'} />
-                              ) : (
-                                <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 20 }} aria-hidden="true" />
-                              )}
-                            </span>
-                          </motion.button>
-                        )
-                      })}
-                    </div>
-                  ))}
+              <div className="pointer-events-auto absolute right-[calc(100%+0.75rem)] top-0 flex flex-col items-end gap-1.5">
+                {more.map(({ Icon, iconClass, label, danger, onClick, confirm, group }, index) => {
+                  const asking = confirming === label
+                  const apart = group === 'app' && more[index - 1]?.group !== 'app'
+                  return (
+                    <motion.button
+                      key={label}
+                      type="button"
+                      onClick={() => {
+                        if (confirm && !asking) return setConfirming(label)
+                        onClick?.()
+                        close()
+                      }}
+                      initial={{ opacity: 0, x: 12, filter: 'blur(2px)' }}
+                      animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                      transition={{ type: 'tween', ease: 'easeOut', duration: 0.25, delay: index * 0.03 }}
+                      className={cn('flex items-center gap-2', apart && 'mt-2')}
+                    >
+                      <span
+                        className={cn(
+                          'whitespace-nowrap rounded-full border border-onyx/10 bg-white px-3 py-1 font-subtitle text-xs font-medium shadow-md shadow-black/10',
+                          danger || asking ? 'text-red-700' : 'text-onyx',
+                        )}
+                      >
+                        {asking ? confirm : label}
+                      </span>
+                      <span
+                        className={cn(
+                          'flex size-9 shrink-0 items-center justify-center rounded-full border shadow-md shadow-black/10 transition-colors',
+                          asking ? 'border-red-700 bg-red-700' : 'border-onyx/10 bg-white',
+                        )}
+                      >
+                        {Icon ? (
+                          <Icon size={16} className={asking ? 'text-[#ffffff]' : danger ? 'text-red-700' : 'text-onyx'} />
+                        ) : (
+                          <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 18 }} aria-hidden="true" />
+                        )}
+                      </span>
+                    </motion.button>
+                  )
+                })}
               </div>
             )}
           </div>
