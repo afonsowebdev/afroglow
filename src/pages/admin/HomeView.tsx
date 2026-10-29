@@ -769,7 +769,7 @@ function Highlight({
             onOpen('pedidos')
           }}
           aria-label={month.pendingCount ? `Pedidos, ${month.pendingCount} à espera` : 'Pedidos'}
-          className="relative flex h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-onyx/[0.05] pe-1.5 ps-3.5 text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
+          className="glass-chip relative flex h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full pe-1.5 ps-3.5 text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
         >
           <span>Pedidos</span>
           {/* The requests waiting, as a badge on the button's top right corner. */}
