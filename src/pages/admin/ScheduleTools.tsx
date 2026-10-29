@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { CalendarRange, Check, Plus, Sunrise, Sunset, X } from 'lucide-react'
+import { ArrowRight, CalendarRange, Check, Plus, Sunrise, Sunset, X } from 'lucide-react'
+import { useScrollLock } from '@/lib/use-scroll-lock'
 import { cn } from '@/lib/utils'
 import { Sheet, SheetField, sheetFieldClass } from '@/components/ui/sheet'
 import { api, ApiError } from '@/lib/api'
@@ -118,6 +119,8 @@ export function GenerateSlotsSheet({
   }, [open])
 
   const times = useMemo(() => buildTimes(pattern, daysOff), [pattern, daysOff])
+  // The page behind stays still while the sheet is open.
+  useScrollLock(open)
 
   async function submit() {
     setBusy(true)
@@ -342,20 +345,34 @@ export function GenerateSlotsSheet({
               </section>
             </div>
 
-            {/* What will be created, and the button. */}
+            {/* The button: what it opens and until when, with the arrow in a round white chip like the Painel's Nova marcação. */}
             <div className="px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]">
-              <p className="mb-2.5 px-1 font-subtitle text-xs text-muted-dark">
-                {times.length === 0
-                  ? 'Escolhe pelo menos um dia.'
-                  : `Até ${lastDay!.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'long' })}`}
-              </p>
               <button
                 type="submit"
                 disabled={busy || times.length === 0}
-                className="glass-chip-on flex h-12 w-full items-center justify-center gap-2 rounded-full font-subtitle text-[15px] font-semibold text-onyx transition-opacity disabled:opacity-40"
+                className="glass-chip flex h-14 w-full items-center gap-3 rounded-full pe-2 ps-2 text-left transition-transform active:scale-[0.98] disabled:opacity-45"
+                style={{ boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--color-onyx) 14%, transparent), 0px 1px 3px 0px rgba(0,0,0,0.08), 0px 12px 32px -10px rgba(0,0,0,0.2)' }}
               >
-                <Check size={17} strokeWidth={2.4} />
-                {busy ? 'A abrir…' : `Abrir ${times.length} ${times.length === 1 ? 'horário' : 'horários'}`}
+                <span
+                  className="flex size-10 shrink-0 items-center justify-center rounded-full"
+                  style={{ background: 'color-mix(in srgb, var(--c-confirmed) 18%, transparent)', color: 'var(--c-confirmed)' }}
+                >
+                  <CalendarRange size={18} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-subtitle text-[15px] font-semibold leading-tight text-onyx">
+                    {busy ? 'A abrir…' : times.length === 0 ? 'Escolhe pelo menos um dia' : `Abrir ${times.length} ${times.length === 1 ? 'horário' : 'horários'}`}
+                  </span>
+                  {times.length > 0 && (
+                    <span className="block truncate font-subtitle text-[12px] text-muted-dark">
+                      {openDays} {openDays === 1 ? 'dia' : 'dias'} por semana · até{' '}
+                      {lastDay!.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' }).replace('.', '')}
+                    </span>
+                  )}
+                </span>
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-onyx shadow-sm">
+                  <ArrowRight size={18} />
+                </span>
               </button>
             </div>
           </motion.form>
