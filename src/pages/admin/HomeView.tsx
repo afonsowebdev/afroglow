@@ -377,7 +377,7 @@ export function HomeView({
           />
         )
       case 'grafico':
-        return <InOutChart months={data.months} />
+        return <InOutChart months={data.months} goal={goal ?? 0} />
       case 'meta':
         return <Goal goal={goal} revenue={data.month.revenue} canEdit={canStats} onEdit={() => setGoalOpen(true)} />
       case 'servicos':
@@ -1721,14 +1721,27 @@ const CANCELLED = 'color-mix(in srgb, var(--color-onyx) 22%, transparent)'
 const trend = (months: MonthFigures[], i: number) =>
   i > 0 && months[i].revenue < months[i - 1].revenue ? 'var(--c-neg)' : 'var(--c-pos)'
 
-/** 2×2: what came in against what was cancelled, the last six months, as bars, lines or a ring. */
-function InOutChart({ months }: { months: MonthFigures[] }) {
+/**
+ * 2×2: what came in against what was cancelled, the last six months, as bars, lines or a ring. Bars and lines read like
+ * the Semana a semana: a scale at the side with soft guide lines, each month's takings above it, a dashed line for the
+ * average of the months before this one and, when there is one, a line for the monthly goal; under each month how much
+ * it rose or fell against the one before.
+ */
+function InOutChart({ months, goal }: { months: MonthFigures[]; goal: number }) {
   const [view, setView] = useState<ChartView>(() => readStore<ChartView>(CHART_KEY, 'barras'))
   const choose = (next: ChartView) => {
     setView(next)
     writeStore(CHART_KEY, next)
   }
-  const top = Math.max(1, ...months.flatMap((m) => [m.revenue, m.cancelled]))
+  const before = months.slice(0, -1).filter((m) => m.revenue > 0)
+  const average = before.length ? before.reduce((a, m) => a + m.revenue, 0) / before.length : 0
+  const top = niceTop(Math.max(1, goal, ...months.flatMap((m) => [m.revenue, m.cancelled])))
+  const changes = months.map((m, i) => {
+    const prev = months[i - 1]
+    return prev && prev.revenue && m.revenue ? Math.round(((m.revenue - prev.revenue) / prev.revenue) * 100) : null
+  })
+  const at = (i: number) => `${((i + 0.5) / months.length) * 100}%`
+  const height = (v: number) => `${(v / top) * 100}%`
   const totalIn = months.reduce((a, m) => a + m.revenue, 0)
   const totalOut = months.reduce((a, m) => a + m.cancelled, 0)
   const described = months.map((m) => `${monthLabel(m.key)}: ${euros(m.revenue)} de receita, ${euros(m.cancelled)} cancelados`).join('; ')
@@ -1775,7 +1788,18 @@ function InOutChart({ months }: { months: MonthFigures[] }) {
           <span className="size-2 rounded-full" style={{ background: CANCELLED }} aria-hidden="true" />
           Cancelado
         </span>
-        <span className="ml-auto">Últimos 6 meses</span>
+        {view !== 'circular' && average > 0 && (
+          <span className="flex items-center gap-1.5">
+            <span className="w-3 border-t-[1.5px] border-dashed border-onyx/40" aria-hidden="true" />
+            Média <span className="amount tabular font-semibold text-onyx">{euros(average)}</span>
+          </span>
+        )}
+        {view !== 'circular' && goal > 0 && (
+          <span className="flex items-center gap-1.5">
+            <span className="w-3 border-t-[1.5px] border-onyx/70" aria-hidden="true" />
+            Meta <span className="amount tabular font-semibold text-onyx">{euros(goal)}</span>
+          </span>
+        )}
       </div>
 
       <div role="img" aria-label={`Receita e cancelamentos nos últimos 6 meses. ${described}.`} className="mt-3 flex min-h-0 flex-1 flex-col">
@@ -1808,55 +1832,111 @@ function InOutChart({ months }: { months: MonthFigures[] }) {
           </div>
         ) : (
           <>
-            <div className="relative min-h-0 flex-1">
-              {view === 'barras' ? (
-                <div className="absolute inset-0 flex items-end gap-2">
-                  {months.map((m, i) => (
-                    <div key={m.key} className="flex h-full flex-1 items-end justify-center gap-[3px]">
-                      <span
-                        className="block w-full max-w-4 rounded-t-full"
-                        style={{
-                          height: `${(m.revenue / top) * 100}%`,
-                          background: `linear-gradient(to bottom, color-mix(in srgb, ${trend(months, i)} 70%, white), ${trend(months, i)})`,
-                        }}
+            <div className="mt-5 flex min-h-0 flex-1 gap-2">
+              {/* The scale. */}
+              <div className="flex w-10 shrink-0 flex-col justify-between text-right">
+                {[top, top / 2, 0].map((v) => (
+                  <span key={v} className="amount tabular -translate-y-1/2 text-[10px] text-ink-3 first:translate-y-0 last:translate-y-0">
+                    {v ? euros(v) : '0'}
+                  </span>
+                ))}
+              </div>
+              <div className="relative min-h-0 flex-1">
+                {[0, 50, 100].map((p) => (
+                  <span key={p} aria-hidden="true" className="absolute inset-x-0 border-t border-onyx/[0.08]" style={{ top: `${p}%` }} />
+                ))}
+                {/* The average month and the goal, behind the bars so they never cover a number; their values are in the legend. */}
+                {average > 0 && (
+                  <span aria-hidden="true" className="absolute inset-x-0 border-t-[1.5px] border-dashed border-onyx/35" style={{ bottom: height(average) }} />
+                )}
+                {goal > 0 && <span aria-hidden="true" className="absolute inset-x-0 border-t-[1.5px] border-onyx/60" style={{ bottom: height(goal) }} />}
+                {view === 'barras' ? (
+                  <div className="absolute inset-0 flex items-end gap-2">
+                    {months.map((m, i) => (
+                      <div key={m.key} className="relative flex h-full flex-1 items-end justify-center gap-[3px]">
+                        <span
+                          className="block w-full max-w-3 rounded-t-full"
+                          style={{
+                            height: height(m.revenue),
+                            background: `linear-gradient(to bottom, color-mix(in srgb, ${trend(months, i)} 70%, white), ${trend(months, i)})`,
+                          }}
+                        />
+                        <span className="block w-full max-w-2 rounded-t-full" style={{ height: height(m.cancelled), background: CANCELLED }} />
+                        {m.revenue > 0 && (
+                          <span
+                            className="amount tabular absolute inset-x-0 mb-1 whitespace-nowrap text-center text-[10px] font-bold text-onyx"
+                            style={{ bottom: height(Math.max(m.revenue, m.cancelled)) }}
+                          >
+                            {euros(m.revenue)}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 size-full overflow-visible">
+                      <defs>
+                        <linearGradient id="revenue-area" x1="0" x2="0" y1="0" y2="1">
+                          <stop offset="0%" stopColor={trend(months, months.length - 1)} stopOpacity="0.22" />
+                          <stop offset="100%" stopColor={trend(months, months.length - 1)} stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+                      <polygon
+                        points={`${parseFloat(at(0))},100 ${months.map((m, i) => `${parseFloat(at(i))},${100 - (m.revenue / top) * 100}`).join(' ')} ${parseFloat(at(months.length - 1))},100`}
+                        fill="url(#revenue-area)"
                       />
-                      <span className="block w-full max-w-2.5 rounded-t-full" style={{ height: `${(m.cancelled / top) * 100}%`, background: CANCELLED }} />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="absolute inset-0 size-full overflow-visible">
-                  <defs>
-                    <linearGradient id="revenue-area" x1="0" x2="0" y1="0" y2="1">
-                      <stop offset="0%" stopColor={trend(months, months.length - 1)} stopOpacity="0.25" />
-                      <stop offset="100%" stopColor={trend(months, months.length - 1)} stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <polygon
-                    points={`0,40 ${months.map((m, i) => `${(i / 5) * 100},${40 - (m.revenue / top) * 37 - 1.5}`).join(' ')} 100,40`}
-                    fill="url(#revenue-area)"
-                  />
-                  {(['revenue', 'cancelled'] as const).map((field) => (
-                    <polyline
-                      key={field}
-                      points={months.map((m, i) => `${(i / 5) * 100},${40 - (m[field] / top) * 37 - 1.5}`).join(' ')}
-                      fill="none"
-                      stroke={field === 'revenue' ? trend(months, months.length - 1) : CANCELLED}
-                      strokeWidth={field === 'revenue' ? 2.5 : 1.75}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  ))}
-                </svg>
-              )}
+                      {(['cancelled', 'revenue'] as const).map((field) => (
+                        <polyline
+                          key={field}
+                          points={months.map((m, i) => `${parseFloat(at(i))},${100 - (m[field] / top) * 100}`).join(' ')}
+                          fill="none"
+                          stroke={field === 'revenue' ? trend(months, months.length - 1) : CANCELLED}
+                          strokeWidth={field === 'revenue' ? 1.75 : 1.25}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          vectorEffect="non-scaling-stroke"
+                        />
+                      ))}
+                    </svg>
+                    {/* Each month's point, in its colour, with its takings above. */}
+                    {months.map((m, i) => (
+                      <span key={m.key} aria-hidden="true">
+                        <span
+                          className="absolute size-2.5 -translate-x-1/2 translate-y-1/2 rounded-full ring-2 ring-white"
+                          style={{ left: at(i), bottom: height(m.revenue), background: trend(months, i) }}
+                        />
+                        {m.revenue > 0 && (
+                          <span
+                            className="amount tabular absolute mb-2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-onyx"
+                            style={{ left: at(i), bottom: height(m.revenue) }}
+                          >
+                            {euros(m.revenue)}
+                          </span>
+                        )}
+                      </span>
+                    ))}
+                  </>
+                )}
+              </div>
             </div>
-            <div className="mt-1.5 flex justify-between text-xs text-ink-3">
-              {months.map((m) => (
-                <span key={m.key} className="flex-1 text-center capitalize">
-                  {monthLabel(m.key)}
-                </span>
-              ))}
+            {/* Under each month: its name and how it moved. */}
+            <div className="mt-1.5 flex gap-2 pl-12">
+              {months.map((m, i) => {
+                const change = changes[i]
+                const last = i === months.length - 1
+                return (
+                  <div key={m.key} className="flex flex-1 flex-col items-center gap-0.5">
+                    <span className={`text-[11px] capitalize ${last ? 'font-bold text-onyx' : 'text-ink-3'}`}>{monthLabel(m.key)}</span>
+                    <span
+                      className="tabular text-[10px] font-semibold"
+                      style={{ color: change === null ? 'var(--c-ink-3)' : change >= 0 ? 'var(--c-pos)' : 'var(--c-neg)' }}
+                    >
+                      {change === null ? '–' : `${change >= 0 ? '↑' : '↓'}${Math.abs(change)}%`}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           </>
         )}
