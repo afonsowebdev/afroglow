@@ -355,16 +355,16 @@ export function FloatingActionMenu({
               direction === 'up' ? 'bottom-full mb-3 flex-col-reverse' : 'top-full mt-3 flex-col',
             )}
           >
-            {/* What "Mais opções" shows in place of the main options: side by side, each a round button with its name
-                below in plain white; the app's own settings (group "app") on their own row, a little apart. */}
+            {/* What "Mais opções" shows in place of the main options: two by two, each a round button with its name
+                beside it in plain white; the app's own settings (group "app") in their own rows, a little apart. */}
             {open && showMore && more && (
-              <div className="pointer-events-auto mb-1 flex w-[17.5rem] flex-col gap-3">
+              <div className="pointer-events-auto mb-1 flex w-[min(20rem,calc(100vw-2rem))] flex-col gap-3">
                 {[more.filter((a) => a.group !== 'app'), more.filter((a) => a.group === 'app')]
                   .filter((part) => part.length)
                   .map((part, partIndex) => (
                     <div
                       key={partIndex}
-                      className={cn('grid grid-cols-4 gap-x-1.5 gap-y-3', partIndex > 0 && 'pt-2')}
+                      className={cn('grid grid-cols-2 gap-x-3 gap-y-2.5', partIndex > 0 && 'pt-2')}
                     >
                       {part.map(({ Icon, iconClass, label, danger, onClick, confirm }, index) => {
                         const asking = confirming === label
@@ -385,11 +385,11 @@ export function FloatingActionMenu({
                               duration: 0.3,
                               delay: (partIndex * 4 + index) * 0.035,
                             }}
-                            className="flex flex-col items-center gap-1.5"
+                            className="flex min-w-0 items-center gap-2.5 text-left"
                           >
                             <span
                               className={cn(
-                                'flex size-12 items-center justify-center rounded-full border shadow-md shadow-black/10 transition-colors',
+                                'flex size-11 shrink-0 items-center justify-center rounded-full border shadow-md shadow-black/10 transition-colors',
                                 asking ? 'border-red-700 bg-red-700' : 'border-onyx/10 bg-white',
                               )}
                             >
@@ -402,7 +402,7 @@ export function FloatingActionMenu({
                             <span
                               className={cn(
                                 // Plain white over the blur, as under the iPhone's icons.
-                                'line-clamp-2 text-center font-subtitle text-[11px] font-medium leading-tight [text-shadow:0_1px_6px_rgba(0,0,0,0.45)]',
+                                'line-clamp-2 min-w-0 font-subtitle text-[13px] font-medium leading-tight [text-shadow:0_1px_6px_rgba(0,0,0,0.45)]',
                                 danger ? 'text-[#ffb4ac]' : 'text-[#ffffff]',
                               )}
                             >
