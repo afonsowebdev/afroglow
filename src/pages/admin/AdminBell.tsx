@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Bell, CalendarClock, CalendarX2, Check, ListFilter, MessageSquareQuote, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
+import { BRAND_CIRCLE, INK_CIRCLE } from '@/components/ui/brand-logo'
 import { tap } from '@/lib/haptics'
 import { useScrollLock } from '@/lib/use-scroll-lock'
 import type { Booking, Testimonial } from '@/lib/types'
@@ -56,6 +56,7 @@ export function AdminBell({
   onOpenChange,
   bare = false,
   shrink = false,
+  ink = false,
 }: {
   requests: Booking[]
   testimonials: Testimonial[]
@@ -67,6 +68,8 @@ export function AdminBell({
   bare?: boolean
   /** The round button a little smaller (a header that has scrolled); only the button, so the list keeps its place. */
   shrink?: boolean
+  /** The bell in black (white in the dark theme) instead of gold. */
+  ink?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [filter, setFilter] = useState<Filter>('todas')
@@ -157,7 +160,7 @@ export function AdminBell({
         className={cn(
           'relative z-[62] flex items-center justify-center rounded-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
           shrink && 'scale-[0.86]',
-          bare ? 'size-10 text-onyx transition-colors hover:bg-onyx/[0.06]' : cn('size-12', BRAND_CIRCLE),
+          bare ? 'size-10 text-onyx transition-colors hover:bg-onyx/[0.06]' : cn('size-12', ink ? INK_CIRCLE : BRAND_CIRCLE),
         )}
       >
         <Bell className="size-[18px]" strokeWidth={1.75} />

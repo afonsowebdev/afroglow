@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import { useTheme } from '@/lib/theme'
 import { ROUND_SAMPLES, useBackdropTone } from '@/lib/use-backdrop-tone'
 import { useScrollLock } from '@/lib/use-scroll-lock'
-import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
+import { BRAND_CIRCLE, INK_CIRCLE } from '@/components/ui/brand-logo'
 
 export interface ActionIcon {
   /** A lucide icon... */
@@ -188,6 +188,7 @@ export function FloatingActionMenu({
   bare = false,
   shrink = false,
   smallItems = false,
+  ink = false,
   raised = false,
   onOpenChange,
   PlusIcon = Plus,
@@ -203,6 +204,8 @@ export function FloatingActionMenu({
   bare?: boolean
   /** The round button a little smaller (a header that has scrolled); the menu keeps its place. */
   shrink?: boolean
+  /** With `brand`: the "+" in black (white in the dark theme) instead of gold. */
+  ink?: boolean
   /** Every option, main or under "Mais opções", the same size (42px buttons, slightly larger names). */
   smallItems?: boolean
   /** The button stays clear above the blur of any menu opened beside it (a header that stays sharp). */
@@ -561,7 +564,7 @@ export function FloatingActionMenu({
                   'flex items-center justify-center overflow-hidden rounded-full',
                   small ? 'size-12' : 'size-14',
                   'transition-colors duration-500 ease-in-out',
-                  brand ? BRAND_CIRCLE : cn('liquid-glass', onDark ? 'text-[#ffffff]' : 'text-[#1a1008]'),
+                  brand ? (ink ? INK_CIRCLE : BRAND_CIRCLE) : cn('liquid-glass', onDark ? 'text-[#ffffff]' : 'text-[#1a1008]'),
                 )
           }
         >

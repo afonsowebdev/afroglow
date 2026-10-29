@@ -43,7 +43,7 @@ import { TeamView } from '@/pages/admin/TeamView'
 import { HomeView } from '@/pages/admin/HomeView'
 import { HeaderLogo } from '@/customer/HeaderLogo'
 import { tap } from '@/lib/haptics'
-import { BRAND_CIRCLE } from '@/components/ui/brand-logo'
+import { INK_CIRCLE } from '@/components/ui/brand-logo'
 import { fullMe, type AdminMe, type Permission } from '@/pages/admin/admin-me'
 import { PortfolioView } from '@/pages/admin/PortfolioView'
 import { SecurityView } from '@/pages/admin/SecurityView'
@@ -2413,12 +2413,6 @@ function AdminDashboard() {
   const moreActions: MenuAction[] = [
     ...pages.slice(5),
     {
-      Icon: theme.theme === 'dark' ? Sun : Moon,
-      label: theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro',
-      group: 'app',
-      onClick: theme.toggleTheme,
-    },
-    {
       Icon: hideOnScroll ? PanelTop : PanelTopClose,
       label: hideOnScroll ? 'Menu fixo' : 'Ocultar menu',
       group: 'app',
@@ -2437,7 +2431,8 @@ function AdminDashboard() {
 
   return (
     <div className="app-neutral afro-admin relative min-h-screen bg-white font-medium">
-      {/* Fixed at the top: the "A" on the left, the theme, the bell and the "+" on the right, all round with a soft shadow.
+      {/* Fixed at the top: the gold "A" on the left, the theme, the bell and the "+" on the right in black (white in the dark
+          theme), all round with a soft shadow.
           Once the page scrolls they shrink a little (each button on its own, so the bell's list and the "+" menu keep
           their place) over a soft fade of the page; back at the top they return to full size. */}
       <div
@@ -2476,13 +2471,14 @@ function AdminDashboard() {
                 void tap()
                 theme.toggleTheme()
               }}
-              className={`relative z-[62] flex size-12 items-center justify-center rounded-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${BRAND_CIRCLE} ${
+              className={`relative z-[62] flex size-12 items-center justify-center rounded-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${INK_CIRCLE} ${
                 headerScrolled ? 'scale-[0.86]' : ''
               }`}
             >
               {theme.theme === 'dark' ? <Sun size={19} strokeWidth={1.9} /> : <Moon size={18} strokeWidth={1.9} />}
             </button>
             <AdminBell
+              ink
               shrink={headerScrolled}
               requests={can('marcacoes') ? pendingBookings : []}
               testimonials={can('testemunhos') ? pendingTestimonials : []}
@@ -2502,6 +2498,7 @@ function AdminDashboard() {
               small
               brand
               raised
+              ink
               shrink={headerScrolled}
               onOpenChange={onPlusOpen}
               PlusIcon={Plus}
