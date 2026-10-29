@@ -1730,10 +1730,11 @@ function PendingCard({
 }
 
 /** The admin's empty states, all alike: a dark circle with an icon, a title and a line. */
+/** Nothing to show: a white card with the Painel's soft shadow, the icon in a light round chip, a title and a line. */
 function EmptyState({ icon, title, text }: { icon: string; title: string; text: string }) {
   return (
-    <div className="mt-6 flex flex-col items-center rounded-3xl bg-onyx/[0.04] px-6 py-10 text-center">
-      <span className="flex size-16 items-center justify-center rounded-full bg-onyx text-3xl text-white">
+    <div className="mt-6 flex flex-col items-center rounded-[22px] bg-card px-6 py-10 text-center" style={{ boxShadow: CARD_SHADOW }}>
+      <span className="glass-chip flex size-16 items-center justify-center rounded-full text-[28px] text-onyx">
         <i className={icon} aria-hidden="true" />
       </span>
       <p className="mt-5 font-subtitle text-xl font-semibold tracking-tight text-onyx">{title}</p>
