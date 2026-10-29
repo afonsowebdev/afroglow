@@ -17,7 +17,6 @@ import {
   LayoutGrid,
   ListFilter,
   MessageSquareQuote,
-  Plus,
   Receipt,
   Search,
   Target,
@@ -722,12 +721,10 @@ function Highlight({
             void tap('medium')
             onNewBooking()
           }}
-          className="flex h-11 min-w-0 flex-1 items-center gap-2 whitespace-nowrap rounded-full bg-onyx pe-3 ps-1.5 text-[13px] font-semibold text-white shadow-[0_6px_16px_-6px_rgba(0,0,0,0.45)] transition-transform active:scale-[0.97]"
+          className="flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-onyx px-4 text-[13px] font-semibold text-white transition-transform active:scale-[0.97]"
         >
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/15">
-            <Plus size={16} strokeWidth={2.4} />
-          </span>
-          <span className="truncate">Nova marcação</span>
+          <i className="bx bx-plus text-lg" aria-hidden="true" />
+          Nova marcação
         </button>
         <button
           type="button"
