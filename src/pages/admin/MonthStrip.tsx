@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import { ChevronDown, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
+import { tap } from '@/lib/haptics'
 
 export interface YearMonth {
   year: number
@@ -19,8 +21,9 @@ const step = (value: YearMonth, delta: number): YearMonth => {
 }
 
 /**
- * Month picker. A single bar with the month and year and plain arrows to step through; tapping the name folds out
- * a grid with the twelve months (and the year arrows) to jump straight to any of them.
+ * Month picker, in a white card like the Painel's: the month and year between two round glass arrows; tapping the name
+ * folds out a grid with the twelve months (and the year arrows) to jump straight to any of them. Away from this month,
+ * a small glass pill brings it back.
  */
 export function MonthStrip({
   value,
@@ -34,13 +37,20 @@ export function MonthStrip({
 }) {
   const [open, setOpen] = useState(false)
   const isToday = value.year === today.year && value.month === today.month
-  const arrow = 'flex size-10 items-center justify-center text-2xl text-onyx active:opacity-50'
+  const arrow = 'glass-chip flex size-10 items-center justify-center rounded-full text-onyx transition-transform active:scale-[0.94]'
+  const go = (next: YearMonth) => {
+    void tap()
+    onSelect(next)
+  }
 
   return (
-    <div className="mt-6 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white">
-      <div className="flex items-center justify-between px-2 py-1.5">
-        <button type="button" aria-label="Mês anterior" onClick={() => onSelect(step(value, -1))} className={arrow}>
-          <i className="bx bx-chevron-left" aria-hidden="true" />
+    <div
+      className="mt-6 rounded-[22px] bg-card"
+      style={{ boxShadow: '0px 1px 3px 0px rgba(0,0,0,0.08), 0px 12px 32px -10px rgba(0,0,0,0.2)' }}
+    >
+      <div className="flex items-center justify-between px-3 py-3">
+        <button type="button" aria-label="Mês anterior" onClick={() => go(step(value, -1))} className={arrow}>
+          <ChevronLeft size={18} />
         </button>
 
         <button
@@ -52,16 +62,13 @@ export function MonthStrip({
         >
           <span className="flex items-center gap-1.5 font-subtitle text-lg font-semibold leading-tight tracking-tight text-onyx">
             {longMonth(value)}
-            <i
-              className={`bx bx-chevron-down text-xl text-muted-dark transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
-              aria-hidden="true"
-            />
+            <ChevronDown size={18} className={`text-muted-dark transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
           </span>
           <span className="font-subtitle text-xs font-medium lining-nums text-muted-dark">{value.year}</span>
         </button>
 
-        <button type="button" aria-label="Mês seguinte" onClick={() => onSelect(step(value, 1))} className={arrow}>
-          <i className="bx bx-chevron-right" aria-hidden="true" />
+        <button type="button" aria-label="Mês seguinte" onClick={() => go(step(value, 1))} className={arrow}>
+          <ChevronRight size={18} />
         </button>
       </div>
 
@@ -75,15 +82,15 @@ export function MonthStrip({
             transition={{ duration: 0.22, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="border-t border-onyx/10 px-4 pb-4 pt-3">
+            <div className="px-4 pb-4 pt-1">
               <div className="flex items-center justify-between">
                 <button
                   type="button"
                   aria-label="Ano anterior"
-                  onClick={() => onSelect({ year: value.year - 1, month: value.month })}
+                  onClick={() => go({ year: value.year - 1, month: value.month })}
                   className={arrow}
                 >
-                  <i className="bx bx-chevron-left" aria-hidden="true" />
+                  <ChevronLeft size={18} />
                 </button>
                 <span className="font-subtitle text-base font-semibold lining-nums tracking-tight text-onyx">
                   {value.year}
@@ -91,14 +98,14 @@ export function MonthStrip({
                 <button
                   type="button"
                   aria-label="Ano seguinte"
-                  onClick={() => onSelect({ year: value.year + 1, month: value.month })}
+                  onClick={() => go({ year: value.year + 1, month: value.month })}
                   className={arrow}
                 >
-                  <i className="bx bx-chevron-right" aria-hidden="true" />
+                  <ChevronRight size={18} />
                 </button>
               </div>
 
-              <div className="mt-1 grid grid-cols-4 gap-2" role="tablist" aria-label="Mês">
+              <div className="mt-3 grid grid-cols-4 gap-2" role="tablist" aria-label="Mês">
                 {MONTHS.map((label, index) => {
                   const month = index + 1
                   const active = month === value.month
@@ -110,10 +117,10 @@ export function MonthStrip({
                       role="tab"
                       aria-selected={active}
                       onClick={() => {
-                        onSelect({ year: value.year, month })
+                        go({ year: value.year, month })
                         setOpen(false)
                       }}
-                      className={`h-11 rounded-xl font-subtitle text-sm ${
+                      className={`h-11 rounded-full font-subtitle text-sm ${
                         active
                           ? 'glass-chip-on font-semibold text-onyx'
                           : current
@@ -132,16 +139,19 @@ export function MonthStrip({
       </AnimatePresence>
 
       {!isToday && (
-        <button
-          type="button"
-          onClick={() => {
-            onSelect(today)
-            setOpen(false)
-          }}
-          className="block w-full border-t border-onyx/10 py-2.5 text-center font-subtitle text-xs font-medium text-onyx underline-offset-4 active:opacity-60"
-        >
-          Voltar a hoje
-        </button>
+        <div className="flex justify-center pb-3">
+          <button
+            type="button"
+            onClick={() => {
+              go(today)
+              setOpen(false)
+            }}
+            className="glass-chip flex h-8 items-center gap-1.5 rounded-full px-3 font-subtitle text-[12px] font-semibold text-onyx transition-transform active:scale-[0.96]"
+          >
+            <RotateCcw size={13} strokeWidth={2.2} />
+            Voltar a hoje
+          </button>
+        </div>
       )}
     </div>
   )

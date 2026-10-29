@@ -5,7 +5,9 @@ import {
   Bell,
   BellRing,
   House,
+  ArrowRight,
   CalendarCheck,
+  CalendarPlus,
   CalendarX2,
   ChartColumn,
   Clock,
@@ -14,15 +16,18 @@ import {
   LogOut,
   MessageSquareQuote,
   Moon,
+  Phone,
   PanelTop,
   PanelTopClose,
   Plus,
   Scissors,
+  Search,
   Store,
   Sun,
   Tag,
   UserRound,
   Users,
+  X,
 } from 'lucide-react'
 import { BackToTop } from '@/components/ui/back-to-top'
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
@@ -460,11 +465,15 @@ function dayHeading(iso: string) {
   return { title: base, sub: '' }
 }
 
-const HISTORY_CHIP: Record<Booking['status'], string> = {
-  PENDING: 'bg-onyx/5 text-onyx',
-  ACCEPTED: 'bg-onyx/5 text-onyx',
-  REJECTED: 'bg-red-700/10 text-red-700',
-  CANCELLED: 'bg-onyx/5 text-muted-dark',
+/** The soft shadow of the Painel's cards, so the Agenda's cards sit the same way on the page. */
+const CARD_SHADOW = '0px 1px 3px 0px rgba(0,0,0,0.08), 0px 12px 32px -10px rgba(0,0,0,0.2)'
+
+/** The status colours of the Painel: confirmed green, waiting yellow, cancelled red. */
+const STATUS_COLOUR: Record<Booking['status'], string> = {
+  ACCEPTED: 'var(--c-confirmed)',
+  PENDING: 'var(--c-waiting)',
+  REJECTED: 'var(--c-cancelled)',
+  CANCELLED: 'var(--c-cancelled)',
 }
 
 function groupByDay(bookings: Booking[]) {
@@ -474,6 +483,21 @@ function groupByDay(bookings: Booking[]) {
     groups.set(key, [...(groups.get(key) ?? []), booking])
   }
   return [...groups.values()]
+}
+
+/** One of the month's figures, in a white card like the Painel's: a dot in its colour, its name, the number. */
+function AgendaFigure({ label, value, colour, amount = false }: { label: string; value: string; colour?: string; amount?: boolean }) {
+  return (
+    <div className="min-w-0 rounded-[22px] bg-card p-3.5" style={{ boxShadow: CARD_SHADOW }}>
+      <p className="flex items-center gap-1.5 truncate font-subtitle text-[12px] text-ink-3">
+        {colour && <span className="size-2 shrink-0 rounded-full" style={{ background: colour }} aria-hidden="true" />}
+        {label}
+      </p>
+      <p className={`tabular mt-1 truncate font-subtitle text-[22px] font-semibold leading-tight tracking-tight text-onyx ${amount ? 'amount' : ''}`}>
+        {value}
+      </p>
+    </div>
+  )
 }
 
 function AgendaView({
@@ -512,29 +536,25 @@ function AgendaView({
 
   return (
     <div>
-      {/* The month in one line. */}
-      <p className="mt-4 px-1 font-subtitle text-sm text-muted-dark">
-        <strong className="font-semibold text-onyx">{confirmedCount}</strong>{' '}
-        {confirmedCount === 1 ? 'sessão confirmada' : 'sessões confirmadas'} ·{' '}
-        <strong className="font-semibold lining-nums text-onyx">{formatPrice(revenueCents).replace(/,00/, '')}</strong>
-        {pendingCount > 0 && (
-          <>
-            {' '}
-            · <strong className="font-semibold text-onyx">{pendingCount}</strong> por responder
-          </>
-        )}
-      </p>
+      {/* The month in three figures, like the Painel. */}
+      <div className="mt-4 grid grid-cols-3 gap-2.5">
+        <AgendaFigure label="Sessões" value={String(confirmedCount)} colour="var(--c-confirmed)" />
+        <AgendaFigure label="Receita" value={formatPrice(revenueCents).replace(/,00/, '')} amount />
+        <AgendaFigure label="Pedidos" value={String(pendingCount)} colour="var(--c-waiting)" />
+      </div>
 
-      {/* The next session, large. */}
+      {/* The next session, large, in a white card with glass buttons. */}
       {next && nextWhen && (
-        <section className="mt-4 rounded-3xl bg-onyx p-5 text-white">
-          <p className="font-subtitle text-xs uppercase tracking-[0.14em] opacity-60">A seguir · {nextWhen}</p>
-          <div className="mt-2 flex items-end justify-between gap-4">
+        <section className="mt-3 rounded-[22px] bg-card p-4" style={{ boxShadow: CARD_SHADOW }}>
+          <span className="glass-chip inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 font-subtitle text-[12px] font-semibold text-onyx">
+            <Clock size={13} strokeWidth={2.2} />A seguir · {nextWhen}
+          </span>
+          <div className="mt-3 flex items-end justify-between gap-4">
             <div className="min-w-0">
-              <p className="truncate font-subtitle text-2xl font-semibold tracking-tight">{next.customerName}</p>
-              <p className="mt-0.5 truncate font-subtitle text-sm opacity-70">{bookingName(next)}</p>
+              <p className="truncate font-subtitle text-[22px] font-semibold leading-tight tracking-tight text-onyx">{next.customerName}</p>
+              <p className="mt-0.5 truncate font-subtitle text-[13px] text-muted-dark">{bookingName(next)}</p>
             </div>
-            <p className="shrink-0 font-subtitle text-3xl font-semibold lining-nums leading-none">
+            <p className="tabular shrink-0 font-subtitle text-[30px] font-semibold leading-none tracking-tight text-onyx">
               {dateParts(next.slot.startsAt).time}
             </p>
           </div>
@@ -543,45 +563,58 @@ function AgendaView({
               href={customerWhatsappUrl(next.customerPhone, `Olá ${next.customerName}! Sobre a tua sessão de ${bookingName(next)}...`)}
               target="_blank"
               rel="noreferrer"
-              className="flex h-10 items-center justify-center gap-1.5 rounded-full bg-white/15 font-subtitle text-sm"
+              className="glass-chip flex h-11 items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
             >
               <i className="bx bxl-whatsapp text-lg" aria-hidden="true" />
               WhatsApp
             </a>
             <a
               href={`tel:${next.customerPhone.replace(/[^+\d]/g, '')}`}
-              className="flex h-10 items-center justify-center gap-1.5 rounded-full bg-white/15 font-subtitle text-sm"
+              className="glass-chip flex h-11 items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
             >
-              <i className="bx bx-phone text-lg" aria-hidden="true" />
+              <Phone size={15} strokeWidth={2.2} />
               Ligar
             </a>
           </div>
         </section>
       )}
 
+      {/* Search, and a new booking as the Painel's glass pill with its arrow chip. */}
       <div className="mt-5 flex gap-2">
-        <label className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-onyx/[0.06] px-4">
-          <i className="bx bx-search text-lg text-onyx/40" aria-hidden="true" />
+        <label className="glass-chip flex min-w-0 flex-1 items-center gap-2 rounded-full ps-4 pe-2">
+          <Search size={16} className="shrink-0 text-ink-3" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Pesquisar"
             aria-label="Pesquisar cliente ou modelo na agenda"
-            className="field-plain h-11 min-w-0 flex-1 bg-transparent font-subtitle text-base text-onyx outline-none placeholder:text-onyx/40"
+            className="field-plain h-11 min-w-0 flex-1 !border-0 !bg-transparent !p-0 font-subtitle text-base text-onyx !shadow-none outline-none placeholder:text-onyx/40"
           />
+          {search && (
+            <button type="button" aria-label="Limpar a pesquisa" onClick={() => setSearch('')} className="flex size-7 shrink-0 items-center justify-center rounded-full bg-onyx/[0.06] text-muted-dark">
+              <X size={14} />
+            </button>
+          )}
         </label>
         <button
           type="button"
-          onClick={onNew}
+          onClick={() => {
+            void tap('medium')
+            onNew()
+          }}
           aria-label="Nova marcação"
-          className="flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-onyx px-4 font-subtitle text-sm font-medium text-white"
+          className="glass-chip flex h-11 shrink-0 items-center gap-2 rounded-full pe-1.5 ps-3.5 font-subtitle text-[13px] font-semibold text-onyx transition-transform active:scale-[0.97]"
         >
-          <i className="bx bx-plus text-lg" aria-hidden="true" />
+          <CalendarPlus size={16} strokeWidth={2.2} />
           Nova
+          <span className="flex size-8 items-center justify-center rounded-full bg-white text-onyx shadow-sm">
+            <ArrowRight size={16} />
+          </span>
         </button>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 rounded-xl bg-onyx/[0.06] p-1" role="tablist" aria-label="Agenda">
+      {/* Upcoming or past, as the Painel's round switch. */}
+      <div className="mt-4 grid grid-cols-2 rounded-full bg-onyx/[0.06] p-1" role="tablist" aria-label="Agenda">
         {(
           [
             ['proximas', 'Próximas', upcoming.length],
@@ -593,18 +626,21 @@ function AgendaView({
             type="button"
             role="tab"
             aria-selected={view === id}
-            onClick={() => setView(id)}
-            className="relative flex h-9 items-center justify-center gap-1.5 rounded-[9px] font-subtitle text-sm"
+            onClick={() => {
+              void tap()
+              setView(id)
+            }}
+            className="relative flex h-9 items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px]"
           >
             {view === id && (
               <motion.span
                 layoutId="agenda-segment"
-                className="absolute inset-0 rounded-[9px] bg-white shadow-sm shadow-black/10 dark:bg-onyx/[0.14]"
+                className="absolute inset-0 rounded-full bg-white shadow-sm shadow-black/10 dark:bg-onyx/[0.14]"
                 transition={{ type: 'spring', stiffness: 420, damping: 36 }}
               />
             )}
-            <span className={`relative ${view === id ? 'font-medium text-onyx' : 'text-onyx/55'}`}>{label}</span>
-            <span className={`relative text-xs lining-nums ${view === id ? 'text-onyx/60' : 'text-onyx/40'}`}>{count}</span>
+            <span className={`relative ${view === id ? 'font-semibold text-onyx' : 'text-onyx/55'}`}>{label}</span>
+            <span className={`tabular relative rounded-full px-1.5 text-[11px] ${view === id ? 'bg-onyx/[0.07] text-onyx/70' : 'text-onyx/40'}`}>{count}</span>
           </button>
         ))}
       </div>
@@ -623,19 +659,21 @@ function AgendaView({
         ) : (
           groupByDay(upcoming).map((dayBookings) => {
             const heading = dayHeading(dayBookings[0].slot.startsAt)
+            const total = dayBookings.reduce((a, b) => a + bookingPrice(b), 0)
             return (
               <section key={dateKey(dayBookings[0].slot.startsAt)} className="mt-6">
-                <div className="flex items-baseline justify-between gap-3 px-1">
-                  <h3 className="font-subtitle text-base font-semibold tracking-tight text-onyx">
+                <div className="flex items-center justify-between gap-3 px-1">
+                  <h3 className="min-w-0 truncate font-subtitle text-[15px] font-semibold tracking-tight text-onyx">
                     {heading.title}
                     {heading.sub && <span className="ml-2 text-xs font-normal text-muted-dark">{heading.sub}</span>}
                   </h3>
-                  <span className="font-subtitle text-xs text-muted-dark">
-                    {dayBookings.length} {dayBookings.length === 1 ? 'sessão' : 'sessões'}
+                  <span className="tabular shrink-0 rounded-full bg-onyx/[0.05] px-2.5 py-1 font-subtitle text-[11px] font-medium text-muted-dark">
+                    {dayBookings.length} {dayBookings.length === 1 ? 'sessão' : 'sessões'} ·{' '}
+                    <span className="amount">{formatPrice(total).replace(/,00/, '')}</span>
                   </span>
                 </div>
                 {/* The day as a timeline: the time on the left, the session on the right. */}
-                <ol className="mt-2.5 flex flex-col gap-2.5">
+                <ol className="mt-2.5 flex flex-col gap-3">
                   {dayBookings.map((booking) => (
                     <AgendaSession key={booking.id} booking={booking} busy={busyId === booking.id} onCancel={onCancel} />
                   ))}
@@ -653,22 +691,27 @@ function AgendaView({
             text={needle ? `Nenhuma sessão corresponde a "${search.trim()}".` : 'As sessões passadas deste mês aparecem aqui.'}
           />
         ) : (
-          <div className="mt-5 divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]">
-            {history.map((booking) => {
+          <div className="mt-5 overflow-hidden rounded-[22px] bg-card" style={{ boxShadow: CARD_SHADOW }}>
+            {history.map((booking, i) => {
               const { day, month, time } = dateParts(booking.slot.startsAt)
+              const colour = STATUS_COLOUR[booking.status]
               return (
-                <div key={booking.id} className="flex items-center gap-4 px-4 py-3">
-                  <div className="w-10 shrink-0 text-center">
-                    <p className="font-subtitle text-lg font-semibold lining-nums leading-none text-onyx">{day}</p>
-                    <p className="mt-0.5 font-subtitle text-[10px] uppercase text-muted-dark">{month}</p>
+                <div key={booking.id} className={`flex items-center gap-3.5 px-4 py-3 ${i ? 'border-t border-onyx/[0.06]' : ''}`}>
+                  <div className="flex size-11 shrink-0 flex-col items-center justify-center rounded-2xl bg-onyx/[0.04]">
+                    <p className="tabular font-subtitle text-[15px] font-semibold leading-none text-onyx">{day}</p>
+                    <p className="mt-0.5 font-subtitle text-[9px] uppercase text-muted-dark">{month}</p>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-subtitle text-[15px] font-medium text-onyx">{booking.customerName}</p>
+                    <p className="truncate font-subtitle text-[14px] font-semibold text-onyx">{booking.customerName}</p>
                     <p className="truncate font-subtitle text-xs text-muted-dark">
                       {bookingName(booking)} · {time}
                     </p>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2.5 py-1 font-subtitle text-[11px] ${HISTORY_CHIP[booking.status]}`}>
+                  <span
+                    className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-subtitle text-[11px] font-medium text-onyx"
+                    style={{ background: `color-mix(in srgb, ${colour} 14%, transparent)` }}
+                  >
+                    <span className="size-1.5 rounded-full" style={{ background: colour }} aria-hidden="true" />
                     {HISTORY_STATUS_LABEL[booking.status]}
                   </span>
                 </div>
@@ -690,7 +733,10 @@ function relativeWhen(iso: string) {
   return `em ${days} dias`
 }
 
-/** One confirmed session: time, customer, model and choices, price, note; WhatsApp, call, and cancel (tap twice). */
+/**
+ * One confirmed session, in a white card like the Painel's: customer and price, model and choices, the note; under
+ * them its status and round glass buttons for WhatsApp, a call and cancelling (tap twice: it turns red and asks).
+ */
 function AgendaSession({
   booking,
   busy,
@@ -701,64 +747,63 @@ function AgendaSession({
   onCancel: (id: string) => void
 }) {
   const [confirming, setConfirming] = useState(false)
+  const round = 'glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-onyx transition-transform active:scale-[0.94]'
   return (
     <li className="flex gap-3">
-      <div className="flex w-14 shrink-0 flex-col items-center pt-4">
-        <span className="font-subtitle text-base font-semibold lining-nums leading-none text-onyx">
-          {dateParts(booking.slot.startsAt).time}
-        </span>
-        <span className="mt-2 w-px flex-1 bg-onyx/15" aria-hidden="true" />
+      <div className="flex w-12 shrink-0 flex-col items-center pt-4">
+        <span className="tabular font-subtitle text-[15px] font-semibold leading-none text-onyx">{dateParts(booking.slot.startsAt).time}</span>
+        <span className="mt-2 size-2 rounded-full" style={{ background: 'var(--c-confirmed)' }} aria-hidden="true" />
+        <span className="mt-1 w-px flex-1 bg-onyx/12" aria-hidden="true" />
       </div>
-      <article className="min-w-0 flex-1 overflow-hidden rounded-2xl border border-onyx/10 bg-white shadow-sm shadow-black/5">
-        <div className="p-4">
-          <div className="flex items-start justify-between gap-3">
-            <p className="min-w-0 truncate font-subtitle text-base font-semibold text-onyx">{booking.customerName}</p>
-            <p className="shrink-0 font-subtitle text-sm font-semibold lining-nums text-onyx">
-              {formatPrice(bookingPrice(booking)).replace(/,00/, '')}
-            </p>
-          </div>
-          <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
-            {booking.service.name}
-            {booking.service.durationLabel ? ` · ${booking.service.durationLabel}` : ''}
-          </p>
-          <BookingChoices booking={booking} className="mt-2" />
-          {booking.notes && (
-            <p className="mt-2.5 rounded-lg bg-onyx/[0.05] px-3 py-2 font-subtitle text-xs italic text-muted-dark">
-              “{booking.notes}”
-            </p>
-          )}
+      <article className="min-w-0 flex-1 rounded-[22px] bg-card p-4" style={{ boxShadow: CARD_SHADOW }}>
+        <div className="flex items-start justify-between gap-3">
+          <p className="min-w-0 truncate font-subtitle text-[15px] font-semibold text-onyx">{booking.customerName}</p>
+          <p className="amount tabular shrink-0 font-subtitle text-[15px] font-semibold text-onyx">{formatPrice(bookingPrice(booking)).replace(/,00/, '')}</p>
         </div>
-        <div className="grid grid-cols-3 border-t border-onyx/10 font-subtitle text-xs">
+        <p className="mt-0.5 font-subtitle text-[13px] text-muted-dark">
+          {booking.service.name}
+          {booking.service.durationLabel ? ` · ${booking.service.durationLabel}` : ''}
+        </p>
+        <BookingChoices booking={booking} className="mt-2" />
+        {booking.notes && (
+          <p className="mt-2.5 rounded-2xl bg-onyx/[0.04] px-3 py-2 font-subtitle text-xs italic text-muted-dark">“{booking.notes}”</p>
+        )}
+        <div className="mt-3 flex items-center gap-2">
+          <span className="flex min-w-0 flex-1 items-center gap-1.5 truncate font-subtitle text-[12px] font-medium text-muted-dark">
+            <span className="size-2 shrink-0 rounded-full" style={{ background: 'var(--c-confirmed)' }} aria-hidden="true" />
+            Confirmada
+          </span>
           <a
-            href={customerWhatsappUrl(
-              booking.customerPhone,
-              `Olá ${booking.customerName}! Sobre a tua sessão de ${bookingName(booking)}...`,
-            )}
+            href={customerWhatsappUrl(booking.customerPhone, `Olá ${booking.customerName}! Sobre a tua sessão de ${bookingName(booking)}...`)}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center justify-center gap-1 py-2.5 text-onyx active:bg-onyx/[0.04]"
+            aria-label={`WhatsApp para ${booking.customerName}`}
+            className={round}
           >
-            <i className="bx bxl-whatsapp text-base" aria-hidden="true" />
-            WhatsApp
+            <i className="bx bxl-whatsapp text-lg" aria-hidden="true" />
           </a>
-          <a
-            href={`tel:${booking.customerPhone.replace(/[^+\d]/g, '')}`}
-            className="flex items-center justify-center gap-1 border-l border-onyx/10 py-2.5 text-onyx active:bg-onyx/[0.04]"
-          >
-            <i className="bx bx-phone text-base" aria-hidden="true" />
-            Ligar
+          <a href={`tel:${booking.customerPhone.replace(/[^+\d]/g, '')}`} aria-label={`Ligar a ${booking.customerName}`} className={round}>
+            <Phone size={15} strokeWidth={2.2} />
           </a>
           <button
             type="button"
             disabled={busy}
-            onClick={() => (confirming ? onCancel(booking.id) : setConfirming(true))}
+            onClick={() => {
+              void tap(confirming ? 'medium' : 'light')
+              if (confirming) onCancel(booking.id)
+              else setConfirming(true)
+            }}
             onBlur={() => setConfirming(false)}
-            className={`flex items-center justify-center gap-1 border-l border-onyx/10 py-2.5 disabled:opacity-50 ${
-              confirming ? 'bg-red-600 font-medium text-[#ffffff]' : 'text-muted-dark'
-            }`}
+            aria-label={confirming ? 'Confirmar o cancelamento' : 'Cancelar a sessão'}
+            className={
+              confirming
+                ? 'flex h-9 shrink-0 items-center gap-1 rounded-full px-3 font-subtitle text-[12px] font-semibold text-[#ffffff] disabled:opacity-50'
+                : `${round} text-muted-dark disabled:opacity-50`
+            }
+            style={confirming ? { background: 'var(--c-cancelled)' } : undefined}
           >
-            <i className="bx bx-x text-base" aria-hidden="true" />
-            {confirming ? 'Confirmar' : 'Cancelar'}
+            <X size={15} strokeWidth={2.4} />
+            {confirming && 'Cancelar?'}
           </button>
         </div>
       </article>
