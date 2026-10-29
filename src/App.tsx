@@ -15,8 +15,6 @@ const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'))
 const TermsPage = lazy(() => import('@/pages/TermsPage'))
 const AdminLoginPage = lazy(() => import('@/pages/admin/AdminLoginPage'))
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage'))
-// Development only: the Painel over sample data (never in a build).
-const PainelPreview = import.meta.env.DEV ? lazy(() => import('@/pages/admin/PainelPreview')) : null
 
 export default function App() {
   return (
@@ -33,7 +31,6 @@ export default function App() {
         <Route path="/ceo" element={<CeoPage />} />
         <Route path="/privacidade" element={<PrivacyPage />} />
         <Route path="/termos" element={<TermsPage />} />
-        {PainelPreview && <Route path="/dev/painel" element={<PainelPreview />} />}
         <Route
           path="/admin/login"
           element={

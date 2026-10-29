@@ -213,8 +213,8 @@
  */
 .afro-admin {
   --c-surface: var(--color-white);
-  /* The cards: the light grey of the admin's grouped lists, no border. */
-  --c-card: color-mix(in srgb, var(--color-onyx) 4%, var(--color-white));
+  /* The cards: white, lifted by a soft shadow (no border). */
+  --c-card: var(--color-white);
   --c-surface-2: color-mix(in srgb, var(--color-onyx) 3%, var(--color-white));
   --c-surface-3: color-mix(in srgb, var(--color-onyx) 7%, var(--color-white));
   --c-ink: var(--color-onyx);

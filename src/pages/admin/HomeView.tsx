@@ -12,7 +12,6 @@ import {
   Clock,
   Eye,
   EyeOff,
-  FlaskConical,
   Hourglass,
   LayoutGrid,
   ListFilter,
@@ -36,7 +35,6 @@ import type { AvailabilitySlot, Booking, Service, Testimonial } from '@/lib/type
 import type { Permission } from './admin-me'
 import type { MoreTarget } from './MoreView'
 import { addDays, dayKey, plural, todayKey } from './admin-ui'
-import { painelDemo } from './painel-demo'
 
 /*
  * The Painel (Início) of the admin, in the AFROGLOW look (Poppins, the glass buttons, warm neutrals): the greeting, and ten blocks on
@@ -142,12 +140,11 @@ function loadOrder(): Array<WidgetItem & { id: BlockId }> {
 
 export function HomeView({
   name,
-  bookings: realBookings,
-  slots: realSlots,
-  services: realServices,
-  testimonials: realTestimonials,
+  bookings,
+  slots,
+  services,
+  testimonials,
   loaded,
-  startInDemo = false,
   can,
   onOpen,
   onNewBooking,
@@ -158,8 +155,6 @@ export function HomeView({
   services: Service[]
   testimonials: Testimonial[]
   loaded: boolean
-  /** Opens straight in the simulation (the preview page). */
-  startInDemo?: boolean
   can: (permission: Permission) => boolean
   onOpen: (tab: Tab) => void
   onNewBooking: (startsAt?: string) => void
@@ -170,14 +165,6 @@ export function HomeView({
   const [order, setOrder] = useState(loadOrder)
   const [goal, setGoal] = useState<number | null>(null)
   const [goalOpen, setGoalOpen] = useState(false)
-  // "Simulação": the same Painel over sample data, to see every block and chart filled in.
-  const [demo, setDemo] = useState(startInDemo)
-  const [sample] = useState(() => painelDemo())
-  const bookings = demo ? sample.bookings : realBookings
-  const slots = demo ? sample.slots : realSlots
-  const services = demo ? sample.services : realServices
-  const testimonials = demo ? sample.testimonials : realTestimonials
-  const shownGoal = demo ? sample.goalCents : goal
 
   useEffect(() => {
     api
@@ -196,23 +183,8 @@ export function HomeView({
             : 'Fica a par do teu negócio e acompanha o teu progresso.'}
         </p>
       </div>
-      {loaded && (
+      {loaded && bookings.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            aria-pressed={demo}
-            onClick={() => {
-              void tap()
-              setDemo(!demo)
-              setEditing(false)
-            }}
-            className={`flex h-9 items-center gap-1.5 rounded-full px-4 text-[13px] font-medium text-onyx ${demo ? 'glass-chip-on' : 'glass-chip'}`}
-          >
-            <FlaskConical size={16} />
-            {demo ? 'Sair da simulação' : 'Simulação'}
-          </button>
-          {bookings.length > 0 && (
-          <>
           <button
             type="button"
             aria-label={hidden ? 'Mostrar valores' : 'Esconder valores'}
@@ -265,14 +237,7 @@ export function HomeView({
               Personalizar
             </button>
           )}
-          </>
-          )}
         </div>
-      )}
-      {demo && (
-        <p className="mt-4 w-full rounded-2xl bg-[#c9a84c]/15 px-4 py-2.5 text-[13px] font-medium text-onyx">
-          A ver dados de exemplo: nada disto é real e nada é guardado.
-        </p>
       )}
     </div>
   )
@@ -286,7 +251,7 @@ export function HomeView({
     )
   }
 
-  if (!loaded && !demo) {
+  if (!loaded) {
     return (
       <div className="font-subtitle">
         {header}
@@ -371,7 +336,7 @@ export function HomeView({
       case 'grafico':
         return <InOutChart months={data.months} />
       case 'meta':
-        return <Goal goal={shownGoal} revenue={data.month.revenue} canEdit={canStats && !demo} onEdit={() => setGoalOpen(true)} />
+        return <Goal goal={goal} revenue={data.month.revenue} canEdit={canStats} onEdit={() => setGoalOpen(true)} />
       case 'servicos':
         return <Ranking items={data.ranking} total={data.rankingTotal} />
       case 'atividade':
@@ -599,7 +564,7 @@ function Sparkline({ values, up, label }: { values: number[]; up: boolean | null
 
 function IconCircle({ Icon }: { Icon: LucideIcon }) {
   return (
-    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white text-onyx">
+    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-onyx/[0.04] text-onyx">
       <Icon size={15} />
     </span>
   )
@@ -696,7 +661,7 @@ function Highlight({
       </div>
       <div className="mt-auto grid grid-cols-3 gap-2 pt-3">
         {cards.map(({ label, Icon, cents, status, tone, tab }) => (
-          <button key={label} type="button" onClick={() => onOpen(tab)} className="min-w-0 rounded-2xl bg-white p-2.5 text-left">
+          <button key={label} type="button" onClick={() => onOpen(tab)} className="min-w-0 rounded-2xl bg-onyx/[0.04] p-2.5 text-left">
             <span
               className="flex size-6 items-center justify-center rounded-full"
               style={{ background: `color-mix(in srgb, ${tone} 14%, transparent)`, color: tone }}
@@ -717,6 +682,11 @@ function Highlight({
 }
 
 type ChartView = 'barras' | 'linhas' | 'circular'
+
+const CANCELLED = 'color-mix(in srgb, var(--color-onyx) 22%, transparent)'
+/** Green when that month took in at least as much as the one before, red when less. */
+const trend = (months: MonthFigures[], i: number) =>
+  i > 0 && months[i].revenue < months[i - 1].revenue ? 'var(--c-neg)' : 'var(--c-pos)'
 
 /** 2×2: what came in against what was cancelled, the last six months, as bars, lines or a ring. */
 function InOutChart({ months }: { months: MonthFigures[] }) {
@@ -759,13 +729,17 @@ function InOutChart({ months }: { months: MonthFigures[] }) {
           </div>
         }
       />
-      <div className="mt-2 flex items-center gap-3 text-xs text-ink-3">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap text-xs text-ink-3">
         <span className="flex items-center gap-1.5">
-          <span className="size-2 rounded-full" style={{ background: 'var(--c-chart-in)' }} aria-hidden="true" />
-          Receita
+          <span className="size-2 rounded-full" style={{ background: 'var(--c-pos)' }} aria-hidden="true" />
+          A subir
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="size-2 rounded-full" style={{ background: 'var(--c-chart-out)' }} aria-hidden="true" />
+          <span className="size-2 rounded-full" style={{ background: 'var(--c-neg)' }} aria-hidden="true" />
+          A descer
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="size-2 rounded-full" style={{ background: CANCELLED }} aria-hidden="true" />
           Cancelado
         </span>
         <span className="ml-auto">Últimos 6 meses</span>
@@ -791,10 +765,10 @@ function InOutChart({ months }: { months: MonthFigures[] }) {
             <div className="relative min-h-0 flex-1">
               {view === 'barras' ? (
                 <div className="absolute inset-0 flex items-end gap-2">
-                  {months.map((m) => (
+                  {months.map((m, i) => (
                     <div key={m.key} className="flex h-full flex-1 items-end justify-center gap-[3px]">
-                      <span className="block w-full max-w-3 rounded-t-[4px]" style={{ height: `${(m.revenue / top) * 100}%`, background: 'var(--c-chart-in)' }} />
-                      <span className="block w-full max-w-3 rounded-t-[4px]" style={{ height: `${(m.cancelled / top) * 100}%`, background: 'var(--c-chart-out)' }} />
+                      <span className="block w-full max-w-3 rounded-t-[4px]" style={{ height: `${(m.revenue / top) * 100}%`, background: trend(months, i) }} />
+                      <span className="block w-full max-w-3 rounded-t-[4px]" style={{ height: `${(m.cancelled / top) * 100}%`, background: CANCELLED }} />
                     </div>
                   ))}
                 </div>
@@ -805,7 +779,7 @@ function InOutChart({ months }: { months: MonthFigures[] }) {
                       key={field}
                       points={months.map((m, i) => `${(i / 5) * 100},${40 - (m[field] / top) * 37 - 1.5}`).join(' ')}
                       fill="none"
-                      stroke={field === 'revenue' ? 'var(--c-chart-in)' : 'var(--c-chart-out)'}
+                      stroke={field === 'revenue' ? trend(months, months.length - 1) : CANCELLED}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -833,7 +807,7 @@ function Donut({ parts }: { parts: number[] }) {
   const total = parts.reduce((a, n) => a + n, 0)
   const r = 15.9155
   let offset = 25
-  const colours = ['var(--c-chart-in)', 'var(--c-chart-out)']
+  const colours = ['var(--c-pos)', 'var(--c-neg)']
   return (
     <svg viewBox="0 0 42 42" className="size-28 shrink-0 -rotate-0">
       <circle cx="21" cy="21" r={r} fill="none" stroke="color-mix(in srgb, var(--color-onyx) 8%, transparent)" strokeWidth="6" />
@@ -905,7 +879,7 @@ function Goal({ goal, revenue, canEdit, onEdit }: { goal: number | null; revenue
               aria-valuenow={Math.round(share * 100)}
               aria-label="Progresso da meta"
             >
-              <div className="h-full rounded-full brand-gradient" style={{ width: `${Math.min(share, 1) * 100}%` }} />
+              <div className="h-full rounded-full" style={{ width: `${Math.min(share, 1) * 100}%`, background: 'var(--c-pos)' }} />
             </div>
             <p className="mt-2 text-[12px] text-ink-3">
               {share >= 1 ? (
@@ -980,7 +954,7 @@ function GoalSheet({
   )
 }
 
-const RANK_COLOURS = ['var(--c-brand)', 'color-mix(in srgb, var(--c-brand) 70%, var(--c-surface))', 'color-mix(in srgb, var(--c-brand) 45%, var(--c-surface))', 'var(--c-chart-out)', 'var(--c-ink-3)']
+const RANK_COLOURS = [80, 62, 46, 32, 22].map((n) => `color-mix(in srgb, var(--color-onyx) ${n}%, transparent)`)
 
 /** 1×2: the five most booked hairstyles of the last 90 days. */
 function Ranking({ items, total }: { items: BoardData['ranking']; total: number }) {
@@ -1041,7 +1015,7 @@ function Activity({ items, onOpen }: { items: ActivityItem[]; onOpen: (tab: Tab)
     <>
       <BlockHeader title="Atividade recente" action={<HeaderLink label="Ver todos" onClick={() => onOpen('pedidos')} />} />
       <div className="mt-3 flex gap-2">
-        <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full bg-white px-3">
+        <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full bg-onyx/[0.04] px-3">
           <Search size={15} className="shrink-0 text-ink-3" />
           <input
             value={query}
@@ -1083,7 +1057,7 @@ function Activity({ items, onOpen }: { items: ActivityItem[]; onOpen: (tab: Tab)
                         setFilter(f.id)
                         setMenu(false)
                       }}
-                      className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left text-[13px] text-ink hover:bg-white/70"
+                      className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left text-[13px] text-ink hover:bg-onyx/[0.04]"
                     >
                       {f.label}
                       {filter === f.id && <Check size={15} className="text-onyx" />}
@@ -1107,7 +1081,7 @@ function Activity({ items, onOpen }: { items: ActivityItem[]; onOpen: (tab: Tab)
                 <button
                   type="button"
                   onClick={() => onOpen(n.kind === 'testemunho' ? 'testemunhos' : n.kind === 'pedido' ? 'pedidos' : 'agenda')}
-                  className="flex w-full items-center gap-3 rounded-xl px-1.5 py-1.5 text-left hover:bg-white/70"
+                  className="flex w-full items-center gap-3 rounded-xl px-1.5 py-1.5 text-left hover:bg-onyx/[0.04]"
                 >
                   <span
                     className="flex size-9 shrink-0 items-center justify-center rounded-full"
@@ -1165,7 +1139,7 @@ function Upcoming({ bookings, onOpen, onNewBooking }: { bookings: Booking[]; onO
                 <div className="flex items-center gap-3 rounded-xl px-1.5 py-1.5">
                   <span
                     className={`tabular flex size-9 shrink-0 flex-col items-center justify-center rounded-full text-[11px] font-semibold leading-none ${
-                      live ? 'brand-gradient' : 'bg-white text-onyx'
+                      live ? 'bg-onyx text-white' : 'bg-onyx/[0.04] text-onyx'
                     }`}
                   >
                     {time(start)}
@@ -1177,7 +1151,7 @@ function Upcoming({ bookings, onOpen, onNewBooking }: { bookings: Booking[]; onO
                     </span>
                     {live && (
                       <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-onyx/[0.08]">
-                        <span className="brand-gradient block h-full rounded-full" style={{ width: `${((now - start) / (end - start)) * 100}%` }} />
+                        <span className="block h-full rounded-full bg-onyx" style={{ width: `${((now - start) / (end - start)) * 100}%` }} />
                       </span>
                     )}
                   </span>
@@ -1220,7 +1194,7 @@ function FirstSteps({
           <li key={step.title} className="flex items-start gap-3">
             <span
               className={`tabular flex size-7 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold ${
-                step.done ? 'brand-gradient' : 'bg-white text-ink-3'
+                step.done ? 'bg-onyx text-white' : 'bg-onyx/[0.06] text-ink-3'
               }`}
             >
               {step.done ? <Check size={14} /> : i + 1}
