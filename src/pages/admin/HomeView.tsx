@@ -687,8 +687,8 @@ function Empty({ Icon, text, action }: { Icon: LucideIcon; text: string; action?
 /* Blocks */
 
 /**
- * A figure: label and icon, the value, then the change and the last six periods as bars. Small, the bars sit beside
- * the change; widened (2×1), the figure stays on the left and the bars take the rest, bigger, each with its name below
+ * A figure: label and icon, the value and its change, then the last six periods as bars. Small, the bars run along the
+ * bottom of the card; widened (2×1), the figure stays on the left and the bars take the rest, bigger, each with its name below
  * and its number above.
  */
 function Stat({
@@ -735,9 +735,11 @@ function Stat({
         <h3 className="font-subtitle text-[13px] font-semibold leading-tight tracking-tight text-onyx">{label}</h3>
         <IconCircle Icon={Icon} />
       </div>
-      <p className={`tabular -mt-1 text-[22px] font-semibold tracking-tight text-ink ${amount ? 'amount' : ''}`}>{value}</p>
-      <div className="mt-auto flex items-end justify-between gap-2">
+      <div className="-mt-1 flex items-baseline justify-between gap-2">
+        <p className={`tabular text-[22px] font-semibold tracking-tight text-ink ${amount ? 'amount' : ''}`}>{value}</p>
         <Change value={change} label={changeLabel} />
+      </div>
+      <div className="mt-auto pt-2">
         <MiniBars values={series} names={seriesNames} tone={tone} label={seriesLabel} amount={amount} />
       </div>
     </>
@@ -756,17 +758,20 @@ function MiniBars({ values, names, tone, label, amount = false, large = false }:
     <div
       role="img"
       aria-label={`${label}: ${values.map((v, i) => `${names[i]} ${shown(v)}`).join(', ')}`}
-      className={large ? 'flex min-w-0 flex-1 flex-col' : 'w-[72px] shrink-0'}
+      className={large ? 'flex min-w-0 flex-1 flex-col' : 'w-full'}
     >
-      <div className={`flex items-end border-b-[1.5px] border-onyx/15 ${large ? 'min-h-0 flex-1 gap-1.5 pt-4' : 'h-[26px] gap-[5px]'}`}>
+      <div className={`flex items-end border-b-[1.5px] border-onyx/15 ${large ? 'min-h-0 flex-1 gap-1.5 pt-4' : 'h-9 gap-1.5'}`}>
         {values.map((v, i) => {
           const height = `${(v / top) * 100}%`
           return (
             <div key={i} className="relative h-full flex-1">
               <motion.span
                 aria-hidden="true"
-                className={`absolute inset-x-0 bottom-0 mx-auto block rounded-t-full ${large ? 'max-w-3' : ''}`}
-                style={{ background: i === last ? tone : 'color-mix(in srgb, var(--color-onyx) 16%, transparent)' }}
+                className={`absolute inset-x-0 bottom-0 mx-auto block rounded-t-full ${large ? 'max-w-3' : 'max-w-2'}`}
+                style={{
+                  background:
+                    i === last ? `linear-gradient(to bottom, color-mix(in srgb, ${tone} 70%, white), ${tone})` : 'color-mix(in srgb, var(--color-onyx) 16%, transparent)',
+                }}
                 initial={{ height: 0 }}
                 animate={{ height }}
                 transition={{ duration: 0.7, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
