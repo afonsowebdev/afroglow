@@ -155,8 +155,8 @@ export function AdminBell({
         aria-label={waiting ? `Notificações, ${waiting} à espera` : 'Notificações'}
         aria-expanded={open}
         className={cn(
-          'relative z-[62] flex items-center justify-center rounded-full transition-transform duration-300 ease-out',
-          shrink && 'scale-[0.84]',
+          'relative z-[62] flex items-center justify-center rounded-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+          shrink && 'scale-[0.86]',
           bare ? 'size-10 text-onyx transition-colors hover:bg-onyx/[0.06]' : cn('size-12', BRAND_CIRCLE),
         )}
       >

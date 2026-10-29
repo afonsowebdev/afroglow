@@ -495,8 +495,9 @@ export function FloatingActionMenu({
             setShowMore(false)
             setConfirming(null)
           }}
-          animate={{ rotate: open && !face ? 45 : 0, scale: shrink ? 0.84 : 1 }}
-          transition={{ type: 'tween', ease: 'easeInOut', duration: 0.4 }}
+          animate={{ rotate: open && !face ? 45 : 0, scale: shrink ? 0.86 : 1 }}
+          // The same curve and length as the admin header's CSS, so every button moves together.
+          transition={{ type: 'tween', ease: [0.22, 1, 0.36, 1], duration: 0.5 }}
           // Apps: only the thin rim, no shadow under the button.
           style={
             compact || brand || bare

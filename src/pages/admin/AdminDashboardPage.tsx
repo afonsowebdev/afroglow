@@ -1937,7 +1937,8 @@ function AdminDashboard() {
   // The fixed header shrinks a little once the page has scrolled.
   const [headerScrolled, setHeaderScrolled] = useState(false)
   useEffect(() => {
-    const update = () => setHeaderScrolled(window.scrollY > 16)
+    // Shrinks past 24px and grows back under 8px, so resting near the top doesn't make it flicker.
+    const update = () => setHeaderScrolled((was) => (was ? window.scrollY > 8 : window.scrollY > 24))
     update()
     window.addEventListener('scroll', update, { passive: true })
     return () => window.removeEventListener('scroll', update)
@@ -2391,11 +2392,11 @@ function AdminDashboard() {
   // first five show; "Mais opções" swaps them for the rest and the app's own settings.
   const pages: MenuAction[] = [
     ...(can('marcacoes')
-      ? [{ Icon: Inbox, label: 'Pedidos', badge: pendingBookings.length, onClick: open('pedidos') }]
+      ? [{ Icon: Inbox, label: 'Pedidos', onClick: open('pedidos') }]
       : []),
     ...(can('catalogo') ? [{ Icon: Scissors, label: 'Serviços', onClick: open('servicos') }] : []),
     ...(can('testemunhos')
-      ? [{ Icon: MessageSquareQuote, label: 'Testemunhos', badge: pendingTestimonials.length, onClick: open('testemunhos') }]
+      ? [{ Icon: MessageSquareQuote, label: 'Testemunhos', onClick: open('testemunhos') }]
       : []),
     ...(can('estatisticas') ? [{ Icon: ChartColumn, label: 'Estatísticas', onClick: open('estatisticas') }] : []),
     ...(can('marcacoes') ? [{ Icon: CalendarX2, label: 'Dias fechados', onClick: open('fechos') }] : []),
@@ -2441,20 +2442,20 @@ function AdminDashboard() {
           their place) over a soft fade of the page; back at the top they return to full size. */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none fixed inset-x-0 top-0 z-40 h-[calc(5.5rem+env(safe-area-inset-top))] transition-opacity duration-300 ${
+        className={`pointer-events-none fixed inset-x-0 top-0 z-40 h-[calc(5.5rem+env(safe-area-inset-top))] transition-opacity duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           headerScrolled ? 'opacity-100' : 'opacity-0'
         }`}
         style={{ background: 'linear-gradient(to bottom, var(--color-white) 55%, transparent)' }}
       />
       <div
-        className={`fixed inset-x-0 top-0 ${anyMenuOpen ? 'z-[55]' : 'z-50'} px-4 transition-[padding] duration-300 sm:px-6 ${
-          headerScrolled
-            ? 'pt-[calc(0.5rem+env(safe-area-inset-top))]'
-            : 'pt-[calc(1rem+env(safe-area-inset-top))] sm:pt-[calc(1.5rem+env(safe-area-inset-top))]'
-        }`}
+        className={`fixed inset-x-0 top-0 ${anyMenuOpen ? 'z-[55]' : 'z-50'} px-4 pt-[calc(1rem+env(safe-area-inset-top))] sm:px-6 sm:pt-[calc(1.5rem+env(safe-area-inset-top))]`}
       >
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <div className={`relative z-[62] origin-left transition-transform duration-300 ease-out ${headerScrolled ? 'scale-[0.84]' : ''}`}>
+        <div
+          className={`mx-auto flex max-w-5xl items-center justify-between transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            headerScrolled ? '-translate-y-2 sm:-translate-y-3' : ''
+          }`}
+        >
+          <div className={`relative z-[62] origin-left transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${headerScrolled ? 'scale-[0.86]' : ''}`}>
             <HeaderLogo
               still
               onClick={() => {
@@ -2465,7 +2466,7 @@ function AdminDashboard() {
               }}
             />
           </div>
-          <div className={`flex items-center transition-[gap] duration-300 ${headerScrolled ? 'gap-1' : 'gap-2.5'}`}>
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               type="button"
               aria-label={theme.theme === 'dark' ? 'Mudar para o tema claro' : 'Mudar para o tema escuro'}
@@ -2475,8 +2476,8 @@ function AdminDashboard() {
                 void tap()
                 theme.toggleTheme()
               }}
-              className={`relative z-[62] flex size-12 items-center justify-center rounded-full transition-transform duration-300 ease-out active:scale-90 ${BRAND_CIRCLE} ${
-                headerScrolled ? 'scale-[0.84]' : ''
+              className={`relative z-[62] flex size-12 items-center justify-center rounded-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${BRAND_CIRCLE} ${
+                headerScrolled ? 'scale-[0.86]' : ''
               }`}
             >
               {theme.theme === 'dark' ? <Sun size={19} strokeWidth={1.9} /> : <Moon size={18} strokeWidth={1.9} />}
@@ -2496,7 +2497,6 @@ function AdminDashboard() {
               actions={menuActions}
               more={moreActions}
               keepOrder
-              dot={pendingBookings.length + pendingTestimonials.length > 0}
               direction="down"
               small
               brand
