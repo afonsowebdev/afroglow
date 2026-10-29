@@ -1506,7 +1506,7 @@ function WeekChart({ weeks, dayOfMonth }: { weeks: BoardData['month']['weeks']; 
     <div>
       <div className="flex gap-2">
         {/* The scale. */}
-        <div className="flex h-40 w-10 shrink-0 flex-col justify-between pb-0 text-right">
+        <div className="flex h-36 w-10 shrink-0 flex-col justify-between pb-0 text-right">
           {[top, top / 2, 0].map((v) => (
             <span key={v} className="amount tabular -translate-y-1/2 text-[10px] text-ink-3 first:translate-y-0 last:translate-y-0">
               {v ? euros(v) : '0'}
@@ -1516,7 +1516,7 @@ function WeekChart({ weeks, dayOfMonth }: { weeks: BoardData['month']['weeks']; 
         <div
           role="img"
           aria-label={weeks.map((w) => `dias ${w.label}: ${euros(w.cents)}`).join('; ')}
-          className="relative h-40 flex-1"
+          className="relative h-36 flex-1"
         >
           {/* Guide lines at the top, the middle and the bottom. */}
           {[0, 50, 100].map((p) => (
@@ -1540,9 +1540,9 @@ function WeekChart({ weeks, dayOfMonth }: { weeks: BoardData['month']['weeks']; 
               return (
                 <div key={w.label} className="relative flex h-full flex-1 items-end justify-center">
                   {/* The track, so a small week still reads against the full height. */}
-                  <span aria-hidden="true" className="absolute inset-x-0 bottom-0 top-0 mx-auto w-full max-w-9 rounded-full bg-onyx/[0.05]" />
+                  <span aria-hidden="true" className="absolute inset-x-0 bottom-0 top-0 mx-auto w-2.5 rounded-full bg-onyx/[0.05]" />
                   <span
-                    className="relative block w-full max-w-9 rounded-full"
+                    className="relative block w-2.5 rounded-full"
                     style={{
                       height: `${Math.max(height, w.cents ? 6 : 0)}%`,
                       background: `linear-gradient(to bottom, color-mix(in srgb, ${colour} 70%, white), ${colour})`,
