@@ -11,6 +11,7 @@ import {
   CalendarClock,
   CalendarPlus,
   CalendarX2,
+  ChevronRight,
   ChartColumn,
   Clock,
   Images,
@@ -50,6 +51,7 @@ import { TeamView } from '@/pages/admin/TeamView'
 import { HomeView } from '@/pages/admin/HomeView'
 import { HeaderLogo } from '@/customer/HeaderLogo'
 import { tap } from '@/lib/haptics'
+import { useScrollLock } from '@/lib/use-scroll-lock'
 import { INK_CIRCLE } from '@/components/ui/brand-logo'
 import { fullMe, type AdminMe, type Permission } from '@/pages/admin/admin-me'
 import { PortfolioView } from '@/pages/admin/PortfolioView'
@@ -508,6 +510,7 @@ function AgendaView({
   revenueCents,
   upcoming,
   history,
+  allBookings,
   busyId,
   onCancel,
   onNew,
@@ -517,12 +520,15 @@ function AgendaView({
   revenueCents: number
   upcoming: Booking[]
   history: Booking[]
+  /** Every booking (all months), for a person's whole history. */
+  allBookings: Booking[]
   busyId: string | null
   onCancel: (id: string) => void
   onNew: () => void
 }) {
   const [view, setView] = useState<'proximas' | 'historico'>('proximas')
   const [search, setSearch] = useState('')
+  const [person, setPerson] = useState<Booking | null>(null)
   const needle = search.trim().toLowerCase()
   const matches = (b: Booking) =>
     !needle ||
@@ -625,7 +631,7 @@ function AgendaView({
         {(
           [
             ['proximas', 'Próximas', upcoming.length, CalendarClock],
-            ['historico', 'Histórico', history.length, History],
+            ['historico', 'Histórico', new Set(history.map((b) => b.customerId)).size, History],
           ] as const
         ).map(([id, label, count, Icon]) => (
           <button
@@ -705,35 +711,205 @@ function AgendaView({
             text={needle ? `Nenhuma sessão corresponde a "${search.trim()}".` : 'As sessões passadas deste mês aparecem aqui.'}
           />
         ) : (
-          <div className="mt-5 overflow-hidden rounded-[22px] bg-card" style={{ boxShadow: CARD_SHADOW }}>
-            {history.map((booking, i) => {
-              const { day, month, time } = dateParts(booking.slot.startsAt)
-              const colour = STATUS_COLOUR[booking.status]
-              return (
-                <div key={booking.id} className={`flex items-center gap-3.5 px-4 py-3 ${i ? 'border-t border-onyx/[0.06]' : ''}`}>
-                  <div className="flex size-11 shrink-0 flex-col items-center justify-center rounded-2xl bg-onyx/[0.04]">
-                    <p className="tabular font-subtitle text-[15px] font-semibold leading-none text-onyx">{day}</p>
-                    <p className="mt-0.5 font-subtitle text-[9px] uppercase text-muted-dark">{month}</p>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-subtitle text-[14px] font-semibold text-onyx">{booking.customerName}</p>
-                    <p className="truncate font-subtitle text-xs text-muted-dark">
-                      {bookingName(booking)} · {time}
-                    </p>
-                  </div>
-                  <span
-                    className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-subtitle text-[11px] font-medium text-onyx"
-                    style={{ background: `color-mix(in srgb, ${colour} 14%, transparent)` }}
-                  >
-                    <span className="size-1.5 rounded-full" style={{ background: colour }} aria-hidden="true" />
-                    {HISTORY_STATUS_LABEL[booking.status]}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
+          <HistoryPeople history={history} onOpen={setPerson} />
         ))}
+      <PersonHistory person={person} bookings={allBookings} onClose={() => setPerson(null)} />
     </div>
+  )
+}
+
+/** "AS" for Ana Silva. */
+function initialsOf(name: string) {
+  const words = name.trim().split(/\s+/)
+  return ((words[0]?.[0] ?? '') + (words.length > 1 ? (words[words.length - 1][0] ?? '') : '')).toUpperCase()
+}
+
+/** A booking's state as the person's history shows it: a confirmed one still to come is "Marcada", not "Concluída". */
+function historyLabel(booking: Booking) {
+  if (booking.status === 'ACCEPTED' && new Date(booking.slot.startsAt).getTime() >= Date.now()) return 'Marcada'
+  return HISTORY_STATUS_LABEL[booking.status]
+}
+
+/** The month's past sessions as a list of names: who came (or cancelled), how many times and when last; a tap opens their history. */
+function HistoryPeople({ history, onOpen }: { history: Booking[]; onOpen: (booking: Booking) => void }) {
+  const people = new Map<string, Booking[]>()
+  for (const booking of history) people.set(booking.customerId, [...(people.get(booking.customerId) ?? []), booking])
+  return (
+    <div className="mt-5 overflow-hidden rounded-[22px] bg-card" style={{ boxShadow: CARD_SHADOW }}>
+      {[...people.values()].map((list, i) => {
+        const last = list[0]
+        const { day, month } = dateParts(last.slot.startsAt)
+        return (
+          <button
+            key={last.customerId}
+            type="button"
+            onClick={() => {
+              void tap()
+              onOpen(last)
+            }}
+            className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors active:bg-onyx/[0.03] ${i ? 'border-t border-onyx/[0.06]' : ''}`}
+          >
+            <span className="glass-chip flex size-11 shrink-0 items-center justify-center rounded-full font-subtitle text-[14px] font-semibold text-onyx">
+              {initialsOf(last.customerName)}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-subtitle text-[15px] font-semibold text-onyx">{last.customerName}</span>
+              <span className="block truncate font-subtitle text-xs text-muted-dark">
+                {list.length} {list.length === 1 ? 'sessão' : 'sessões'} · última a {day} {month}
+              </span>
+            </span>
+            {/* One dot per session this month, in its status colour. */}
+            <span className="flex shrink-0 items-center gap-1" aria-hidden="true">
+              {list.slice(0, 4).map((b) => (
+                <span key={b.id} className="size-2 rounded-full" style={{ background: STATUS_COLOUR[b.status] }} />
+              ))}
+            </span>
+            <ChevronRight size={18} className="shrink-0 text-ink-3" />
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/**
+ * One person's whole history, in a sheet from the bottom: their name and contacts, three figures (sessions done, what
+ * they spent, cancellations) and every booking they ever made, newest first, with its state in the status colours.
+ */
+function PersonHistory({ person, bookings, onClose }: { person: Booking | null; bookings: Booking[]; onClose: () => void }) {
+  useScrollLock(!!person)
+  useEffect(() => {
+    if (!person) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [person, onClose])
+  const list = person
+    ? bookings.filter((b) => b.customerId === person.customerId).sort((a, b) => b.slot.startsAt.localeCompare(a.slot.startsAt))
+    : []
+  const done = list.filter((b) => b.status === 'ACCEPTED' && new Date(b.slot.startsAt).getTime() < Date.now())
+  const spent = done.reduce((a, b) => a + bookingPrice(b), 0)
+  const cancelled = list.filter((b) => b.status === 'CANCELLED' || b.status === 'REJECTED').length
+  const first = list[list.length - 1]
+
+  return (
+    <AnimatePresence>
+      {person && (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center">
+          <motion.button
+            type="button"
+            aria-label="Fechar"
+            onClick={onClose}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Histórico de ${person.customerName}`}
+            className="relative flex max-h-[88dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl sm:rounded-[28px]"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 34 }}
+          >
+            {/* Who, with a way to reach them and to close. */}
+            <div className="flex items-center gap-3 px-5 pb-4 pt-5">
+              <span className="glass-chip flex size-12 shrink-0 items-center justify-center rounded-full font-subtitle text-[16px] font-semibold text-onyx">
+                {initialsOf(person.customerName)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate font-subtitle text-[19px] font-semibold tracking-tight text-onyx">{person.customerName}</h2>
+                <p className="truncate font-subtitle text-xs text-muted-dark">
+                  {first ? `Cliente desde ${dateParts(first.slot.startsAt).month} ${new Date(first.slot.startsAt).getFullYear()}` : person.customerPhone}
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar"
+                onClick={onClose}
+                className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-onyx"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { label: 'Sessões', value: String(done.length), colour: 'var(--c-confirmed)' },
+                  { label: 'Gastou', value: formatPrice(spent).replace(/,00/, ''), amount: true },
+                  { label: 'Canceladas', value: String(cancelled), colour: 'var(--c-cancelled)' },
+                ].map((f) => (
+                  <div key={f.label} className="min-w-0 rounded-2xl bg-onyx/[0.04] px-3 py-2.5">
+                    <p className="flex items-center gap-1.5 truncate font-subtitle text-[11px] text-ink-3">
+                      {f.colour && <span className="size-1.5 shrink-0 rounded-full" style={{ background: f.colour }} aria-hidden="true" />}
+                      {f.label}
+                    </p>
+                    <p className={`tabular mt-0.5 truncate font-subtitle text-[18px] font-semibold text-onyx ${f.amount ? 'amount' : ''}`}>{f.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <a
+                  href={customerWhatsappUrl(person.customerPhone, `Olá ${person.customerName}!`)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="glass-chip flex h-10 items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px] font-semibold text-onyx"
+                >
+                  <i className="bx bxl-whatsapp text-lg" aria-hidden="true" />
+                  WhatsApp
+                </a>
+                <a
+                  href={`tel:${person.customerPhone.replace(/[^+\d]/g, '')}`}
+                  className="glass-chip flex h-10 items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px] font-semibold text-onyx"
+                >
+                  <Phone size={15} strokeWidth={2.2} />
+                  Ligar
+                </a>
+              </div>
+
+              <h3 className="mb-2 mt-5 px-1 font-subtitle text-[14px] font-semibold tracking-tight text-onyx">
+                Todas as marcações <span className="font-normal text-muted-dark">· {list.length}</span>
+              </h3>
+              <div className="overflow-hidden rounded-[20px] bg-onyx/[0.03]">
+                {list.map((booking, i) => {
+                  const { day, month, time } = dateParts(booking.slot.startsAt)
+                  const year = new Date(booking.slot.startsAt).getFullYear()
+                  const thisYear = year === new Date().getFullYear()
+                  const colour = STATUS_COLOUR[booking.status]
+                  return (
+                    <div key={booking.id} className={`flex items-center gap-3 px-3.5 py-3 ${i ? 'border-t border-onyx/[0.06]' : ''}`}>
+                      <div className="flex size-11 shrink-0 flex-col items-center justify-center rounded-2xl bg-white shadow-sm">
+                        <p className="tabular font-subtitle text-[15px] font-semibold leading-none text-onyx">{day}</p>
+                        <p className="mt-0.5 font-subtitle text-[9px] uppercase text-muted-dark">{month}</p>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-subtitle text-[14px] font-medium text-onyx">{bookingName(booking)}</p>
+                        <p className="truncate font-subtitle text-xs text-muted-dark">
+                          {time}
+                          {thisYear ? '' : ` · ${year}`} · <span className="amount">{formatPrice(bookingPrice(booking)).replace(/,00/, '')}</span>
+                        </p>
+                      </div>
+                      <span
+                        className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-subtitle text-[11px] font-medium text-onyx"
+                        style={{ background: `color-mix(in srgb, ${colour} 14%, transparent)` }}
+                      >
+                        <span className="size-1.5 rounded-full" style={{ background: colour }} aria-hidden="true" />
+                        {historyLabel(booking)}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -2595,6 +2771,7 @@ function AdminDashboard() {
               revenueCents={monthRevenueCents}
               upcoming={upcomingConfirmed}
               history={history}
+              allBookings={bookings}
               busyId={busyId}
               onCancel={(id) => handleBookingDecision(id, 'cancel')}
               onNew={() => {
