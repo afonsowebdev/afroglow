@@ -883,7 +883,7 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
             className="relative flex max-h-[min(72dvh,620px)] w-full max-w-md flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_30px_70px_-15px_rgba(0,0,0,0.4)]"
           >
             {/* Stays at the top while the rest scrolls. */}
-            <header className="flex items-center gap-3 border-b border-onyx/[0.06] px-5 py-4">
+            <header className="flex items-center gap-3 px-5 py-4">
               <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-onyx/[0.05] text-onyx">
                 <Wallet size={18} />
               </span>
@@ -1083,7 +1083,7 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
             </div>
 
             {onStats && (
-              <div className="flex justify-center border-t border-onyx/[0.06] px-4 py-3">
+              <div className="flex justify-center px-4 py-3">
                 <button
                   type="button"
                   onClick={() => {
