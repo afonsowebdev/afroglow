@@ -227,8 +227,8 @@
   --c-grad-2: #b8933a;
   --c-brand-soft: rgb(201 168 76 / 0.16);
   --c-brand-ink: #1a1008;
-  --c-pos: #2f7d55;
-  --c-neg: #c0392b;
+  --c-pos: #16a34a;
+  --c-neg: #e5484d;
   --c-warn: #b5652b;
   --c-chart-in: #c9a84c;
   --c-chart-out: #e2876a;
@@ -255,8 +255,8 @@
 }
 .dark .afro-admin {
   --c-card: color-mix(in srgb, var(--color-onyx) 8%, var(--color-white));
-  --c-pos: #57c08b;
-  --c-neg: #ff7f73;
+  --c-pos: #34d399;
+  --c-neg: #ff6b6b;
   --c-warn: #f0a443;
   --shadow-card: 0 1px 3px rgb(0 0 0 / 0.3);
   --color-card: var(--c-card);

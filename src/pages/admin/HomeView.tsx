@@ -555,9 +555,17 @@ function Sparkline({ values, up, label }: { values: number[]; up: boolean | null
   const top = Math.max(1, ...values)
   const points = values.map((v, i) => `${((i / (values.length - 1)) * W).toFixed(1)},${(H - (v / top) * (H - 3) - 1.5).toFixed(1)}`).join(' ')
   const colour = up === null ? 'var(--c-ink-3)' : up ? 'var(--c-pos)' : 'var(--c-neg)'
+  const fill = `spark-${up === null ? 'flat' : up ? 'up' : 'down'}`
   return (
-    <svg role="img" aria-label={`${label}: ${values.join(', ')}`} viewBox={`0 0 ${W} ${H}`} className="h-[22px] w-16 shrink-0 overflow-visible">
-      <polyline points={points} fill="none" stroke={colour} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+    <svg role="img" aria-label={`${label}: ${values.join(', ')}`} viewBox={`0 0 ${W} ${H}`} className="h-[26px] w-[72px] shrink-0 overflow-visible">
+      <defs>
+        <linearGradient id={fill} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor={colour} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={colour} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon points={`0,${H} ${points} ${W},${H}`} fill={`url(#${fill})`} />
+      <polyline points={points} fill="none" stroke={colour} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -767,20 +775,36 @@ function InOutChart({ months }: { months: MonthFigures[] }) {
                 <div className="absolute inset-0 flex items-end gap-2">
                   {months.map((m, i) => (
                     <div key={m.key} className="flex h-full flex-1 items-end justify-center gap-[3px]">
-                      <span className="block w-full max-w-3 rounded-t-[4px]" style={{ height: `${(m.revenue / top) * 100}%`, background: trend(months, i) }} />
-                      <span className="block w-full max-w-3 rounded-t-[4px]" style={{ height: `${(m.cancelled / top) * 100}%`, background: CANCELLED }} />
+                      <span
+                        className="block w-full max-w-4 rounded-t-full"
+                        style={{
+                          height: `${(m.revenue / top) * 100}%`,
+                          background: `linear-gradient(to bottom, color-mix(in srgb, ${trend(months, i)} 70%, white), ${trend(months, i)})`,
+                        }}
+                      />
+                      <span className="block w-full max-w-2.5 rounded-t-full" style={{ height: `${(m.cancelled / top) * 100}%`, background: CANCELLED }} />
                     </div>
                   ))}
                 </div>
               ) : (
                 <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="absolute inset-0 size-full overflow-visible">
+                  <defs>
+                    <linearGradient id="revenue-area" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor={trend(months, months.length - 1)} stopOpacity="0.25" />
+                      <stop offset="100%" stopColor={trend(months, months.length - 1)} stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <polygon
+                    points={`0,40 ${months.map((m, i) => `${(i / 5) * 100},${40 - (m.revenue / top) * 37 - 1.5}`).join(' ')} 100,40`}
+                    fill="url(#revenue-area)"
+                  />
                   {(['revenue', 'cancelled'] as const).map((field) => (
                     <polyline
                       key={field}
                       points={months.map((m, i) => `${(i / 5) * 100},${40 - (m[field] / top) * 37 - 1.5}`).join(' ')}
                       fill="none"
                       stroke={field === 'revenue' ? trend(months, months.length - 1) : CANCELLED}
-                      strokeWidth="2"
+                      strokeWidth={field === 'revenue' ? 2.5 : 1.75}
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       vectorEffect="non-scaling-stroke"
@@ -810,7 +834,7 @@ function Donut({ parts }: { parts: number[] }) {
   const colours = ['var(--c-pos)', 'var(--c-neg)']
   return (
     <svg viewBox="0 0 42 42" className="size-28 shrink-0 -rotate-0">
-      <circle cx="21" cy="21" r={r} fill="none" stroke="color-mix(in srgb, var(--color-onyx) 8%, transparent)" strokeWidth="6" />
+      <circle cx="21" cy="21" r={r} fill="none" stroke="color-mix(in srgb, var(--color-onyx) 8%, transparent)" strokeWidth="7" />
       {total > 0 &&
         parts.map((part, i) => {
           const share = (part / total) * 100
@@ -822,7 +846,7 @@ function Donut({ parts }: { parts: number[] }) {
               r={r}
               fill="none"
               stroke={colours[i]}
-              strokeWidth="6"
+              strokeWidth="7"
               strokeDasharray={`${share} ${100 - share}`}
               strokeDashoffset={offset}
             />
