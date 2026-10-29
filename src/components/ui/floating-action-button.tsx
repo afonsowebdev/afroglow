@@ -188,7 +188,7 @@ export function FloatingActionMenu({
   face?: ReactNode
   /** The actions in the order given, read top to bottom, instead of A to Z (see `group`). */
   keepOrder?: boolean
-  /** Hidden under a last "Mais opções" until it is tapped: then in a column to the left, in the order given. */
+  /** Hidden under a last "Mais opções" until it is tapped: then just below it, in a smaller column, in the order given. */
   more?: MenuAction[]
   /** A plain 40px round button with no fill, for sitting inside a glass island. */
   bare?: boolean
@@ -418,11 +418,11 @@ export function FloatingActionMenu({
                 </motion.div>
               )
             })}
-            {/* What "Mais opções" opens: one column to the left of the main one, top to bottom, smaller and closer
-                together, each like the options beside it (the name in a white pill and its round button); the app's
-                own settings (group "app") a little apart at the end. */}
+            {/* What "Mais opções" opens: just below it on the right, one column top to bottom, smaller and closer
+                together, each like the options above (the name in a white pill and its round button); the app's own
+                settings (group "app") a little apart at the end. */}
             {open && showMore && more && (
-              <div className="pointer-events-auto absolute right-[calc(100%+0.75rem)] top-0 flex flex-col items-end gap-1.5">
+              <div className="pointer-events-auto -mt-0.5 flex flex-col items-end gap-1.5 pe-1.5">
                 {more.map(({ Icon, iconClass, label, danger, onClick, confirm, group }, index) => {
                   const asking = confirming === label
                   const apart = group === 'app' && more[index - 1]?.group !== 'app'
@@ -435,8 +435,8 @@ export function FloatingActionMenu({
                         onClick?.()
                         close()
                       }}
-                      initial={{ opacity: 0, x: 12, filter: 'blur(2px)' }}
-                      animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                      initial={{ opacity: 0, y: direction === 'up' ? 10 : -10, filter: 'blur(2px)' }}
+                      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                       transition={{ type: 'tween', ease: 'easeOut', duration: 0.25, delay: index * 0.03 }}
                       className={cn('flex items-center gap-2', apart && 'mt-2')}
                     >
