@@ -159,6 +159,10 @@ export interface MenuAction {
   confirm?: string
 }
 
+/** "Mais opções": how long its name and icon take to change, and the step between one option and the next. */
+const SWAP = 0.45
+const STAGGER = 0.06
+
 /**
  * Round "+" button for the corner next to the tab bar. Same idea as `AnimatedSocialIcons` (the "+" turns into
  * an "×" and the actions appear out of the blur), but the actions rise upward in a column.
@@ -265,6 +269,8 @@ export function FloatingActionMenu({
     : []
   // "Mais opções" opens the rest just below it, like a dropdown; the main options stay.
   const listed = [...(keepOrder ? actions : alphabetical), ...extra]
+  // How long the options under "Mais opções" take to leave (the last one starts first), before the toggle changes back.
+  const moreExit = more?.length ? 0.3 + (more.length - 1) * STAGGER : 0
   const ordered = direction === 'up' ? listed.reverse() : listed
 
   return (
@@ -379,8 +385,9 @@ export function FloatingActionMenu({
               }
               // "Mais opções" / "Menos opções" stays the same item while its name and icon change, so it doesn't jump.
               const toggle = keepOpen && group === 'mais'
-              // The swap of name and icon, as quick as the options it opens appear.
-              const swap = { type: 'tween', ease: 'easeOut', duration: 0.22 } as const
+              // Calm and in turn: opening, the name and icon change first and the options follow; closing, the options
+              // leave first and then it changes back.
+              const swap = { type: 'tween', ease: 'easeInOut', duration: SWAP, delay: showMore ? 0 : moreExit } as const
               const swapIn = { opacity: 1, y: 0, filter: 'blur(0px)', rotate: 0 }
               return (
                 <motion.div
@@ -490,12 +497,17 @@ export function FloatingActionMenu({
                         close()
                       }}
                       initial={{ opacity: 0, x: 12, filter: 'blur(2px)' }}
-                      animate={{ opacity: 1, x: 0, filter: 'blur(0px)', transition: { type: 'tween', ease: 'easeOut', duration: 0.25, delay: index * 0.03 } }}
+                      animate={{
+                        opacity: 1,
+                        x: 0,
+                        filter: 'blur(0px)',
+                        transition: { type: 'tween', ease: 'easeOut', duration: 0.4, delay: SWAP + index * STAGGER },
+                      }}
                       exit={{
                         opacity: 0,
                         x: 12,
                         filter: 'blur(2px)',
-                        transition: { type: 'tween', ease: 'easeIn', duration: 0.2, delay: (more.length - 1 - index) * 0.03 },
+                        transition: { type: 'tween', ease: 'easeIn', duration: 0.3, delay: (more.length - 1 - index) * STAGGER },
                       }}
                       className={cn('flex items-center gap-2', apart && 'mt-2')}
                     >
