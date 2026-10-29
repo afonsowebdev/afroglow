@@ -2845,7 +2845,8 @@ function AdminDashboard() {
                 }}
                 className={`flex size-12 items-center justify-center rounded-full ${INK_CIRCLE}`}
               >
-                <ChevronLeft size={22} strokeWidth={2} />
+                {/* Nudged towards its tip: a chevron's weight sits on its open side, so the box centre looks off. */}
+                <ChevronLeft size={22} strokeWidth={2} className="-translate-x-[1.5px]" />
               </button>
             ) : (
               <HeaderLogo
