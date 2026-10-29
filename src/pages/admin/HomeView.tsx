@@ -22,7 +22,6 @@ import {
   Search,
   Target,
   UserPlus,
-  Wallet,
   X,
   type LucideIcon,
 } from 'lucide-react'
@@ -681,23 +680,46 @@ function Highlight({
   onOpen: (tab: Tab) => void
 }) {
   const { month } = data
-  const cards = [
-    { label: 'Confirmado', Icon: Wallet, cents: month.revenue, status: plural(month.sessions, 'sessão', 'sessões'), tone: 'var(--c-pos)', tab: 'agenda' as Tab },
-    { label: 'Por confirmar', Icon: Hourglass, cents: month.pendingCents, status: plural(month.pendingCount, 'pedido', 'pedidos'), tone: 'var(--c-warn)', tab: 'pedidos' as Tab },
-    { label: 'Cancelado', Icon: CalendarX2, cents: month.cancelledCents, status: plural(month.cancelledCount, 'sessão', 'sessões'), tone: 'var(--c-neg)', tab: 'agenda' as Tab },
+  const parts = [
+    { label: 'Confirmado', value: month.revenue, colour: STATUS.confirmed },
+    { label: 'Por confirmar', value: month.pendingCents, colour: STATUS.waiting },
+    { label: 'Cancelado', value: month.cancelledCents, colour: STATUS.cancelled },
   ]
   return (
     <>
       <BlockHeader title={`Faturação de ${monthName(data.months[5].key)}`} action={<HeaderLink label="Detalhes" onClick={onDetail} />} />
-      <p className="amount tabular mt-2 text-[30px] font-semibold leading-none tracking-tight text-ink">{euros(month.revenue)}</p>
-      <div className="mt-2">
-        <Change value={month.revenueChange} withLabel />
+      <div className="mt-2 flex items-end justify-between gap-3">
+        <p className="amount tabular text-[30px] font-semibold leading-none tracking-tight text-ink">{euros(month.revenue)}</p>
+        <Change value={month.revenueChange} />
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      <button type="button" onClick={onDetail} className="mt-3 flex min-h-0 flex-1 items-center gap-4 text-left" aria-label="Ver os detalhes">
+        <Ring
+          label="Estado das marcações do mês"
+          size={92}
+          thickness={15}
+          parts={parts}
+          center={
+            <>
+              <span className="tabular text-[17px] font-semibold leading-none text-onyx">{month.sessions}</span>
+              <span className="mt-0.5 text-[10px] text-ink-3">{month.sessions === 1 ? 'sessão' : 'sessões'}</span>
+            </>
+          }
+        />
+        <RingLegend
+          format={euros}
+          parts={parts}
+          notes={[
+            plural(month.sessions, 'sessão', 'sessões'),
+            plural(month.pendingCount, 'pedido', 'pedidos'),
+            plural(month.cancelledCount, 'sessão', 'sessões'),
+          ]}
+        />
+      </button>
+      <div className="mt-3 grid shrink-0 grid-cols-2 gap-2">
         <button
           type="button"
           onClick={onNewBooking}
-          className="flex h-10 items-center justify-center gap-1.5 rounded-full bg-onyx text-[13px] font-semibold text-white"
+          className="flex h-9 items-center justify-center gap-1.5 rounded-full bg-onyx text-[13px] font-semibold text-white"
         >
           <Plus size={15} />
           Nova marcação
@@ -705,28 +727,10 @@ function Highlight({
         <button
           type="button"
           onClick={() => onOpen('pedidos')}
-          className="glass-chip flex h-10 items-center justify-center gap-1.5 rounded-full text-[13px] font-medium text-onyx"
+          className="glass-chip flex h-9 items-center justify-center gap-1.5 rounded-full text-[13px] font-medium text-onyx"
         >
           Ver pedidos
         </button>
-      </div>
-      <div className="mt-auto grid grid-cols-3 gap-2 pt-3">
-        {cards.map(({ label, Icon, cents, status, tone, tab }) => (
-          <button key={label} type="button" onClick={() => onOpen(tab)} className="min-w-0 rounded-2xl bg-onyx/[0.04] p-2.5 text-left">
-            <span
-              className="flex size-6 items-center justify-center rounded-full"
-              style={{ background: `color-mix(in srgb, ${tone} 14%, transparent)`, color: tone }}
-            >
-              <Icon size={13} />
-            </span>
-            <span className="mt-1.5 block truncate text-[11px] text-ink-3">{label}</span>
-            <span className="amount tabular block truncate text-[13px] font-semibold text-ink">{euros(cents)}</span>
-            <span className="mt-0.5 flex items-center gap-1 truncate text-xs text-ink-3">
-              <span className="size-1.5 shrink-0 rounded-full" style={{ background: tone }} aria-hidden="true" />
-              {status}
-            </span>
-          </button>
-        ))}
       </div>
     </>
   )
@@ -749,12 +753,21 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
   const name = monthName(data.months[5].key)
   const last = monthName(data.months[4].key)
   const weekTop = Math.max(1, ...month.weeks.map((w) => w.cents))
-  const serviceTop = Math.max(1, ...month.services.map((s) => s.cents))
-  const rows = [
-    { label: 'Confirmado', cents: month.revenue, note: plural(month.sessions, 'sessão', 'sessões'), tone: 'var(--c-pos)' },
-    { label: 'Por confirmar', cents: month.pendingCents, note: plural(month.pendingCount, 'pedido', 'pedidos'), tone: 'var(--c-warn)' },
-    { label: 'Cancelado', cents: month.cancelledCents, note: plural(month.cancelledCount, 'sessão', 'sessões'), tone: 'var(--c-neg)' },
+  const statuses = [
+    { label: 'Confirmado', value: month.revenue, colour: STATUS.confirmed },
+    { label: 'Por confirmar', value: month.pendingCents, colour: STATUS.waiting },
+    { label: 'Cancelado', value: month.cancelledCents, colour: STATUS.cancelled },
   ]
+  // Each hairstyle its own colour; past six, the rest together as "Outros".
+  const services = month.services.slice(0, PALETTE.length).map((sv, i) => ({ label: sv.name, value: sv.cents, colour: PALETTE[i], count: sv.count }))
+  const others = month.services.slice(PALETTE.length)
+  if (others.length)
+    services.push({
+      label: 'Outros',
+      value: others.reduce((a, sv) => a + sv.cents, 0),
+      colour: OTHER,
+      count: others.reduce((a, sv) => a + sv.count, 0),
+    })
   return createPortal(
     <AnimatePresence>
       {open && (
@@ -814,21 +827,35 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
               </dl>
 
               <h3 className="mt-6 font-subtitle text-[14px] font-semibold tracking-tight text-onyx">Estado das marcações</h3>
-              <ul className="mt-2 divide-y divide-onyx/[0.07]">
-                {rows.map((row) => (
-                  <li key={row.label} className="flex items-center gap-3 py-2.5">
-                    <span className="size-2.5 shrink-0 rounded-full" style={{ background: row.tone }} aria-hidden="true" />
-                    <span className="flex-1 text-[13px] text-onyx">{row.label}</span>
-                    <span className="text-xs text-ink-3">{row.note}</span>
-                    <span className="amount tabular w-20 text-right text-[13px] font-semibold text-onyx">{euros(row.cents)}</span>
-                  </li>
-                ))}
-                <li className="flex items-center gap-3 py-2.5">
-                  <span className="size-2.5 shrink-0" aria-hidden="true" />
-                  <span className="flex-1 text-[13px] text-onyx">Valor médio por sessão</span>
-                  <span className="amount tabular w-20 text-right text-[13px] font-semibold text-onyx">{euros(month.average)}</span>
-                </li>
-              </ul>
+              <div className="mt-3 flex items-center gap-5">
+                <Ring
+                  label="Estado das marcações"
+                  size={132}
+                  thickness={15}
+                  parts={statuses}
+                  center={
+                    <>
+                      <span className="amount tabular text-[16px] font-semibold leading-tight text-onyx">
+                        {euros(statuses.reduce((a, p) => a + p.value, 0))}
+                      </span>
+                      <span className="text-[11px] text-ink-3">no mês</span>
+                    </>
+                  }
+                />
+                <RingLegend
+                  format={euros}
+                  parts={statuses}
+                  notes={[
+                    plural(month.sessions, 'sessão', 'sessões'),
+                    plural(month.pendingCount, 'pedido', 'pedidos'),
+                    plural(month.cancelledCount, 'sessão', 'sessões'),
+                  ]}
+                />
+              </div>
+              <div className="mt-4 flex items-center justify-between rounded-2xl bg-onyx/[0.04] px-4 py-3">
+                <span className="text-[13px] text-onyx">Valor médio por sessão</span>
+                <span className="amount tabular text-[14px] font-bold text-onyx">{euros(month.average)}</span>
+              </div>
 
               <h3 className="mt-6 font-subtitle text-[14px] font-semibold tracking-tight text-onyx">Semana a semana</h3>
               <div
@@ -868,20 +895,21 @@ function RevenueDetail({ open, data, onClose, onStats }: { open: boolean; data: 
               {month.services.length === 0 ? (
                 <p className="mt-2 text-[13px] text-ink-3">Sem sessões confirmadas neste mês.</p>
               ) : (
-                <ul className="mt-2 flex flex-col gap-3">
-                  {month.services.map((sv) => (
-                    <li key={sv.name}>
-                      <div className="flex items-baseline gap-2">
-                        <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-onyx">{sv.name}</span>
-                        <span className="text-xs text-ink-3">{plural(sv.count, 'sessão', 'sessões')}</span>
-                        <span className="amount tabular w-20 text-right text-[13px] font-semibold text-onyx">{euros(sv.cents)}</span>
-                      </div>
-                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-onyx/[0.08]">
-                        <div className="h-full rounded-full" style={{ width: `${(sv.cents / serviceTop) * 100}%`, background: 'var(--c-pos)' }} />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                <div className="mt-3 flex items-center gap-5">
+                  <Ring
+                    label="Faturação por penteado"
+                    size={132}
+                    thickness={15}
+                    parts={services}
+                    center={
+                      <>
+                        <span className="amount tabular text-[16px] font-semibold leading-tight text-onyx">{euros(month.revenue)}</span>
+                        <span className="text-[11px] text-ink-3">{plural(services.length, 'penteado', 'penteados')}</span>
+                      </>
+                    }
+                  />
+                  <RingLegend format={euros} parts={services} notes={services.map((sv) => plural(sv.count, 'sessão', 'sessões'))} />
+                </div>
               )}
             </div>
 
@@ -971,18 +999,31 @@ function InOutChart({ months }: { months: MonthFigures[] }) {
 
       <div role="img" aria-label={`Receita e cancelamentos nos últimos 6 meses. ${described}.`} className="mt-3 flex min-h-0 flex-1 flex-col">
         {view === 'circular' ? (
-          <div className="flex flex-1 items-center gap-4">
-            <Donut parts={[totalIn, totalOut]} />
-            <dl className="min-w-0 space-y-2 text-[12px]">
-              <div>
-                <dt className="text-ink-3">Receita</dt>
-                <dd className="amount tabular text-[15px] font-semibold text-ink">{euros(totalIn)}</dd>
-              </div>
-              <div>
-                <dt className="text-ink-3">Cancelado</dt>
-                <dd className="amount tabular text-[15px] font-semibold text-ink">{euros(totalOut)}</dd>
-              </div>
-            </dl>
+          <div className="flex flex-1 items-center justify-center gap-5">
+            <Ring
+              label="Receita e cancelamentos, 6 meses"
+              size={128}
+              thickness={15}
+              parts={[
+                { label: 'Receita', value: totalIn, colour: 'var(--c-pos)' },
+                { label: 'Cancelado', value: totalOut, colour: 'var(--c-neg)' },
+              ]}
+              center={
+                <>
+                  <span className="amount tabular text-[15px] font-semibold leading-tight text-onyx">{euros(totalIn)}</span>
+                  <span className="text-[11px] text-ink-3">6 meses</span>
+                </>
+              }
+            />
+            <div className="max-w-[11rem] flex-1">
+              <RingLegend
+                format={euros}
+                parts={[
+                  { label: 'Receita', value: totalIn, colour: 'var(--c-pos)' },
+                  { label: 'Cancelado', value: totalOut, colour: 'var(--c-neg)' },
+                ]}
+              />
+            </div>
           </div>
         ) : (
           <>
@@ -1043,34 +1084,90 @@ function InOutChart({ months }: { months: MonthFigures[] }) {
   )
 }
 
-function Donut({ parts }: { parts: number[] }) {
-  const total = parts.reduce((a, n) => a + n, 0)
-  const r = 15.9155
-  let offset = 25
-  const colours = ['var(--c-pos)', 'var(--c-neg)']
+/** One colour per category (hairstyles, statuses…), in order; anything past them is grey. */
+const PALETTE = ['#16a34a', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6']
+const OTHER = 'color-mix(in srgb, var(--color-onyx) 25%, transparent)'
+const STATUS = { confirmed: 'var(--c-pos)', waiting: '#f59e0b', cancelled: 'var(--c-neg)' }
+
+interface RingPart {
+  label: string
+  value: number
+  colour: string
+}
+
+/**
+ * A thick ring with rounded ends and a small gap between its parts, starting at the top, with what goes in the middle
+ * (usually the total). A part too small to draw still shows as a dot.
+ */
+function Ring({ parts, size, thickness = 14, center, label }: { parts: RingPart[]; size: number; thickness?: number; center?: ReactNode; label: string }) {
+  const r = 50 - thickness / 2 - 1
+  const C = 2 * Math.PI * r
+  const total = parts.reduce((a, p) => a + p.value, 0)
+  const shown = parts.filter((p) => p.value > 0)
+  const gap = shown.length > 1 ? 5 : 0
+  // Every part at least long enough to show as a short pill (its round ends plus the gap), the rest shared by value.
+  const least = thickness * 2 + gap
+  const small = shown.filter((p) => (p.value / total) * C < least)
+  const bigTotal = shown.filter((p) => !small.includes(p)).reduce((a, p) => a + p.value, 0)
+  const room = C - small.length * least
+  const lengthOf = (p: RingPart) => (small.includes(p) || !bigTotal ? least : (p.value / bigTotal) * room)
+  let start = 0
   return (
-    <svg viewBox="0 0 42 42" className="size-28 shrink-0 -rotate-0">
-      <circle cx="21" cy="21" r={r} fill="none" stroke="color-mix(in srgb, var(--color-onyx) 8%, transparent)" strokeWidth="7" />
-      {total > 0 &&
-        parts.map((part, i) => {
-          const share = (part / total) * 100
-          const circle = (
-            <circle
-              key={i}
-              cx="21"
-              cy="21"
-              r={r}
-              fill="none"
-              stroke={colours[i]}
-              strokeWidth="7"
-              strokeDasharray={`${share} ${100 - share}`}
-              strokeDashoffset={offset}
-            />
-          )
-          offset -= share
-          return circle
-        })}
-    </svg>
+    <div
+      role="img"
+      aria-label={`${label}: ${parts.map((p) => `${p.label} ${Math.round(total ? (p.value / total) * 100 : 0)}%`).join(', ')}`}
+      className="relative shrink-0"
+      style={{ width: size, height: size }}
+    >
+      <svg viewBox="0 0 100 100" className="size-full -rotate-90 overflow-visible">
+        {total === 0 ? (
+          <circle cx="50" cy="50" r={r} fill="none" stroke="color-mix(in srgb, var(--color-onyx) 8%, transparent)" strokeWidth={thickness} />
+        ) : shown.length === 1 ? (
+          <circle cx="50" cy="50" r={r} fill="none" stroke={shown[0].colour} strokeWidth={thickness} />
+        ) : (
+          shown.map((part) => {
+            const length = lengthOf(part)
+            // Round ends reach half the thickness past the dash, on each side.
+            const dash = Math.max(length - thickness - gap, 0.01)
+            const offset = -(start + thickness / 2 + gap / 2)
+            start += length
+            return (
+              <circle
+                key={part.label}
+                cx="50"
+                cy="50"
+                r={r}
+                fill="none"
+                stroke={part.colour}
+                strokeWidth={thickness}
+                strokeLinecap="round"
+                strokeDasharray={`${dash} ${C}`}
+                strokeDashoffset={offset}
+              />
+            )
+          })
+        )}
+      </svg>
+      {center && <div className="absolute inset-0 flex flex-col items-center justify-center text-center">{center}</div>}
+    </div>
+  )
+}
+
+/** The ring's legend: a dot, the name, and the value in bold (with a small note under the name when given). */
+function RingLegend({ parts, format, notes }: { parts: RingPart[]; format: (v: number) => string; notes?: string[] }) {
+  return (
+    <ul className="flex min-w-0 flex-1 flex-col gap-2.5">
+      {parts.map((p, i) => (
+        <li key={p.label} className="flex min-w-0 items-center gap-2.5">
+          <span className="size-2.5 shrink-0 rounded-full" style={{ background: p.colour }} aria-hidden="true" />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[13px] font-medium text-onyx">{p.label}</span>
+            {notes?.[i] && <span className="block truncate text-[11px] text-ink-3">{notes[i]}</span>}
+          </span>
+          <span className="amount tabular shrink-0 text-[14px] font-bold text-onyx">{format(p.value)}</span>
+        </li>
+      ))}
+    </ul>
   )
 }
 
@@ -1194,7 +1291,7 @@ function GoalSheet({
   )
 }
 
-const RANK_COLOURS = [80, 62, 46, 32, 22].map((n) => `color-mix(in srgb, var(--color-onyx) ${n}%, transparent)`)
+const RANK_COLOURS = PALETTE
 
 /** 1×2: the five most booked hairstyles of the last 90 days. */
 function Ranking({ items, total }: { items: BoardData['ranking']; total: number }) {
