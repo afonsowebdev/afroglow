@@ -20,6 +20,8 @@ import {
   Hash,
   Hourglass,
   LayoutGrid,
+  Maximize2,
+  Minimize2,
   ListFilter,
   RotateCcw,
   MessageSquareQuote,
@@ -58,14 +60,15 @@ const ORDER_KEY = 'afroadmin:painel-ordem'
 const CHART_KEY = 'afroadmin:painel-grafico'
 const COMPARE_KEY = 'afroadmin:painel-comparacao'
 const HIDE_KEY = 'afroadmin:esconder-valores'
+const SIZE_KEY = 'afroadmin:painel-tamanhos'
 
 type Tab = 'pedidos' | 'agenda' | 'disponibilidade' | 'clientes' | MoreTarget
 type BlockId = 'faturacao' | 'sessoes' | 'hoje' | 'grafico' | 'clientes' | 'ticket' | 'meta' | 'servicos' | 'atividade' | 'proximas'
 
-const BLOCKS: Array<{ id: BlockId; size: WidgetSize; label: string }> = [
+const BLOCKS: Array<{ id: BlockId; size: WidgetSize; label: string; widens?: boolean }> = [
   { id: 'faturacao', size: 'lg', label: 'Faturação do mês' },
-  { id: 'sessoes', size: 'sm', label: 'Sessões do mês' },
-  { id: 'hoje', size: 'sm', label: 'Marcações de hoje' },
+  { id: 'sessoes', size: 'sm', label: 'Sessões do mês', widens: true },
+  { id: 'hoje', size: 'sm', label: 'Marcações de hoje', widens: true },
   { id: 'grafico', size: 'lg', label: 'Receita e cancelamentos' },
   { id: 'clientes', size: 'sm', label: 'Clientes novas' },
   { id: 'ticket', size: 'sm', label: 'Valor médio por sessão' },
@@ -88,6 +91,8 @@ const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
 const monthOf = (iso: string) => dayKey(iso).slice(0, 7)
 const monthLabel = (key: string) =>
   new Date(`${key}-15T12:00:00Z`).toLocaleDateString('pt-PT', { timeZone: 'UTC', month: 'short' }).replace('.', '')
+/** "Out". */
+const shortMonth = (key: string) => capital(monthName(key).slice(0, 3))
 const monthName = (key: string) => new Date(`${key}-15T12:00:00Z`).toLocaleDateString('pt-PT', { timeZone: 'UTC', month: 'long' })
 const shortDate = (iso: string) =>
   new Date(iso).toLocaleDateString('pt-PT', { timeZone: TZ, day: 'numeric', month: 'short' }).replace('.', '')
@@ -138,12 +143,13 @@ function writeStore(key: string, value: unknown) {
   }
 }
 
-/** The saved order, with any block added since then at the end. */
+/** The saved order, with any block added since then at the end, each at its saved size (for the blocks that widen). */
 function loadOrder(): Array<WidgetItem & { id: BlockId }> {
   const saved = readStore<string[]>(ORDER_KEY, [])
+  const sizes = readStore<Partial<Record<BlockId, WidgetSize>>>(SIZE_KEY, {})
   const known = saved.map((id) => BLOCKS.find((b) => b.id === id)).filter((b): b is (typeof BLOCKS)[number] => !!b)
   const all = [...known, ...BLOCKS.filter((b) => !known.includes(b))]
-  return all.map(({ id, size, label }) => ({ id, size, label }))
+  return all.map(({ id, size, label, widens }) => ({ id, size: (widens && sizes[id]) || size, label }))
 }
 
 /* The page */
@@ -201,6 +207,7 @@ export function HomeView({
                   onClick={() => {
                     void tap()
                     writeStore(ORDER_KEY, BLOCKS.map((b) => b.id))
+                    writeStore(SIZE_KEY, {})
                     setOrder(loadOrder())
                     setBoardKey((k) => k + 1)
                   }}
@@ -302,7 +309,16 @@ export function HomeView({
   const data = boardData({ bookings, testimonials: can('testemunhos') ? testimonials : [] })
   const canStats = can('estatisticas')
 
-  const render = (id: BlockId): ReactNode => {
+  /** Widens or narrows a block; the board is laid out again with it. */
+  const resize = (id: BlockId, size: WidgetSize) => {
+    void tap()
+    const next = order.map((b) => (b.id === id ? { ...b, size } : b))
+    writeStore(SIZE_KEY, Object.fromEntries(next.filter((b) => BLOCKS.find((x) => x.id === b.id)?.widens).map((b) => [b.id, b.size])))
+    setOrder(next)
+    setBoardKey((k) => k + 1)
+  }
+
+  const render = (id: BlockId, size: WidgetSize): ReactNode => {
     switch (id) {
       case 'faturacao':
         return (
@@ -316,7 +332,9 @@ export function HomeView({
             value={String(data.month.sessions)}
             change={data.month.sessionsChange}
             series={data.months.map((m) => m.sessions)}
+            seriesNames={data.months.map((m) => shortMonth(m.key))}
             seriesLabel="Sessões por mês, nos últimos 6 meses"
+            wide={size === 'wide'}
           />
         )
       case 'hoje':
@@ -328,7 +346,9 @@ export function HomeView({
             change={data.today.change}
             changeLabel="face à semana passada"
             series={data.today.series}
+            seriesNames={data.today.days}
             seriesLabel="Marcações por dia, nos últimos 6 dias"
+            wide={size === 'wide'}
           />
         )
       case 'clientes':
@@ -339,6 +359,7 @@ export function HomeView({
             value={String(data.month.newClients)}
             change={data.month.newClientsChange}
             series={data.months.map((m) => m.newClients)}
+            seriesNames={data.months.map((m) => shortMonth(m.key))}
             seriesLabel="Clientes novas por mês, nos últimos 6 meses"
           />
         )
@@ -351,6 +372,7 @@ export function HomeView({
             amount
             change={data.month.averageChange}
             series={data.months.map((m) => m.average)}
+            seriesNames={data.months.map((m) => shortMonth(m.key))}
             seriesLabel="Valor médio por sessão, nos últimos 6 meses"
           />
         )
@@ -382,9 +404,25 @@ export function HomeView({
         rowRatio={0.75}
         narrowRowRatio={0.85}
         maxRowHeight={150}
-        onChange={(next) => writeStore(ORDER_KEY, next.map((b) => b.id))}
-        renderItem={(item) => (
-          <div className={`flex h-full flex-col p-4 2xl:p-5 ${editing ? 'pointer-events-none' : ''}`}>{render(item.id)}</div>
+        onChange={(next) => {
+          setOrder(next)
+          writeStore(ORDER_KEY, next.map((b) => b.id))
+        }}
+        renderItem={(item, size) => (
+          <>
+            <div className={`flex h-full flex-col p-4 2xl:p-5 ${editing ? 'pointer-events-none' : ''}`}>{render(item.id, size)}</div>
+            {editing && BLOCKS.find((b) => b.id === item.id)?.widens && (
+              <button
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => resize(item.id, item.size === 'wide' ? 'sm' : 'wide')}
+                className="glass-chip absolute bottom-3 left-1/2 z-10 flex h-8 -translate-x-1/2 items-center gap-1.5 rounded-full px-3 text-[12px] font-semibold text-onyx transition-transform active:scale-[0.96]"
+              >
+                {item.size === 'wide' ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                {item.size === 'wide' ? 'Reduzir' : 'Alargar'}
+              </button>
+            )}
+          </>
         )}
       />
       <RevenueDetail
@@ -581,6 +619,10 @@ function boardData({ bookings, testimonials }: { bookings: Booking[]; testimonia
       count: todayCount,
       change: pct(todayCount, countOn(addDays(today, -7))),
       series: [-5, -4, -3, -2, -1, 0].map((by) => countOn(addDays(today, by))),
+      // "Sáb", "Dom", … "Hoje".
+      days: [-5, -4, -3, -2, -1, 0].map((by) =>
+        by === 0 ? 'Hoje' : capital(new Date(`${addDays(today, by)}T12:00:00Z`).toLocaleDateString('pt-PT', { timeZone: 'UTC', weekday: 'short' }).slice(0, 3)),
+      ),
     },
     ranking,
     rankingTotal,
@@ -624,29 +666,6 @@ function Change({ value, label = 'face ao mês anterior', withLabel = false }: {
   )
 }
 
-/** The last six periods as a small line, in the colour of the change. */
-function Sparkline({ values, up, label }: { values: number[]; up: boolean | null; label: string }) {
-  if (values.length < 2) return null
-  const W = 64
-  const H = 22
-  const top = Math.max(1, ...values)
-  const points = values.map((v, i) => `${((i / (values.length - 1)) * W).toFixed(1)},${(H - (v / top) * (H - 3) - 1.5).toFixed(1)}`).join(' ')
-  const colour = up === null ? 'var(--c-ink-3)' : up ? 'var(--c-pos)' : 'var(--c-neg)'
-  const fill = `spark-${up === null ? 'flat' : up ? 'up' : 'down'}`
-  return (
-    <svg role="img" aria-label={`${label}: ${values.join(', ')}`} viewBox={`0 0 ${W} ${H}`} className="h-[26px] w-[72px] shrink-0 overflow-visible">
-      <defs>
-        <linearGradient id={fill} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={colour} stopOpacity="0.28" />
-          <stop offset="100%" stopColor={colour} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polygon points={`0,${H} ${points} ${W},${H}`} fill={`url(#${fill})`} />
-      <polyline points={points} fill="none" stroke={colour} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
 function IconCircle({ Icon }: { Icon: LucideIcon }) {
   return (
     <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-onyx/[0.04] text-onyx">
@@ -667,7 +686,11 @@ function Empty({ Icon, text, action }: { Icon: LucideIcon; text: string; action?
 
 /* Blocks */
 
-/** A 1×1 figure: label and icon, the value, then the change and a sparkline of the last six periods. */
+/**
+ * A figure: label and icon, the value, then the change and the last six periods as bars. Small, the bars sit beside
+ * the change; widened (2×1), the figure stays on the left and the bars take the rest, bigger, each with its name below
+ * and its number above.
+ */
 function Stat({
   label,
   Icon,
@@ -676,7 +699,9 @@ function Stat({
   change,
   changeLabel,
   series,
+  seriesNames,
   seriesLabel,
+  wide = false,
 }: {
   label: string
   Icon: LucideIcon
@@ -685,8 +710,25 @@ function Stat({
   change: number | null
   changeLabel?: string
   series: number[]
+  seriesNames: string[]
   seriesLabel: string
+  wide?: boolean
 }) {
+  const tone = change === null ? 'var(--c-ink-3)' : change >= 0 ? 'var(--c-pos)' : 'var(--c-neg)'
+  if (wide) {
+    return (
+      <div className="flex min-h-0 flex-1 gap-4">
+        <div className="flex w-[38%] shrink-0 flex-col">
+          <h3 className="font-subtitle text-[13px] font-semibold leading-tight tracking-tight text-onyx">{label}</h3>
+          <p className={`tabular mt-1 text-[26px] font-semibold leading-tight tracking-tight text-ink ${amount ? 'amount' : ''}`}>{value}</p>
+          <div className="mt-auto">
+            <Change value={change} label={changeLabel} />
+          </div>
+        </div>
+        <MiniBars values={series} names={seriesNames} tone={tone} label={seriesLabel} amount={amount} large />
+      </div>
+    )
+  }
   return (
     <>
       <div className="flex items-start justify-between gap-2">
@@ -696,9 +738,61 @@ function Stat({
       <p className={`tabular -mt-1 text-[22px] font-semibold tracking-tight text-ink ${amount ? 'amount' : ''}`}>{value}</p>
       <div className="mt-auto flex items-end justify-between gap-2">
         <Change value={change} label={changeLabel} />
-        <Sparkline values={series} up={change === null ? null : change >= 0} label={seriesLabel} />
+        <MiniBars values={series} names={seriesNames} tone={tone} label={seriesLabel} amount={amount} />
       </div>
     </>
+  )
+}
+
+/**
+ * The last periods as thin bars standing on a base line, the latest in the figure's colour. At zero there is only the
+ * line; as the numbers rise, the bars grow up from it.
+ */
+function MiniBars({ values, names, tone, label, amount = false, large = false }: { values: number[]; names: string[]; tone: string; label: string; amount?: boolean; large?: boolean }) {
+  const top = Math.max(1, ...values)
+  const last = values.length - 1
+  const shown = (v: number) => (amount ? euros(v) : String(v))
+  return (
+    <div
+      role="img"
+      aria-label={`${label}: ${values.map((v, i) => `${names[i]} ${shown(v)}`).join(', ')}`}
+      className={large ? 'flex min-w-0 flex-1 flex-col' : 'w-[72px] shrink-0'}
+    >
+      <div className={`flex items-end border-b-[1.5px] border-onyx/15 ${large ? 'min-h-0 flex-1 gap-1.5 pt-4' : 'h-[26px] gap-[5px]'}`}>
+        {values.map((v, i) => {
+          const height = `${(v / top) * 100}%`
+          return (
+            <div key={i} className="relative h-full flex-1">
+              <motion.span
+                aria-hidden="true"
+                className={`absolute inset-x-0 bottom-0 mx-auto block rounded-t-full ${large ? 'max-w-3' : ''}`}
+                style={{ background: i === last ? tone : 'color-mix(in srgb, var(--color-onyx) 16%, transparent)' }}
+                initial={{ height: 0 }}
+                animate={{ height }}
+                transition={{ duration: 0.7, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
+              />
+              {large && v > 0 && (
+                <span
+                  className={`tabular absolute inset-x-0 mb-1 text-center text-[10px] ${i === last ? 'font-bold text-onyx' : 'text-ink-3'} ${amount ? 'amount' : ''}`}
+                  style={{ bottom: height }}
+                >
+                  {shown(v)}
+                </span>
+              )}
+            </div>
+          )
+        })}
+      </div>
+      {large && (
+        <div className="mt-1 flex gap-1.5">
+          {names.map((n, i) => (
+            <span key={i} className={`flex-1 truncate text-center text-[10px] ${i === last ? 'font-semibold text-onyx' : 'text-ink-3'}`}>
+              {n}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
