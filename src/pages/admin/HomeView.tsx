@@ -16,6 +16,7 @@ import {
   Hourglass,
   LayoutGrid,
   ListFilter,
+  RotateCcw,
   MessageSquareQuote,
   Receipt,
   Search,
@@ -176,71 +177,86 @@ export function HomeView({
   }, [])
 
   const header = (
-    <div className="mb-7 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-      <div className="min-w-0">
-        <h1 className="font-subtitle text-[32px] font-semibold leading-none tracking-tight text-onyx">{homeGreeting(name)}</h1>
-        <p className="mt-2 max-w-xl text-sm text-muted-dark">
-          {editing
-            ? 'Arrasta os blocos para os reorganizar. No telemóvel, mantém o dedo premido antes de arrastar.'
-            : 'Fica a par do teu negócio e acompanha o teu progresso.'}
-        </p>
+    <div className="mb-7">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="min-w-0 truncate font-subtitle text-[28px] font-semibold leading-tight tracking-tight text-onyx sm:text-[32px]">
+          {homeGreeting(name)}
+        </h1>
+        {loaded && bookings.length > 0 && (
+          // The two board controls together in one glass pill.
+          <div className="glass-chip flex shrink-0 items-center gap-0.5 rounded-full p-1">
+            {editing ? (
+              <>
+                <button
+                  type="button"
+                  aria-label="Repor a ordem dos cartões"
+                  onClick={() => {
+                    void tap()
+                    writeStore(ORDER_KEY, BLOCKS.map((b) => b.id))
+                    setOrder(loadOrder())
+                    setBoardKey((k) => k + 1)
+                  }}
+                  className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium text-onyx transition-colors hover:bg-onyx/[0.06]"
+                >
+                  <RotateCcw size={15} />
+                  <span className="hidden sm:inline">Repor</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void tap()
+                    setEditing(false)
+                  }}
+                  className="flex h-8 items-center gap-1.5 rounded-full bg-onyx px-3.5 text-[13px] font-semibold text-white"
+                >
+                  <Check size={15} />
+                  Concluir
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  aria-label={hidden ? 'Mostrar valores' : 'Esconder valores'}
+                  aria-pressed={hidden}
+                  title={hidden ? 'Mostrar valores' : 'Esconder valores'}
+                  onClick={() => {
+                    void tap()
+                    setHidden(!hidden)
+                    writeStore(HIDE_KEY, !hidden)
+                  }}
+                  className={`flex size-8 items-center justify-center rounded-full transition-colors ${
+                    hidden ? 'bg-onyx text-white' : 'text-onyx hover:bg-onyx/[0.06]'
+                  }`}
+                >
+                  {hidden ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+                <span className="h-4 w-px bg-onyx/15" aria-hidden="true" />
+                <button
+                  type="button"
+                  aria-label="Personalizar os cartões"
+                  title="Personalizar"
+                  onClick={() => {
+                    void tap()
+                    setEditing(true)
+                  }}
+                  className="flex h-8 min-w-8 items-center justify-center gap-1.5 rounded-full px-2 text-[13px] font-medium text-onyx transition-colors hover:bg-onyx/[0.06] sm:px-3"
+                >
+                  <LayoutGrid size={16} />
+                  <span className="hidden sm:inline">Personalizar</span>
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
-      {loaded && bookings.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            aria-label={hidden ? 'Mostrar valores' : 'Esconder valores'}
-            aria-pressed={hidden}
-            onClick={() => {
-              void tap()
-              setHidden(!hidden)
-              writeStore(HIDE_KEY, !hidden)
-            }}
-            className="glass-chip flex size-9 items-center justify-center rounded-full text-onyx"
-          >
-            {hidden ? <EyeOff size={17} /> : <Eye size={17} />}
-          </button>
-          {editing ? (
-            <>
-              <button
-                type="button"
-                onClick={() => {
-                  void tap()
-                  writeStore(ORDER_KEY, BLOCKS.map((b) => b.id))
-                  setOrder(loadOrder())
-                  setBoardKey((k) => k + 1)
-                }}
-                className="h-9 px-2 text-[13px] font-medium text-muted-dark underline underline-offset-4"
-              >
-                Repor
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  void tap()
-                  setEditing(false)
-                }}
-                className="flex h-9 items-center gap-1.5 rounded-full bg-onyx px-4 text-[13px] font-semibold text-white"
-              >
-                <Check size={16} />
-                Concluir
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                void tap()
-                setEditing(true)
-              }}
-              className="glass-chip flex h-9 items-center gap-1.5 rounded-full px-4 text-[13px] font-medium text-onyx"
-            >
-              <LayoutGrid size={16} />
-              Personalizar
-            </button>
-          )}
-        </div>
-      )}
+      <p className="mt-2 max-w-xl text-sm text-muted-dark">
+        {editing
+          ? 'Arrasta os blocos para os reorganizar. No telemóvel, mantém o dedo premido antes de arrastar.'
+          : hidden
+            ? 'Os valores estão escondidos. Toca no olho para os voltares a ver.'
+            : 'Fica a par do teu negócio e acompanha o teu progresso.'}
+      </p>
     </div>
   )
 
