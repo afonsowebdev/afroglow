@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { ArrowLeft, Ellipsis, Plus, type LucideIcon } from 'lucide-react'
+import { ChevronUp, Ellipsis, Plus, type LucideIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
@@ -188,7 +188,7 @@ export function FloatingActionMenu({
   face?: ReactNode
   /** The actions in the order given, read top to bottom, instead of A to Z (see `group`). */
   keepOrder?: boolean
-  /** Hidden under a last "Mais opções" until it is tapped: then side by side, in the order given. */
+  /** Hidden under a last "Mais opções" until it is tapped: then just below it, two by two, in the order given. */
   more?: MenuAction[]
   /** A plain 40px round button with no fill, for sitting inside a glass island. */
   bare?: boolean
@@ -249,8 +249,8 @@ export function FloatingActionMenu({
   const extra: MenuAction[] = more?.length
     ? [
         {
-          Icon: showMore ? ArrowLeft : Ellipsis,
-          label: showMore ? 'Voltar' : 'Mais opções',
+          Icon: showMore ? ChevronUp : Ellipsis,
+          label: showMore ? 'Menos opções' : 'Mais opções',
           group: 'mais',
           keepOpen: true,
           onClick: () => {
@@ -260,8 +260,8 @@ export function FloatingActionMenu({
         },
       ]
     : []
-  // "Mais opções" swaps the main options for the rest instead of adding to them, so the menu stays short.
-  const listed = [...(showMore ? [] : keepOrder ? actions : alphabetical), ...extra]
+  // "Mais opções" opens the rest just below it, like a dropdown; the main options stay.
+  const listed = [...(keepOrder ? actions : alphabetical), ...extra]
   const ordered = direction === 'up' ? listed.reverse() : listed
 
   return (
@@ -355,66 +355,6 @@ export function FloatingActionMenu({
               direction === 'up' ? 'bottom-full mb-3 flex-col-reverse' : 'top-full mt-3 flex-col',
             )}
           >
-            {/* What "Mais opções" shows in place of the main options: two by two, each a round button with its name
-                beside it in plain white; the app's own settings (group "app") in their own rows, a little apart. */}
-            {open && showMore && more && (
-              <div className="pointer-events-auto mb-1 flex w-[min(20rem,calc(100vw-2rem))] flex-col gap-3">
-                {[more.filter((a) => a.group !== 'app'), more.filter((a) => a.group === 'app')]
-                  .filter((part) => part.length)
-                  .map((part, partIndex) => (
-                    <div
-                      key={partIndex}
-                      className={cn('grid grid-cols-2 gap-x-3 gap-y-2.5', partIndex > 0 && 'pt-2')}
-                    >
-                      {part.map(({ Icon, iconClass, label, danger, onClick, confirm }, index) => {
-                        const asking = confirming === label
-                        return (
-                          <motion.button
-                            key={label}
-                            type="button"
-                            onClick={() => {
-                              if (confirm && !asking) return setConfirming(label)
-                              onClick?.()
-                              close()
-                            }}
-                            initial={{ opacity: 0, y: direction === 'up' ? 12 : -12, scale: 0.9, filter: 'blur(2px)' }}
-                            animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-                            transition={{
-                              type: 'tween',
-                              ease: 'easeInOut',
-                              duration: 0.3,
-                              delay: (partIndex * 4 + index) * 0.035,
-                            }}
-                            className="flex min-w-0 items-center gap-2.5 text-left"
-                          >
-                            <span
-                              className={cn(
-                                'flex size-11 shrink-0 items-center justify-center rounded-full border shadow-md shadow-black/10 transition-colors',
-                                asking ? 'border-red-700 bg-red-700' : 'border-onyx/10 bg-white',
-                              )}
-                            >
-                              {Icon ? (
-                                <Icon size={20} className={asking ? 'text-[#ffffff]' : danger ? 'text-red-700' : 'text-onyx'} />
-                              ) : (
-                                <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 22 }} aria-hidden="true" />
-                              )}
-                            </span>
-                            <span
-                              className={cn(
-                                // Plain white over the blur, as under the iPhone's icons.
-                                'line-clamp-2 min-w-0 font-subtitle text-[13px] font-medium leading-tight [text-shadow:0_1px_6px_rgba(0,0,0,0.45)]',
-                                danger ? 'text-[#ffb4ac]' : 'text-[#ffffff]',
-                              )}
-                            >
-                              {asking ? confirm : label}
-                            </span>
-                          </motion.button>
-                        )
-                      })}
-                    </div>
-                  ))}
-              </div>
-            )}
             {ordered.map(({ Icon, iconClass, label, danger, badge, onClick, href, group, keepOpen }, index) => {
               // The one just above on screen: a new group starts a little apart from it.
               const above = direction === 'up' ? ordered[index + 1] : ordered[index - 1]
@@ -478,6 +418,57 @@ export function FloatingActionMenu({
                 </motion.div>
               )
             })}
+            {/* What "Mais opções" opens just below it: two by two, each like the options above (the name in a white
+                pill beside its round button); the app's own settings (group "app") in their own rows, a little apart. */}
+            {open && showMore && more && (
+              <div className="pointer-events-auto flex w-[min(21.5rem,calc(100vw-2rem))] flex-col gap-2">
+                {[more.filter((a) => a.group !== 'app'), more.filter((a) => a.group === 'app')]
+                  .filter((part) => part.length)
+                  .map((part, partIndex) => (
+                    <div key={partIndex} className={cn('grid grid-cols-2 gap-x-2 gap-y-2', partIndex > 0 && 'pt-2')}>
+                      {part.map(({ Icon, iconClass, label, danger, onClick, confirm }, index) => {
+                        const asking = confirming === label
+                        return (
+                          <motion.button
+                            key={label}
+                            type="button"
+                            onClick={() => {
+                              if (confirm && !asking) return setConfirming(label)
+                              onClick?.()
+                              close()
+                            }}
+                            initial={{ opacity: 0, y: direction === 'up' ? 10 : -10, filter: 'blur(2px)' }}
+                            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                            transition={{ type: 'tween', ease: 'easeOut', duration: 0.25, delay: (partIndex * 4 + index) * 0.03 }}
+                            className="flex min-w-0 items-center justify-end gap-2"
+                          >
+                            <span
+                              className={cn(
+                                'min-w-0 truncate rounded-full border border-onyx/10 bg-white px-3 py-1.5 font-subtitle text-xs font-medium shadow-md shadow-black/10',
+                                danger || asking ? 'text-red-700' : 'text-onyx',
+                              )}
+                            >
+                              {asking ? confirm : label}
+                            </span>
+                            <span
+                              className={cn(
+                                'flex size-10 shrink-0 items-center justify-center rounded-full border shadow-md shadow-black/10 transition-colors',
+                                asking ? 'border-red-700 bg-red-700' : 'border-onyx/10 bg-white',
+                              )}
+                            >
+                              {Icon ? (
+                                <Icon size={18} className={asking ? 'text-[#ffffff]' : danger ? 'text-red-700' : 'text-onyx'} />
+                              ) : (
+                                <i className={cn(iconClass, 'text-onyx')} style={{ fontSize: 20 }} aria-hidden="true" />
+                              )}
+                            </span>
+                          </motion.button>
+                        )
+                      })}
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
         )}
 
