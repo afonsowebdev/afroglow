@@ -345,20 +345,15 @@ export function GenerateSlotsSheet({
               </section>
             </div>
 
-            {/* The button: what it opens and until when, with the arrow in a round white chip like the Painel's Nova marcação. */}
+            {/* The button, plain: a white pill with the cards' shadow, what it opens and until when, the arrow in a round chip. */}
             <div className="px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]">
               <button
                 type="submit"
                 disabled={busy || times.length === 0}
-                className="glass-chip flex h-14 w-full items-center gap-3 rounded-full pe-2 ps-2 text-left transition-transform active:scale-[0.98] disabled:opacity-45"
-                style={{ boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--color-onyx) 14%, transparent), 0px 1px 3px 0px rgba(0,0,0,0.08), 0px 12px 32px -10px rgba(0,0,0,0.2)' }}
+                className="flex h-14 w-full items-center gap-3 rounded-full bg-card pe-2 ps-5 text-left transition-transform active:scale-[0.98] disabled:opacity-45"
+                style={{ boxShadow: '0px 1px 3px 0px rgba(0,0,0,0.08), 0px 12px 32px -10px rgba(0,0,0,0.2)' }}
               >
-                <span
-                  className="flex size-10 shrink-0 items-center justify-center rounded-full"
-                  style={{ background: 'color-mix(in srgb, var(--c-confirmed) 18%, transparent)', color: 'var(--c-confirmed)' }}
-                >
-                  <CalendarRange size={18} />
-                </span>
+                <CalendarRange size={19} className="shrink-0 text-onyx" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-subtitle text-[15px] font-semibold leading-tight text-onyx">
                     {busy ? 'A abrir…' : times.length === 0 ? 'Escolhe pelo menos um dia' : `Abrir ${times.length} ${times.length === 1 ? 'horário' : 'horários'}`}
@@ -370,7 +365,7 @@ export function GenerateSlotsSheet({
                     </span>
                   )}
                 </span>
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-onyx shadow-sm">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-onyx/[0.05] text-onyx">
                   <ArrowRight size={18} />
                 </span>
               </button>
