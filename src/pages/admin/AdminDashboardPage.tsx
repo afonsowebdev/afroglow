@@ -2886,8 +2886,8 @@ function AdminDashboard() {
           }`}
         >
           <div className={`relative z-[62] origin-left transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${headerScrolled ? 'scale-[0.86]' : ''}`}>
-            {tab === 'fechos' ? (
-              // Dias fechados is a page reached from another: a round back button where the logo is.
+            {tab === 'fechos' || tab === 'seguranca' ? (
+              // Pages reached from another (Dias fechados, the account): a round back button where the logo is.
               <button
                 type="button"
                 aria-label="Voltar"
@@ -2895,7 +2895,8 @@ function AdminDashboard() {
                   if (anyMenuOpen) return
                   void tap()
                   const back = previousTab.current
-                  setTab(back === 'fechos' ? 'disponibilidade' : back)
+                  // Back where it came from; with nothing before it, Horários for Dias fechados and Início for the account.
+                  setTab(back === tab || back === 'fechos' || back === 'seguranca' ? (tab === 'fechos' ? 'disponibilidade' : 'inicio') : back)
                   window.scrollTo({ top: 0 })
                 }}
                 className={`flex size-12 items-center justify-center rounded-full ${INK_CIRCLE}`}
