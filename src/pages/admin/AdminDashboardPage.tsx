@@ -43,7 +43,7 @@ import {
 } from 'lucide-react'
 import { BackToTop } from '@/components/ui/back-to-top'
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
-import { FloatingActionMenu, type MenuAction } from '@/components/ui/floating-action-button'
+import type { MenuAction } from '@/components/ui/floating-action-button'
 import { adminToken, api, ApiError } from '@/lib/api'
 import { CustomersView } from '@/pages/admin/CustomersView'
 import type { AdminCustomer } from '@/pages/admin/admin-types'
@@ -57,6 +57,7 @@ import { PromotionsView } from '@/pages/admin/PromotionsView'
 import { TeamView } from '@/pages/admin/TeamView'
 import { HomeView } from '@/pages/admin/HomeView'
 import { PullToRefresh } from '@/pages/admin/PullToRefresh'
+import { PlusSheet } from '@/pages/admin/PlusSheet'
 import { HeaderLogo } from '@/customer/HeaderLogo'
 import { tap } from '@/lib/haptics'
 import { useScrollLock } from '@/lib/use-scroll-lock'
@@ -2930,21 +2931,22 @@ function AdminDashboard() {
               }}
               onOpenChange={onBellOpen}
             />
-            <FloatingActionMenu
-              actions={menuActions}
-              more={moreActions}
-              moreBelow
-              keepOrder
-              smallItems
-              direction="down"
-              small
-              brand
-              raised
-              ink
-              shrink={headerScrolled}
-              onOpenChange={onPlusOpen}
-              PlusIcon={Plus}
-            />
+            {/* The "+": its actions rise from the bottom of the screen in a sheet (the Google Photos way). */}
+            <motion.button
+              type="button"
+              aria-label={openMenus.plus ? 'Fechar as ações' : 'Abrir as ações'}
+              aria-expanded={openMenus.plus}
+              onClick={() => {
+                if (openMenus.bell) return
+                void tap()
+                onPlusOpen(!openMenus.plus)
+              }}
+              animate={{ rotate: openMenus.plus ? 45 : 0, scale: headerScrolled ? 0.86 : 1 }}
+              transition={{ type: 'tween', ease: [0.22, 1, 0.36, 1], duration: 0.5 }}
+              className={`relative z-[62] flex size-11 items-center justify-center rounded-full ${INK_CIRCLE}`}
+            >
+              <Plus size={20} strokeWidth={2.6} />
+            </motion.button>
             {/* The account at the far right, where the iPhone keeps it: the admin's photo (or initials). */}
             <button
               type="button"
@@ -3417,6 +3419,8 @@ function AdminDashboard() {
 
 
       {/* Tab bar with the round options button beside it, same as the customer app. */}
+      <PlusSheet open={openMenus.plus} actions={menuActions} more={moreActions} onClose={() => onPlusOpen(false)} />
+
       {/* No gap of its own: the back-to-top button opens its room smoothly beside the bar. */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center px-3">
         <div className={`min-w-0 ${navHidden ? 'pointer-events-none' : 'pointer-events-auto'}`}>
