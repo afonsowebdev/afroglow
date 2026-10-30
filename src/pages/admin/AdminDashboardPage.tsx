@@ -36,6 +36,8 @@ import {
   Tag,
   UserRound,
   Users,
+  Pencil,
+  ImagePlus,
   EyeOff,
   Eye,
   TriangleAlert,
@@ -1373,6 +1375,11 @@ interface ServiceFormState {
   active: boolean
 }
 
+/**
+ * A model, new or edited, in a sheet like the others: photos first (what the clients see), the name, description and
+ * duration in glass fields, one price or a price per option as an iOS segmented control, whether it can be booked as a
+ * green switch, and a plain button at the bottom to save. The page behind stays still.
+ */
 function ServiceDialog({
   form,
   busy,
@@ -1392,6 +1399,7 @@ function ServiceDialog({
   onSave: () => void
   onClose: () => void
 }) {
+  useScrollLock(!!form)
   useEffect(() => {
     if (!form) return
     const onKey = (e: KeyboardEvent) => {
@@ -1403,23 +1411,20 @@ function ServiceDialog({
 
   const isNew = form?.id === null
   const fieldClass =
-    'w-full rounded-xl border border-onyx/15 bg-white px-3 py-2.5 font-subtitle text-base text-onyx outline-none placeholder:text-onyx/30 focus-visible:border-onyx'
-  // A field inside a grouped list: no box of its own.
-  const plain =
-    'field-plain block w-full min-w-0 bg-transparent font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35'
-  const section = 'mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark'
-  const group =
-    'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
+    'glass-chip w-full rounded-full !border-0 px-4 py-2.5 font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35'
+  const glassField = 'glass-chip flex items-center gap-3 rounded-[20px] px-4'
+  const plain = 'field-plain block w-full min-w-0 !border-0 !bg-transparent !p-0 font-subtitle text-base text-onyx !shadow-none outline-none placeholder:text-onyx/35'
+  const section = 'mb-2 px-1 font-subtitle text-[12px] font-semibold text-muted-dark'
 
   return (
     <AnimatePresence>
       {form && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center">
+        <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center">
           <motion.button
             type="button"
             aria-label="Fechar"
             onClick={() => !busy && onClose()}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1432,37 +1437,28 @@ function ServiceDialog({
               e.preventDefault()
               onSave()
             }}
-            className="relative flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
+            className="relative flex max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl sm:rounded-[28px]"
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           >
-            {/* Cancel and save always in reach, as in the iPhone's own sheets. */}
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-onyx/10 px-4 py-3">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={busy}
-                className="min-w-20 text-left font-subtitle text-[15px] text-onyx/60 disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-              <h2 className="truncate font-subtitle text-base font-semibold text-onyx">
-                {isNew ? 'Novo modelo' : form.name || 'Editar modelo'}
-              </h2>
-              <button
-                type="submit"
-                disabled={busy}
-                className="min-w-20 text-right font-subtitle text-[15px] font-semibold text-onyx disabled:opacity-50"
-              >
-                {busy ? 'A guardar…' : 'Guardar'}
+            <div className="flex items-center gap-3 px-5 pb-3 pt-5">
+              <span className="glass-chip flex size-11 shrink-0 items-center justify-center rounded-full text-onyx">
+                <Scissors size={18} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate font-subtitle text-[19px] font-semibold tracking-tight text-onyx">{isNew ? 'Novo modelo' : form.name || 'Editar modelo'}</h2>
+                <p className="truncate font-subtitle text-xs text-muted-dark">{isNew ? 'Aparece no site e na app.' : 'As mudanças aparecem logo.'}</p>
+              </div>
+              <button type="button" aria-label="Fechar" onClick={onClose} disabled={busy} className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-onyx">
+                <X size={16} />
               </button>
             </div>
 
-            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-5">
+            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-5 pb-4 pt-1 [&>*]:shrink-0">
               {error && (
-                <p role="alert" className="rounded-xl bg-red-700/10 px-4 py-3 font-subtitle text-sm text-red-700">
+                <p role="alert" className="rounded-2xl px-4 py-3 font-subtitle text-sm text-onyx" style={{ background: 'color-mix(in srgb, var(--c-cancelled) 12%, transparent)' }}>
                   {error}
                 </p>
               )}
@@ -1474,56 +1470,43 @@ function ServiceDialog({
                 ) : (
                   <>
                     <h3 className={section}>Fotos</h3>
-                    <p className="rounded-2xl bg-onyx/[0.04] px-4 py-3 font-subtitle text-sm text-muted-dark">
-                      Guarda o modelo primeiro. Depois abre-o de novo para juntar fotos.
+                    <p className="flex items-center gap-2.5 rounded-[20px] bg-onyx/[0.04] px-4 py-3 font-subtitle text-[13px] text-muted-dark">
+                      <ImagePlus size={17} className="shrink-0" />
+                      Guarda o modelo primeiro; depois abre-o de novo para juntar fotos.
                     </p>
                   </>
                 )}
               </section>
 
-              <section>
+              <section className="flex flex-col gap-2">
                 <h3 className={section}>Informação</h3>
-                <div className={group}>
-                  <label className="block px-4 pb-2 pt-2">
-                    <span className="block font-subtitle text-[11px] text-muted-dark">Nome</span>
-                    <input
-                      value={form.name}
-                      onChange={(e) => onChange({ ...form, name: e.target.value })}
-                      placeholder="Ex: Twist Braids"
-                      maxLength={80}
-                      className={`${plain} mt-0.5 h-7`}
-                    />
-                  </label>
-                  <label className="block px-4 pb-2 pt-2">
-                    <span className="flex justify-between font-subtitle text-[11px] text-muted-dark">
-                      Descrição <span>{form.description.length}/300</span>
-                    </span>
-                    <textarea
-                      value={form.description}
-                      onChange={(e) => onChange({ ...form, description: e.target.value })}
-                      placeholder="Breve descrição para as clientes"
-                      maxLength={300}
-                      rows={2}
-                      className={`${plain} mt-0.5 resize-none leading-snug`}
-                    />
-                  </label>
-                  <label className="flex items-center justify-between gap-3 px-4 py-3">
-                    <span className="font-subtitle text-[15px] text-onyx">Duração</span>
-                    <input
-                      value={form.duration}
-                      onChange={(e) => onChange({ ...form, duration: e.target.value })}
-                      placeholder="Ex: 3–5h"
-                      maxLength={40}
-                      className={`${plain} w-32 text-right`}
-                    />
-                  </label>
-                </div>
+                <label className={`${glassField} h-12`}>
+                  <span className="w-[4.5rem] shrink-0 font-subtitle text-[13px] text-muted-dark">Nome</span>
+                  <input value={form.name} onChange={(e) => onChange({ ...form, name: e.target.value })} placeholder="Ex: Twist Braids" maxLength={80} className={plain} />
+                </label>
+                <label className={`${glassField} flex-col !items-stretch !gap-0.5 py-2.5`}>
+                  <span className="flex justify-between font-subtitle text-[12px] text-muted-dark">
+                    Descrição <span className="tabular">{form.description.length}/300</span>
+                  </span>
+                  <textarea
+                    value={form.description}
+                    onChange={(e) => onChange({ ...form, description: e.target.value })}
+                    placeholder="Breve descrição para as clientes"
+                    maxLength={300}
+                    rows={2}
+                    className={`${plain} resize-none leading-snug`}
+                  />
+                </label>
+                <label className={`${glassField} h-12`}>
+                  <span className="w-[4.5rem] shrink-0 font-subtitle text-[13px] text-muted-dark">Duração</span>
+                  <input value={form.duration} onChange={(e) => onChange({ ...form, duration: e.target.value })} placeholder="Ex: 3–5h" maxLength={40} className={plain} />
+                </label>
               </section>
 
               {/* One price, or a price per length / parting. */}
               <section>
                 <h3 className={section}>Preço</h3>
-                <div className="grid grid-cols-2 rounded-xl bg-onyx/[0.06] p-1" role="tablist" aria-label="Tipo de preço">
+                <div className="grid grid-cols-2 rounded-full bg-onyx/[0.06] p-1" role="tablist" aria-label="Tipo de preço">
                   {(
                     [
                       [false, 'Preço único'],
@@ -1535,9 +1518,14 @@ function ServiceDialog({
                       type="button"
                       role="tab"
                       aria-selected={form.pricing.on === on}
-                      onClick={() => onChange({ ...form, pricing: { ...form.pricing, on } })}
-                      className={`h-9 rounded-[9px] font-subtitle text-sm transition-colors ${
-                        form.pricing.on === on ? 'bg-white font-medium text-onyx shadow-sm shadow-black/10 dark:bg-onyx/[0.14]' : 'text-onyx/55'
+                      onClick={() => {
+                        void tap()
+                        onChange({ ...form, pricing: { ...form.pricing, on } })
+                      }}
+                      className={`h-9 rounded-full font-subtitle text-[13px] transition-colors ${
+                        form.pricing.on === on
+                          ? 'bg-white font-semibold text-onyx shadow-[0_3px_8px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.04)] dark:bg-onyx/[0.16]'
+                          : 'text-muted-dark'
                       }`}
                     >
                       {text}
@@ -1547,66 +1535,71 @@ function ServiceDialog({
                 <div className="mt-2.5">
                   {form.pricing.on ? (
                     <>
-                      <PricingEditor
-                        bare
-                        draft={form.pricing}
-                        onChange={(pricing) => onChange({ ...form, pricing })}
-                        fieldClass={fieldClass}
-                      />
-                      <p className="mt-2 px-1 font-subtitle text-xs text-muted-dark">
-                        A cliente escolhe ao marcar; o site mostra “a partir de” o mais baixo.
-                      </p>
+                      <PricingEditor bare draft={form.pricing} onChange={(pricing) => onChange({ ...form, pricing })} fieldClass={fieldClass} />
+                      <p className="mt-2 px-1 font-subtitle text-xs text-muted-dark">A cliente escolhe ao marcar; o site mostra “desde” o mais baixo.</p>
                     </>
                   ) : (
-                    <div className={group}>
-                      <label className="flex items-center justify-between gap-3 px-4 py-3">
-                        <span className="font-subtitle text-[15px] text-onyx">Preço</span>
-                        <span className="flex items-center gap-1">
-                          <input
-                            value={form.price}
-                            onChange={(e) => onChange({ ...form, price: e.target.value })}
-                            inputMode="decimal"
-                            placeholder="65"
-                            className={`${plain} w-24 text-right`}
-                          />
-                          <span className="font-subtitle text-base text-muted-dark">€</span>
-                        </span>
-                      </label>
-                    </div>
+                    <label className={`${glassField} h-12`}>
+                      <span className="w-[4.5rem] shrink-0 font-subtitle text-[13px] text-muted-dark">Preço</span>
+                      <input
+                        value={form.price}
+                        onChange={(e) => onChange({ ...form, price: e.target.value })}
+                        inputMode="decimal"
+                        placeholder="65"
+                        className={`${plain} tabular text-right font-semibold`}
+                      />
+                      <span className="font-subtitle text-base text-muted-dark">€</span>
+                    </label>
                   )}
                 </div>
               </section>
 
-              {/* Open for booking, as an iPhone switch. */}
+              {/* Open for booking, as a green iPhone switch. */}
               <section>
                 <h3 className={section}>Visibilidade</h3>
-                <label className={`${group} flex cursor-pointer items-center justify-between gap-4 px-4 py-3`}>
-                  <span>
-                    <span className="block font-subtitle text-[15px] text-onyx">Disponível para marcar</span>
-                    <span className="mt-0.5 block font-subtitle text-xs text-muted-dark">
-                      Desligado, fica escondido; as marcações mantêm-se.
-                    </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={form.active}
+                  onClick={() => {
+                    void tap()
+                    onChange({ ...form, active: !form.active })
+                  }}
+                  className="flex w-full items-center gap-4 rounded-[20px] bg-onyx/[0.04] px-4 py-3 text-left"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-subtitle text-[15px] font-semibold text-onyx">Disponível para marcar</span>
+                    <span className="mt-0.5 block font-subtitle text-xs text-muted-dark">Desligado, fica escondido; as marcações mantêm-se.</span>
                   </span>
-                  <input
-                    type="checkbox"
-                    checked={form.active}
-                    onChange={(e) => onChange({ ...form, active: e.target.checked })}
-                    className="peer sr-only"
-                  />
                   <span
                     aria-hidden="true"
-                    className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
-                      form.active ? 'bg-onyx' : 'bg-onyx/20'
-                    } peer-focus-visible:ring-2 peer-focus-visible:ring-onyx/40`}
+                    className="relative h-[30px] w-[50px] shrink-0 rounded-full transition-colors duration-200"
+                    style={{ background: form.active ? 'var(--c-pos)' : 'color-mix(in srgb, var(--color-onyx) 16%, transparent)' }}
                   >
                     <span
-                      className={`absolute top-0.5 size-6 rounded-full bg-white shadow transition-all ${
-                        form.active ? 'left-[1.375rem]' : 'left-0.5'
-                      }`}
+                      className={`absolute top-[2px] size-[26px] rounded-full bg-[#ffffff] shadow-[0_2px_6px_rgba(0,0,0,0.2)] transition-all duration-200 ${form.active ? 'left-[22px]' : 'left-[2px]'}`}
                     />
                   </span>
-                </label>
+                </button>
               </section>
+            </div>
+
+            {/* Saving, at the bottom: a plain white button. */}
+            <div className="px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]">
+              <button
+                type="submit"
+                disabled={busy}
+                className="flex h-14 w-full items-center gap-3 rounded-full bg-card pe-2 ps-5 text-left transition-transform active:scale-[0.98] disabled:opacity-45"
+                style={{ boxShadow: CARD_SHADOW }}
+              >
+                <Check size={19} className="shrink-0 text-onyx" />
+                <span className="min-w-0 flex-1 truncate font-subtitle text-[15px] font-semibold text-onyx">
+                  {busy ? 'A guardar…' : isNew ? 'Criar modelo' : 'Guardar alterações'}
+                </span>
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-onyx/[0.05] text-onyx">
+                  <ArrowRight size={18} />
+                </span>
+              </button>
             </div>
           </motion.form>
         </div>
@@ -1614,8 +1607,6 @@ function ServiceDialog({
     </AnimatePresence>
   )
 }
-
-
 
 interface ServiceUsage {
   total: number
@@ -1650,16 +1641,18 @@ function DeleteServiceDialog({
 
   const blocked = (usage?.active ?? 0) > 0
   const canConfirm = usage !== null && !blocked && !busy
+  useScrollLock(!!service)
+  const RED = 'var(--c-cancelled)'
 
   return (
     <AnimatePresence>
       {service && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center">
+        <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center">
           <motion.button
             type="button"
             aria-label="Fechar"
             onClick={() => !busy && onClose()}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1668,90 +1661,89 @@ function DeleteServiceDialog({
             role="dialog"
             aria-modal="true"
             aria-label={`Eliminar ${service.name}`}
-            className="relative w-full max-w-md rounded-t-3xl bg-white p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl"
+            className="relative flex max-h-[90dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl sm:rounded-[28px]"
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           >
-            <div className="flex items-start gap-4">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-700/10 text-xl text-red-700">
-                <i className="bx bx-trash" aria-hidden="true" />
+            <div className="flex items-center gap-3 px-5 pb-3 pt-5">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-full" style={{ background: `color-mix(in srgb, ${RED} 13%, transparent)`, color: RED }}>
+                <Trash2 size={18} />
               </span>
-              <div>
-                <h2 className="font-subtitle text-xl font-semibold tracking-tight text-onyx">
-                  Eliminar {service.name}?
-                </h2>
-                <p className="mt-1 font-subtitle text-sm text-muted-dark">
-                  O modelo deixa de aparecer no site e as clientes já não o podem escolher.
-                </p>
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate font-subtitle text-[19px] font-semibold tracking-tight text-onyx">Eliminar {service.name}?</h2>
+                <p className="truncate font-subtitle text-xs text-muted-dark">Deixa de aparecer no site e na app.</p>
               </div>
+              <button type="button" aria-label="Fechar" onClick={onClose} disabled={busy} className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-onyx">
+                <X size={16} />
+              </button>
             </div>
 
-            <div className="mt-5">
+            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 pb-4 pt-1">
               {usage === null ? (
-                !error && <p className="font-subtitle text-sm text-muted-dark">A verificar marcações...</p>
+                !error && <p className="px-1 font-subtitle text-sm text-muted-dark">A verificar marcações…</p>
               ) : blocked ? (
-                <div className="rounded-xl border border-red-700/20 bg-red-700/5 p-4">
-                  <p className="font-subtitle text-sm text-red-700">
-                    Tem <strong>{usage.active}</strong> {usage.active === 1 ? 'marcação ativa' : 'marcações ativas'} que
-                    ainda não aconteceram. Resolve-as primeiro:
+                <>
+                  <p className="flex items-start gap-2.5 rounded-[20px] px-4 py-3 font-subtitle text-[13px] leading-snug text-onyx" style={{ background: `color-mix(in srgb, ${RED} 9%, transparent)` }}>
+                    <TriangleAlert size={16} className="mt-0.5 shrink-0" style={{ color: RED }} />
+                    <span>
+                      Tem <strong className="font-semibold">{usage.active}</strong>{' '}
+                      {usage.active === 1 ? 'marcação ativa que ainda não aconteceu. Resolve-a' : 'marcações ativas que ainda não aconteceram. Resolve-as'} primeiro: as pendentes em <strong className="font-semibold">Pedidos</strong>, as confirmadas na{' '}
+                      <strong className="font-semibold">Agenda</strong>.
+                    </span>
                   </p>
-                  <ul className="mt-3 flex flex-col gap-2">
-                    {usage.activeBookings.map((booking) => (
-                      <li
-                        key={booking.id}
-                        className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 font-subtitle text-sm"
-                      >
-                        <span className="min-w-0 truncate text-onyx">{booking.customerName}</span>
-                        <span className="shrink-0 text-xs text-muted-dark">
-                          {booking.status === 'PENDING' ? 'Pendente' : 'Confirmada'} ·{' '}
-                          {formatDateTime(booking.startsAt)}
-                        </span>
-                      </li>
+                  <div className="overflow-hidden rounded-[20px] bg-card" style={{ boxShadow: CARD_SHADOW }}>
+                    {usage.activeBookings.map((booking, i) => (
+                      <div key={booking.id} className={`flex items-center gap-3 px-4 py-2.5 ${i ? 'border-t border-onyx/[0.06]' : ''}`}>
+                        <span
+                          className="size-2 shrink-0 rounded-full"
+                          style={{ background: booking.status === 'PENDING' ? 'var(--c-waiting)' : 'var(--c-confirmed)' }}
+                          aria-hidden="true"
+                        />
+                        <span className="min-w-0 flex-1 truncate font-subtitle text-[14px] font-medium text-onyx">{booking.customerName}</span>
+                        <span className="shrink-0 font-subtitle text-xs text-muted-dark">{formatDateTime(booking.startsAt)}</span>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                   {usage.active > usage.activeBookings.length && (
-                    <p className="mt-2 font-subtitle text-xs text-muted-dark">
-                      e mais {usage.active - usage.activeBookings.length}...
-                    </p>
+                    <p className="px-1 font-subtitle text-xs text-muted-dark">e mais {usage.active - usage.activeBookings.length}…</p>
                   )}
-                  <p className="mt-3 font-subtitle text-xs text-muted-dark">
-                    As pendentes estão na aba <strong>Pedidos</strong> (recusar) e as confirmadas na{' '}
-                    <strong>Agenda</strong> (cancelar sessão).
-                  </p>
-                </div>
-              ) : usage.history > 0 ? (
-                <p className="rounded-xl bg-onyx/5 px-4 py-3 font-subtitle text-sm text-muted-dark">
-                  Também serão apagadas <strong>{usage.history}</strong>{' '}
-                  {usage.history === 1 ? 'marcação antiga' : 'marcações antigas'} (histórico) deste modelo. Não pode ser
-                  desfeito.
-                </p>
+                </>
               ) : (
-                <p className="rounded-xl bg-onyx/5 px-4 py-3 font-subtitle text-sm text-muted-dark">
-                  Este modelo não tem marcações. Não pode ser desfeito.
+                <p className="flex items-start gap-2.5 rounded-[20px] px-4 py-3 font-subtitle text-[13px] leading-snug text-onyx" style={{ background: `color-mix(in srgb, ${RED} 9%, transparent)` }}>
+                  <TriangleAlert size={16} className="mt-0.5 shrink-0" style={{ color: RED }} />
+                  <span>
+                    {usage.history > 0 ? (
+                      <>
+                        Também são apagadas <strong className="font-semibold">{usage.history}</strong>{' '}
+                        {usage.history === 1 ? 'marcação antiga' : 'marcações antigas'} deste modelo.{' '}
+                      </>
+                    ) : (
+                      'Este modelo não tem marcações. '
+                    )}
+                    Não pode ser desfeito.
+                  </span>
                 </p>
               )}
+              {error && <p className="px-1 font-subtitle text-sm" style={{ color: RED }}>{error}</p>}
             </div>
 
-            {error && <p className="mt-3 font-subtitle text-sm text-red-700">{error}</p>}
-
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={busy}
-                className="rounded-full glass-chip py-3 font-subtitle text-sm text-onyx transition-colors disabled:opacity-50"
-              >
-                Cancelar
-              </button>
+            <div className="px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2">
               <button
                 type="button"
                 onClick={onConfirm}
                 disabled={!canConfirm}
-                className="rounded-full bg-red-700 py-3 font-subtitle text-sm text-[#ffffff] transition-opacity hover:opacity-90 disabled:opacity-40"
+                className={`flex h-14 w-full items-center gap-3 rounded-full pe-2 ps-5 text-left transition-all active:scale-[0.98] ${canConfirm ? 'text-[#ffffff]' : 'bg-card text-onyx opacity-60'}`}
+                style={canConfirm ? { background: RED, boxShadow: CARD_SHADOW } : { boxShadow: CARD_SHADOW }}
               >
-                {busy ? 'A eliminar...' : 'Eliminar'}
+                <Trash2 size={19} className="shrink-0" />
+                <span className="min-w-0 flex-1 truncate font-subtitle text-[15px] font-semibold">
+                  {busy ? 'A eliminar…' : blocked ? 'Resolve as marcações primeiro' : `Eliminar ${service.name}`}
+                </span>
+                <span className={`flex size-10 shrink-0 items-center justify-center rounded-full ${canConfirm ? 'bg-white/20' : 'bg-onyx/[0.05]'}`}>
+                  <ArrowRight size={18} />
+                </span>
               </button>
             </div>
           </motion.div>
@@ -2997,47 +2989,45 @@ function AdminDashboard() {
             {tab === 'servicos' && (
               <section className="mt-6">
                 {serviceNotice && (
-                  <div className="mb-4 flex items-start gap-3 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-4">
-                    <i className="bx bx-check-circle mt-0.5 text-xl text-onyx" aria-hidden="true" />
+                  <div className="mb-4 flex items-center gap-3 rounded-[22px] bg-card px-4 py-3" style={{ boxShadow: CARD_SHADOW }}>
+                    <Check size={17} className="shrink-0" style={{ color: 'var(--c-confirmed)' }} />
                     <p className="flex-1 font-subtitle text-sm text-onyx">{serviceNotice}</p>
-                    <button
-                      type="button"
-                      onClick={() => setServiceNotice(null)}
-                      aria-label="Fechar aviso"
-                      className="text-lg text-muted-dark"
-                    >
-                      <i className="bx bx-x" aria-hidden="true" />
+                    <button type="button" onClick={() => setServiceNotice(null)} aria-label="Fechar aviso" className="text-muted-dark">
+                      <X size={16} />
                     </button>
                   </div>
                 )}
-                {/* The catalogue at a glance, and adding one. */}
-                <div className="flex items-end justify-between gap-4">
-                  <div>
-                    <p className="font-subtitle text-2xl font-semibold lining-nums tracking-tight text-onyx">
-                      {services.length} {services.length === 1 ? 'modelo' : 'modelos'}
-                    </p>
-                    {services.length > 0 && (
-                      <p className="mt-0.5 font-subtitle text-sm text-muted-dark">
-                        De {formatPrice(Math.min(...services.map((x) => x.priceCents))).replace(/,00/, '')} a{' '}
-                        {formatPrice(Math.max(...services.map((x) => x.priceCents))).replace(/,00/, '')}
-                        {(() => {
-                          const hiddenCount = services.filter((x) => x.active === false).length
-                          return hiddenCount ? ` · ${hiddenCount} ${hiddenCount === 1 ? 'escondido' : 'escondidos'}` : ''
-                        })()}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={openNewService}
-                    className="flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-onyx px-4 font-subtitle text-sm font-medium text-white"
-                  >
-                    <i className="bx bx-plus text-lg" aria-hidden="true" />
-                    Novo modelo
-                  </button>
-                </div>
 
-                {/* One row per model: its photo, name, price and options; tap to edit. */}
+                {/* The catalogue in three figures. */}
+                {services.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2.5">
+                    <AgendaFigure label="Modelos" value={String(services.length)} />
+                    <AgendaFigure label="Disponíveis" value={String(services.filter((x) => x.active !== false).length)} colour="var(--c-confirmed)" />
+                    <AgendaFigure label="Desde" value={formatPrice(Math.min(...services.map((x) => x.priceCents))).replace(/,00/, '')} amount />
+                  </div>
+                )}
+
+                {/* Adding one: a plain white button, like Abrir semanas. */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    void tap()
+                    openNewService()
+                  }}
+                  className={`flex h-16 w-full items-center gap-3 rounded-full bg-card pe-2.5 ps-5 text-left transition-transform active:scale-[0.98] ${services.length > 0 ? 'mt-3' : ''}`}
+                  style={{ boxShadow: CARD_SHADOW }}
+                >
+                  <Plus size={20} className="shrink-0 text-onyx" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-subtitle text-[15px] font-semibold leading-tight text-onyx">Novo modelo</span>
+                    <span className="block truncate font-subtitle text-[12px] text-muted-dark">Nome, duração, preço e fotos</span>
+                  </span>
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-onyx/[0.05] text-onyx">
+                    <ArrowRight size={18} />
+                  </span>
+                </button>
+
+                {/* One card per model: its photo, name, price and options, whether it can be booked; tap to edit. */}
                 <div className="mt-5 flex flex-col gap-3">
                   {services.map((service) => {
                     const photos = serviceImageUrls(service)
@@ -3045,73 +3035,77 @@ function AdminDashboard() {
                     const { lengths, partings } = optionsOf(service)
                     const options = [...lengths, ...partings]
                     const hidden = service.active === false
+                    const colour = hidden ? 'color-mix(in srgb, var(--color-onyx) 40%, transparent)' : 'var(--c-confirmed)'
                     return (
-                      <article
-                        key={service.id}
-                        className={`overflow-hidden rounded-2xl border border-onyx/10 bg-white shadow-sm shadow-black/5 ${
-                          hidden ? 'opacity-70' : ''
-                        }`}
-                      >
+                      <article key={service.id} className="flex items-stretch gap-3.5 rounded-[22px] bg-card p-3" style={{ boxShadow: CARD_SHADOW }}>
                         <button
                           type="button"
                           onClick={() => openEditService(service)}
-                          className="flex w-full items-stretch gap-4 p-3 text-left active:bg-onyx/[0.03]"
+                          aria-label={`Editar ${service.name}`}
+                          className={`relative size-[6.5rem] shrink-0 overflow-hidden rounded-2xl bg-onyx/[0.05] ${hidden ? 'opacity-60' : ''}`}
                         >
-                          <span className="relative size-24 shrink-0 overflow-hidden rounded-xl bg-onyx/[0.06]">
-                            {photo ? (
-                              <img src={photo} alt="" loading="lazy" className="size-full object-cover" />
-                            ) : (
-                              <span className="flex size-full flex-col items-center justify-center gap-1 text-onyx/35">
-                                <i className="bx bx-image-add text-2xl" aria-hidden="true" />
-                                <span className="font-subtitle text-[10px]">Sem foto</span>
-                              </span>
-                            )}
-                            {photos.length > 1 && (
-                              <span className="absolute bottom-1 left-1 rounded-full bg-black/55 px-1.5 py-0.5 font-subtitle text-[10px] text-[#ffffff]">
-                                {photos.length} fotos
-                              </span>
-                            )}
-                          </span>
-                          <span className="flex min-w-0 flex-1 flex-col py-0.5">
-                            <span className="flex items-start justify-between gap-2">
-                              <span className="truncate font-subtitle text-base font-semibold tracking-tight text-onyx">
-                                {service.name}
-                              </span>
-                              <i className="bx bx-chevron-right shrink-0 text-xl text-onyx/30" aria-hidden="true" />
+                          {photo ? (
+                            <img src={photo} alt="" loading="lazy" className="size-full object-cover" />
+                          ) : (
+                            <span className="flex size-full flex-col items-center justify-center gap-1 text-onyx/35">
+                              <ImagePlus size={22} />
+                              <span className="font-subtitle text-[10px]">Sem foto</span>
                             </span>
-                            <span className="font-subtitle text-sm text-onyx">
-                              {service.pricing ? 'a partir de ' : ''}
-                              <strong className="font-semibold lining-nums">
-                                {formatPrice(service.priceCents).replace(/,00/, '')}
-                              </strong>
-                              <span className="text-muted-dark"> · {service.durationLabel}</span>
+                          )}
+                          {photos.length > 1 && (
+                            <span className="absolute bottom-1.5 left-1.5 rounded-full bg-black/50 px-2 py-0.5 font-subtitle text-[10px] font-semibold text-[#ffffff] backdrop-blur-sm">
+                              {photos.length} fotos
                             </span>
-                            {options.length > 0 && (
-                              <span className="mt-1 truncate font-subtitle text-xs text-muted-dark">{options.join(' · ')}</span>
-                            )}
-                            <span className="mt-auto flex items-center gap-1.5 pt-2 font-subtitle text-[11px]">
-                              <span className={`size-1.5 rounded-full ${hidden ? 'bg-onyx/30' : 'bg-emerald-500'}`} />
-                              <span className="text-muted-dark">{hidden ? 'Escondido' : 'Disponível para marcar'}</span>
-                            </span>
-                          </span>
+                          )}
                         </button>
-                        <div className="flex border-t border-onyx/10">
-                          <button
-                            type="button"
-                            onClick={() => openEditService(service)}
-                            className="flex flex-1 items-center justify-center gap-1.5 py-2.5 font-subtitle text-sm text-onyx active:bg-onyx/[0.04]"
-                          >
-                            <i className="bx bx-pencil text-base" aria-hidden="true" />
-                            Editar
+                        <div className="flex min-w-0 flex-1 flex-col py-0.5">
+                          <button type="button" onClick={() => openEditService(service)} className="min-w-0 text-left">
+                            <span className="block truncate font-subtitle text-[15px] font-semibold tracking-tight text-onyx">{service.name}</span>
+                            <span className="block truncate font-subtitle text-[13px] text-muted-dark">
+                              {service.pricing ? 'desde ' : ''}
+                              <strong className="amount tabular font-semibold text-onyx">{formatPrice(service.priceCents).replace(/,00/, '')}</strong>
+                              {service.durationLabel ? ` · ${service.durationLabel}` : ''}
+                            </span>
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => openDeleteService(service)}
-                            className="flex flex-1 items-center justify-center gap-1.5 border-l border-onyx/10 py-2.5 font-subtitle text-sm text-muted-dark active:bg-red-700/10 active:text-red-700"
-                          >
-                            <i className="bx bx-trash text-base" aria-hidden="true" />
-                            Eliminar
-                          </button>
+                          {options.length > 0 && (
+                            <span className="mt-1.5 flex flex-wrap gap-1">
+                              {options.slice(0, 3).map((o) => (
+                                <span key={o} className="rounded-full bg-onyx/[0.05] px-2 py-0.5 font-subtitle text-[10px] font-medium text-onyx">
+                                  {o}
+                                </span>
+                              ))}
+                              {options.length > 3 && (
+                                <span className="rounded-full bg-onyx/[0.05] px-2 py-0.5 font-subtitle text-[10px] font-medium text-muted-dark">+{options.length - 3}</span>
+                              )}
+                            </span>
+                          )}
+                          <span className="mt-auto flex items-center gap-2 pt-2">
+                            <span
+                              className="flex min-w-0 items-center gap-1.5 truncate rounded-full px-2 py-0.5 font-subtitle text-[10px] font-semibold text-onyx"
+                              style={{ background: `color-mix(in srgb, ${colour} 15%, transparent)` }}
+                            >
+                              <span className="size-1.5 shrink-0 rounded-full" style={{ background: colour }} aria-hidden="true" />
+                              {hidden ? 'Escondido' : 'Disponível'}
+                            </span>
+                            <span className="flex-1" />
+                            <button
+                              type="button"
+                              onClick={() => openEditService(service)}
+                              aria-label={`Editar ${service.name}`}
+                              className="glass-chip flex size-8 shrink-0 items-center justify-center rounded-full text-onyx active:scale-95"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openDeleteService(service)}
+                              aria-label={`Eliminar ${service.name}`}
+                              className="flex size-8 shrink-0 items-center justify-center rounded-full active:scale-95"
+                              style={{ background: 'color-mix(in srgb, var(--c-cancelled) 12%, transparent)', color: 'var(--c-cancelled)' }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </span>
                         </div>
                       </article>
                     )
@@ -3119,11 +3113,7 @@ function AdminDashboard() {
                 </div>
 
                 {services.length === 0 && (
-                  <EmptyState
-                    icon="bx bx-cut"
-                    title="Ainda sem modelos"
-                    text="Cria o primeiro modelo em “Novo modelo”: nome, duração, preço e fotos."
-                  />
+                  <EmptyState icon="bx bx-cut" title="Ainda sem modelos" text="Cria o primeiro em “Novo modelo”: nome, duração, preço e fotos." />
                 )}
 
                 <DeleteServiceDialog
