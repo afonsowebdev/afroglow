@@ -2976,10 +2976,10 @@ function AdminDashboard() {
                 setTab('seguranca')
                 window.scrollTo({ top: 0 })
               }}
-              // A thin border round the photo: soft, green while the account is open.
+              // A white border round the photo, green while the account is open.
               className={`relative z-[62] flex size-11 items-center justify-center overflow-hidden rounded-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${INK_CIRCLE} ${
                 headerScrolled ? 'scale-[0.86]' : ''
-              } ${tab === 'seguranca' ? '!ring-2 !ring-[var(--c-confirmed)]' : '!ring-[1.5px] !ring-onyx/15'}`}
+              } ${tab === 'seguranca' ? '!ring-[3px] !ring-[var(--c-confirmed)]' : '!ring-[3px] !ring-[#ffffff] dark:!ring-[#ffffff]/85'}`}
             >
               {avatar ? (
                 <img src={avatar} alt="" className="size-full object-cover" />
