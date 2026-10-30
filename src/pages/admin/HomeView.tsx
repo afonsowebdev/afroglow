@@ -269,7 +269,7 @@ export function HomeView({
                       setMonthMenu((v) => !v)
                     }}
                     className={`flex h-8 min-w-8 items-center justify-center gap-1 rounded-full px-2 text-[13px] font-semibold transition-colors ${
-                      pastMonth ? 'bg-onyx text-white' : 'text-onyx hover:bg-onyx/[0.06]'
+                      pastMonth ? 'bg-onyx/[0.07] text-onyx' : 'text-onyx hover:bg-onyx/[0.06]'
                     }`}
                   >
                     <CalendarDays size={16} />
