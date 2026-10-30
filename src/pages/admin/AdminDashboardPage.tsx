@@ -3419,7 +3419,24 @@ function AdminDashboard() {
 
 
       {/* Tab bar with the round options button beside it, same as the customer app. */}
-      <PlusSheet open={openMenus.plus} actions={menuActions} more={moreActions} onClose={() => onPlusOpen(false)} />
+      <PlusSheet
+        open={openMenus.plus}
+        actions={menuActions}
+        more={moreActions}
+        primary={
+          can('marcacoes')
+            ? {
+                label: 'Nova marcação',
+                Icon: CalendarPlus,
+                onClick: () => {
+                  setManualCustomer(null)
+                  setManualOpen(true)
+                },
+              }
+            : undefined
+        }
+        onClose={() => onPlusOpen(false)}
+      />
 
       {/* No gap of its own: the back-to-top button opens its room smoothly beside the bar. */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center px-3">
