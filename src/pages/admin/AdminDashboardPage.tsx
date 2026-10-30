@@ -3384,6 +3384,7 @@ function AdminDashboard() {
         <div className={`min-w-0 ${navHidden ? 'pointer-events-none' : 'pointer-events-auto'}`}>
           <BottomNavBar
             glass
+            ios
             hidden={navHidden}
             value={(tab === 'seguranca' ? 'seguranca' : MORE_TARGETS.includes(tab as MoreTarget) ? 'mais' : tab) as NavTab | 'seguranca'}
             onChange={(id) => {

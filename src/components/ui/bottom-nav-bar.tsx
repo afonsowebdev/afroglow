@@ -1,5 +1,6 @@
 import { useRef, type ComponentType } from 'react'
 import { motion } from 'motion/react'
+import { tap } from '@/lib/haptics'
 import { useTheme } from '@/lib/theme'
 import { useBackdropTone } from '@/lib/use-backdrop-tone'
 import { cn } from '@/lib/utils'
@@ -34,6 +35,11 @@ interface BottomNavBarProps<T extends string> {
   compact?: boolean
   /** Slides the bar off the bottom of the screen (e.g. while a screen shows its own action button). */
   hidden?: boolean
+  /**
+   * The newer iOS tab bar (the admin): clearer glass with a bright rim, thinner icons, and a glass lens that slides
+   * with a spring to the tab tapped while the tab swells a little under the finger, with a light haptic.
+   */
+  ios?: boolean
 }
 
 // Floating pill navigation: the active item expands to show its label while
@@ -48,6 +54,7 @@ export function BottomNavBar<T extends string>({
   tone,
   hidden = false,
   compact = false,
+  ios = false,
 }: BottomNavBarProps<T>) {
   const bar = useRef<HTMLElement>(null)
   const { theme } = useTheme()
@@ -66,7 +73,7 @@ export function BottomNavBar<T extends string>({
         'flex h-[56px] max-w-[95vw] items-center rounded-full p-2 transition-colors duration-300',
         compact ? 'gap-0' : 'gap-1',
         glass
-          ? `liquid-glass ${stickyBottom ? '' : 'relative'}`
+          ? `${ios ? 'glass-clear' : 'liquid-glass'} ${stickyBottom ? '' : 'relative'}`
           : 'border border-[rgba(255,255,255,0.6)] bg-[rgba(255,255,255,0.4)] shadow-[0_8px_32px_rgba(26,16,8,0.14)] ring-1 ring-inset ring-[rgba(255,255,255,0.4)] dark:border-[rgba(255,255,255,0.18)] dark:bg-[rgba(58,40,24,0.5)] dark:shadow-[0_10px_36px_rgba(0,0,0,0.55)] dark:ring-[rgba(255,255,255,0.08)] backdrop-blur-2xl backdrop-saturate-150',
         stickyBottom && 'fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 mx-auto w-fit',
         className,
@@ -78,8 +85,12 @@ export function BottomNavBar<T extends string>({
           <motion.button
             key={item.id}
             type="button"
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onChange(item.id)}
+            whileTap={ios ? { scale: 1.08 } : { scale: 0.95 }}
+            transition={ios ? { type: 'spring', stiffness: 500, damping: 26 } : undefined}
+            onClick={() => {
+              if (ios && !isActive) void tap()
+              onChange(item.id)
+            }}
             aria-label={item.label}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
@@ -87,7 +98,7 @@ export function BottomNavBar<T extends string>({
               'relative flex h-10 min-w-[40px] items-center justify-center rounded-full font-subtitle transition-[color,filter,background-color,box-shadow] duration-500 ease-in-out focus:outline-none',
               glass
                 ? isActive
-                  ? `liquid-glass-bubble ${onDark ? 'text-[#ffffff] [filter:drop-shadow(0_0_1px_rgba(0,0,0,0.25))]' : 'text-onyx'}`
+                  ? `${ios ? '' : 'liquid-glass-bubble'} ${onDark ? 'text-[#ffffff] [filter:drop-shadow(0_0_1px_rgba(0,0,0,0.25))]' : 'text-onyx'}`
                   : onDark
                     ? 'text-[#ffffff] [filter:drop-shadow(0_0_1px_rgba(0,0,0,0.25))]'
                     : 'text-onyx'
@@ -96,7 +107,16 @@ export function BottomNavBar<T extends string>({
                   : 'text-onyx/60 hover:bg-[rgba(255,255,255,0.3)] hover:text-onyx dark:hover:bg-[rgba(255,255,255,0.08)]',
             )}
           >
-            <span className="relative text-[22px] leading-none">
+            {/* The newer iOS lens: one piece of glass that slides from tab to tab. */}
+            {ios && isActive && (
+              <motion.span
+                layoutId="nav-lens"
+                aria-hidden="true"
+                className="nav-lens absolute inset-0 rounded-full"
+                transition={{ type: 'spring', stiffness: 420, damping: 30, mass: 0.8 }}
+              />
+            )}
+            <span className={cn('relative text-[22px] leading-none', ios && '[&_svg]:[stroke-width:1.5]')}>
               {item.image ? (
                 <img
                   src={item.image}
@@ -133,7 +153,7 @@ export function BottomNavBar<T extends string>({
                 opacity: { duration: 0.19 },
                 marginLeft: { duration: 0.19 },
               }}
-              className="flex items-center overflow-hidden"
+              className="relative flex items-center overflow-hidden"
             >
               <span className="select-none whitespace-nowrap text-xs font-semibold">{item.label}</span>
             </motion.span>
