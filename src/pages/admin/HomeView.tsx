@@ -192,6 +192,20 @@ export function HomeView({
   const currentMonth = todayKey().slice(0, 7)
   const [viewMonth, setViewMonth] = useState(currentMonth)
   const [monthMenu, setMonthMenu] = useState(false)
+  // Where the options menu opens: under its button, drawn over the page (outside the glass pill, so its own glass can
+  // blur what is behind it).
+  const optionsButton = useRef<HTMLButtonElement>(null)
+  const [menuAt, setMenuAt] = useState({ top: 0, right: 0 })
+  useEffect(() => {
+    if (!monthMenu) return
+    const close = () => setMonthMenu(false)
+    window.addEventListener('scroll', close, { passive: true })
+    window.addEventListener('resize', close)
+    return () => {
+      window.removeEventListener('scroll', close)
+      window.removeEventListener('resize', close)
+    }
+  }, [monthMenu])
   const pastMonth = viewMonth !== currentMonth
 
   useEffect(() => {
@@ -258,35 +272,42 @@ export function HomeView({
               >
                 {/* One button for the board's options: hide the values, the month, personalise. */}
                 <button
+                  ref={optionsButton}
                   type="button"
                   aria-label="Opções do painel"
                   aria-expanded={monthMenu}
                   title="Opções do painel"
                   onClick={() => {
                     void tap()
+                    const box = optionsButton.current?.getBoundingClientRect()
+                    if (box) setMenuAt({ top: box.bottom + 14, right: window.innerWidth - box.right - 4 })
                     setMonthMenu((v) => !v)
                   }}
                   className="relative flex size-8 items-center justify-center rounded-full text-onyx transition-colors hover:bg-onyx/[0.06]"
                 >
-                  <SlidersHorizontal size={16} />
+                  <SlidersHorizontal size={14} />
                   {/* Something is not as usual: the values hidden or another month shown. */}
                   {(hidden || pastMonth) && (
                     <span className="absolute right-0.5 top-0.5 size-2 rounded-full ring-2 ring-white" style={{ background: 'var(--c-waiting)' }} aria-hidden="true" />
                   )}
                 </button>
+                {createPortal(
+                  // Inside the admin's colours, though drawn at the end of the page.
+                  <div className="afro-admin font-subtitle">
                 <AnimatePresence>
                   {monthMenu && (
                     <>
-                      <button type="button" aria-label="Fechar" className="fixed inset-0 z-30 cursor-default" onClick={() => setMonthMenu(false)} />
+                      <button type="button" aria-label="Fechar" className="fixed inset-0 z-[65] cursor-default" onClick={() => setMonthMenu(false)} />
                       <motion.div
                         role="menu"
                         initial={{ opacity: 0, y: -6, scale: 0.96 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -6, scale: 0.96 }}
                         transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                        className="absolute right-0 top-full z-40 mt-3 w-[17.5rem] origin-top-right overflow-hidden rounded-[24px] bg-card p-1.5 shadow-[var(--shadow-pop)]"
+                        style={{ top: menuAt.top, right: menuAt.right }}
+                        className="fixed z-[66] w-[15.25rem] origin-top-right overflow-hidden rounded-[22px] bg-[rgba(255,255,255,0.72)] p-1 shadow-[0_18px_44px_-12px_rgba(0,0,0,0.38),0_4px_12px_-4px_rgba(0,0,0,0.12)] ring-1 ring-onyx/[0.06] backdrop-blur-2xl backdrop-saturate-150 dark:bg-[rgba(43,29,18,0.72)]"
                       >
-                        <p className="px-3 pb-1 pt-2 text-[12px] font-semibold text-muted-dark">Painel</p>
+                        <p className="px-2.5 pb-0.5 pt-1.5 text-[11px] font-semibold text-muted-dark">Painel</p>
 
                         {/* Hide or show the values. */}
                         <button
@@ -298,34 +319,34 @@ export function HomeView({
                             setHidden(!hidden)
                             writeStore(HIDE_KEY, !hidden)
                           }}
-                          className="flex w-full items-center gap-3 rounded-2xl px-2.5 py-2 text-left hover:bg-onyx/[0.04]"
+                          className="flex w-full items-center gap-2.5 rounded-2xl px-2 py-1.5 text-left hover:bg-onyx/[0.04]"
                         >
-                          <span className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-onyx">{hidden ? <EyeOff size={16} /> : <Eye size={16} />}</span>
+                          <span className="glass-chip flex size-8 shrink-0 items-center justify-center rounded-full text-onyx">{hidden ? <EyeOff size={14} /> : <Eye size={14} />}</span>
                           <span className="min-w-0 flex-1">
-                            <span className="block text-[14px] font-semibold text-onyx">Esconder valores</span>
-                            <span className="block truncate text-[12px] text-muted-dark">Montantes desfocados</span>
+                            <span className="block text-[13px] font-semibold text-onyx">Esconder valores</span>
+                            <span className="block truncate text-[11px] text-muted-dark">Montantes desfocados</span>
                           </span>
                           <span
                             aria-hidden="true"
-                            className="relative h-[26px] w-[44px] shrink-0 rounded-full transition-colors duration-200"
+                            className="relative h-[24px] w-[40px] shrink-0 rounded-full transition-colors duration-200"
                             style={{ background: hidden ? 'var(--c-pos)' : 'color-mix(in srgb, var(--color-onyx) 16%, transparent)' }}
                           >
-                            <span className={`absolute top-[2px] size-[22px] rounded-full bg-[#ffffff] shadow-[0_2px_6px_rgba(0,0,0,0.2)] transition-all duration-200 ${hidden ? 'left-[20px]' : 'left-[2px]'}`} />
+                            <span className={`absolute top-[2px] size-[20px] rounded-full bg-[#ffffff] shadow-[0_2px_6px_rgba(0,0,0,0.2)] transition-all duration-200 ${hidden ? 'left-[18px]' : 'left-[2px]'}`} />
                           </span>
                         </button>
 
                         {/* The month: the last twelve on a track that slides sideways, the chosen one a raised pill. */}
-                        <div className="rounded-2xl px-2.5 py-2">
-                          <div className="flex items-center gap-3">
-                            <span className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-onyx"><CalendarDays size={16} /></span>
+                        <div className="rounded-2xl px-2 py-1.5">
+                          <div className="flex items-center gap-2.5">
+                            <span className="glass-chip flex size-8 shrink-0 items-center justify-center rounded-full text-onyx"><CalendarDays size={14} /></span>
                             <span className="min-w-0 flex-1">
-                              <span className="block text-[14px] font-semibold text-onyx">Mês</span>
-                              <span className="block truncate text-[12px] text-muted-dark">
+                              <span className="block text-[13px] font-semibold text-onyx">Mês</span>
+                              <span className="block truncate text-[11px] text-muted-dark">
                                 {pastMonth ? `A ver ${monthName(viewMonth)} ${viewMonth.slice(0, 4)}` : 'A ver este mês'}
                               </span>
                             </span>
                           </div>
-                          <div className="mt-2.5 rounded-full bg-onyx/[0.06] p-1">
+                          <div className="mt-2 rounded-full bg-onyx/[0.06] p-0.5">
                             <div
                               role="radiogroup"
                               aria-label="Mês"
@@ -343,7 +364,7 @@ export function HomeView({
                                     setViewMonth(key)
                                     setMonthMenu(false)
                                   }}
-                                  className={`flex h-9 min-w-[3.1rem] flex-none flex-col items-center justify-center rounded-full px-2 [direction:ltr] text-[12px] transition-colors ${
+                                  className={`flex h-8 min-w-[2.8rem] flex-none flex-col items-center justify-center rounded-full px-2 [direction:ltr] text-[11.5px] transition-colors ${
                                     viewMonth === key
                                       ? 'bg-white font-semibold text-onyx shadow-[0_3px_8px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.04)] dark:bg-onyx/[0.16]'
                                       : 'font-medium text-muted-dark'
@@ -365,12 +386,12 @@ export function HomeView({
                             setMonthMenu(false)
                             setEditing(true)
                           }}
-                          className="flex w-full items-center gap-3 rounded-2xl px-2.5 py-2 text-left hover:bg-onyx/[0.04]"
+                          className="flex w-full items-center gap-2.5 rounded-2xl px-2 py-1.5 text-left hover:bg-onyx/[0.04]"
                         >
-                          <span className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-onyx"><LayoutDashboard size={16} /></span>
+                          <span className="glass-chip flex size-8 shrink-0 items-center justify-center rounded-full text-onyx"><LayoutDashboard size={14} /></span>
                           <span className="min-w-0 flex-1">
-                            <span className="block text-[14px] font-semibold text-onyx">Personalizar cartões</span>
-                            <span className="block truncate text-[12px] text-muted-dark">Ordem e tamanho</span>
+                            <span className="block text-[13px] font-semibold text-onyx">Personalizar cartões</span>
+                            <span className="block truncate text-[11px] text-muted-dark">Ordem e tamanho</span>
                           </span>
                           <ChevronRight size={15} className="shrink-0 text-ink-3" />
                         </button>
@@ -378,6 +399,9 @@ export function HomeView({
                     </>
                   )}
                 </AnimatePresence>
+                  </div>,
+                  document.body,
+                )}
               </motion.span>
             )}
             </AnimatePresence>
