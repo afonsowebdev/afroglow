@@ -20,11 +20,11 @@ import {
   EyeOff,
   Hash,
   Hourglass,
-  LayoutGrid,
   Maximize2,
   Minimize2,
   ListFilter,
   RotateCcw,
+  SlidersHorizontal,
   MessageSquareQuote,
   Receipt,
   Scissors,
@@ -207,10 +207,18 @@ export function HomeView({
           {homeGreeting(name)}
         </h1>
         {loaded && bookings.length > 0 && (
-          // The two board controls together in one glass pill.
-          <div className="glass-chip relative z-30 flex shrink-0 items-center gap-0.5 rounded-full p-1">
+          // The board controls together in one glass pill; while personalising it turns into Repor and Concluir.
+          <motion.div layout transition={{ type: 'spring', stiffness: 420, damping: 34 }} className="glass-chip relative z-30 flex shrink-0 items-center gap-0.5 rounded-full p-1">
+            <AnimatePresence mode="popLayout" initial={false}>
             {editing ? (
-              <>
+              <motion.span
+                key="editing"
+                className="flex items-center gap-0.5"
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.92 }}
+                transition={{ duration: 0.2 }}
+              >
                 <button
                   type="button"
                   aria-label="Repor a ordem dos cartões"
@@ -221,7 +229,7 @@ export function HomeView({
                     setOrder(loadOrder())
                     setBoardKey((k) => k + 1)
                   }}
-                  className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium text-onyx transition-colors hover:bg-onyx/[0.06]"
+                  className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium text-muted-dark transition-colors hover:bg-onyx/[0.06]"
                 >
                   <RotateCcw size={15} />
                   <span className="hidden sm:inline">Repor</span>
@@ -232,14 +240,21 @@ export function HomeView({
                     void tap()
                     setEditing(false)
                   }}
-                  className="flex h-8 items-center gap-1.5 rounded-full bg-onyx px-3.5 text-[13px] font-semibold text-white"
+                  className="flex h-8 items-center gap-1.5 rounded-full bg-card px-3.5 text-[13px] font-semibold text-onyx shadow-[0_3px_8px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.04)] transition-transform active:scale-95 dark:bg-onyx/[0.16]"
                 >
-                  <Check size={15} />
+                  <Check size={15} strokeWidth={2.6} style={{ color: 'var(--c-confirmed)' }} />
                   Concluir
                 </button>
-              </>
+              </motion.span>
             ) : (
-              <>
+              <motion.span
+                key="board"
+                className="flex items-center gap-0.5"
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.92 }}
+                transition={{ duration: 0.2 }}
+              >
                 <button
                   type="button"
                   aria-label={hidden ? 'Mostrar valores' : 'Esconder valores'}
@@ -330,12 +345,13 @@ export function HomeView({
                   }}
                   className="flex h-8 min-w-8 items-center justify-center gap-1.5 rounded-full px-2 text-[13px] font-medium text-onyx transition-colors hover:bg-onyx/[0.06] sm:px-3"
                 >
-                  <LayoutGrid size={16} />
+                  <SlidersHorizontal size={16} />
                   <span className="hidden sm:inline">Personalizar</span>
                 </button>
-              </>
+              </motion.span>
             )}
-          </div>
+            </AnimatePresence>
+          </motion.div>
         )}
       </div>
       <p className="mt-2 max-w-xl text-sm text-muted-dark">
