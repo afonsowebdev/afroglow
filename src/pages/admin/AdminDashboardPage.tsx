@@ -27,10 +27,12 @@ import {
   RotateCcw,
   PanelTop,
   PanelTopClose,
+  Moon,
   Plus,
   Scissors,
   Search,
   Store,
+  Sun,
   Tag,
   Users,
   Pencil,
@@ -59,6 +61,7 @@ import { HomeView } from '@/pages/admin/HomeView'
 import { PullToRefresh } from '@/pages/admin/PullToRefresh'
 import { HeaderLogo } from '@/customer/HeaderLogo'
 import { tap } from '@/lib/haptics'
+import { useTheme } from '@/lib/theme'
 import { useScrollLock } from '@/lib/use-scroll-lock'
 import { INK_CIRCLE } from '@/components/ui/brand-logo'
 import { fullMe, type AdminMe, type Permission } from '@/pages/admin/admin-me'
@@ -2393,6 +2396,7 @@ function AdminDashboard() {
   useAutoHideNav(hideOnScroll, tab)
   // Bumped by pulling down to refresh, so the page (and the lists it loads itself) is drawn again.
   const [refreshKey, setRefreshKey] = useState(0)
+  const theme = useTheme()
   // The page that was just refreshed (so it isn't faded out and in again like a new page).
   const refreshedTab = useRef<AdminTab | null>(null)
   useEffect(() => {
@@ -2917,7 +2921,49 @@ function AdminDashboard() {
             )}
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* The account: the admin's photo (or initial); the theme lives inside it now. */}
+            {/* Light or dark, always at hand. */}
+            <button
+              type="button"
+              aria-label={theme.theme === 'dark' ? 'Mudar para o tema claro' : 'Mudar para o tema escuro'}
+              title={theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro'}
+              onClick={() => {
+                if (anyMenuOpen) return
+                void tap()
+                theme.toggleTheme()
+              }}
+              className={`relative z-[62] flex size-12 items-center justify-center rounded-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${INK_CIRCLE} ${
+                headerScrolled ? 'scale-[0.86]' : ''
+              }`}
+            >
+              {theme.theme === 'dark' ? <Sun size={19} strokeWidth={1.9} /> : <Moon size={18} strokeWidth={1.9} />}
+            </button>
+            <AdminBell
+              ink
+              shrink={headerScrolled}
+              requests={can('marcacoes') ? pendingBookings : []}
+              testimonials={can('testemunhos') ? pendingTestimonials : []}
+              cancelled={can('marcacoes') ? recentCancellations : []}
+              onOpen={(kind) => {
+                setTab(kind === 'testemunho' ? 'testemunhos' : 'pedidos')
+                window.scrollTo({ top: 0 })
+              }}
+              onOpenChange={onBellOpen}
+            />
+            <FloatingActionMenu
+              actions={menuActions}
+              more={moreActions}
+              keepOrder
+              smallItems
+              direction="down"
+              small
+              brand
+              raised
+              ink
+              shrink={headerScrolled}
+              onOpenChange={onPlusOpen}
+              PlusIcon={Plus}
+            />
+            {/* The account at the far right, where the iPhone keeps it: the admin's photo (or initials). */}
             <button
               type="button"
               aria-label="A tua conta"
@@ -2946,32 +2992,6 @@ function AdminDashboard() {
                 </span>
               )}
             </button>
-            <AdminBell
-              ink
-              shrink={headerScrolled}
-              requests={can('marcacoes') ? pendingBookings : []}
-              testimonials={can('testemunhos') ? pendingTestimonials : []}
-              cancelled={can('marcacoes') ? recentCancellations : []}
-              onOpen={(kind) => {
-                setTab(kind === 'testemunho' ? 'testemunhos' : 'pedidos')
-                window.scrollTo({ top: 0 })
-              }}
-              onOpenChange={onBellOpen}
-            />
-            <FloatingActionMenu
-              actions={menuActions}
-              more={moreActions}
-              keepOrder
-              smallItems
-              direction="down"
-              small
-              brand
-              raised
-              ink
-              shrink={headerScrolled}
-              onOpenChange={onPlusOpen}
-              PlusIcon={Plus}
-            />
           </div>
         </div>
       </div>
