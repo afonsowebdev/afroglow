@@ -2958,10 +2958,10 @@ function AdminDashboard() {
                 window.scrollTo({ top: 0 })
               }}
               // A border inside the circle (so it stays the size of the others) in the button's own colour, following the
-              // theme; green while the account is open.
+              // theme.
               className={`relative z-[62] flex size-11 items-center justify-center overflow-hidden rounded-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${INK_CIRCLE} ${
                 headerScrolled ? 'scale-[0.86]' : ''
-              } border-[3px] ${tab === 'seguranca' ? 'border-[var(--c-confirmed)]' : 'border-white dark:border-[#2b1d12]'}`}
+              } border-[3px] border-white dark:border-[#2b1d12]`}
             >
               {avatar ? (
                 <img src={avatar} alt="" className="size-full object-cover" />
