@@ -3379,7 +3379,8 @@ function AdminDashboard() {
 
 
       {/* Tab bar with the round options button beside it, same as the customer app. */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center gap-2.5 px-3">
+      {/* No gap of its own: the back-to-top button opens its room smoothly beside the bar. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 flex items-end justify-center px-3">
         <div className={`min-w-0 ${navHidden ? 'pointer-events-none' : 'pointer-events-auto'}`}>
           <BottomNavBar
             glass
@@ -3399,7 +3400,7 @@ function AdminDashboard() {
               .concat({ id: 'seguranca', label: 'Perfil', icon: 'bx bx-user', Icon: UserRound, image: avatar })}
           />
         </div>
-        <BackToTop hidden={navHidden} />
+        <BackToTop admin hidden={navHidden} />
       </div>
     </div>
   )
