@@ -13,6 +13,7 @@ import {
   CalendarRange,
   CalendarX2,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChartColumn,
@@ -1976,6 +1977,11 @@ function TestimonialCard({
   )
 }
 
+/**
+ * One request, in a white card like the Painel's: who and when it came, the session (its day as a calendar leaf, the
+ * time, the model, the price, how soon it is), the note, and the answer: Recusar (asks once, with an optional reason
+ * for the client) or Aceitar.
+ */
 function PendingCard({
   booking,
   busy,
@@ -1991,9 +1997,9 @@ function PendingCard({
   const hoursUntil = (new Date(booking.slot.startsAt).getTime() - Date.now()) / 3_600_000
   const urgency =
     hoursUntil < 0
-      ? { label: 'Data passada', dot: 'bg-red-600', text: 'text-red-700' }
+      ? { label: 'Data passada', colour: 'var(--c-cancelled)' }
       : hoursUntil < 24
-        ? { label: 'Urgente · menos de 24h', dot: 'bg-amber-500', text: 'text-amber-700' }
+        ? { label: 'Menos de 24h', colour: 'var(--c-waiting)' }
         : null
 
   return (
@@ -2002,117 +2008,132 @@ function PendingCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -24 }}
-      className="overflow-hidden rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white"
+      className="rounded-[22px] bg-card p-4"
+      style={{ boxShadow: CARD_SHADOW }}
     >
-      <div className="p-4">
+      <div className="flex items-center gap-3">
+        <span className="glass-chip flex size-11 shrink-0 items-center justify-center rounded-full font-subtitle text-[14px] font-semibold text-onyx">
+          {initialsOf(booking.customerName)}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-subtitle text-[15px] font-semibold tracking-tight text-onyx">{booking.customerName}</p>
+          <p className="truncate font-subtitle text-xs text-muted-dark">Pedido {timeAgo(booking.createdAt).toLowerCase()}</p>
+        </div>
+        <a
+          href={customerWhatsappUrl(booking.customerPhone, `Olá ${booking.customerName}! Sobre a tua marcação de ${bookingName(booking)}...`)}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`WhatsApp de ${booking.customerName}`}
+          className="glass-chip flex size-10 shrink-0 items-center justify-center rounded-full text-xl text-onyx active:scale-95"
+        >
+          <i className="bx bxl-whatsapp" aria-hidden="true" />
+        </a>
+        <a
+          href={`tel:${booking.customerPhone.replace(/[^+\d]/g, '')}`}
+          aria-label={`Ligar a ${booking.customerName}`}
+          className="glass-chip flex size-10 shrink-0 items-center justify-center rounded-full text-onyx active:scale-95"
+        >
+          <Phone size={16} strokeWidth={2.2} />
+        </a>
+      </div>
+
+      {/* The session. */}
+      <div className="mt-3.5 rounded-[18px] bg-onyx/[0.04] p-3">
         <div className="flex items-center gap-3">
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-xl text-onyx">
-            {booking.customerName.trim().charAt(0).toUpperCase()}
-          </span>
+          <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-2xl bg-card shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
+            <p className="tabular font-subtitle text-[17px] font-semibold leading-none text-onyx">{day}</p>
+            <p className="mt-0.5 font-subtitle text-[10px] uppercase text-muted-dark">{month}</p>
+          </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate font-subtitle text-base font-semibold tracking-tight text-onyx">
-              {booking.customerName}
+            <p className="truncate font-subtitle text-[14px] font-semibold text-onyx first-letter:uppercase">
+              {weekday} · {time}
             </p>
-            <p className="truncate font-subtitle text-xs text-muted-dark">
-              {booking.customerPhone} · Recebido {timeAgo(booking.createdAt).toLowerCase()}
+            <p className="truncate font-subtitle text-[13px] text-muted-dark">
+              {booking.service.name}
+              {booking.service.durationLabel ? ` · ${booking.service.durationLabel}` : ''}
             </p>
           </div>
-          <a
-            href={customerWhatsappUrl(
-              booking.customerPhone,
-              `Olá ${booking.customerName}! Sobre a tua marcação de ${bookingName(booking)}...`,
-            )}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`WhatsApp de ${booking.customerName}`}
-            className="glass-chip flex size-11 shrink-0 items-center justify-center rounded-full text-2xl text-onyx"
+          <p className="amount tabular shrink-0 font-subtitle text-[16px] font-semibold text-onyx">{formatPrice(bookingPrice(booking)).replace(/,00/, '')}</p>
+        </div>
+        <BookingChoices booking={booking} className="mt-2.5" />
+        {urgency && (
+          <span
+            className="mt-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-subtitle text-[11px] font-semibold text-onyx"
+            style={{ background: `color-mix(in srgb, ${urgency.colour} 15%, transparent)` }}
           >
-            <i className="bx bxl-whatsapp" aria-hidden="true" />
-          </a>
-        </div>
-
-        <div className="mt-4 rounded-2xl bg-onyx/5 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="font-subtitle text-[11px] font-medium uppercase tracking-wide text-muted-dark">Sessão</p>
-              <p className="mt-0.5 font-subtitle text-base font-semibold tracking-tight text-onyx first-letter:uppercase">
-                {weekday}, {day} {month}
-              </p>
-            </div>
-            <span className="font-subtitle text-2xl font-semibold lining-nums leading-none tracking-tight text-onyx">
-              {time}
-            </span>
-          </div>
-          <div className="mt-3 flex items-center justify-between gap-3 border-t border-onyx/10 pt-3 font-subtitle text-sm">
-            <span className="min-w-0 truncate text-onyx">{booking.service.name}</span>
-            <span className="shrink-0 font-semibold lining-nums text-onyx">
-              {formatPrice(bookingPrice(booking))}
-            </span>
-          </div>
-          <BookingChoices booking={booking} className="mt-2.5" />
-          {urgency && (
-            <p className={`mt-3 flex items-center gap-2 font-subtitle text-xs font-medium ${urgency.text}`}>
-              <span className={`size-2 rounded-full ${urgency.dot}`} aria-hidden="true" />
-              {urgency.label}
-            </p>
-          )}
-        </div>
-
-        {booking.notes && (
-          <p className="mt-3 border-l-2 border-onyx/25 pl-3 font-subtitle text-sm italic text-muted-dark">
-            “{booking.notes}”
-          </p>
+            <span className="size-1.5 rounded-full" style={{ background: urgency.colour }} aria-hidden="true" />
+            {urgency.label}
+          </span>
         )}
       </div>
 
-      <div className="border-t border-onyx/10 p-4">
+      {booking.notes && (
+        <p className="mt-3 rounded-2xl bg-onyx/[0.04] px-3.5 py-2.5 font-subtitle text-[13px] italic text-muted-dark">“{booking.notes}”</p>
+      )}
+
+      {/* The answer. */}
+      <div className="mt-3.5">
         {confirmingReject ? (
-          <div className="flex flex-col gap-3">
-            <p className="font-subtitle text-sm font-semibold text-onyx">Recusar este pedido?</p>
+          <div className="flex flex-col gap-2.5">
+            <p className="px-1 font-subtitle text-[13px] font-semibold text-onyx">Recusar este pedido?</p>
             <input
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               maxLength={300}
-              placeholder="Motivo (opcional, vai no email ao cliente)"
+              placeholder="Motivo (opcional, vai no email à cliente)"
               aria-label="Motivo da recusa"
-              className="w-full rounded-xl border bg-white px-3 py-2.5 font-subtitle text-sm text-onyx outline-none placeholder:text-onyx/40"
+              className="glass-chip h-11 w-full rounded-full !border-0 px-4 font-subtitle text-[14px] text-onyx outline-none placeholder:text-onyx/40"
             />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={() => setConfirmingReject(false)}
                 disabled={busy}
-                className="glass-chip h-12 rounded-full font-subtitle text-sm text-onyx disabled:opacity-50"
+                className="glass-chip h-11 rounded-full font-subtitle text-[13px] font-semibold text-onyx disabled:opacity-50"
               >
                 Voltar
               </button>
               <button
                 type="button"
-                onClick={() => onDecision(booking.id, 'reject', reason.trim() || undefined)}
+                onClick={() => {
+                  void tap('medium')
+                  onDecision(booking.id, 'reject', reason.trim() || undefined)
+                }}
                 disabled={busy}
-                className="glass-chip-on h-12 rounded-full font-subtitle text-sm font-semibold text-red-700 disabled:opacity-50"
+                className="flex h-11 items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px] font-semibold text-[#ffffff] disabled:opacity-50"
+                style={{ background: 'var(--c-cancelled)' }}
               >
-                {busy ? 'A recusar...' : 'Sim, recusar'}
+                <X size={15} strokeWidth={2.4} />
+                {busy ? 'A recusar…' : 'Recusar'}
               </button>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-[1fr_1.4fr] gap-2.5">
             <button
               type="button"
               disabled={busy}
-              onClick={() => setConfirmingReject(true)}
-              className="glass-chip flex h-12 items-center justify-center gap-2 rounded-full font-subtitle text-sm text-onyx disabled:opacity-50"
+              onClick={() => {
+                void tap()
+                setConfirmingReject(true)
+              }}
+              className="glass-chip flex h-12 items-center justify-center gap-1.5 rounded-full font-subtitle text-[14px] font-semibold text-onyx disabled:opacity-50"
             >
-              <i className="bx bx-x text-xl" aria-hidden="true" /> Recusar
+              <X size={16} strokeWidth={2.4} className="text-muted-dark" />
+              Recusar
             </button>
             <button
               type="button"
               disabled={busy || hoursUntil < 0}
-              onClick={() => onDecision(booking.id, 'accept')}
-              className="glass-chip-on flex h-12 items-center justify-center gap-2 rounded-full font-subtitle text-sm font-semibold text-onyx disabled:opacity-50"
+              onClick={() => {
+                void tap('medium')
+                onDecision(booking.id, 'accept')
+              }}
+              className="flex h-12 items-center justify-center gap-1.5 rounded-full bg-card font-subtitle text-[14px] font-semibold text-onyx transition-transform active:scale-[0.98] disabled:opacity-45"
+              style={{ boxShadow: GLASS_SHADOW }}
             >
-              <i className="bx bx-check text-xl" aria-hidden="true" /> {busy ? 'A aceitar...' : 'Aceitar'}
+              <Check size={17} strokeWidth={2.6} style={{ color: 'var(--c-confirmed)' }} />
+              {busy ? 'A aceitar…' : 'Aceitar'}
             </button>
           </div>
         )}
@@ -2121,7 +2142,6 @@ function PendingCard({
   )
 }
 
-/** The admin's empty states, all alike: a dark circle with an icon, a title and a line. */
 /** Nothing to show: a white card with the Painel's soft shadow, the icon in a light round chip, a title and a line. */
 function EmptyState({ icon, title, text }: { icon: string; title: string; text: string }) {
   return (
@@ -2147,17 +2167,25 @@ function PendingEmpty({
   onAgenda: () => void
   onOpenSlots: () => void
 }) {
-  const when = nextSession
-    ? new Date(nextSession.slot.startsAt).toLocaleString('pt-PT', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : null
+  const when = nextSession ? relativeWhen(nextSession.slot.startsAt) : null
+  const rows = [
+    {
+      Icon: CalendarCheck,
+      label: 'Próxima sessão',
+      title: nextSession ? nextSession.customerName : 'Nenhuma sessão confirmada',
+      text: nextSession && when ? `${bookingName(nextSession)} · ${when}` : 'Vê a Agenda do mês.',
+      onClick: onAgenda,
+    },
+    {
+      Icon: Clock,
+      label: 'Vagas nos próximos 7 dias',
+      title: openSlotsWeek === 0 ? 'Nenhuma vaga livre' : `${openSlotsWeek} ${openSlotsWeek === 1 ? 'vaga livre' : 'vagas livres'}`,
+      text: openSlotsWeek === 0 ? 'Abre horários para as clientes poderem marcar.' : 'Abre mais horários se precisares.',
+      onClick: onOpenSlots,
+    },
+  ]
   return (
-    <div className="mt-6 flex flex-col gap-4">
+    <div className="mt-4">
       <div className="-mt-6">
         <EmptyState
           icon="bx bx-check"
@@ -2165,49 +2193,38 @@ function PendingEmpty({
           text="Não há pedidos à espera de resposta. Quando chegar um novo, recebes uma notificação e ele aparece aqui."
         />
       </div>
-
-      <div className="divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl border border-onyx/10">
-        <button type="button" onClick={onAgenda} className="flex w-full items-center gap-4 p-4 text-left active:bg-onyx/[0.04]">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-onyx/[0.06] text-xl text-onyx">
-            <i className="bx bx-calendar-check" aria-hidden="true" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block font-subtitle text-xs uppercase tracking-wide text-muted-dark">Próxima sessão</span>
-            {nextSession && when ? (
-              <>
-                <span className="mt-0.5 block truncate font-subtitle text-base font-semibold text-onyx">
-                  {nextSession.customerName}
-                </span>
-                <span className="block truncate font-subtitle text-sm text-muted-dark">{bookingName(nextSession)}</span>
-                <span className="block font-subtitle text-sm text-onyx first-letter:uppercase">{when}</span>
-              </>
-            ) : (
-              <span className="mt-0.5 block font-subtitle text-base text-onyx">Nenhuma sessão confirmada</span>
-            )}
-          </span>
-          <i className="bx bx-chevron-right text-xl text-onyx/30" aria-hidden="true" />
-        </button>
-
-        <button type="button" onClick={onOpenSlots} className="flex w-full items-center gap-4 p-4 text-left active:bg-onyx/[0.04]">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-onyx/[0.06] text-xl text-onyx">
-            <i className="bx bx-time-five" aria-hidden="true" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block font-subtitle text-xs uppercase tracking-wide text-muted-dark">Vagas nos próximos 7 dias</span>
-            <span className="mt-0.5 block font-subtitle text-base font-semibold text-onyx">
-              {openSlotsWeek === 0 ? 'Nenhuma vaga livre' : `${openSlotsWeek} ${openSlotsWeek === 1 ? 'vaga livre' : 'vagas livres'}`}
+      <div className="mt-3 flex flex-col gap-2.5">
+        {rows.map(({ Icon, label, title, text, onClick }) => (
+          <button
+            key={label}
+            type="button"
+            onClick={() => {
+              void tap()
+              onClick()
+            }}
+            className="flex w-full items-center gap-3.5 rounded-[22px] bg-card p-3.5 text-left transition-transform active:scale-[0.98]"
+            style={{ boxShadow: CARD_SHADOW }}
+          >
+            <span className="glass-chip flex size-10 shrink-0 items-center justify-center rounded-full text-onyx">
+              <Icon size={17} />
             </span>
-            <span className="block font-subtitle text-sm text-muted-dark">
-              {openSlotsWeek === 0 ? 'Abre horários para as clientes poderem marcar.' : 'Abre mais horários se precisares.'}
+            <span className="min-w-0 flex-1">
+              <span className="block font-subtitle text-[11px] font-medium text-muted-dark">{label}</span>
+              <span className="block truncate font-subtitle text-[15px] font-semibold text-onyx">{title}</span>
+              <span className="block truncate font-subtitle text-xs text-muted-dark">{text}</span>
             </span>
-          </span>
-          <i className="bx bx-chevron-right text-xl text-onyx/30" aria-hidden="true" />
-        </button>
+            <ChevronRight size={18} className="shrink-0 text-ink-3" />
+          </button>
+        ))}
       </div>
     </div>
   )
 }
 
+/**
+ * The requests waiting for an answer, in the Painel's style: three figures, the order as an iOS segmented control, one
+ * card per request, and those whose day has passed folded away at the end.
+ */
 function PendingView({
   bookings,
   busyId,
@@ -2239,58 +2256,49 @@ function PendingView({
 
   return (
     <div>
-      <div className="mt-4 rounded-2xl border border-onyx/10 shadow-sm shadow-black/5 bg-white p-5">
-        <p className="font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">
-          À espera de resposta
-        </p>
-        <p className="mt-1 font-subtitle text-[40px] font-semibold lining-nums leading-none tracking-tight text-onyx">
-          {bookings.length}
-          <span className="ml-2 text-base font-medium text-muted-dark">
-            {bookings.length === 1 ? 'pedido' : 'pedidos'}
-          </span>
-        </p>
-        <div className="mt-4 grid grid-cols-2 divide-x divide-onyx/15 border-t border-onyx/10 pt-4">
-          <div className="pr-3">
-            <p className="font-subtitle text-lg font-semibold lining-nums leading-none tracking-tight text-onyx">
-              {thisWeek}
-            </p>
-            <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">Nos próx. 7 dias</p>
-          </div>
-          <div className="pl-4">
-            <p className="font-subtitle text-lg font-semibold lining-nums leading-none tracking-tight text-onyx">
-              {formatPrice(totalCents)}
-            </p>
-            <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">Valor em espera</p>
-          </div>
-        </div>
+      <div className="mt-4 grid grid-cols-3 gap-2.5">
+        <AgendaFigure label="À espera" value={String(bookings.length)} colour="var(--c-waiting)" />
+        <AgendaFigure label="Próx. 7 dias" value={String(thisWeek)} />
+        <AgendaFigure label="Valor" value={formatPrice(totalCents).replace(/,00/, '')} amount />
       </div>
 
-      <div className="mt-6 flex glass-chip rounded-full p-1">
+      {/* The order, like an iOS segmented control. */}
+      <div
+        className="glass-chip mt-4 grid grid-cols-2 rounded-full p-1"
+        style={{ background: 'color-mix(in srgb, var(--color-onyx) 6%, transparent)', boxShadow: GLASS_SHADOW }}
+        role="tablist"
+        aria-label="Ordenar os pedidos"
+      >
         {(
           [
-            ['sessao', 'Por data da sessão'],
+            ['sessao', 'Data da sessão'],
             ['recebido', 'Mais recentes'],
           ] as const
         ).map(([id, label]) => (
           <button
             key={id}
             type="button"
-            onClick={() => setOrder(id)}
-            className="relative flex-1 rounded-full py-2.5 font-subtitle text-xs sm:text-sm"
+            role="tab"
+            aria-selected={order === id}
+            onClick={() => {
+              void tap()
+              setOrder(id)
+            }}
+            className="relative h-9 rounded-full font-subtitle text-[13px]"
           >
             {order === id && (
               <motion.span
                 layoutId="pending-order"
-                className="glass-chip-on absolute inset-0 rounded-full"
-                transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                className="absolute inset-0 rounded-full bg-white shadow-[0_3px_8px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.04)] dark:bg-onyx/[0.16]"
+                transition={{ type: 'spring', stiffness: 420, damping: 36 }}
               />
             )}
-            <span className={`relative transition-colors ${order === id ? 'text-onyx' : 'text-onyx/70'}`}>{label}</span>
+            <span className={`relative ${order === id ? 'font-semibold text-onyx' : 'font-medium text-muted-dark'}`}>{label}</span>
           </button>
         ))}
       </div>
 
-      <div className="mt-6 flex flex-col gap-4">
+      <div className="mt-5 flex flex-col gap-3">
         <AnimatePresence initial={false}>
           {(order === 'sessao' ? upcomingList : sorted).map((booking) => (
             <PendingCard key={booking.id} booking={booking} busy={busyId === booking.id} onDecision={onDecision} />
@@ -2299,41 +2307,34 @@ function PendingView({
       </div>
 
       {order === 'sessao' && pastList.length > 0 && (
-        <div className="mt-8">
+        <div className="mt-6">
           <button
             type="button"
-            onClick={() => setShowPast((v) => !v)}
+            onClick={() => {
+              void tap()
+              setShowPast((v) => !v)
+            }}
             aria-expanded={showPast}
-            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-red-700/20 bg-red-700/5 px-4 py-3 text-left"
+            className="flex w-full items-center gap-3.5 rounded-[22px] bg-card p-3.5 text-left"
+            style={{ boxShadow: CARD_SHADOW }}
           >
-            <span className="flex items-center gap-3">
-              <i className="bx bx-time text-xl text-red-700" aria-hidden="true" />
-              <span>
-                <span className="block font-subtitle text-sm font-semibold text-red-700">
-                  Datas passadas ({pastList.length})
-                </span>
-                <span className="block font-subtitle text-xs text-muted-dark">
-                  Pedidos sem resposta cuja sessão já devia ter acontecido
-                </span>
-              </span>
+            <span
+              className="flex size-10 shrink-0 items-center justify-center rounded-full"
+              style={{ background: 'color-mix(in srgb, var(--c-cancelled) 13%, transparent)', color: 'var(--c-cancelled)' }}
+            >
+              <Clock size={17} />
             </span>
-            <i
-              className={`bx bx-chevron-down text-2xl text-red-700 transition-transform duration-300 ${
-                showPast ? 'rotate-180' : ''
-              }`}
-              aria-hidden="true"
-            />
+            <span className="min-w-0 flex-1">
+              <span className="block font-subtitle text-[15px] font-semibold text-onyx">Datas passadas · {pastList.length}</span>
+              <span className="block truncate font-subtitle text-xs text-muted-dark">Sem resposta, e a sessão já devia ter acontecido</span>
+            </span>
+            <ChevronDown size={18} className={`shrink-0 text-ink-3 transition-transform duration-300 ${showPast ? 'rotate-180' : ''}`} />
           </button>
           {showPast && (
-            <div className="mt-4 flex flex-col gap-4">
+            <div className="mt-3 flex flex-col gap-3">
               <AnimatePresence initial={false}>
                 {pastList.map((booking) => (
-                  <PendingCard
-                    key={booking.id}
-                    booking={booking}
-                    busy={busyId === booking.id}
-                    onDecision={onDecision}
-                  />
+                  <PendingCard key={booking.id} booking={booking} busy={busyId === booking.id} onDecision={onDecision} />
                 ))}
               </AnimatePresence>
             </div>
