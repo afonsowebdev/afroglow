@@ -35,6 +35,10 @@ import {
   Tag,
   UserRound,
   Users,
+  EyeOff,
+  Eye,
+  TriangleAlert,
+  Trash2,
   X,
 } from 'lucide-react'
 import { BackToTop } from '@/components/ui/back-to-top'
@@ -1192,120 +1196,164 @@ function ClearMonthDialog({
   }, [open, busy, onClose])
 
   const canConfirm = acknowledged && password.length > 0 && !busy
+  useScrollLock(open)
+  const RED = 'var(--c-cancelled)'
+  const total = summary ? summary.slotCount + summary.bookingCount : null
 
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center">
+        <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center">
           <motion.button
             type="button"
             aria-label="Fechar"
             onClick={() => !busy && onClose()}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           />
-          <motion.div
+          <motion.form
             role="dialog"
             aria-modal="true"
-            aria-label={`Limpar dados de ${monthLabel}`}
-            className="relative w-full max-w-md rounded-t-3xl bg-white p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl"
+            aria-label={`Limpar ${monthLabel}`}
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (canConfirm) onConfirm()
+            }}
+            className="relative flex max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl sm:rounded-[28px]"
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           >
-            <div className="flex items-start gap-4">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-700/10 text-xl text-red-700">
-                <i className="bx bx-trash" aria-hidden="true" />
+            <div className="flex items-center gap-3 px-5 pb-3 pt-5">
+              <span
+                className="flex size-11 shrink-0 items-center justify-center rounded-full"
+                style={{ background: `color-mix(in srgb, ${RED} 13%, transparent)`, color: RED }}
+              >
+                <Trash2 size={18} />
               </span>
-              <div>
-                <h2 className="font-subtitle font-semibold lining-nums tracking-tight text-xl text-onyx">
-                  Limpar {monthLabel}
-                </h2>
-                <p className="mt-1 font-subtitle text-sm text-muted-dark">
-                  Apaga os horários e as marcações deste mês. Esta ação é permanente.
-                </p>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-subtitle text-[19px] font-semibold tracking-tight text-onyx">Limpar {monthLabel}</h2>
+                <p className="truncate font-subtitle text-xs text-muted-dark">Apaga os horários e as marcações do mês.</p>
               </div>
-            </div>
-
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              {[
-                { label: 'Vagas a apagar', value: summary?.slotCount },
-                { label: 'Marcações a apagar', value: summary?.bookingCount },
-              ].map((item) => (
-                <div key={item.label} className="rounded-2xl border border-red-700/20 bg-red-700/5 p-4">
-                  <p className="font-subtitle font-semibold lining-nums tracking-tight text-2xl leading-none text-red-700">
-                    {item.value ?? '…'}
-                  </p>
-                  <p className="mt-1.5 font-subtitle text-[11px] uppercase tracking-wide text-muted-dark">
-                    {item.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <p className="mt-4 rounded-xl bg-onyx/5 px-4 py-3 font-subtitle text-xs leading-relaxed text-muted-dark">
-              Inclui marcações já aceites. As clientes <strong>não recebem nenhum aviso</strong> e o histórico deste mês
-              desaparece.
-            </p>
-
-            <label className="mt-5 block">
-              <span className="mb-1.5 block font-subtitle text-xs uppercase tracking-wide text-muted-dark">
-                Confirma com a tua password
-              </span>
-              <span className="relative block">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => onPasswordChange(e.target.value)}
-                  autoComplete="current-password"
-                  className="w-full rounded-xl border border-onyx/15 bg-white px-3 py-2.5 pr-11 font-subtitle text-sm text-onyx outline-none focus-visible:border-red-700"
-                />
-                <button
-                  type="button"
-                  tabIndex={-1}
-                  onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? 'Esconder password' : 'Mostrar password'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-lg text-muted-dark"
-                >
-                  <i className={`bx ${showPassword ? 'bx-hide' : 'bx-show'}`} aria-hidden="true" />
-                </button>
-              </span>
-            </label>
-
-            <label className="mt-4 flex cursor-pointer items-start gap-3">
-              <input
-                type="checkbox"
-                checked={acknowledged}
-                onChange={(e) => onAcknowledgedChange(e.target.checked)}
-                className="mt-0.5 h-5 w-5 shrink-0 accent-red-700"
-              />
-              <span className="font-subtitle text-sm text-onyx">Compreendo que não pode ser desfeito.</span>
-            </label>
-
-            {error && <p className="mt-3 font-subtitle text-sm text-red-700">{error}</p>}
-
-            <div className="mt-6 grid grid-cols-2 gap-3">
               <button
                 type="button"
+                aria-label="Fechar"
                 onClick={onClose}
                 disabled={busy}
-                className="rounded-full glass-chip py-3 font-subtitle text-sm text-onyx transition-colors disabled:opacity-50"
+                className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-onyx"
               >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={onConfirm}
-                disabled={!canConfirm}
-                className="rounded-full bg-red-700 py-3 font-subtitle text-sm text-[#ffffff] transition-opacity hover:opacity-90 disabled:opacity-40"
-              >
-                {busy ? 'A apagar...' : 'Apagar tudo'}
+                <X size={16} />
               </button>
             </div>
-          </motion.div>
+
+            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-5 pb-4 pt-1">
+              {/* What goes. */}
+              <div className="grid grid-cols-2 gap-2.5">
+                {[
+                  { label: 'Horários', value: summary?.slotCount },
+                  { label: 'Marcações', value: summary?.bookingCount },
+                ].map((item) => (
+                  <div key={item.label} className="flex flex-col items-center rounded-[20px] bg-card px-3 py-3.5 text-center" style={{ boxShadow: CARD_SHADOW }}>
+                    <p className="font-subtitle text-[12px] text-ink-3">{item.label} a apagar</p>
+                    <p className="tabular mt-0.5 font-subtitle text-[26px] font-semibold leading-tight" style={{ color: RED }}>
+                      {item.value ?? '…'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <p
+                className="flex items-start gap-2.5 rounded-[20px] px-4 py-3 font-subtitle text-[13px] leading-snug text-onyx"
+                style={{ background: `color-mix(in srgb, ${RED} 9%, transparent)` }}
+              >
+                <TriangleAlert size={16} className="mt-0.5 shrink-0" style={{ color: RED }} />
+                <span>
+                  Inclui marcações já aceites. As clientes <strong className="font-semibold">não recebem aviso</strong> e o histórico do mês desaparece.
+                  Não pode ser desfeito.
+                </span>
+              </p>
+
+              {/* The password, in a glass field. */}
+              <div>
+                <p className="mb-2 px-1 font-subtitle text-[12px] font-semibold text-muted-dark">Confirma com a tua password</p>
+                <label className="glass-chip flex h-12 items-center gap-2 rounded-full pe-1.5 ps-4">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => onPasswordChange(e.target.value)}
+                    autoComplete="current-password"
+                    aria-label="Password"
+                    className="field-plain h-full min-w-0 flex-1 !border-0 !bg-transparent !p-0 font-subtitle text-base text-onyx !shadow-none outline-none"
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? 'Esconder password' : 'Mostrar password'}
+                    className="flex size-9 shrink-0 items-center justify-center rounded-full text-muted-dark"
+                  >
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </label>
+              </div>
+
+              {/* "I understand", as a card that ticks. */}
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={acknowledged}
+                onClick={() => {
+                  void tap()
+                  onAcknowledgedChange(!acknowledged)
+                }}
+                className="flex items-center gap-3 rounded-[20px] bg-onyx/[0.04] px-4 py-3 text-left"
+              >
+                <span
+                  className="flex size-6 shrink-0 items-center justify-center rounded-lg transition-colors"
+                  style={
+                    acknowledged
+                      ? { background: RED, color: '#ffffff' }
+                      : { boxShadow: 'inset 0 0 0 1.5px color-mix(in srgb, var(--color-onyx) 25%, transparent)' }
+                  }
+                >
+                  {acknowledged && <Check size={15} strokeWidth={3} />}
+                </span>
+                <span className="font-subtitle text-[14px] text-onyx">Compreendo que não pode ser desfeito.</span>
+              </button>
+
+              {error && <p className="px-1 font-subtitle text-sm" style={{ color: RED }}>{error}</p>}
+            </div>
+
+            {/* The button: red only when everything is in place. */}
+            <div className="px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]">
+              <button
+                type="submit"
+                disabled={!canConfirm}
+                className={`flex h-14 w-full items-center gap-3 rounded-full pe-2 ps-5 text-left transition-all active:scale-[0.98] ${canConfirm ? 'text-[#ffffff]' : 'bg-card text-onyx opacity-60'}`}
+                style={canConfirm ? { background: RED, boxShadow: CARD_SHADOW } : { boxShadow: CARD_SHADOW }}
+              >
+                <Trash2 size={19} className="shrink-0" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-subtitle text-[15px] font-semibold leading-tight">
+                    {busy ? 'A apagar…' : `Apagar ${monthLabel}`}
+                  </span>
+                  <span className={`block truncate font-subtitle text-[12px] ${canConfirm ? 'text-[#ffffff]/80' : 'text-muted-dark'}`}>
+                    {!canConfirm
+                      ? 'Escreve a password e confirma'
+                      : total === null
+                        ? 'Tudo o que há neste mês'
+                        : `${summary!.slotCount} ${summary!.slotCount === 1 ? 'horário' : 'horários'} e ${summary!.bookingCount} ${summary!.bookingCount === 1 ? 'marcação' : 'marcações'}`}
+                  </span>
+                </span>
+                <span className={`flex size-10 shrink-0 items-center justify-center rounded-full ${canConfirm ? 'bg-white/20' : 'bg-onyx/[0.05]'}`}>
+                  <ArrowRight size={18} />
+                </span>
+              </button>
+            </div>
+          </motion.form>
         </div>
       )}
     </AnimatePresence>
@@ -3173,22 +3221,29 @@ function AdminDashboard() {
                 />
                 <AddTimesSheet day={addDay} taken={takenTimes} busy={addingSlot} onClose={() => setAddDay(null)} onCreate={(times) => addDay && void createSlots(addDay, times)} />
 
-                {/* Only when the month has something to clear. */}
+                {/* Only when the month has something to clear: rarely needed and can't be undone, so last on the page. */}
                 {monthSlots.length > 0 && (
-                  // Rarely needed and can't be undone: a quiet line at the end; the dialog asks for the password.
-                  <div className="mt-10 border-t border-onyx/10 pt-4 text-center">
-                    <button
-                      type="button"
-                      onClick={openClearPanel}
-                      className="inline-flex items-center gap-1.5 font-subtitle text-sm text-red-700/80 dark:text-red-400"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void tap()
+                      void openClearPanel()
+                    }}
+                    className="mt-10 flex w-full items-center gap-3 rounded-[22px] bg-card p-3.5 text-left transition-transform active:scale-[0.98]"
+                    style={{ boxShadow: CARD_SHADOW }}
+                  >
+                    <span
+                      className="flex size-10 shrink-0 items-center justify-center rounded-full"
+                      style={{ background: 'color-mix(in srgb, var(--c-cancelled) 13%, transparent)', color: 'var(--c-cancelled)' }}
                     >
-                      <i className="bx bx-trash text-base" aria-hidden="true" />
-                      Limpar {formatMonthLabel(viewMonth)}…
-                    </button>
-                    <p className="mt-1 font-subtitle text-xs text-muted-dark">
-                      Apaga todas as vagas e marcações do mês. Não pode ser desfeito.
-                    </p>
-                  </div>
+                      <Trash2 size={17} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-subtitle text-[15px] font-semibold text-onyx">Limpar {formatMonthLabel(viewMonth)}</span>
+                      <span className="block truncate font-subtitle text-[12px] text-muted-dark">Apaga as vagas e marcações do mês. Não pode ser desfeito.</span>
+                    </span>
+                    <ChevronRight size={18} className="shrink-0 text-ink-3" />
+                  </button>
                 )}
 
                 <ClearMonthDialog
