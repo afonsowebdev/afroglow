@@ -6,8 +6,8 @@ import type { ReactNode } from 'react'
  * empty state as a white card.
  */
 
-/** The soft shadow of the Painel's cards, as a utility. */
-export const cardShadow = 'shadow-[0px_1px_3px_0px_rgba(0,0,0,0.08),0px_12px_32px_-10px_rgba(0,0,0,0.2)]'
+/** The soft shadow of the Painel's cards (--card-shadow, deeper in the dark theme), as a utility. */
+export const cardShadow = 'shadow-[var(--card-shadow)]'
 export const sectionTitle = 'mb-2 px-1 font-subtitle text-[12px] font-semibold text-muted-dark'
 export const group = `divide-y divide-onyx/[0.06] overflow-hidden rounded-[22px] bg-card ${cardShadow}`
 export const plain =

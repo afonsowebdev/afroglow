@@ -351,7 +351,7 @@ export function GenerateSlotsSheet({
                 type="submit"
                 disabled={busy || times.length === 0}
                 className="flex h-14 w-full items-center gap-3 rounded-full bg-card pe-2 ps-5 text-left transition-transform active:scale-[0.98] disabled:opacity-45"
-                style={{ boxShadow: '0px 1px 3px 0px rgba(0,0,0,0.08), 0px 12px 32px -10px rgba(0,0,0,0.2)' }}
+                style={{ boxShadow: 'var(--card-shadow)' }}
               >
                 <CalendarRange size={19} className="shrink-0 text-onyx" />
                 <span className="min-w-0 flex-1">

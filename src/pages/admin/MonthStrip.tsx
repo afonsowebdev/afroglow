@@ -80,7 +80,7 @@ export function MonthStrip({
       className="mt-6 rounded-[22px] bg-card p-4"
       style={{
         boxShadow:
-          "0px 1px 3px 0px rgba(0,0,0,0.08), 0px 12px 32px -10px rgba(0,0,0,0.2)",
+          "var(--card-shadow)",
       }}
     >
       <div className="flex items-center justify-between gap-3">

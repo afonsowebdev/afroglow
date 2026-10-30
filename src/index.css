@@ -238,6 +238,8 @@
   --c-chart-out: #e2876a;
   --shadow-card: 0 1px 3px rgb(0 0 0 / 0.05);
   --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.2), 0 4px 12px -4px rgb(0 0 0 / 0.1);
+  /* The cards' soft shadow, everywhere in the admin (grid, pages, sheets). */
+  --card-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.08), 0px 12px 32px -10px rgba(0, 0, 0, 0.2);
 
   /* The utilities (bg-card, text-ink-3…) read these; set here so they resolve against the values above, not :root. */
   --color-surface: var(--c-surface);
@@ -258,7 +260,9 @@
   --color-chart-out: var(--c-chart-out);
 }
 .dark .afro-admin {
-  --c-card: color-mix(in srgb, var(--color-onyx) 8%, var(--color-white));
+  /* Dark: the cards take the page's own brown and stand out by a deeper shadow underneath. */
+  --c-card: var(--color-white);
+  --card-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.35), 0px 14px 28px -10px rgba(0, 0, 0, 0.7);
   --c-pos: #30d158;
   --c-neg: #ff453a;
   --c-confirmed: #5f935d;

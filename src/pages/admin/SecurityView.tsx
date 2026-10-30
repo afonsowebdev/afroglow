@@ -21,7 +21,7 @@ const STRENGTH = ['Curta demais', 'Fraca', 'Razoável', 'Boa', 'Forte']
 const STRENGTH_COLOUR = ['var(--c-cancelled)', 'var(--c-cancelled)', 'var(--c-waiting)', 'var(--c-confirmed)', 'var(--c-confirmed)']
 
 /** The soft shadow of the Painel's cards. */
-const CARD_SHADOW = '0px 1px 3px 0px rgba(0,0,0,0.08), 0px 12px 32px -10px rgba(0,0,0,0.2)'
+const CARD_SHADOW = 'var(--card-shadow)'
 const label = 'mb-2 px-1 font-subtitle text-[12px] font-semibold text-muted-dark'
 
 /** A password in a glass field, with the eye to show it. */

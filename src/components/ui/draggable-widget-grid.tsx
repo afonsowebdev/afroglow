@@ -354,8 +354,8 @@ const LANDED_MS = 620
 const LONG_PRESS_MS = 350
 /** Touch: movement allowed during the hold before it counts as a scroll. */
 const PRESS_SLOP = 8
-// Same number of layers in both, so the shadow can interpolate.
-const SHADOW_REST = '0px 1px 3px 0px rgba(0,0,0,0.08), 0px 12px 32px -10px rgba(0,0,0,0.2)'
+// The resting shadow follows the admin's --card-shadow (deeper in the dark theme); the lifted one is the same in both.
+const SHADOW_REST = 'var(--card-shadow)'
 const SHADOW_LIFTED = '0px 28px 60px -16px rgba(0,0,0,0.35), 0px 10px 24px -8px rgba(0,0,0,0.22)'
 
 /* Card */

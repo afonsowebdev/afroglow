@@ -628,7 +628,7 @@ function dayHeading(iso: string) {
 }
 
 /** The soft shadow of the Painel's cards, so the Agenda's cards sit the same way on the page. */
-const CARD_SHADOW = '0px 1px 3px 0px rgba(0,0,0,0.08), 0px 12px 32px -10px rgba(0,0,0,0.2)'
+const CARD_SHADOW = 'var(--card-shadow)'
 /** The same shadow on a glass control, keeping its thin rim. */
 const GLASS_SHADOW = `inset 0 0 0 1px color-mix(in srgb, var(--color-onyx) 14%, transparent), ${CARD_SHADOW}`
 
