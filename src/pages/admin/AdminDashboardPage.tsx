@@ -59,6 +59,7 @@ import { ClosuresView } from '@/pages/admin/ClosuresView'
 import { PromotionsView } from '@/pages/admin/PromotionsView'
 import { TeamView } from '@/pages/admin/TeamView'
 import { HomeView } from '@/pages/admin/HomeView'
+import { PullToRefresh } from '@/pages/admin/PullToRefresh'
 import { HeaderLogo } from '@/customer/HeaderLogo'
 import { tap } from '@/lib/haptics'
 import { useScrollLock } from '@/lib/use-scroll-lock'
@@ -2395,6 +2396,8 @@ function AdminDashboard() {
       : 'inicio'
   })
   useAutoHideNav(hideOnScroll, tab)
+  // Bumped by pulling down to refresh, so the page (and the lists it loads itself) is drawn again.
+  const [refreshKey, setRefreshKey] = useState(0)
   // The page before this one, for the back button on Dias fechados (Horários when there is none).
   const shownTab = useRef<AdminTab>(tab)
   const previousTab = useRef<AdminTab>('disponibilidade')
@@ -2955,10 +2958,17 @@ function AdminDashboard() {
       </div>
 
       <main className="mx-auto max-w-4xl px-5 pb-36 pt-[calc(7rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(8rem+env(safe-area-inset-top))]">
+        {/* Pull down at the top to refresh: the data comes back and the page is drawn again (its own lists reload too). */}
+        <PullToRefresh
+          onRefresh={async () => {
+            await loadDashboard({ silent: true })
+            setRefreshKey((k) => k + 1)
+          }}
+        >
         {error && <p className="mt-6 font-subtitle text-sm text-red-700">{error}</p>}
 
         <motion.div
-          key={tab}
+          key={`${tab}-${refreshKey}`}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22, ease: 'easeOut' }}
@@ -3354,6 +3364,7 @@ function AdminDashboard() {
             )}
           </div>
         </motion.div>
+        </PullToRefresh>
       </main>
 
       <ManualBookingSheet
