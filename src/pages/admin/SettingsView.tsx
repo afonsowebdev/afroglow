@@ -1,36 +1,40 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import { ArrowRight, Check, Clock, ExternalLink, FileText, MapPin, Minus, Phone, Plus, X, type LucideIcon } from 'lucide-react'
 import { api, ApiError } from '@/lib/api'
+import { tap } from '@/lib/haptics'
 import { loadBusinessInfo, mapSearchText, type BusinessInfo } from '@/lib/site-config'
+import { cardShadow } from './admin-ui'
 
-// Fields inside the grouped lists: no box of their own.
+// A field in a glass pill, without a box of its own inside.
 const plain =
-  'field-plain block w-full min-w-0 bg-transparent font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35'
-const group =
-  'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
+  'field-plain block w-full min-w-0 !border-0 !bg-transparent !p-0 font-subtitle text-base text-onyx !shadow-none outline-none placeholder:text-onyx/35'
+const glassField = 'glass-chip flex items-center gap-3 rounded-full px-4'
+const testChip = 'glass-chip flex h-8 items-center gap-1.5 rounded-full px-3 font-subtitle text-[12px] font-semibold text-onyx'
 
-function Section({ title, note, children }: { title: string; note?: string; children: React.ReactNode }) {
+/** A part of the settings, in a white card like the Painel's: an icon in a glass circle, its title and what it is for. */
+function Card({ Icon, title, note, children }: { Icon: LucideIcon; title: string; note?: string; children: ReactNode }) {
   return (
-    <section>
-      <h2 className="mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark">
-        {title}
-      </h2>
+    <section className={`rounded-[22px] bg-card p-4 ${cardShadow}`}>
+      <div className="mb-3.5 flex items-center gap-3">
+        <span className="glass-chip flex size-10 shrink-0 items-center justify-center rounded-full text-onyx">
+          <Icon size={17} />
+        </span>
+        <span className="min-w-0">
+          <span className="block font-subtitle text-[15px] font-semibold text-onyx">{title}</span>
+          {note && <span className="block font-subtitle text-xs leading-snug text-muted-dark">{note}</span>}
+        </span>
+      </div>
       {children}
-      {note && <p className="mt-2 px-1 font-subtitle text-xs text-muted-dark">{note}</p>}
     </section>
   )
 }
 
-/** A label on the left and its field on the right, as in the iPhone's settings. */
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="flex items-center gap-3 px-4">
-      <span className="w-24 shrink-0 font-subtitle text-[15px] text-onyx">{label}</span>
-      {children}
-    </label>
-  )
-}
-
-/** Business details shown on the website and in the customer app. Empty fields stay hidden there. */
+/**
+ * Business details shown on the website and in the customer app (empty fields stay hidden there), in the Painel's
+ * style: a white card per part with glass fields, ways to test the numbers and the map, and a plain save button that
+ * shows while something changed.
+ */
 export function SettingsView() {
   const [form, setForm] = useState<BusinessInfo | null>(null)
   const [saving, setSaving] = useState(false)
@@ -46,7 +50,7 @@ export function SettingsView() {
   }, [])
 
   if (!form) {
-    return <p className="mt-8 font-subtitle text-muted-dark">{message?.text ?? 'A carregar...'}</p>
+    return <p className="mt-8 px-1 font-subtitle text-sm text-muted-dark">{message?.text ?? 'A carregar…'}</p>
   }
 
   function update(patch: Partial<BusinessInfo>) {
@@ -83,61 +87,63 @@ export function SettingsView() {
   }
 
   const digits = form.whatsappNumber.replace(/\D/g, '')
+  const phoneDigits = form.phone.replace(/[^+\d]/g, '')
+  const mapHref = form.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapSearchText(form.address))}`
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-7">
-      <p className="px-1 font-subtitle text-sm text-muted-dark">
-        Aparecem no site e na app dos clientes. O que ficar vazio não é mostrado.
-      </p>
+    <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+      <p className="px-1 font-subtitle text-sm text-muted-dark">Aparecem no site e na app das clientes. O que ficar vazio não é mostrado.</p>
 
-      <Section title="Contactos">
-        <div className={group}>
-          <Row label="WhatsApp">
+      <Card Icon={Phone} title="Contactos" note="WhatsApp com indicativo, só números (ex. 351…).">
+        <div className="flex flex-col gap-2">
+          <label className={`${glassField} h-12`}>
+            <i className="bx bxl-whatsapp text-lg text-ink-3" aria-hidden="true" />
+            <span className="w-[4.5rem] shrink-0 font-subtitle text-[13px] text-muted-dark">WhatsApp</span>
             <input
               value={form.whatsappNumber}
               onChange={(e) => update({ whatsappNumber: e.target.value })}
               inputMode="numeric"
               placeholder="351912345678"
               maxLength={20}
-              className={`${plain} h-[52px] text-right`}
+              className={`${plain} tabular text-right`}
             />
-          </Row>
-          <Row label="Telefone">
+          </label>
+          <label className={`${glassField} h-12`}>
+            <Phone size={16} className="shrink-0 text-ink-3" />
+            <span className="w-[4.5rem] shrink-0 font-subtitle text-[13px] text-muted-dark">Telefone</span>
             <input
               value={form.phone}
               onChange={(e) => update({ phone: e.target.value })}
               type="tel"
               placeholder="+351 912 345 678"
               maxLength={30}
-              className={`${plain} h-[52px] text-right`}
+              className={`${plain} tabular text-right`}
             />
-          </Row>
+          </label>
         </div>
         {/* A way to check the numbers before saving. */}
-        <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 px-1 font-subtitle text-xs">
-          {digits.length >= 9 && (
-            <a
-              href={`https://wa.me/${digits}`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-onyx underline underline-offset-4"
-            >
-              Testar WhatsApp
-            </a>
-          )}
-          {form.phone.replace(/[^+\d]/g, '').length >= 9 && (
-            <a href={`tel:${form.phone.replace(/[^+\d]/g, '')}`} className="text-onyx underline underline-offset-4">
-              Testar chamada
-            </a>
-          )}
-          <span className="text-muted-dark">WhatsApp com indicativo, só números (ex. 351…).</span>
-        </div>
-      </Section>
+        {(digits.length >= 9 || phoneDigits.length >= 9) && (
+          <div className="mt-2.5 flex flex-wrap gap-2">
+            {digits.length >= 9 && (
+              <a href={`https://wa.me/${digits}`} target="_blank" rel="noreferrer" className={testChip}>
+                <i className="bx bxl-whatsapp text-sm" aria-hidden="true" />
+                Testar WhatsApp
+              </a>
+            )}
+            {phoneDigits.length >= 9 && (
+              <a href={`tel:${phoneDigits}`} className={testChip}>
+                <Phone size={12} strokeWidth={2.4} />
+                Testar chamada
+              </a>
+            )}
+          </div>
+        )}
+      </Card>
 
-      <Section title="Localização">
-        <div className={group}>
-          <label className="block px-4 pb-2.5 pt-2">
-            <span className="block font-subtitle text-[11px] text-muted-dark">Morada</span>
+      <Card Icon={MapPin} title="Localização" note="Sem link, o mapa procura a morada.">
+        <div className="flex flex-col gap-2">
+          <label className="glass-chip block rounded-[20px] px-4 py-2.5">
+            <span className="block font-subtitle text-[12px] text-muted-dark">Morada</span>
             <textarea
               value={form.address}
               onChange={(e) => update({ address: e.target.value })}
@@ -147,51 +153,40 @@ export function SettingsView() {
               className={`${plain} mt-0.5 resize-none leading-snug`}
             />
           </label>
-          <label className="block px-4 pb-2.5 pt-2">
-            <span className="block font-subtitle text-[11px] text-muted-dark">Link do mapa (opcional)</span>
+          <label className={`${glassField} h-12`}>
+            <span className="shrink-0 font-subtitle text-[13px] text-muted-dark">Link do mapa</span>
             <input
               value={form.mapUrl}
               onChange={(e) => update({ mapUrl: e.target.value })}
               type="url"
-              placeholder="https://maps.app.goo.gl/..."
+              placeholder="opcional"
               maxLength={500}
-              className={`${plain} mt-0.5 h-7`}
+              className={`${plain} text-right`}
             />
           </label>
         </div>
-        <p className="mt-2 px-1 font-subtitle text-xs text-muted-dark">
-          Sem link, o mapa procura a morada.{' '}
-          {(form.mapUrl || form.address) && (
-            <a
-              href={
-                form.mapUrl ||
-                `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapSearchText(form.address))}`
-              }
-              target="_blank"
-              rel="noreferrer"
-              className="text-onyx underline underline-offset-4"
-            >
+        {(form.mapUrl || form.address) && (
+          <div className="mt-2.5 flex">
+            <a href={mapHref} target="_blank" rel="noreferrer" className={testChip}>
+              <ExternalLink size={12} strokeWidth={2.4} />
               Ver no mapa
             </a>
-          )}
-        </p>
-      </Section>
+          </div>
+        )}
+      </Card>
 
-      <Section
-        title="Horário"
-        note="As horas a que começam as sessões (ex. 09:00 e 14:00). Os dias que não estiverem aqui aparecem como fechados."
-      >
-        {/* One grouped list, a row per day: the day, the hours beside it, and remove. */}
-        <div className={group}>
+      <Card Icon={Clock} title="Horário" note="As horas a que começam as sessões. Os dias que não estiverem aqui aparecem como fechados.">
+        {/* A glass row per day: the day, its hours, and remove. */}
+        <div className="flex flex-col gap-2">
           {form.openingHours.map((row, index) => (
-            <div key={index} className="flex items-center">
+            <div key={index} className="glass-chip flex h-12 items-center gap-2 rounded-full pe-1.5 ps-4">
               <input
                 value={row.days}
                 onChange={(e) => updateHours(index, { days: e.target.value })}
                 aria-label="Dia"
                 placeholder="Quarta-feira"
                 maxLength={60}
-                className="field-plain h-[52px] min-w-0 flex-1 bg-transparent pl-4 font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35"
+                className={`${plain} font-medium`}
               />
               <input
                 value={row.hours}
@@ -199,66 +194,91 @@ export function SettingsView() {
                 aria-label="Horas"
                 placeholder="09:00 e 14:00"
                 maxLength={60}
-                className="field-plain h-[52px] w-[7.25rem] shrink-0 bg-transparent px-1 text-right font-subtitle text-base text-onyx/70 outline-none placeholder:text-onyx/35"
+                className={`${plain} tabular !w-[6.6rem] shrink-0 text-right !text-[15px] text-muted-dark`}
               />
               <button
                 type="button"
                 aria-label={`Remover ${row.days || 'linha'}`}
-                onClick={() => update({ openingHours: form.openingHours.filter((_, i) => i !== index) })}
-                className="flex h-[52px] w-11 shrink-0 items-center justify-center text-lg text-onyx/35 hover:text-red-700"
+                onClick={() => {
+                  void tap()
+                  update({ openingHours: form.openingHours.filter((_, i) => i !== index) })
+                }}
+                className="flex size-9 shrink-0 items-center justify-center rounded-full"
+                style={{ background: 'color-mix(in srgb, var(--c-cancelled) 12%, transparent)', color: 'var(--c-cancelled)' }}
               >
-                <i className="bx bx-minus-circle" aria-hidden="true" />
+                <Minus size={15} strokeWidth={2.4} />
               </button>
             </div>
           ))}
           {form.openingHours.length < 10 && (
             <button
               type="button"
-              onClick={() => update({ openingHours: [...form.openingHours, { days: '', hours: '' }] })}
-              className="flex h-[52px] w-full items-center gap-2 px-4 font-subtitle text-[15px] text-onyx"
+              onClick={() => {
+                void tap()
+                update({ openingHours: [...form.openingHours, { days: '', hours: '' }] })
+              }}
+              className="flex h-12 items-center justify-center gap-1.5 rounded-full border-[1.5px] border-dashed border-onyx/15 font-subtitle text-[14px] font-semibold text-onyx"
             >
-              <i className="bx bx-plus-circle text-lg" aria-hidden="true" />
+              <Plus size={16} strokeWidth={2.4} />
               Adicionar dia
             </button>
           )}
         </div>
-      </Section>
+      </Card>
 
-      <Section title="Cancelamento" note="Mostrada às clientes antes de confirmarem e quando cancelam.">
-        <div className={group}>
-          <label className="block px-4 py-3">
-            <textarea
-              value={form.cancellationPolicy}
-              onChange={(e) => update({ cancellationPolicy: e.target.value })}
-              rows={3}
-              maxLength={600}
-              placeholder="Ex.: Cancelamentos com menos de 24 horas de antecedência..."
-              className={`${plain} resize-none leading-snug`}
-              aria-label="Política de cancelamento"
-            />
-          </label>
-        </div>
-      </Section>
+      <Card Icon={FileText} title="Cancelamento" note="Mostrada às clientes antes de confirmarem e quando cancelam.">
+        <label className="glass-chip block rounded-[20px] px-4 py-3">
+          <textarea
+            value={form.cancellationPolicy}
+            onChange={(e) => update({ cancellationPolicy: e.target.value })}
+            rows={4}
+            maxLength={600}
+            placeholder="Ex.: Cancelamentos com menos de 24 horas de antecedência…"
+            className={`${plain} resize-none leading-snug`}
+            aria-label="Política de cancelamento"
+          />
+          <span className="tabular mt-1 block text-right font-subtitle text-[11px] text-muted-dark">{form.cancellationPolicy.length}/600</span>
+        </label>
+      </Card>
 
-      {/* Saving stays in reach above the tab bar while there are changes. */}
-      <div className="sticky bottom-[calc(6.5rem+env(safe-area-inset-bottom))] z-10 flex flex-col items-center gap-2">
-        {message && (
-          <p
-            role={message.ok ? 'status' : 'alert'}
-            className={`rounded-full px-4 py-1.5 font-subtitle text-sm shadow-sm ${
-              message.ok ? 'bg-white text-onyx' : 'bg-white text-red-700'
-            }`}
-          >
-            {message.text}
-          </p>
-        )}
-        <button
-          type="submit"
-          disabled={saving || !dirty}
-          className="h-12 w-full max-w-xs rounded-full bg-onyx font-subtitle text-sm font-medium text-white shadow-lg shadow-black/15 transition-opacity disabled:opacity-0"
-        >
-          {saving ? 'A guardar…' : 'Guardar alterações'}
-        </button>
+      {/* Saving stays in reach above the tab bar while there are changes; the result shows the same way. */}
+      <div className="sticky bottom-[calc(6.5rem+env(safe-area-inset-bottom))] z-10 mt-2 flex flex-col items-center gap-2">
+        <AnimatePresence>
+          {message && (
+            <motion.p
+              key="message"
+              role={message.ok ? 'status' : 'alert'}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              className={`flex items-center gap-2 rounded-full bg-card px-4 py-2 font-subtitle text-[13px] text-onyx ${cardShadow}`}
+            >
+              {message.ok ? (
+                <Check size={15} style={{ color: 'var(--c-confirmed)' }} />
+              ) : (
+                <X size={15} style={{ color: 'var(--c-cancelled)' }} />
+              )}
+              {message.text}
+            </motion.p>
+          )}
+          {dirty && (
+            <motion.button
+              key="save"
+              type="submit"
+              disabled={saving}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 12 }}
+              className={`flex h-14 w-full max-w-sm items-center gap-3 rounded-full bg-card pe-2 ps-5 text-left transition-transform active:scale-[0.98] disabled:opacity-60 ${cardShadow}`}
+            >
+              <Check size={19} className="shrink-0 text-onyx" />
+              <span className="min-w-0 flex-1 truncate font-subtitle text-[15px] font-semibold text-onyx">{saving ? 'A guardar…' : 'Guardar alterações'}</span>
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-onyx/[0.05] text-onyx">
+                <ArrowRight size={18} />
+              </span>
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
     </form>
   )
