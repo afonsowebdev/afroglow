@@ -70,8 +70,9 @@ export function BottomNavBar<T extends string>({
       aria-hidden={hidden || undefined}
       aria-label="Secções do painel"
       className={cn(
-        'flex h-[56px] max-w-[95vw] items-center rounded-full p-2 transition-colors duration-300',
-        compact ? 'gap-0' : 'gap-1',
+        'flex max-w-[95vw] items-center rounded-full transition-colors duration-300',
+        // The newer iOS bar: icons only, a little bigger.
+        ios ? 'h-[62px] gap-1.5 p-2' : cn('h-[56px] p-2', compact ? 'gap-0' : 'gap-1'),
         glass
           ? `${ios ? 'glass-clear' : 'liquid-glass'} ${stickyBottom ? '' : 'relative'}`
           : 'border border-[rgba(255,255,255,0.6)] bg-[rgba(255,255,255,0.4)] shadow-[0_8px_32px_rgba(26,16,8,0.14)] ring-1 ring-inset ring-[rgba(255,255,255,0.4)] dark:border-[rgba(255,255,255,0.18)] dark:bg-[rgba(58,40,24,0.5)] dark:shadow-[0_10px_36px_rgba(0,0,0,0.55)] dark:ring-[rgba(255,255,255,0.08)] backdrop-blur-2xl backdrop-saturate-150',
@@ -94,8 +95,8 @@ export function BottomNavBar<T extends string>({
             aria-label={item.label}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
-              compact ? 'px-2.5' : 'px-3',
-              'relative flex h-10 min-w-[40px] items-center justify-center rounded-full font-subtitle transition-[color,filter,background-color,box-shadow] duration-500 ease-in-out focus:outline-none',
+              ios ? 'h-[46px] w-[52px]' : cn('h-10 min-w-[40px]', compact ? 'px-2.5' : 'px-3'),
+              'relative flex items-center justify-center rounded-full font-subtitle transition-[color,filter,background-color,box-shadow] duration-500 ease-in-out focus:outline-none',
               glass
                 ? isActive
                   ? `${ios ? '' : 'liquid-glass-bubble'} ${onDark ? 'text-[#ffffff] [filter:drop-shadow(0_0_1px_rgba(0,0,0,0.25))]' : 'text-onyx'}`
@@ -116,7 +117,7 @@ export function BottomNavBar<T extends string>({
                 transition={{ type: 'spring', stiffness: 420, damping: 30, mass: 0.8 }}
               />
             )}
-            <span className={cn('relative text-[22px] leading-none', ios && '[&_svg]:[stroke-width:1.5]')}>
+            <span className={cn('relative text-[22px] leading-none', ios && '[&_svg]:size-[25px] [&_svg]:[stroke-width:1.5]')}>
               {item.image ? (
                 <img
                   src={item.image}
@@ -141,6 +142,7 @@ export function BottomNavBar<T extends string>({
                 </span>
               ) : null}
             </span>
+            {!ios && (
             <motion.span
               initial={false}
               animate={{
@@ -157,6 +159,7 @@ export function BottomNavBar<T extends string>({
             >
               <span className="select-none whitespace-nowrap text-xs font-semibold">{item.label}</span>
             </motion.span>
+            )}
           </motion.button>
         )
       })}

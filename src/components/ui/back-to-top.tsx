@@ -37,7 +37,7 @@ export function BackToTop({ hidden = false, admin = false }: { hidden?: boolean;
           key="back-to-top"
           className="pointer-events-auto shrink-0"
           initial={{ width: 0, marginLeft: 0 }}
-          animate={{ width: 56, marginLeft: admin ? 8 : 10 }}
+          animate={{ width: admin ? 62 : 56, marginLeft: admin ? 8 : 10 }}
           exit={{ width: 0, marginLeft: 0 }}
           transition={admin ? { duration: 0.6, ease: [0.22, 1, 0.36, 1] } : ease}
         >
@@ -59,7 +59,7 @@ export function BackToTop({ hidden = false, admin = false }: { hidden?: boolean;
                 : ease
             }
             className={cn(
-              'liquid-glass flex size-14 items-center justify-center rounded-full transition-colors duration-300',
+              cn('flex items-center justify-center rounded-full transition-colors duration-300', admin ? 'glass-clear size-[62px]' : 'liquid-glass size-14'),
               tone === 'dark' ? 'text-[#ffffff]' : 'text-[#1a1008]',
             )}
           >
