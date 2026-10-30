@@ -7,6 +7,7 @@ import {
   CalendarCheck,
   CalendarPlus,
   CalendarClock,
+  CalendarDays,
   CalendarX2,
   ChartColumn,
   ChartLine,
@@ -186,6 +187,11 @@ export function HomeView({
   const [goal, setGoal] = useState<number | null>(null)
   const [goalOpen, setGoalOpen] = useState(false)
   const [detailOpen, setDetailOpen] = useState(false)
+  // The month the board shows (this one by default), chosen from the calendar button on top.
+  const currentMonth = todayKey().slice(0, 7)
+  const [viewMonth, setViewMonth] = useState(currentMonth)
+  const [monthMenu, setMonthMenu] = useState(false)
+  const pastMonth = viewMonth !== currentMonth
 
   useEffect(() => {
     api
@@ -202,7 +208,7 @@ export function HomeView({
         </h1>
         {loaded && bookings.length > 0 && (
           // The two board controls together in one glass pill.
-          <div className="glass-chip flex shrink-0 items-center gap-0.5 rounded-full p-1">
+          <div className="glass-chip relative z-30 flex shrink-0 items-center gap-0.5 rounded-full p-1">
             {editing ? (
               <>
                 <button
@@ -251,6 +257,69 @@ export function HomeView({
                   {hidden ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
                 <span className="h-4 w-px bg-onyx/15" aria-hidden="true" />
+                {/* The month shown: this one, or one before it. */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    aria-label="Escolher o mês"
+                    aria-expanded={monthMenu}
+                    title="Mês"
+                    onClick={() => {
+                      void tap()
+                      setMonthMenu((v) => !v)
+                    }}
+                    className={`flex h-8 min-w-8 items-center justify-center gap-1 rounded-full px-2 text-[13px] font-semibold transition-colors ${
+                      pastMonth ? 'bg-onyx text-white' : 'text-onyx hover:bg-onyx/[0.06]'
+                    }`}
+                  >
+                    <CalendarDays size={16} />
+                    {pastMonth && <span className="capitalize">{shortMonth(viewMonth)}</span>}
+                  </button>
+                  <AnimatePresence>
+                    {monthMenu && (
+                      <>
+                        <button type="button" aria-label="Fechar" className="fixed inset-0 z-30 cursor-default" onClick={() => setMonthMenu(false)} />
+                        <motion.ul
+                          role="menu"
+                          initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                          transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                          className="absolute right-0 top-full z-40 mt-2 max-h-80 w-48 origin-top-right overflow-y-auto rounded-[20px] bg-card p-1.5 shadow-[var(--shadow-pop)]"
+                        >
+                          {Array.from({ length: 12 }, (_, i) => shiftMonth(currentMonth, -i)).map((key, i) => (
+                            <li key={key}>
+                              <button
+                                type="button"
+                                role="menuitemradio"
+                                aria-checked={viewMonth === key}
+                                onClick={() => {
+                                  void tap()
+                                  setViewMonth(key)
+                                  setMonthMenu(false)
+                                }}
+                                className={`flex h-10 w-full items-center justify-between rounded-xl px-3 text-left text-[14px] ${
+                                  viewMonth === key ? 'bg-onyx/[0.06] font-semibold text-onyx' : 'text-onyx hover:bg-onyx/[0.04]'
+                                }`}
+                              >
+                                <span className="capitalize">
+                                  {monthName(key)}
+                                  {key.slice(0, 4) !== currentMonth.slice(0, 4) && <span className="ml-1 text-muted-dark">{key.slice(0, 4)}</span>}
+                                </span>
+                                {i === 0 ? (
+                                  <span className="text-[11px] font-medium text-muted-dark">Este mês</span>
+                                ) : (
+                                  viewMonth === key && <Check size={15} />
+                                )}
+                              </button>
+                            </li>
+                          ))}
+                        </motion.ul>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
+                <span className="h-4 w-px bg-onyx/15" aria-hidden="true" />
                 <button
                   type="button"
                   aria-label="Personalizar os cartões"
@@ -276,6 +345,27 @@ export function HomeView({
             ? 'Os valores estão escondidos. Toca no olho para os voltares a ver.'
             : 'Fica a par do teu negócio e acompanha o teu progresso.'}
       </p>
+      {pastMonth && !editing && (
+        <div className="mt-3 flex items-center gap-2">
+          <span className="flex items-center gap-1.5 rounded-full bg-onyx/[0.06] px-3 py-1.5 text-[12px] font-semibold text-onyx">
+            <CalendarDays size={13} />
+            <span className="capitalize">
+              {monthName(viewMonth)} {viewMonth.slice(0, 4)}
+            </span>
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              void tap()
+              setViewMonth(currentMonth)
+            }}
+            className="glass-chip flex h-8 items-center gap-1.5 rounded-full px-3 text-[12px] font-semibold text-onyx"
+          >
+            <RotateCcw size={12} strokeWidth={2.4} />
+            Voltar a este mês
+          </button>
+        </div>
+      )}
     </div>
   )
 
@@ -310,7 +400,7 @@ export function HomeView({
     )
   }
 
-  const data = boardData({ bookings, testimonials: can('testemunhos') ? testimonials : [] })
+  const data = boardData({ bookings, testimonials: can('testemunhos') ? testimonials : [], month: viewMonth })
   const canStats = can('estatisticas')
 
   /** Makes a block smaller or bigger (one step through the sizes it can take); only that card changes on the board. */
@@ -506,11 +596,13 @@ interface ActivityItem {
   cents: number | null
 }
 
-function boardData({ bookings, testimonials }: { bookings: Booking[]; testimonials: Testimonial[] }) {
+function boardData({ bookings, testimonials, month: chosen }: { bookings: Booking[]; testimonials: Testimonial[]; month?: string }) {
   const now = Date.now()
   const today = todayKey()
-  const thisMonth = today.slice(0, 7)
-  const dayOfMonth = Number(today.slice(8))
+  // The month the board shows: this one, or one before it chosen on top (then compared whole, against the one before).
+  const thisMonth = chosen ?? today.slice(0, 7)
+  const isCurrent = thisMonth === today.slice(0, 7)
+  const dayOfMonth = isCurrent ? Number(today.slice(8)) : new Date(Number(thisMonth.slice(0, 4)), Number(thisMonth.slice(5)), 0).getDate()
   const confirmed = bookings.filter((b) => b.status === 'ACCEPTED')
   const sum = (list: Booking[]) => list.reduce((total, b) => total + bookingPrice(b), 0)
 
@@ -559,7 +651,9 @@ function boardData({ bookings, testimonials }: { bookings: Booking[]; testimonia
   const countOn = (key: string) => bookings.filter((b) => (b.status === 'ACCEPTED' || b.status === 'PENDING') && dayKey(b.slot.startsAt) === key).length
   const todayCount = countOn(today)
 
-  const pendingAll = bookings.filter((b) => b.status === 'PENDING' && new Date(b.slot.startsAt).getTime() >= now)
+  const pendingAll = bookings.filter((b) =>
+    isCurrent ? b.status === 'PENDING' && new Date(b.slot.startsAt).getTime() >= now : b.status === 'PENDING' && monthOf(b.slot.startsAt) === thisMonth,
+  )
   const monthCancelled = bookings.filter((b) => b.status === 'CANCELLED' && monthOf(b.slot.startsAt) === thisMonth)
 
   // Most booked over the last 90 days.
