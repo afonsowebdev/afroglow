@@ -514,7 +514,8 @@ const Widget = memo(function Widget({
     if (press.current?.pointerId === e.pointerId) release()
   }
 
-  const delay = (col / Math.max(columns, 1) + row / Math.max(rows, 1)) * 0.26
+  // One after another, top to bottom and left to right, at a calm pace.
+  const delay = 0.08 + (col / Math.max(columns, 1)) * 0.12 + (row / Math.max(rows, 1)) * 0.55
 
   return (
     <motion.div
@@ -566,9 +567,9 @@ const Widget = memo(function Widget({
       }}
     >
       <motion.div
-        initial={{ opacity: 0, y: 18, scale: 0.97 }}
+        initial={{ opacity: 0, y: 22, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ type: 'spring', visualDuration: 0.6, bounce: 0.12, delay }}
+        transition={{ type: 'spring', visualDuration: 0.9, bounce: 0.08, delay, opacity: { duration: 0.6, delay, ease: 'easeOut' } }}
         className={`relative isolate flex h-full w-full flex-col overflow-hidden rounded-[var(--widget-radius)] bg-card text-ink ring-inset transition-shadow duration-300 [clip-path:inset(0_round_var(--widget-radius))] ${
           landed ? 'ring-2 ring-accent/60' : ''
         }`}
@@ -831,7 +832,9 @@ export function DraggableWidgetGrid<T extends WidgetItem>({
           {domOrder.current.map((id) => {
             const item = byId.get(id)
             const p = placementById.get(id)
-            if (!item || !p) return null
+            // Not before the grid knows its width: placed first for a guessed width, the cards would then slide across
+            // to their real places as their entrance.
+            if (!item || !p || !metrics.columns) return null
             return (
               <Widget
                 key={id}
