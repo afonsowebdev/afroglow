@@ -185,6 +185,7 @@ export function FloatingActionMenu({
   faceLabel = 'menu',
   keepOrder = false,
   more,
+  moreBelow = false,
   bare = false,
   shrink = false,
   smallItems = false,
@@ -200,6 +201,8 @@ export function FloatingActionMenu({
   keepOrder?: boolean
   /** Hidden under a last "Mais opções" until it is tapped: then in a smaller column to its left, going down, in the order given. */
   more?: MenuAction[]
+  /** "Mais opções" open below in the same column instead of beside it (a button that isn't at the screen's edge). */
+  moreBelow?: boolean
   /** A plain 40px round button with no fill, for sitting inside a glass island. */
   bare?: boolean
   /** The round button a little smaller (a header that has scrolled); the menu keeps its place. */
@@ -367,8 +370,8 @@ export function FloatingActionMenu({
           <div
             className={cn(
               'pointer-events-none absolute right-0 flex items-end',
-              // 42px buttons centred under the 48px round one.
-              smallItems ? 'gap-2 pe-[3px]' : keepOrder ? 'gap-1.5' : 'gap-2.5',
+              // 42px buttons centred under the round one (48px, or 44px in the admin's header).
+              smallItems ? cn('gap-2', ink ? 'pe-px' : 'pe-[3px]') : keepOrder ? 'gap-1.5' : 'gap-2.5',
               direction === 'up' ? 'bottom-full mb-3 flex-col-reverse' : 'top-full mt-3 flex-col',
             )}
           >
@@ -470,8 +473,9 @@ export function FloatingActionMenu({
                 key="more"
                 exit={{ opacity: 1 }}
                 className={cn(
-                  'pointer-events-auto absolute right-[calc(100%+0.5rem)] flex flex-col items-end',
-                  smallItems ? 'top-[calc(100%-2.625rem)] gap-2' : 'top-[calc(100%-2.625rem)] gap-1.5',
+                  'pointer-events-auto flex flex-col items-end',
+                  moreBelow ? 'gap-2' : 'absolute right-[calc(100%+0.5rem)] top-[calc(100%-2.625rem)]',
+                  !moreBelow && (smallItems ? 'gap-2' : 'gap-1.5'),
                 )}
               >
                 {more.map(({ Icon, iconClass, label, danger, onClick, confirm, group }, index) => {
@@ -486,16 +490,17 @@ export function FloatingActionMenu({
                         onClick?.()
                         close()
                       }}
-                      initial={{ opacity: 0, x: 12, filter: 'blur(2px)' }}
+                      initial={moreBelow ? { opacity: 0, y: -10, filter: 'blur(2px)' } : { opacity: 0, x: 12, filter: 'blur(2px)' }}
                       animate={{
                         opacity: 1,
                         x: 0,
+                        y: 0,
                         filter: 'blur(0px)',
                         transition: { type: 'tween', ease: 'easeOut', duration: 0.28, delay: SWAP * OVERLAP + index * STAGGER },
                       }}
                       exit={{
                         opacity: 0,
-                        x: 12,
+                        ...(moreBelow ? { y: -10 } : { x: 12 }),
                         filter: 'blur(2px)',
                         transition: { type: 'tween', ease: 'easeIn', duration: 0.22, delay: (more.length - 1 - index) * STAGGER },
                       }}

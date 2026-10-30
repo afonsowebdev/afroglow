@@ -2952,6 +2952,7 @@ function AdminDashboard() {
             <FloatingActionMenu
               actions={menuActions}
               more={moreActions}
+              moreBelow
               keepOrder
               smallItems
               direction="down"
