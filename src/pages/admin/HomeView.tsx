@@ -65,17 +65,18 @@ const SIZE_KEY = 'afroadmin:painel-tamanhos'
 type Tab = 'pedidos' | 'agenda' | 'disponibilidade' | 'clientes' | MoreTarget
 type BlockId = 'faturacao' | 'sessoes' | 'hoje' | 'grafico' | 'clientes' | 'ticket' | 'meta' | 'servicos' | 'atividade' | 'proximas'
 
-const BLOCKS: Array<{ id: BlockId; size: WidgetSize; label: string; widens?: boolean }> = [
-  { id: 'faturacao', size: 'lg', label: 'Faturação do mês' },
-  { id: 'sessoes', size: 'sm', label: 'Sessões do mês', widens: true },
-  { id: 'hoje', size: 'sm', label: 'Marcações de hoje', widens: true },
-  { id: 'grafico', size: 'lg', label: 'Receita e cancelamentos' },
-  { id: 'clientes', size: 'sm', label: 'Clientes novas' },
-  { id: 'ticket', size: 'sm', label: 'Valor médio por sessão' },
-  { id: 'meta', size: 'wide', label: 'Meta mensal' },
-  { id: 'servicos', size: 'tall', label: 'Mais pedidos' },
-  { id: 'atividade', size: 'lg', label: 'Atividade recente' },
-  { id: 'proximas', size: 'lg', label: 'Próximas marcações' },
+/** The board's blocks: their usual size, and the sizes they can take while personalising (smallest first). */
+const BLOCKS: Array<{ id: BlockId; size: WidgetSize; label: string; sizes: WidgetSize[] }> = [
+  { id: 'faturacao', size: 'lg', label: 'Faturação do mês', sizes: ['wide', 'lg'] },
+  { id: 'sessoes', size: 'sm', label: 'Sessões do mês', sizes: ['sm', 'wide', 'lg'] },
+  { id: 'hoje', size: 'sm', label: 'Marcações de hoje', sizes: ['sm', 'wide', 'lg'] },
+  { id: 'grafico', size: 'lg', label: 'Receita e cancelamentos', sizes: ['wide', 'lg'] },
+  { id: 'clientes', size: 'sm', label: 'Clientes novas', sizes: ['sm', 'wide', 'lg'] },
+  { id: 'ticket', size: 'sm', label: 'Valor médio por sessão', sizes: ['sm', 'wide', 'lg'] },
+  { id: 'meta', size: 'wide', label: 'Meta mensal', sizes: ['sm', 'wide'] },
+  { id: 'servicos', size: 'tall', label: 'Mais pedidos', sizes: ['wide', 'tall', 'lg'] },
+  { id: 'atividade', size: 'lg', label: 'Atividade recente', sizes: ['wide', 'lg'] },
+  { id: 'proximas', size: 'lg', label: 'Próximas marcações', sizes: ['wide', 'lg'] },
 ]
 const ALLOWED_COLUMNS = [2, 3, 4, 6]
 
@@ -143,13 +144,16 @@ function writeStore(key: string, value: unknown) {
   }
 }
 
-/** The saved order, with any block added since then at the end, each at its saved size (for the blocks that widen). */
+/** The saved order, with any block added since then at the end, each at its saved size (when it can take it). */
 function loadOrder(): Array<WidgetItem & { id: BlockId }> {
   const saved = readStore<string[]>(ORDER_KEY, [])
   const sizes = readStore<Partial<Record<BlockId, WidgetSize>>>(SIZE_KEY, {})
   const known = saved.map((id) => BLOCKS.find((b) => b.id === id)).filter((b): b is (typeof BLOCKS)[number] => !!b)
   const all = [...known, ...BLOCKS.filter((b) => !known.includes(b))]
-  return all.map(({ id, size, label, widens }) => ({ id, size: (widens && sizes[id]) || size, label }))
+  return all.map(({ id, size, label, sizes: allowed }) => {
+    const saved = sizes[id]
+    return { id, size: saved && allowed.includes(saved) ? saved : size, label }
+  })
 }
 
 /* The page */
@@ -267,7 +271,7 @@ export function HomeView({
       </div>
       <p className="mt-2 max-w-xl text-sm text-muted-dark">
         {editing
-          ? 'Arrasta os blocos para os reorganizar. No telemóvel, mantém o dedo premido antes de arrastar.'
+          ? 'Arrasta os blocos para os mudar de lugar (no telemóvel, mantém o dedo premido) e usa os botões em baixo de cada um para o reduzir ou aumentar.'
           : hidden
             ? 'Os valores estão escondidos. Toca no olho para os voltares a ver.'
             : 'Fica a par do teu negócio e acompanha o teu progresso.'}
@@ -309,11 +313,11 @@ export function HomeView({
   const data = boardData({ bookings, testimonials: can('testemunhos') ? testimonials : [] })
   const canStats = can('estatisticas')
 
-  /** Widens or narrows a block; the board is laid out again with it. */
+  /** Makes a block smaller or bigger (one step through the sizes it can take); the board is laid out again with it. */
   const resize = (id: BlockId, size: WidgetSize) => {
     void tap()
     const next = order.map((b) => (b.id === id ? { ...b, size } : b))
-    writeStore(SIZE_KEY, Object.fromEntries(next.filter((b) => BLOCKS.find((x) => x.id === b.id)?.widens).map((b) => [b.id, b.size])))
+    writeStore(SIZE_KEY, Object.fromEntries(next.map((b) => [b.id, b.size])))
     setOrder(next)
     setBoardKey((k) => k + 1)
   }
@@ -322,7 +326,7 @@ export function HomeView({
     switch (id) {
       case 'faturacao':
         return (
-          <Highlight data={data} onNewBooking={() => onNewBooking()} onDetail={() => setDetailOpen(true)} onOpen={onOpen} />
+          <Highlight data={data} compact={size === 'wide'} onNewBooking={() => onNewBooking()} onDetail={() => setDetailOpen(true)} onOpen={onOpen} />
         )
       case 'sessoes':
         return (
@@ -334,7 +338,7 @@ export function HomeView({
             series={data.months.map((m) => m.sessions)}
             seriesNames={data.months.map((m) => shortMonth(m.key))}
             seriesLabel="Sessões por mês, nos últimos 6 meses"
-            wide={size === 'wide'}
+            size={size}
           />
         )
       case 'hoje':
@@ -348,7 +352,7 @@ export function HomeView({
             series={data.today.series}
             seriesNames={data.today.days}
             seriesLabel="Marcações por dia, nos últimos 6 dias"
-            wide={size === 'wide'}
+            size={size}
           />
         )
       case 'clientes':
@@ -361,6 +365,7 @@ export function HomeView({
             series={data.months.map((m) => m.newClients)}
             seriesNames={data.months.map((m) => shortMonth(m.key))}
             seriesLabel="Clientes novas por mês, nos últimos 6 meses"
+            size={size}
           />
         )
       case 'ticket':
@@ -374,18 +379,19 @@ export function HomeView({
             series={data.months.map((m) => m.average)}
             seriesNames={data.months.map((m) => shortMonth(m.key))}
             seriesLabel="Valor médio por sessão, nos últimos 6 meses"
+            size={size}
           />
         )
       case 'grafico':
-        return <InOutChart months={data.months} goal={goal ?? 0} />
+        return <InOutChart months={data.months} goal={goal ?? 0} compact={size === 'wide'} />
       case 'meta':
-        return <Goal goal={goal} revenue={data.month.revenue} canEdit={canStats} onEdit={() => setGoalOpen(true)} />
+        return <Goal goal={goal} revenue={data.month.revenue} canEdit={canStats} onEdit={() => setGoalOpen(true)} small={size === 'sm'} />
       case 'servicos':
-        return <Ranking items={data.ranking} total={data.rankingTotal} />
+        return <Ranking items={data.ranking} total={data.rankingTotal} rows={size === 'wide' ? 2 : 5} />
       case 'atividade':
-        return <Activity items={data.activity} onOpen={onOpen} />
+        return <Activity items={data.activity} onOpen={onOpen} compact={size === 'wide'} />
       case 'proximas':
-        return <Upcoming bookings={data.upcoming} onOpen={() => onOpen('agenda')} onNewBooking={() => onNewBooking()} />
+        return <Upcoming bookings={data.upcoming} onOpen={() => onOpen('agenda')} onNewBooking={() => onNewBooking()} compact={size === 'wide'} />
     }
   }
 
@@ -411,17 +417,41 @@ export function HomeView({
         renderItem={(item, size) => (
           <>
             <div className={`flex h-full flex-col p-4 2xl:p-5 ${editing ? 'pointer-events-none' : ''}`}>{render(item.id, size)}</div>
-            {editing && BLOCKS.find((b) => b.id === item.id)?.widens && (
-              <button
-                type="button"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => resize(item.id, item.size === 'wide' ? 'sm' : 'wide')}
-                className="glass-chip absolute bottom-3 left-1/2 z-10 flex h-8 -translate-x-1/2 items-center gap-1.5 rounded-full px-3 text-[12px] font-semibold text-onyx transition-transform active:scale-[0.96]"
-              >
-                {item.size === 'wide' ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-                {item.size === 'wide' ? 'Reduzir' : 'Alargar'}
-              </button>
-            )}
+            {editing &&
+              (() => {
+                // Smaller and bigger, one step at a time through the sizes this block can take.
+                const allowed = BLOCKS.find((b) => b.id === item.id)?.sizes ?? [item.size]
+                const at = allowed.indexOf(item.size)
+                const smaller = at > 0 ? allowed[at - 1] : null
+                const bigger = at < allowed.length - 1 ? allowed[at + 1] : null
+                if (!smaller && !bigger) return null
+                return (
+                  <div
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="glass-chip absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 rounded-full bg-card/80 p-1 shadow-[var(--card-shadow)]"
+                  >
+                    <button
+                      type="button"
+                      disabled={!smaller}
+                      aria-label="Reduzir"
+                      onClick={() => smaller && resize(item.id, smaller)}
+                      className="flex size-8 items-center justify-center rounded-full text-onyx transition-transform active:scale-90 disabled:opacity-30"
+                    >
+                      <Minimize2 size={14} />
+                    </button>
+                    <span className="h-4 w-px bg-onyx/15" aria-hidden="true" />
+                    <button
+                      type="button"
+                      disabled={!bigger}
+                      aria-label="Aumentar"
+                      onClick={() => bigger && resize(item.id, bigger)}
+                      className="flex size-8 items-center justify-center rounded-full text-onyx transition-transform active:scale-90 disabled:opacity-30"
+                    >
+                      <Maximize2 size={14} />
+                    </button>
+                  </div>
+                )
+              })()}
           </>
         )}
       />
@@ -701,7 +731,7 @@ function Stat({
   series,
   seriesNames,
   seriesLabel,
-  wide = false,
+  size = 'sm',
 }: {
   label: string
   Icon: LucideIcon
@@ -712,9 +742,28 @@ function Stat({
   series: number[]
   seriesNames: string[]
   seriesLabel: string
-  wide?: boolean
+  size?: WidgetSize
 }) {
   const tone = change === null ? 'var(--c-ink-3)' : change >= 0 ? 'var(--c-pos)' : 'var(--c-neg)'
+  // Big (2×2 or 1×2): the figure on top and the bars below, as large as the card allows.
+  if (size === 'lg' || size === 'tall') {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-subtitle text-[13px] font-semibold leading-tight tracking-tight text-onyx">{label}</h3>
+          <IconCircle Icon={Icon} />
+        </div>
+        <div className="-mt-1 flex items-baseline justify-between gap-2">
+          <p className={`tabular text-[28px] font-semibold leading-tight tracking-tight text-ink ${amount ? 'amount' : ''}`}>{value}</p>
+          <Change value={change} label={changeLabel} />
+        </div>
+        <div className="mt-3 flex min-h-0 flex-1">
+          <MiniBars values={series} names={seriesNames} tone={tone} label={seriesLabel} amount={amount} large />
+        </div>
+      </div>
+    )
+  }
+  const wide = size === 'wide'
   if (wide) {
     return (
       <div className="flex min-h-0 flex-1 gap-4">
@@ -804,11 +853,14 @@ function MiniBars({ values, names, tone, label, amount = false, large = false }:
 /** 2×2: the month's takings, the change, two actions, and the confirmed / waiting / cancelled split. */
 function Highlight({
   data,
+  compact = false,
   onNewBooking,
   onDetail,
   onOpen,
 }: {
   data: BoardData
+  /** 2×1: the takings, the change and the split as one bar, with Detalhes. */
+  compact?: boolean
   onNewBooking: () => void
   onDetail: () => void
   onOpen: (tab: Tab) => void
@@ -819,6 +871,32 @@ function Highlight({
     { label: 'Por confirmar', value: month.pendingCents, colour: STATUS.waiting },
     { label: 'Cancelado', value: month.cancelledCents, colour: STATUS.cancelled },
   ]
+  if (compact) {
+    const sum = parts.reduce((a, p) => a + p.value, 0) || 1
+    return (
+      <button type="button" onClick={onDetail} className="flex min-h-0 flex-1 flex-col text-left" aria-label="Ver os detalhes da faturação">
+        <span className="flex items-center justify-between gap-2">
+          <span className="font-subtitle text-[13px] font-semibold tracking-tight text-onyx">Faturação de {monthName(data.months[5].key)}</span>
+          <ChevronRight size={16} className="shrink-0 text-ink-3" />
+        </span>
+        <span className="mt-1 flex items-end justify-between gap-3">
+          <span className="amount tabular text-[26px] font-semibold leading-none tracking-tight text-ink">{euros(month.revenue)}</span>
+          <Change value={month.revenueChange} />
+        </span>
+        <span className="mt-auto flex h-2 w-full gap-0.5 overflow-hidden rounded-full" aria-hidden="true">
+          {parts.map((p) => (p.value > 0 ? <span key={p.label} className="h-full rounded-full" style={{ width: `${(p.value / sum) * 100}%`, background: p.colour }} /> : null))}
+        </span>
+        <span className="mt-1.5 flex gap-3 text-[11px] text-ink-3">
+          {parts.map((p) => (
+            <span key={p.label} className="flex items-center gap-1 truncate">
+              <span className="size-1.5 shrink-0 rounded-full" style={{ background: p.colour }} />
+              <span className="amount tabular font-medium text-ink">{euros(p.value)}</span>
+            </span>
+          ))}
+        </span>
+      </button>
+    )
+  }
   return (
     <>
       <BlockHeader title={`Faturação de ${monthName(data.months[5].key)}`} action={
@@ -1727,7 +1805,7 @@ const trend = (months: MonthFigures[], i: number) =>
  * average of the months before this one and, when there is one, a line for the monthly goal; under each month how much
  * it rose or fell against the one before.
  */
-function InOutChart({ months, goal }: { months: MonthFigures[]; goal: number }) {
+function InOutChart({ months, goal, compact = false }: { months: MonthFigures[]; goal: number; compact?: boolean }) {
   const [view, setView] = useState<ChartView>(() => readStore<ChartView>(CHART_KEY, 'barras'))
   const choose = (next: ChartView) => {
     setView(next)
@@ -1775,7 +1853,8 @@ function InOutChart({ months, goal }: { months: MonthFigures[]; goal: number }) 
           </div>
         }
       />
-      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap text-xs text-ink-3">
+      {/* 2×1: no legend, values or changes, just the chart. */}
+      <div className={`mt-2 flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap text-xs text-ink-3 ${compact ? 'hidden' : 'flex'}`}>
         <span className="flex items-center gap-1.5">
           <span className="size-2 rounded-full" style={{ background: 'var(--c-pos)' }} aria-hidden="true" />
           A subir
@@ -1832,9 +1911,9 @@ function InOutChart({ months, goal }: { months: MonthFigures[]; goal: number }) 
           </div>
         ) : (
           <>
-            <div className="mt-5 flex min-h-0 flex-1 gap-2">
+            <div className={`${compact ? 'mt-3' : 'mt-5'} flex min-h-0 flex-1 gap-2`}>
               {/* The scale. */}
-              <div className="flex w-10 shrink-0 flex-col justify-between text-right">
+              <div className={`w-10 shrink-0 flex-col justify-between text-right ${compact ? 'hidden' : 'flex'}`}>
                 {[top, top / 2, 0].map((v) => (
                   <span key={v} className="amount tabular -translate-y-1/2 text-[10px] text-ink-3 first:translate-y-0 last:translate-y-0">
                     {v ? euros(v) : '0'}
@@ -1862,7 +1941,7 @@ function InOutChart({ months, goal }: { months: MonthFigures[]; goal: number }) 
                           }}
                         />
                         <span className="block w-full max-w-2 rounded-t-full" style={{ height: height(m.cancelled), background: CANCELLED }} />
-                        {m.revenue > 0 && (
+                        {m.revenue > 0 && !compact && (
                           <span
                             className="amount tabular absolute inset-x-0 mb-1 whitespace-nowrap text-center text-[10px] font-bold text-onyx"
                             style={{ bottom: height(Math.max(m.revenue, m.cancelled)) }}
@@ -1906,7 +1985,7 @@ function InOutChart({ months, goal }: { months: MonthFigures[]; goal: number }) 
                           className="absolute size-2.5 -translate-x-1/2 translate-y-1/2 rounded-full ring-2 ring-white"
                           style={{ left: at(i), bottom: height(m.revenue), background: trend(months, i) }}
                         />
-                        {m.revenue > 0 && (
+                        {m.revenue > 0 && !compact && (
                           <span
                             className="amount tabular absolute mb-2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-onyx"
                             style={{ left: at(i), bottom: height(m.revenue) }}
@@ -1921,7 +2000,7 @@ function InOutChart({ months, goal }: { months: MonthFigures[]; goal: number }) 
               </div>
             </div>
             {/* Under each month: its name and how it moved. */}
-            <div className="mt-1.5 flex gap-2 pl-12">
+            <div className={`mt-1.5 flex gap-2 ${compact ? '' : 'pl-12'}`}>
               {months.map((m, i) => {
                 const change = changes[i]
                 const last = i === months.length - 1
@@ -1929,7 +2008,7 @@ function InOutChart({ months, goal }: { months: MonthFigures[]; goal: number }) 
                   <div key={m.key} className="flex flex-1 flex-col items-center gap-0.5">
                     <span className={`text-[11px] capitalize ${last ? 'font-bold text-onyx' : 'text-ink-3'}`}>{monthLabel(m.key)}</span>
                     <span
-                      className="tabular text-[10px] font-semibold"
+                      className={`tabular text-[10px] font-semibold ${compact ? 'hidden' : ''}`}
                       style={{ color: change === null ? 'var(--c-ink-3)' : change >= 0 ? 'var(--c-pos)' : 'var(--c-neg)' }}
                     >
                       {change === null ? '–' : `${change >= 0 ? '↑' : '↓'}${Math.abs(change)}%`}
@@ -2033,8 +2112,50 @@ function RingLegend({ parts, format, notes }: { parts: RingPart[]; format: (v: n
 }
 
 /** 2×1: how far the month is from the goal. */
-function Goal({ goal, revenue, canEdit, onEdit }: { goal: number | null; revenue: number; canEdit: boolean; onEdit: () => void }) {
+function Goal({
+  goal,
+  revenue,
+  canEdit,
+  onEdit,
+  small = false,
+}: {
+  goal: number | null
+  revenue: number
+  canEdit: boolean
+  onEdit: () => void
+  /** 1×1: the share of the goal large, the bar below. */
+  small?: boolean
+}) {
   const share = goal ? revenue / goal : 0
+  if (small && goal === 0) {
+    return (
+      <>
+        <BlockHeader title="Meta mensal" />
+        <p className="mt-1 text-[12px] leading-snug text-ink-3">Ainda sem meta para o mês.</p>
+        {canEdit && (
+          <button type="button" onClick={onEdit} className="glass-chip mt-auto h-8 self-start rounded-full px-3.5 text-xs font-semibold text-onyx">
+            Definir
+          </button>
+        )}
+      </>
+    )
+  }
+  if (small && goal) {
+    return (
+      <>
+        <BlockHeader title="Meta mensal" />
+        <p className="tabular -mt-0.5 text-[24px] font-semibold tracking-tight text-ink">{Math.round(share * 100)}%</p>
+        <div className="mt-auto">
+          <div className="h-2 overflow-hidden rounded-full bg-onyx/[0.08]" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(share * 100)} aria-label="Progresso da meta">
+            <div className="h-full rounded-full" style={{ width: `${Math.min(share, 1) * 100}%`, background: 'var(--c-pos)' }} />
+          </div>
+          <p className="mt-1.5 truncate text-[11px] text-ink-3">
+            <span className="amount">{euros(revenue)}</span> de <span className="amount">{euros(goal)}</span>
+          </p>
+        </div>
+      </>
+    )
+  }
   return (
     <>
       <BlockHeader
@@ -2155,7 +2276,7 @@ function GoalSheet({
 const RANK_COLOURS = PALETTE
 
 /** 1×2: the five most booked hairstyles of the last 90 days. */
-function Ranking({ items, total }: { items: BoardData['ranking']; total: number }) {
+function Ranking({ items, total, rows = 5 }: { items: BoardData['ranking']; total: number; rows?: number }) {
   return (
     <>
       <BlockHeader title="Mais pedidos" />
@@ -2163,7 +2284,7 @@ function Ranking({ items, total }: { items: BoardData['ranking']; total: number 
         <Empty Icon={ChartColumn} text="Sem marcações nos últimos 90 dias." />
       ) : (
         <ol className="mt-3 flex min-h-0 flex-1 flex-col gap-2.5 overflow-hidden">
-          {items.map((item, i) => (
+          {items.slice(0, rows).map((item, i) => (
             <li key={item.label} className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="size-2 shrink-0 rounded-full" style={{ background: RANK_COLOURS[i] }} aria-hidden="true" />
@@ -2179,7 +2300,7 @@ function Ranking({ items, total }: { items: BoardData['ranking']; total: number 
           ))}
         </ol>
       )}
-      <p className="tabular mt-auto pt-2 text-xs text-ink-3">{total} em 90 dias</p>
+      {rows > 2 && <p className="tabular mt-auto pt-2 text-xs text-ink-3">{total} em 90 dias</p>}
     </>
   )
 }
@@ -2200,7 +2321,7 @@ const ACTIVITY_FILTERS: Array<{ id: 'todas' | ActivityItem['kind']; label: strin
 ]
 
 /** 2×2: the latest of what happened, with a search and a filter; only the rows that fit. */
-function Activity({ items, onOpen }: { items: ActivityItem[]; onOpen: (tab: Tab) => void }) {
+function Activity({ items, onOpen, compact = false }: { items: ActivityItem[]; onOpen: (tab: Tab) => void; compact?: boolean }) {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<(typeof ACTIVITY_FILTERS)[number]['id']>('todas')
   const [menu, setMenu] = useState(false)
@@ -2212,7 +2333,8 @@ function Activity({ items, onOpen }: { items: ActivityItem[]; onOpen: (tab: Tab)
   return (
     <>
       <BlockHeader title="Atividade recente" action={<HeaderLink label="Ver todos" onClick={() => onOpen('pedidos')} />} />
-      <div className="mt-3 flex gap-2">
+      {/* 2×1: no search or filter, just the latest two. */}
+      <div className={`mt-3 gap-2 ${compact ? 'hidden' : 'flex'}`}>
         <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full bg-onyx/[0.04] px-3">
           <Search size={15} className="shrink-0 text-ink-3" />
           <input
@@ -2271,7 +2393,7 @@ function Activity({ items, onOpen }: { items: ActivityItem[]; onOpen: (tab: Tab)
         <Empty Icon={Search} text={query || filter !== 'todas' ? 'Nenhum resultado encontrado.' : 'Ainda sem atividade.'} />
       ) : (
         <ul className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden">
-          {shown.slice(0, 4).map((n, i) => {
+          {shown.slice(0, compact ? 2 : 4).map((n, i) => {
             const { Icon, tone } = ACTIVITY_LOOK[n.kind]
             return (
               // Three fit on a phone, four on a wider screen.
@@ -2279,7 +2401,7 @@ function Activity({ items, onOpen }: { items: ActivityItem[]; onOpen: (tab: Tab)
                 <button
                   type="button"
                   onClick={() => onOpen(n.kind === 'testemunho' ? 'testemunhos' : n.kind === 'pedido' ? 'pedidos' : 'agenda')}
-                  className="flex w-full items-center gap-3 rounded-xl px-1.5 py-1.5 text-left hover:bg-onyx/[0.04]"
+                  className={`flex w-full items-center gap-3 rounded-xl px-1.5 text-left hover:bg-onyx/[0.04] ${compact ? 'py-0.5' : 'py-1.5'}`}
                 >
                   <span
                     className="flex size-9 shrink-0 items-center justify-center rounded-full"
@@ -2308,7 +2430,18 @@ function Activity({ items, onOpen }: { items: ActivityItem[]; onOpen: (tab: Tab)
 }
 
 /** 2×2: the next sessions; the one going on shows how far along it is. */
-function Upcoming({ bookings, onOpen, onNewBooking }: { bookings: Booking[]; onOpen: () => void; onNewBooking: () => void }) {
+function Upcoming({
+  bookings,
+  onOpen,
+  onNewBooking,
+  compact = false,
+}: {
+  bookings: Booking[]
+  onOpen: () => void
+  onNewBooking: () => void
+  /** 2×1: just the next two. */
+  compact?: boolean
+}) {
   const now = Date.now()
   const today = todayKey()
   return (
@@ -2326,7 +2459,7 @@ function Upcoming({ bookings, onOpen, onNewBooking }: { bookings: Booking[]; onO
         />
       ) : (
         <ul className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden">
-          {bookings.slice(0, 4).map((b) => {
+          {bookings.slice(0, compact ? 2 : 4).map((b) => {
             const start = new Date(b.slot.startsAt).getTime()
             const end = endsAt(b)
             const live = start <= now && now < end
@@ -2334,7 +2467,7 @@ function Upcoming({ bookings, onOpen, onNewBooking }: { bookings: Booking[]; onO
             const day = key === today ? 'Hoje' : key === addDays(today, 1) ? 'Amanhã' : capital(weekdayShort(b.slot.startsAt))
             return (
               <li key={b.id}>
-                <div className="flex items-center gap-3 rounded-xl px-1.5 py-1.5">
+                <div className={`flex items-center gap-3 rounded-xl px-1.5 ${compact ? 'py-0.5' : 'py-1.5'}`}>
                   <span
                     className={`tabular flex size-9 shrink-0 flex-col items-center justify-center rounded-full text-[11px] font-semibold leading-none ${
                       live ? 'bg-onyx text-white' : 'bg-onyx/[0.04] text-onyx'
@@ -2347,7 +2480,7 @@ function Upcoming({ bookings, onOpen, onNewBooking }: { bookings: Booking[]; onO
                     <span className="block truncate text-[12px] text-ink-3">
                       {live ? `A decorrer · termina às ${time(end)}` : `${day} · ${bookingName(b)} · ${lengthLabel(end - start)}`}
                     </span>
-                    {live && (
+                    {live && !compact && (
                       <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-onyx/[0.08]">
                         <span className="block h-full rounded-full bg-onyx" style={{ width: `${((now - start) / (end - start)) * 100}%` }} />
                       </span>
