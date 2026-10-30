@@ -3,7 +3,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { ArrowRight, Bell, Camera, Check, ChevronDown, Eye, EyeOff, KeyRound, LogOut } from 'lucide-react'
 import { ForgotPasswordSheet } from '@/components/ui/forgot-password-sheet'
 import { api, ApiError } from '@/lib/api'
-import { shrinkAvatar } from '@/lib/avatar'
+import { cropAvatar } from '@/lib/avatar'
+import { AvatarCropper } from './AvatarCropper'
 import { tap } from '@/lib/haptics'
 import { fullMe, type AdminMe } from './admin-me'
 
@@ -130,17 +131,28 @@ export function SecurityView({ onLogout }: { onLogout: () => void }) {
     }
   }
 
-  async function changePhoto(file: File | undefined) {
-    if (!file) return
+  // The photo picked, in the editor until it is placed and used.
+  const [cropping, setCropping] = useState<File | null>(null)
+  const [savingPhoto, setSavingPhoto] = useState(false)
+
+  function pickPhoto(file: File | undefined) {
+    if (photoInput.current) photoInput.current.value = ''
+    if (file) setCropping(file)
+  }
+
+  async function changePhoto(file: File, crop: { x: number; y: number; side: number }) {
+    setSavingPhoto(true)
     try {
-      const data = await shrinkAvatar(file)
+      const data = await cropAvatar(file, crop)
       setMe(fullMe(await api.put<AdminMe>('/auth/me/avatar', { contentType: 'image/jpeg', data })))
       setPhoto(`data:image/jpeg;base64,${data}`)
       setProfileNote('Foto atualizada.')
+      setCropping(null)
     } catch (err) {
       setProfileNote(err instanceof ApiError ? err.message : 'Não foi possível usar esta foto.')
+      setCropping(null)
     } finally {
-      if (photoInput.current) photoInput.current.value = ''
+      setSavingPhoto(false)
     }
   }
 
@@ -189,7 +201,7 @@ export function SecurityView({ onLogout }: { onLogout: () => void }) {
             <Camera size={15} />
           </span>
         </button>
-        <input ref={photoInput} type="file" accept="image/*" className="hidden" onChange={(e) => void changePhoto(e.target.files?.[0])} />
+        <input ref={photoInput} type="file" accept="image/*" className="hidden" onChange={(e) => pickPhoto(e.target.files?.[0])} />
         <p className="mt-3 max-w-full truncate font-subtitle text-[20px] font-semibold tracking-tight text-onyx">{me?.name || 'Sem nome'}</p>
         <p className="max-w-full truncate font-subtitle text-[13px] text-muted-dark">{email ?? '…'}</p>
         {me && (
@@ -388,6 +400,13 @@ export function SecurityView({ onLogout }: { onLogout: () => void }) {
           </span>
         </button>
       </section>
+
+      <AvatarCropper
+        file={cropping}
+        busy={savingPhoto}
+        onCancel={() => setCropping(null)}
+        onDone={(crop) => cropping && void changePhoto(cropping, crop)}
+      />
 
       <ForgotPasswordSheet admin open={forgotOpen} initialEmail={email ?? ''} onClose={() => setForgotOpen(false)} />
     </div>
