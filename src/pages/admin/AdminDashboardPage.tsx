@@ -2931,11 +2931,11 @@ function AdminDashboard() {
                 void tap()
                 theme.toggleTheme()
               }}
-              className={`relative z-[62] flex size-12 items-center justify-center rounded-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${INK_CIRCLE} ${
+              className={`relative z-[62] flex size-11 items-center justify-center rounded-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${INK_CIRCLE} ${
                 headerScrolled ? 'scale-[0.86]' : ''
               }`}
             >
-              {theme.theme === 'dark' ? <Sun size={19} strokeWidth={1.9} /> : <Moon size={18} strokeWidth={1.9} />}
+              {theme.theme === 'dark' ? <Sun size={18} strokeWidth={1.9} /> : <Moon size={17} strokeWidth={1.9} />}
             </button>
             <AdminBell
               ink
@@ -2975,14 +2975,15 @@ function AdminDashboard() {
                 setTab('seguranca')
                 window.scrollTo({ top: 0 })
               }}
-              className={`relative z-[62] flex size-12 items-center justify-center overflow-hidden rounded-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${INK_CIRCLE} ${
+              // A thin border round the photo: soft, green while the account is open.
+              className={`relative z-[62] flex size-11 items-center justify-center overflow-hidden rounded-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${INK_CIRCLE} ${
                 headerScrolled ? 'scale-[0.86]' : ''
-              } ${tab === 'seguranca' ? 'ring-2 ring-[var(--c-confirmed)] ring-offset-2 ring-offset-white' : ''}`}
+              } ${tab === 'seguranca' ? '!ring-2 !ring-[var(--c-confirmed)]' : '!ring-[1.5px] !ring-onyx/15'}`}
             >
               {avatar ? (
                 <img src={avatar} alt="" className="size-full object-cover" />
               ) : (
-                <span className="font-subtitle text-[15px] font-semibold">
+                <span className="font-subtitle text-[14px] font-semibold">
                   {(me?.name || me?.email || '?')
                     .trim()
                     .split(/\s+/)

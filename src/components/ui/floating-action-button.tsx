@@ -562,13 +562,14 @@ export function FloatingActionMenu({
               ? 'flex size-9 items-center justify-center rounded-full border border-onyx/20 text-onyx/60 transition-colors duration-300 hover:text-onyx'
               : cn(
                   'flex items-center justify-center overflow-hidden rounded-full',
-                  small ? 'size-12' : 'size-14',
+                  // The admin's header (ink) sits four abreast, so a touch smaller.
+                  ink ? 'size-11' : small ? 'size-12' : 'size-14',
                   'transition-colors duration-500 ease-in-out',
                   brand ? (ink ? INK_CIRCLE : BRAND_CIRCLE) : cn('liquid-glass', onDark ? 'text-[#ffffff]' : 'text-[#1a1008]'),
                 )
           }
         >
-          {face ?? <PlusIcon size={bare ? 19 : compact ? 18 : small ? 22 : 24} strokeWidth={bare ? 2.2 : 2.6} />}
+          {face ?? <PlusIcon size={bare ? 19 : compact ? 18 : ink ? 20 : small ? 22 : 24} strokeWidth={bare ? 2.2 : 2.6} />}
         </motion.button>
         {dot && !open ? (
           <span
