@@ -5,14 +5,12 @@ import type { MenuAction } from '@/components/ui/floating-action-button'
 import { tap } from '@/lib/haptics'
 import { useScrollLock } from '@/lib/use-scroll-lock'
 
-/** One soft colour per main action, so the grid reads at a glance (the Google Photos way). */
-const TINTS = ['#fabf00', '#8b5cf6', '#ec4899', '#16a34a', '#fa2e23', '#3b82f6']
 const CARD = 'bg-card shadow-[0_1px_3px_rgba(0,0,0,0.06),0_8px_20px_-12px_rgba(0,0,0,0.18)]'
 
 /**
  * What the "+" opens, the Google Photos way, in the iPhone's sheet look: it rises from the bottom on a light grey, with
- * the main thing to do (a new booking) as a white pill on top, the main actions as white tiles with their icon on a soft
- * colour, and the rest grouped in a white card (signing out on its own at the end, asking once more).
+ * the main thing to do (a new booking) as a white pill on top, the main actions as white tiles with their icon on a light
+ * grey circle, and the rest grouped in a white card (signing out on its own at the end, asking once more).
  */
 export function PlusSheet({
   open,
@@ -112,10 +110,9 @@ export function PlusSheet({
               </motion.button>
             )}
 
-            {/* The main actions, as white tiles, each icon on its own soft colour. */}
+            {/* The main actions, as white tiles with their icon on a light grey circle. */}
             <div className="grid grid-cols-3 gap-2.5">
               {actions.map((action, i) => {
-                const tint = TINTS[i % TINTS.length]
                 return (
                   <motion.button
                     key={action.label}
@@ -126,10 +123,7 @@ export function PlusSheet({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.32, delay: 0.08 + i * 0.035, ease: [0.22, 1, 0.36, 1] }}
                   >
-                    <span
-                      className="relative flex size-11 items-center justify-center rounded-full"
-                      style={{ background: `color-mix(in srgb, ${tint} 15%, transparent)`, color: tint }}
-                    >
+                    <span className="relative flex size-11 items-center justify-center rounded-full bg-onyx/[0.05] text-onyx">
                       {glyph(action, 20)}
                       {action.badge ? (
                         <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-[#ffffff] ring-2 ring-white">
