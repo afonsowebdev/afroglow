@@ -2465,7 +2465,8 @@ function AdminDashboard() {
   const [clearResult, setClearResult] = useState<string | null>(null)
 
   const loadDashboard = useCallback(
-    async (opts: { silent?: boolean } = {}) => {
+    /** `defer`: fetch only, and hand back a function that puts the data on the page (pull to refresh applies it once its sign is gone). */
+    async (opts: { silent?: boolean; defer?: boolean } = {}): Promise<(() => void) | void> => {
       try {
         // Only what this admin may see (a team member without bookings doesn't load them).
         const has = (p: Permission) => !meRef.current || meRef.current.permissions.includes(p)
@@ -2480,12 +2481,16 @@ function AdminDashboard() {
           has('marcacoes') || has('estatisticas') ? api.get<Booking[]>('/admin/bookings') : Promise.resolve([] as Booking[]),
           has('testemunhos') ? api.get<Testimonial[]>('/admin/testimonials') : Promise.resolve([] as Testimonial[]),
         ])
-        setServices(servicesData)
-        setSlots(slotsData)
-        setBookings(bookingsData)
-        setTestimonials(testimonialsData)
-        setLoaded(true)
-        if (!opts.silent) setError(null)
+        const apply = () => {
+          setServices(servicesData)
+          setSlots(slotsData)
+          setBookings(bookingsData)
+          setTestimonials(testimonialsData)
+          setLoaded(true)
+          if (!opts.silent) setError(null)
+        }
+        if (opts.defer) return apply
+        apply()
       } catch (err) {
         // An expired/invalid session used to be swallowed by the silent poll, leaving
         // the dashboard frozen on stale data with no new requests ever appearing.
@@ -2960,8 +2965,10 @@ function AdminDashboard() {
       <main className="mx-auto max-w-4xl px-5 pb-36 pt-[calc(7rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(8rem+env(safe-area-inset-top))]">
         {/* Pull down at the top to refresh: the data comes back and the page is drawn again (its own lists reload too). */}
         <PullToRefresh
-          onRefresh={async () => {
-            await loadDashboard({ silent: true })
+          onRefresh={() => loadDashboard({ silent: true, defer: true })}
+          onDone={(apply) => {
+            // Only once the sign is gone: the new data in, and the page drawn again with its entrance.
+            if (typeof apply === 'function') apply()
             setRefreshKey((k) => k + 1)
           }}
         >

@@ -17,7 +17,17 @@ const rubber = (distance: number) => 130 * (1 - Math.exp(-distance / 260))
  * button under the header shows an arrow that turns as it fills (a light haptic when letting go will refresh), and
  * while it refreshes the arrow becomes a spinning one and the page rests a little lower, then springs back.
  */
-export function PullToRefresh({ onRefresh, children }: { onRefresh: () => Promise<unknown>; children: ReactNode }) {
+export function PullToRefresh<R>({
+  onRefresh,
+  onDone,
+  children,
+}: {
+  /** Fetches while the sign spins; what it returns is handed to `onDone`. */
+  onRefresh: () => Promise<R>
+  /** Called once the sign is gone and the page is back in place: the moment to show the new data. */
+  onDone?: (result: R | undefined) => void
+  children: ReactNode
+}) {
   const y = useMotionValue(0)
   const wrap = useRef<HTMLDivElement>(null)
   const start = useRef<number | null>(null)
@@ -25,8 +35,8 @@ export function PullToRefresh({ onRefresh, children }: { onRefresh: () => Promis
   const busy = useRef(false)
   const [refreshing, setRefreshing] = useState(false)
   const [armed, setArmed] = useState(false)
-  const latest = useRef(onRefresh)
-  latest.current = onRefresh
+  const latest = useRef({ onRefresh, onDone })
+  latest.current = { onRefresh, onDone }
 
   const opacity = useTransform(y, [8, THRESHOLD * 0.6], [0, 1])
   const scale = useTransform(y, [0, THRESHOLD], [0.6, 1])
@@ -69,14 +79,18 @@ export function PullToRefresh({ onRefresh, children }: { onRefresh: () => Promis
       busy.current = true
       setRefreshing(true)
       animate(y, HOLD, SPRING)
+      let result: R | undefined
       try {
         // Long enough to be seen, even when the data comes back at once.
-        await Promise.all([latest.current(), new Promise((resolve) => setTimeout(resolve, 650))])
-      } finally {
-        busy.current = false
-        setRefreshing(false)
-        animate(y, 0, SPRING)
+        ;[result] = await Promise.all([latest.current.onRefresh(), new Promise((resolve) => setTimeout(resolve, 650))])
+      } catch {
+        result = undefined
       }
+      // The sign fades as the page springs back; only then does the page update.
+      setRefreshing(false)
+      await animate(y, 0, SPRING)
+      busy.current = false
+      latest.current.onDone?.(result)
     }
     el.addEventListener('touchstart', onStart, { passive: true })
     el.addEventListener('touchmove', onMove, { passive: false })
