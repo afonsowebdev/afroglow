@@ -23,7 +23,6 @@ import {
   LogOut,
   MessageSquareQuote,
   Minus,
-  Moon,
   Phone,
   RotateCcw,
   PanelTop,
@@ -32,9 +31,7 @@ import {
   Scissors,
   Search,
   Store,
-  Sun,
   Tag,
-  UserRound,
   Users,
   Pencil,
   ImagePlus,
@@ -72,7 +69,6 @@ import { SettingsView } from '@/pages/admin/SettingsView'
 import { StatsView } from '@/pages/admin/StatsView'
 import { registerForPushNotifications } from '@/lib/push-notifications'
 import { setHideNavOnScroll, useHideNavOnScrollSetting } from '@/lib/nav-prefs'
-import { useTheme } from '@/lib/theme'
 import { NavVisibilityProvider, useAutoHideNav, useNavHidden } from '@/customer/nav-visibility'
 import { customerWhatsappUrl } from '@/lib/site-config'
 import { formatPrice, type AvailabilitySlot, type Booking, type Service, type Testimonial } from '@/lib/types'
@@ -2355,7 +2351,6 @@ export default function AdminDashboardPage() {
 
 function AdminDashboard() {
   const navigate = useNavigate()
-  const theme = useTheme()
   const navHidden = useNavHidden()
   const hideOnScroll = useHideNavOnScrollSetting()
   const [checkingAuth, setCheckingAuth] = useState(true)
@@ -2922,20 +2917,34 @@ function AdminDashboard() {
             )}
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* The account: the admin's photo (or initial); the theme lives inside it now. */}
             <button
               type="button"
-              aria-label={theme.theme === 'dark' ? 'Mudar para o tema claro' : 'Mudar para o tema escuro'}
-              title={theme.theme === 'dark' ? 'Tema claro' : 'Tema escuro'}
+              aria-label="A tua conta"
+              aria-current={tab === 'seguranca' ? 'page' : undefined}
+              title="A tua conta"
               onClick={() => {
                 if (anyMenuOpen) return
                 void tap()
-                theme.toggleTheme()
+                setTab('seguranca')
+                window.scrollTo({ top: 0 })
               }}
-              className={`relative z-[62] flex size-12 items-center justify-center rounded-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${INK_CIRCLE} ${
+              className={`relative z-[62] flex size-12 items-center justify-center overflow-hidden rounded-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${INK_CIRCLE} ${
                 headerScrolled ? 'scale-[0.86]' : ''
-              }`}
+              } ${tab === 'seguranca' ? 'ring-2 ring-[var(--c-confirmed)] ring-offset-2 ring-offset-white' : ''}`}
             >
-              {theme.theme === 'dark' ? <Sun size={19} strokeWidth={1.9} /> : <Moon size={18} strokeWidth={1.9} />}
+              {avatar ? (
+                <img src={avatar} alt="" className="size-full object-cover" />
+              ) : (
+                <span className="font-subtitle text-[15px] font-semibold">
+                  {(me?.name || me?.email || '?')
+                    .trim()
+                    .split(/\s+/)
+                    .map((w, i, all) => (i === 0 || i === all.length - 1 ? w[0] : ''))
+                    .join('')
+                    .toUpperCase()}
+                </span>
+              )}
             </button>
             <AdminBell
               ink
@@ -3421,9 +3430,7 @@ function AdminDashboard() {
             items={TABS.filter((t) => t.id !== 'pedidos').filter((t) =>
               t.id === 'clientes' ? can('clientes') : t.id === 'mais' || t.id === 'inicio' ? true : can('marcacoes'),
             )
-              .map(({ id, label, icon, Icon }): BottomNavItem<NavTab | 'seguranca'> => ({ id, label, icon, Icon }))
-              // The account last, with the photo when there is one; it opens the profile.
-              .concat({ id: 'seguranca', label: 'Perfil', icon: 'bx bx-user', Icon: UserRound, image: avatar })}
+              .map(({ id, label, icon, Icon }): BottomNavItem<NavTab | 'seguranca'> => ({ id, label, icon, Icon }))}
           />
         </div>
         <BackToTop admin hidden={navHidden} />

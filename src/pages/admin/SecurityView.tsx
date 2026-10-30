@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowRight, Bell, Camera, Check, ChevronDown, Eye, EyeOff, KeyRound, LogOut } from 'lucide-react'
+import { ArrowRight, Bell, Camera, Check, ChevronDown, Eye, EyeOff, KeyRound, LogOut, Moon, Sun } from 'lucide-react'
+import { useTheme } from '@/lib/theme'
 import { ForgotPasswordSheet } from '@/components/ui/forgot-password-sheet'
 import { api, ApiError } from '@/lib/api'
 import { cropAvatar } from '@/lib/avatar'
@@ -111,6 +112,7 @@ export function SecurityView({
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   const [forgotOpen, setForgotOpen] = useState(false)
+  const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
     api
@@ -275,6 +277,45 @@ export function SecurityView({
           </div>
         </section>
       )}
+
+      {/* Light or dark, as an iOS segmented control (it used to be a button on top). */}
+      <section>
+        <p className={label}>Aparência</p>
+        <div className="flex items-center gap-3.5 rounded-[22px] bg-card p-3.5" style={{ boxShadow: CARD_SHADOW }}>
+          <span className="glass-chip flex size-10 shrink-0 items-center justify-center rounded-full text-onyx">
+            {theme === 'dark' ? <Moon size={17} /> : <Sun size={17} />}
+          </span>
+          <span className="min-w-0 flex-1 font-subtitle text-[15px] font-semibold text-onyx">Tema</span>
+          <div className="grid shrink-0 grid-cols-2 rounded-full bg-onyx/[0.06] p-1" role="radiogroup" aria-label="Tema">
+            {(
+              [
+                ['light', 'Claro', Sun],
+                ['dark', 'Escuro', Moon],
+              ] as const
+            ).map(([id, name, Icon]) => (
+              <button
+                key={id}
+                type="button"
+                role="radio"
+                aria-checked={theme === id}
+                onClick={() => {
+                  if (theme === id) return
+                  void tap()
+                  toggleTheme()
+                }}
+                className={`flex h-8 items-center justify-center gap-1.5 rounded-full px-3 font-subtitle text-[12px] transition-colors ${
+                  theme === id
+                    ? 'bg-white font-semibold text-onyx shadow-[0_3px_8px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.04)] dark:bg-onyx/[0.16]'
+                    : 'text-muted-dark'
+                }`}
+              >
+                <Icon size={13} />
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* The password change, folded until needed. */}
       <section>
