@@ -46,7 +46,10 @@ export function PullToRefresh<R>({
     const el = wrap.current
     if (!el) return
     const onStart = (e: TouchEvent) => {
-      start.current = window.scrollY <= 0 && !busy.current ? e.touches[0].clientY : null
+      // Not while a sheet is open (the page behind is held still then) or inside something that takes its own drags.
+      const sheetOpen = document.body.style.position === 'fixed'
+      const ownDrag = (e.target as HTMLElement | null)?.closest('[data-no-pull]')
+      start.current = window.scrollY <= 0 && !busy.current && !sheetOpen && !ownDrag ? e.touches[0].clientY : null
     }
     const onMove = (e: TouchEvent) => {
       if (start.current === null) return

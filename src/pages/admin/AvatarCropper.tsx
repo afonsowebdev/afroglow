@@ -111,6 +111,7 @@ export function AvatarCropper({
             role="dialog"
             aria-modal="true"
             aria-label="Ajustar a foto"
+            data-no-pull
             className="relative flex w-full max-w-md flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl sm:rounded-[28px]"
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}

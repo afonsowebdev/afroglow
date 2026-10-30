@@ -90,7 +90,14 @@ function GreenSwitch({ checked, onChange, label: name }: { checked: boolean; onC
  * the iPhone's password autofill; a coloured strength bar and the rule), a way in if the current one is forgotten, and
  * signing out of this device.
  */
-export function SecurityView({ onLogout }: { onLogout: () => void }) {
+export function SecurityView({
+  onLogout,
+  onPhoto,
+}: {
+  onLogout: () => void
+  /** The new photo, so the profile tab in the bar below shows it at once. */
+  onPhoto?: (dataUrl: string) => void
+}) {
   const [me, setMe] = useState<AdminMe | null>(null)
   const email = me?.email ?? null
   const [name, setName] = useState('')
@@ -146,6 +153,7 @@ export function SecurityView({ onLogout }: { onLogout: () => void }) {
       const data = await cropAvatar(file, crop)
       setMe(fullMe(await api.put<AdminMe>('/auth/me/avatar', { contentType: 'image/jpeg', data })))
       setPhoto(`data:image/jpeg;base64,${data}`)
+      onPhoto?.(`data:image/jpeg;base64,${data}`)
       setProfileNote('Foto atualizada.')
       setCropping(null)
     } catch (err) {

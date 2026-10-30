@@ -3366,7 +3366,7 @@ function AdminDashboard() {
 
             {tab === 'estatisticas' && <StatsView bookings={bookings} />}
             {tab === 'portfolio' && <PortfolioView />}
-            {tab === 'seguranca' && <SecurityView onLogout={() => void handleLogout()} />}
+            {tab === 'seguranca' && <SecurityView onLogout={() => void handleLogout()} onPhoto={setAvatar} />}
             {tab === 'definicoes' && <SettingsView />}
             {tab === 'promocoes' && <PromotionsView services={services} />}
             {tab === 'fechos' && <ClosuresView onChanged={() => void loadDashboard({ silent: true })} />}
