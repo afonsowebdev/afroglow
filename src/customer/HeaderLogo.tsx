@@ -38,11 +38,14 @@ export function HeaderLogo({
   onClick,
   onDark = false,
   still = false,
+  circleClassName = '',
 }: {
   onClick: () => void
   onDark?: boolean
   /** Only the "A", without AFROGLOW coming and going beside it (the admin). */
   still?: boolean
+  /** Extra classes for the "A" circle (the admin lifts it with its cards' shadow). */
+  circleClassName?: string
 }) {
   const [word, setWord] = useState(false)
   const letters = useRef<HTMLSpanElement>(null)
@@ -72,7 +75,7 @@ export function HeaderLogo({
         type="button"
         onClick={onClick}
         aria-label="AFROGLOW, início"
-        className={`flex size-12 shrink-0 items-center justify-center rounded-full font-logo text-[1.6rem] leading-none logo-weight ${BRAND_CIRCLE}`}
+        className={`flex size-12 shrink-0 items-center justify-center rounded-full font-logo text-[1.6rem] leading-none logo-weight ${BRAND_CIRCLE} ${circleClassName}`}
       >
         <span className="translate-y-[0.1em]" aria-hidden="true">
           A

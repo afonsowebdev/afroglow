@@ -8,9 +8,12 @@ import { LiquidLogo } from '@/components/ui/liquid-wordmark'
 export const BRAND_CIRCLE =
   'bg-[#ffffff] text-[#c9a84c] shadow-[0_2px_10px_rgba(0,0,0,0.16)] dark:bg-[#2b1d12] dark:text-[#ffffff] dark:ring-1 dark:ring-[#ffffff]/15'
 
-/** The same round button with its icon in black (white in the dark theme): the admin's header, where only the "A" is gold. */
+/**
+ * The same round button with its icon in black (white in the dark theme): the admin's header, where only the "A" is
+ * gold. It sits on the admin's cards' shadow (--card-shadow), so it lifts off the page like them.
+ */
 export const INK_CIRCLE =
-  'bg-[#ffffff] text-[#1a1008] shadow-[0_2px_10px_rgba(0,0,0,0.16)] dark:bg-[#2b1d12] dark:text-[#ffffff] dark:ring-1 dark:ring-[#ffffff]/15'
+  'bg-[#ffffff] text-[#1a1008] shadow-[var(--card-shadow,0_2px_10px_rgba(0,0,0,0.16))] dark:bg-[#2b1d12] dark:text-[#ffffff] dark:ring-1 dark:ring-[#ffffff]/15'
 
 const SIZES = {
   sm: { mark: 'size-8 text-[1.35rem]', word: 'text-[1.1rem]', gap: 'gap-3' },

@@ -2898,6 +2898,7 @@ function AdminDashboard() {
             ) : (
               <HeaderLogo
                 still
+                circleClassName="!shadow-[var(--card-shadow)]"
                 onClick={() => {
                   // Not while a menu is open: a tap outside it only closes it.
                   if (anyMenuOpen) return
