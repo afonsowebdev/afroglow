@@ -121,23 +121,29 @@ export function SettingsView() {
             />
           </label>
         </div>
-        {/* A way to check the numbers before saving. */}
-        {(digits.length >= 9 || phoneDigits.length >= 9) && (
-          <div className="mt-2.5 flex flex-wrap gap-2">
-            {digits.length >= 9 && (
-              <a href={`https://wa.me/${digits}`} target="_blank" rel="noreferrer" className={testChip}>
-                <i className="bx bxl-whatsapp text-sm" aria-hidden="true" />
-                Testar WhatsApp
-              </a>
-            )}
-            {phoneDigits.length >= 9 && (
-              <a href={`tel:${phoneDigits}`} className={testChip}>
-                <Phone size={12} strokeWidth={2.4} />
-                Testar chamada
-              </a>
-            )}
-          </div>
-        )}
+        {/* A way to check the numbers before saving: two equal buttons, faint until the number is complete. */}
+        <div className="mt-2.5 grid grid-cols-2 gap-2">
+          {[
+            { href: `https://wa.me/${digits}`, ready: digits.length >= 9, label: 'WhatsApp', icon: <i className="bx bxl-whatsapp text-xl" aria-hidden="true" />, external: true },
+            { href: `tel:${phoneDigits}`, ready: phoneDigits.length >= 9, label: 'Chamada', icon: <Phone size={17} />, external: false },
+          ].map((b) => (
+            <a
+              key={b.label}
+              href={b.ready ? b.href : undefined}
+              target={b.external ? '_blank' : undefined}
+              rel={b.external ? 'noreferrer' : undefined}
+              aria-disabled={!b.ready}
+              onClick={() => b.ready && void tap()}
+              className={`flex h-14 items-center gap-2.5 rounded-[18px] bg-onyx/[0.04] px-3 transition-transform active:scale-[0.97] ${b.ready ? '' : 'pointer-events-none opacity-45'}`}
+            >
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card text-onyx shadow-[0_1px_3px_rgba(0,0,0,0.1)]">{b.icon}</span>
+              <span className="min-w-0 flex-1 leading-tight">
+                <span className="block font-subtitle text-[11px] text-muted-dark">Testar</span>
+                <span className="block truncate font-subtitle text-[14px] font-semibold text-onyx">{b.label}</span>
+              </span>
+            </a>
+          ))}
+        </div>
       </Card>
 
       <Card Icon={MapPin} title="Localização" note="Sem link, o mapa procura a morada.">
