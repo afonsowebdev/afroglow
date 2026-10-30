@@ -2398,6 +2398,11 @@ function AdminDashboard() {
   useAutoHideNav(hideOnScroll, tab)
   // Bumped by pulling down to refresh, so the page (and the lists it loads itself) is drawn again.
   const [refreshKey, setRefreshKey] = useState(0)
+  // The page that was just refreshed (so it isn't faded out and in again like a new page).
+  const refreshedTab = useRef<AdminTab | null>(null)
+  useEffect(() => {
+    if (refreshedTab.current !== tab) refreshedTab.current = null
+  }, [tab])
   // The page before this one, for the back button on Dias fechados (Horários when there is none).
   const shownTab = useRef<AdminTab>(tab)
   const previousTab = useRef<AdminTab>('disponibilidade')
@@ -2969,6 +2974,7 @@ function AdminDashboard() {
           onDone={(apply) => {
             // Only once the sign is gone: the new data in, and the page drawn again with its entrance.
             if (typeof apply === 'function') apply()
+            refreshedTab.current = tab
             setRefreshKey((k) => k + 1)
           }}
         >
@@ -2976,9 +2982,10 @@ function AdminDashboard() {
 
         <motion.div
           key={`${tab}-${refreshKey}`}
-          initial={{ opacity: 0, y: 12 }}
+          // A refresh keeps the page in view (the cards play their own entrance); a new page comes in softly.
+          initial={refreshedTab.current === tab ? { opacity: 0.6, y: 4 } : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: refreshedTab.current === tab ? 0.3 : 0.5, ease: [0.22, 1, 0.36, 1] }}
         >
           {/* The Painel has its own title, with its board buttons. */}
           {tab !== 'inicio' && (

@@ -86,9 +86,22 @@ export function PullToRefresh<R>({
       } catch {
         result = undefined
       }
-      // The sign fades as the page springs back; only then does the page update.
+      // The sign fades as the page springs back; the page updates as soon as it is all but back (a spring's long tail
+      // would otherwise read as a pause before the update).
       setRefreshing(false)
-      await animate(y, 0, SPRING)
+      await new Promise<void>((resolve) => {
+        const controls = animate(y, 0, SPRING)
+        const stop = y.on('change', (v) => {
+          if (v < 10) {
+            stop()
+            resolve()
+          }
+        })
+        void controls.then(() => {
+          stop()
+          resolve()
+        })
+      })
       busy.current = false
       latest.current.onDone?.(result)
     }
