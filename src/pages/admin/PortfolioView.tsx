@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { ArrowDownUp, Check, Images, Plus, Star, Trash2, X } from 'lucide-react'
 import { api, ApiError, assetUrl } from '@/lib/api'
+import { tap } from '@/lib/haptics'
+import { useScrollLock } from '@/lib/use-scroll-lock'
 import { cn } from '@/lib/utils'
+import { cardShadow } from './admin-ui'
 
 interface Item {
   id: string
@@ -159,91 +163,110 @@ export function PortfolioView() {
   const videos = items?.filter((i) => i.kind === 'VIDEO').length ?? 0
   const openIndex = openId ? (items ?? []).findIndex((i) => i.id === openId) : -1
   const openItem = openIndex >= 0 ? items![openIndex] : null
+  useScrollLock(openItem !== null)
 
   return (
     <section className="mt-6">
-      {/* What it is, and the two actions. */}
-      <div className="rounded-2xl border border-onyx/10 bg-white p-5 shadow-sm shadow-black/5">
-        <p className="font-subtitle text-2xl font-semibold lining-nums tracking-tight text-onyx">
-          {photos} {photos === 1 ? 'foto' : 'fotos'}
-        </p>
-        <p className="mt-1 font-subtitle text-sm text-muted-dark">
-          Aparecem na galeria do site e na app, por esta ordem. As {FEATURED} primeiras ficam em destaque no site.
-          {videos > 0 && ` Há ${videos} ${videos === 1 ? 'vídeo antigo' : 'vídeos antigos'} que podes apagar.`}
-        </p>
+      {/* What it is, in three figures. */}
+      {items && items.length > 0 && (
+        <div className="grid grid-cols-3 gap-2.5">
+          {[
+            ['Fotos', String(photos)],
+            ['Em destaque', String(Math.min(FEATURED, items.length))],
+            [videos > 0 ? 'Vídeos antigos' : 'Na app', videos > 0 ? String(videos) : String(items.length)],
+          ].map(([label, value]) => (
+            <div key={label} className={`flex min-w-0 flex-col items-center rounded-[22px] bg-card px-2 py-3.5 text-center ${cardShadow}`}>
+              <p className="max-w-full truncate font-subtitle text-[12px] text-ink-3">{label}</p>
+              <p className="tabular mt-1 font-subtitle text-[22px] font-semibold leading-tight tracking-tight text-onyx">{value}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* The two actions: plain white buttons. While organising, cancel or save the order. */}
+      <div className={`grid grid-cols-2 gap-2.5 ${items && items.length > 0 ? 'mt-3' : ''}`}>
         {draft ? (
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <>
             <button
               type="button"
               disabled={busy !== null}
               onClick={() => {
+                void tap()
                 setDraft(null)
                 setPicked(null)
               }}
-              className="h-11 rounded-full border border-onyx/15 font-subtitle text-sm text-onyx disabled:opacity-50"
+              className="glass-chip flex h-12 items-center justify-center gap-1.5 rounded-full font-subtitle text-[14px] font-semibold text-onyx disabled:opacity-50"
             >
+              <X size={16} className="text-muted-dark" />
               Cancelar
             </button>
             <button
               type="button"
               disabled={busy !== null}
               onClick={() => void saveOrder()}
-              className="h-11 rounded-full bg-onyx font-subtitle text-sm font-medium text-white disabled:opacity-50"
+              className={`flex h-12 items-center justify-center gap-1.5 rounded-full bg-card font-subtitle text-[14px] font-semibold text-onyx disabled:opacity-50 ${cardShadow}`}
             >
+              <Check size={17} strokeWidth={2.6} style={{ color: 'var(--c-confirmed)' }} />
               {busy ?? 'Guardar ordem'}
             </button>
-          </div>
+          </>
         ) : (
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <>
             <button
               type="button"
               disabled={busy !== null}
-              onClick={() => input.current?.click()}
-              className="flex h-11 items-center justify-center gap-2 rounded-full bg-onyx font-subtitle text-sm font-medium text-white disabled:opacity-50"
+              onClick={() => {
+                void tap()
+                input.current?.click()
+              }}
+              className={`flex h-12 items-center justify-center gap-1.5 rounded-full bg-card font-subtitle text-[14px] font-semibold text-onyx transition-transform active:scale-[0.98] disabled:opacity-50 ${cardShadow}`}
             >
-              <i className="bx bx-plus text-lg" aria-hidden="true" />
+              <Plus size={17} />
               {busy ?? 'Adicionar'}
             </button>
             <button
               type="button"
               disabled={busy !== null || (items?.length ?? 0) < 2}
               onClick={() => {
+                void tap()
                 setDraft(items)
                 setMessage(null)
               }}
-              className="flex h-11 items-center justify-center gap-2 rounded-full border border-onyx/15 font-subtitle text-sm text-onyx disabled:opacity-40"
+              className={`flex h-12 items-center justify-center gap-1.5 rounded-full bg-card font-subtitle text-[14px] font-semibold text-onyx transition-transform active:scale-[0.98] disabled:opacity-40 ${cardShadow}`}
             >
-              <i className="bx bx-sort-alt-2 text-lg" aria-hidden="true" />
+              <ArrowDownUp size={16} />
               Organizar
             </button>
-          </div>
-        )}
-        <input
-          ref={input}
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          onChange={(e) => void addFiles(e.target.files)}
-        />
-        {message && (
-          <p className={`mt-3 font-subtitle text-sm ${message.ok ? 'text-onyx' : 'text-red-700'}`}>{message.text}</p>
+          </>
         )}
       </div>
+      <input ref={input} type="file" accept="image/*" multiple className="hidden" onChange={(e) => void addFiles(e.target.files)} />
+      <p className="mt-3 px-1 font-subtitle text-xs text-muted-dark">
+        Aparecem na galeria do site e na app por esta ordem; as {FEATURED} primeiras ficam em destaque no site.
+        {videos > 0 && ` Há ${videos} ${videos === 1 ? 'vídeo antigo' : 'vídeos antigos'} que podes apagar.`}
+      </p>
+      {message && (
+        <div className={`mt-3 flex items-center gap-2.5 rounded-[22px] bg-card px-4 py-3 ${cardShadow}`}>
+          {message.ok ? <Check size={17} className="shrink-0" style={{ color: 'var(--c-confirmed)' }} /> : <X size={17} className="shrink-0" style={{ color: 'var(--c-cancelled)' }} />}
+          <p className="flex-1 font-subtitle text-sm text-onyx">{message.text}</p>
+          <button type="button" aria-label="Fechar aviso" onClick={() => setMessage(null)} className="text-muted-dark">
+            <X size={15} />
+          </button>
+        </div>
+      )}
 
       {draft && (
-        <p className="mt-4 rounded-xl bg-onyx/[0.05] px-4 py-3 font-subtitle text-sm text-onyx">
-          {picked
-            ? 'Agora toca no lugar para onde a queres mover.'
-            : 'Toca numa foto para a escolher, e depois no lugar para onde a queres mover.'}
+        <p className="mt-4 flex items-center gap-2.5 rounded-[20px] px-4 py-3 font-subtitle text-[13px] text-onyx" style={{ background: 'color-mix(in srgb, var(--c-waiting) 14%, transparent)' }}>
+          <ArrowDownUp size={16} className="shrink-0" />
+          {picked ? 'Agora toca no lugar para onde a queres mover.' : 'Toca numa foto para a escolher, e depois no lugar para onde a queres mover.'}
         </p>
       )}
 
-      {items === null && <p className="mt-6 font-subtitle text-muted-dark">A carregar...</p>}
+      {items === null && <p className="mt-6 px-1 font-subtitle text-sm text-muted-dark">A carregar…</p>}
       {items && items.length === 0 && (
-        <div className="mt-6 flex flex-col items-center rounded-3xl bg-onyx/[0.04] px-6 py-10 text-center">
-          <span className="flex size-16 items-center justify-center rounded-full bg-onyx text-3xl text-white">
-            <i className="bx bx-images" aria-hidden="true" />
+        <div className={`mt-6 flex flex-col items-center rounded-[22px] bg-card px-6 py-10 text-center ${cardShadow}`}>
+          <span className="glass-chip flex size-16 items-center justify-center rounded-full text-onyx">
+            <Images size={26} />
           </span>
           <p className="mt-5 font-subtitle text-xl font-semibold tracking-tight text-onyx">Ainda sem fotos</p>
           <p className="mt-1.5 max-w-xs font-subtitle text-sm text-muted-dark">
@@ -252,7 +275,7 @@ export function PortfolioView() {
         </div>
       )}
 
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      <div className="mt-4 grid grid-cols-3 gap-2.5">
         {shown.map((item, index) => {
           const isPicked = picked === item.id
           return (
@@ -262,8 +285,8 @@ export function PortfolioView() {
               onClick={() => (draft ? tapInDraft(item.id) : setOpenId(item.id))}
               aria-label={`Foto ${index + 1}`}
               className={cn(
-                'relative aspect-[3/4] overflow-hidden rounded-xl bg-onyx/5 transition-transform',
-                isPicked && 'scale-95 ring-4 ring-onyx',
+                'relative aspect-[3/4] overflow-hidden rounded-[18px] bg-onyx/5 shadow-[0_6px_16px_-8px_rgba(0,0,0,0.3)] transition-transform',
+                isPicked && 'scale-95 ring-[3px] ring-[var(--c-waiting)]',
                 draft && picked && !isPicked && 'opacity-80',
               )}
             >
@@ -280,18 +303,11 @@ export function PortfolioView() {
               )}
               {/* Its place in the order; the featured ones in solid. */}
               <span
-                className={cn(
-                  'absolute left-1.5 top-1.5 flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 font-subtitle text-[11px] font-semibold',
-                  index < FEATURED ? 'bg-onyx text-white' : 'bg-white/85 text-onyx',
-                )}
+                className="absolute left-1.5 top-1.5 flex h-6 min-w-6 items-center justify-center gap-0.5 rounded-full bg-black/45 px-1.5 font-subtitle text-[11px] font-semibold text-[#ffffff] backdrop-blur-sm"
               >
+                {index < FEATURED && <Star size={10} fill="currentColor" style={{ color: '#fabf00' }} />}
                 {index + 1}
               </span>
-              {index < FEATURED && !draft && (
-                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-2 pb-1.5 pt-4 text-left font-subtitle text-[10px] uppercase tracking-wide text-[#ffffff]">
-                  Destaque
-                </span>
-              )}
               {item.kind === 'VIDEO' && (
                 <span className="absolute bottom-1.5 right-1.5 rounded-full bg-black/60 px-2 py-0.5 font-subtitle text-[10px] text-[#ffffff]">
                   Vídeo
@@ -319,9 +335,9 @@ export function PortfolioView() {
               type="button"
               aria-label="Fechar"
               onClick={closeViewer}
-              className="flex size-10 items-center justify-center rounded-full bg-[#ffffff]/15 text-2xl text-[#ffffff]"
+              className="flex size-10 items-center justify-center rounded-full bg-[#ffffff]/15 text-[#ffffff] backdrop-blur-md"
             >
-              <i className="bx bx-x" aria-hidden="true" />
+              <X size={18} />
             </button>
           </div>
           <div className="flex min-h-0 flex-1 items-center justify-center py-4">
@@ -340,8 +356,9 @@ export function PortfolioView() {
                 closeViewer()
                 void act(() => api.post(`/admin/portfolio/${id}/first`), 'Foto posta em primeiro lugar.')
               }}
-              className="h-12 rounded-full bg-[#ffffff] font-subtitle text-sm font-medium text-[#111111] disabled:opacity-40"
+              className="flex h-12 items-center justify-center gap-1.5 rounded-full bg-[#ffffff] font-subtitle text-sm font-semibold text-[#111111] disabled:opacity-40"
             >
+              <Star size={15} />
               Pôr em 1.º
             </button>
             <button
@@ -354,10 +371,12 @@ export function PortfolioView() {
                 void act(() => api.delete(`/admin/portfolio/${id}`), 'Foto apagada.')
               }}
               className={cn(
-                'h-12 rounded-full font-subtitle text-sm font-medium transition-colors disabled:opacity-40',
-                confirmDelete ? 'bg-red-600 text-[#ffffff]' : 'border border-[#ffffff]/30 text-[#ffffff]',
+                'flex h-12 items-center justify-center gap-1.5 rounded-full font-subtitle text-sm font-semibold text-[#ffffff] transition-colors disabled:opacity-40',
+                confirmDelete ? '' : 'bg-[#ffffff]/15 backdrop-blur-md',
               )}
+              style={confirmDelete ? { background: 'var(--c-cancelled)' } : undefined}
             >
+              <Trash2 size={15} />
               {confirmDelete ? 'Toca de novo para apagar' : 'Apagar'}
             </button>
           </div>

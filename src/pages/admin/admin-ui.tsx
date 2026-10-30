@@ -1,17 +1,18 @@
 import type { ReactNode } from 'react'
 
 /*
- * The admin's own pieces, as its pages always looked: section titles in small spaced capitals, grouped lists in light
- * grey with hairlines, black round icons, the iPhone switch in black, black pill buttons and the empty state.
+ * The admin's own pieces, in the Painel's style: small section titles, grouped lists as white cards with the Painel's
+ * soft shadow, icons in glass circles, the green iPhone switch, plain white pill buttons, iOS segmented controls and the
+ * empty state as a white card.
  */
 
-export const sectionTitle = 'mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark'
-export const group =
-  'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
+/** The soft shadow of the Painel's cards, as a utility. */
+export const cardShadow = 'shadow-[0px_1px_3px_0px_rgba(0,0,0,0.08),0px_12px_32px_-10px_rgba(0,0,0,0.2)]'
+export const sectionTitle = 'mb-2 px-1 font-subtitle text-[12px] font-semibold text-muted-dark'
+export const group = `divide-y divide-onyx/[0.06] overflow-hidden rounded-[22px] bg-card ${cardShadow}`
 export const plain =
   'field-plain block w-full min-w-0 bg-transparent font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35'
-export const pillButton =
-  'flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-full bg-onyx px-4 font-subtitle text-sm font-medium text-white disabled:opacity-40'
+export const pillButton = `flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-full bg-card px-4 font-subtitle text-sm font-semibold text-onyx transition-transform active:scale-[0.97] disabled:opacity-40 ${cardShadow}`
 export const chip = 'glass-chip rounded-full px-3.5 py-2 font-subtitle text-xs font-medium text-onyx'
 
 export function Section({ title, note, children, className = '' }: { title?: string; note?: ReactNode; children: ReactNode; className?: string }) {
@@ -24,7 +25,7 @@ export function Section({ title, note, children, className = '' }: { title?: str
   )
 }
 
-/** A row of a grouped list: a black round icon, a title and a line, and anything on the right. */
+/** A row of a grouped list: an icon in a glass circle (soft red when it is a danger), a title and a line, and anything on the right. */
 export function Row({
   icon,
   title,
@@ -44,15 +45,16 @@ export function Row({
     <>
       {icon && (
         <span
-          className={`flex size-10 shrink-0 items-center justify-center rounded-full text-lg ${
-            danger ? 'bg-red-700/10 text-red-700' : 'bg-onyx text-white'
-          }`}
+          className={`flex size-10 shrink-0 items-center justify-center rounded-full text-lg ${danger ? '' : 'glass-chip text-onyx'}`}
+          style={danger ? { background: 'color-mix(in srgb, var(--c-cancelled) 13%, transparent)', color: 'var(--c-cancelled)' } : undefined}
         >
           <i className={icon} aria-hidden="true" />
         </span>
       )}
       <span className="min-w-0 flex-1">
-        <span className={`block font-subtitle text-[15px] font-medium ${danger ? 'text-red-700 dark:text-red-400' : 'text-onyx'}`}>{title}</span>
+        <span className="block font-subtitle text-[15px] font-semibold text-onyx" style={danger ? { color: 'var(--c-cancelled)' } : undefined}>
+          {title}
+        </span>
         {text && <span className="block font-subtitle text-xs text-muted-dark">{text}</span>}
       </span>
       {right}
@@ -69,7 +71,7 @@ export function Row({
   )
 }
 
-/** The iPhone switch, in black. */
+/** The iPhone switch, green when on. */
 export function Switch({ checked, onChange, label }: { checked: boolean; onChange: (value: boolean) => void; label: string }) {
   return (
     <button
@@ -78,14 +80,17 @@ export function Switch({ checked, onChange, label }: { checked: boolean; onChang
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${checked ? 'bg-onyx' : 'bg-onyx/20'}`}
+      className="relative h-[30px] w-[50px] shrink-0 rounded-full transition-colors duration-200"
+      style={{ background: checked ? 'var(--c-pos)' : 'color-mix(in srgb, var(--color-onyx) 16%, transparent)' }}
     >
-      <span className={`absolute top-0.5 size-6 rounded-full bg-white shadow transition-all ${checked ? 'left-[1.375rem]' : 'left-0.5'}`} />
+      <span
+        className={`absolute top-[2px] size-[26px] rounded-full bg-[#ffffff] shadow-[0_2px_6px_rgba(0,0,0,0.2)] transition-all duration-200 ${checked ? 'left-[22px]' : 'left-[2px]'}`}
+      />
     </button>
   )
 }
 
-/** Two or three choices side by side, the chosen one on white. */
+/** Two or three choices side by side, like an iOS segmented control: the chosen one a raised white pill. */
 export function Segment<T extends string>({
   value,
   onChange,
@@ -96,15 +101,17 @@ export function Segment<T extends string>({
   options: Array<[T, string]>
 }) {
   return (
-    <div className="grid rounded-xl bg-onyx/[0.06] p-1" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
+    <div className="grid rounded-full bg-onyx/[0.06] p-1" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
       {options.map(([id, label]) => (
         <button
           key={id}
           type="button"
           aria-pressed={value === id}
           onClick={() => onChange(id)}
-          className={`h-9 rounded-[9px] font-subtitle text-sm ${
-            value === id ? 'bg-white font-medium text-onyx shadow-sm shadow-black/10 dark:bg-onyx/[0.14]' : 'text-onyx/55'
+          className={`h-9 rounded-full font-subtitle text-[13px] transition-colors ${
+            value === id
+              ? 'bg-white font-semibold text-onyx shadow-[0_3px_8px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.04)] dark:bg-onyx/[0.16]'
+              : 'text-muted-dark'
           }`}
         >
           {label}
@@ -114,11 +121,11 @@ export function Segment<T extends string>({
   )
 }
 
-/** The admin's empty states: a dark circle with an icon, a title and a line. */
+/** The admin's empty states: a white card with the icon in a glass circle, a title and a line. */
 export function Empty({ icon, title, text, action }: { icon: string; title: string; text: string; action?: ReactNode }) {
   return (
-    <div className="mt-6 flex flex-col items-center rounded-3xl bg-onyx/[0.04] px-6 py-10 text-center">
-      <span className="flex size-16 items-center justify-center rounded-full bg-onyx text-3xl text-white">
+    <div className={`mt-6 flex flex-col items-center rounded-[22px] bg-card px-6 py-10 text-center ${cardShadow}`}>
+      <span className="glass-chip flex size-16 items-center justify-center rounded-full text-[28px] text-onyx">
         <i className={icon} aria-hidden="true" />
       </span>
       <p className="mt-5 font-subtitle text-xl font-semibold tracking-tight text-onyx">{title}</p>
@@ -131,8 +138,8 @@ export function Empty({ icon, title, text, action }: { icon: string; title: stri
 /** A short message after saving, in the page. */
 export function Notice({ text, onClose }: { text: string; onClose: () => void }) {
   return (
-    <div className="mb-4 flex items-start gap-3 rounded-2xl border border-onyx/10 bg-white p-4 shadow-sm shadow-black/5">
-      <i className="bx bx-check-circle mt-0.5 text-xl text-onyx" aria-hidden="true" />
+    <div className={`mb-4 flex items-start gap-3 rounded-[22px] bg-card p-4 ${cardShadow}`}>
+      <i className="bx bx-check-circle mt-0.5 text-xl" style={{ color: 'var(--c-confirmed)' }} aria-hidden="true" />
       <p className="flex-1 font-subtitle text-sm text-onyx">{text}</p>
       <button type="button" onClick={onClose} aria-label="Fechar aviso" className="text-lg text-muted-dark">
         <i className="bx bx-x" aria-hidden="true" />

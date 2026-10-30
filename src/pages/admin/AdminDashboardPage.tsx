@@ -1771,10 +1771,10 @@ function AuthorAvatar({ testimonial }: { testimonial: Testimonial }) {
       .catch(() => {})
   }, [testimonial.id, testimonial.photo])
   return src ? (
-    <img src={src} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
+    <img src={src} alt="" className="size-11 shrink-0 rounded-full object-cover" />
   ) : (
-    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-onyx/5 font-logo text-lg text-onyx">
-      {testimonial.customer.name.trim().charAt(0).toUpperCase() || '?'}
+    <span className="glass-chip flex size-11 shrink-0 items-center justify-center rounded-full font-subtitle text-[14px] font-semibold text-onyx">
+      {initialsOf(testimonial.customer.name) || '?'}
     </span>
   )
 }
@@ -1797,9 +1797,9 @@ function TestimonialsView({
   const current = lists[view]
 
   const tabs = [
-    { id: 'PENDING', label: 'Por rever' },
-    { id: 'APPROVED', label: 'Publicados' },
-    { id: 'REJECTED', label: 'Recusados' },
+    { id: 'PENDING', label: 'Por rever', colour: 'var(--c-waiting)' },
+    { id: 'APPROVED', label: 'Publicados', colour: 'var(--c-confirmed)' },
+    { id: 'REJECTED', label: 'Recusados', colour: 'var(--c-cancelled)' },
   ] as const
 
   const emptyText = {
@@ -1810,28 +1810,39 @@ function TestimonialsView({
 
   return (
     <div>
-      {/* One switch with the counts, as in the rest of the app. */}
-      <div className="mt-5 grid grid-cols-3 rounded-xl bg-onyx/[0.06] p-1" role="tablist" aria-label="Testemunhos">
+      {/* One switch with the counts, like an iOS segmented control. */}
+      <div
+        className="glass-chip mt-5 grid grid-cols-3 rounded-[22px] p-1"
+        style={{ background: 'color-mix(in srgb, var(--color-onyx) 6%, transparent)', boxShadow: GLASS_SHADOW }}
+        role="tablist"
+        aria-label="Testemunhos"
+      >
         {tabs.map((tab) => (
           <button
             key={tab.id}
             type="button"
             role="tab"
             aria-selected={view === tab.id}
-            onClick={() => setView(tab.id)}
-            className="relative flex h-12 flex-col items-center justify-center rounded-[9px] font-subtitle"
+            onClick={() => {
+              void tap()
+              setView(tab.id)
+            }}
+            className="relative flex h-14 flex-col items-center justify-center rounded-[18px] font-subtitle"
           >
             {view === tab.id && (
               <motion.span
                 layoutId="testimonials-segment"
-                className="absolute inset-0 rounded-[9px] bg-white shadow-sm shadow-black/10 dark:bg-onyx/[0.14]"
+                className="absolute inset-0 rounded-[18px] bg-white shadow-[0_3px_8px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.04)] dark:bg-onyx/[0.16]"
                 transition={{ type: 'spring', stiffness: 420, damping: 36 }}
               />
             )}
-            <span className={`relative text-base font-semibold leading-none lining-nums ${view === tab.id ? 'text-onyx' : 'text-onyx/50'}`}>
+            <span className={`tabular relative text-[18px] font-semibold leading-none ${view === tab.id ? 'text-onyx' : 'text-muted-dark'}`}>
               {lists[tab.id].length}
             </span>
-            <span className={`relative mt-1 text-[11px] ${view === tab.id ? 'text-onyx' : 'text-onyx/55'}`}>{tab.label}</span>
+            <span className={`relative mt-1 flex items-center gap-1 text-[11px] ${view === tab.id ? 'font-semibold text-onyx' : 'text-muted-dark'}`}>
+              <span className="size-1.5 rounded-full" style={{ background: tab.colour }} aria-hidden="true" />
+              {tab.label}
+            </span>
           </button>
         ))}
       </div>
@@ -1883,72 +1894,66 @@ function TestimonialCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -24 }}
-      className="overflow-hidden rounded-2xl border border-onyx/10 bg-white shadow-sm shadow-black/5"
+      className="rounded-[22px] bg-card p-4"
+      style={{ boxShadow: CARD_SHADOW }}
     >
-      <div className="p-5">
-        <div className="flex items-center gap-3">
-          <AuthorAvatar testimonial={testimonial} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-subtitle text-base font-semibold text-onyx">{testimonial.customer.name}</p>
-            <p className="font-subtitle text-xs text-muted-dark">
-              {timeAgo(testimonial.createdAt)}
-              {testimonial.photo === true && ' · quer mostrar a foto'}
-            </p>
-          </div>
-          {view !== 'PENDING' && (
-            <span
-              className={`flex shrink-0 items-center gap-1.5 font-subtitle text-[11px] ${
-                view === 'APPROVED' ? 'text-onyx' : 'text-red-700'
-              }`}
-            >
-              <span className={`size-1.5 rounded-full ${view === 'APPROVED' ? 'bg-emerald-500' : 'bg-red-600'}`} />
-              {view === 'APPROVED' ? 'No site' : 'Recusado'}
-            </span>
-          )}
-        </div>
-
-        <div className="relative mt-4">
-          <span className="absolute -left-1 -top-4 font-display text-5xl leading-none text-onyx/15" aria-hidden="true">
-            “
-          </span>
-          <p
-            className={`relative pl-4 font-subtitle text-[15px] leading-relaxed text-onyx ${
-              long && !expanded ? 'line-clamp-5' : ''
-            }`}
-          >
-            {testimonial.content}
+      <div className="flex items-center gap-3">
+        <AuthorAvatar testimonial={testimonial} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-subtitle text-[15px] font-semibold text-onyx">{testimonial.customer.name}</p>
+          <p className="truncate font-subtitle text-xs text-muted-dark">
+            {timeAgo(testimonial.createdAt)}
+            {testimonial.photo === true && ' · quer mostrar a foto'}
           </p>
-          {long && (
-            <button
-              type="button"
-              onClick={() => setExpanded((v) => !v)}
-              className="mt-1.5 pl-4 font-subtitle text-sm font-medium text-onyx underline underline-offset-4"
-            >
-              {expanded ? 'Ler menos' : 'Ler tudo'}
-            </button>
-          )}
         </div>
+        {view !== 'PENDING' && (
+          <span
+            className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-subtitle text-[11px] font-semibold text-onyx"
+            style={{ background: `color-mix(in srgb, ${view === 'APPROVED' ? 'var(--c-confirmed)' : 'var(--c-cancelled)'} 15%, transparent)` }}
+          >
+            <span className="size-1.5 rounded-full" style={{ background: view === 'APPROVED' ? 'var(--c-confirmed)' : 'var(--c-cancelled)' }} aria-hidden="true" />
+            {view === 'APPROVED' ? 'No site' : 'Recusado'}
+          </span>
+        )}
       </div>
 
-      {/* Its actions, across the bottom. */}
+      {/* The words, in a soft bubble. */}
+      <div className="relative mt-3.5 rounded-[18px] bg-onyx/[0.04] px-4 pb-3.5 pt-4">
+        <MessageSquareQuote size={16} className="absolute left-4 top-4 text-ink-3" aria-hidden="true" />
+        <p className={`pl-6 font-subtitle text-[14px] leading-relaxed text-onyx ${long && !expanded ? 'line-clamp-5' : ''}`}>{testimonial.content}</p>
+        {long && (
+          <button type="button" onClick={() => setExpanded((v) => !v)} className="mt-1.5 pl-6 font-subtitle text-[13px] font-semibold text-onyx">
+            {expanded ? 'Ler menos' : 'Ler tudo'}
+          </button>
+        )}
+      </div>
+
+      {/* What can be done with it. */}
       {view === 'PENDING' ? (
-        <div className="grid grid-cols-2 gap-2 border-t border-onyx/10 p-3">
+        <div className="mt-3.5 grid grid-cols-[1fr_1.4fr] gap-2.5">
           <button
             type="button"
             disabled={busy}
-            onClick={() => onDecision(testimonial.id, 'reject')}
-            className="flex h-11 items-center justify-center gap-1.5 rounded-full border border-onyx/15 font-subtitle text-sm text-onyx disabled:opacity-50"
+            onClick={() => {
+              void tap()
+              onDecision(testimonial.id, 'reject')
+            }}
+            className="glass-chip flex h-12 items-center justify-center gap-1.5 rounded-full font-subtitle text-[14px] font-semibold text-onyx disabled:opacity-50"
           >
-            <i className="bx bx-x text-lg" aria-hidden="true" />
+            <X size={16} strokeWidth={2.4} className="text-muted-dark" />
             Recusar
           </button>
           <button
             type="button"
             disabled={busy}
-            onClick={() => onDecision(testimonial.id, 'approve')}
-            className="flex h-11 items-center justify-center gap-1.5 rounded-full bg-onyx font-subtitle text-sm font-medium text-white disabled:opacity-50"
+            onClick={() => {
+              void tap('medium')
+              onDecision(testimonial.id, 'approve')
+            }}
+            className="flex h-12 items-center justify-center gap-1.5 rounded-full bg-card font-subtitle text-[14px] font-semibold text-onyx transition-transform active:scale-[0.98] disabled:opacity-45"
+            style={{ boxShadow: GLASS_SHADOW }}
           >
-            <i className="bx bx-check text-lg" aria-hidden="true" />
+            <Check size={17} strokeWidth={2.6} style={{ color: 'var(--c-confirmed)' }} />
             {busy ? 'A guardar…' : 'Aprovar'}
           </button>
         </div>
@@ -1956,12 +1961,13 @@ function TestimonialCard({
         <button
           type="button"
           disabled={busy}
-          onClick={() => onDecision(testimonial.id, view === 'APPROVED' ? 'reject' : 'approve')}
-          className={`flex w-full items-center justify-center gap-1.5 border-t border-onyx/10 py-3 font-subtitle text-sm disabled:opacity-50 ${
-            view === 'APPROVED' ? 'text-muted-dark active:text-red-700' : 'text-onyx'
-          }`}
+          onClick={() => {
+            void tap()
+            onDecision(testimonial.id, view === 'APPROVED' ? 'reject' : 'approve')
+          }}
+          className="glass-chip mt-3.5 flex h-11 w-full items-center justify-center gap-1.5 rounded-full font-subtitle text-[13px] font-semibold text-onyx disabled:opacity-50"
         >
-          <i className={`bx ${view === 'APPROVED' ? 'bx-hide' : 'bx-show'} text-base`} aria-hidden="true" />
+          {view === 'APPROVED' ? <EyeOff size={15} className="text-muted-dark" /> : <Eye size={15} />}
           {view === 'APPROVED' ? 'Retirar do site' : 'Publicar no site'}
         </button>
       )}
