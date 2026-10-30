@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { AnimatePresence, motion } from 'motion/react'
+import { animate, AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import {
   ArrowRight,
   ArrowLeftRight,
@@ -333,6 +333,7 @@ export function HomeView({
             label="Sessões do mês"
             Icon={CalendarCheck}
             value={String(data.month.sessions)}
+            count={data.month.sessions}
             change={data.month.sessionsChange}
             series={data.months.map((m) => m.sessions)}
             seriesNames={data.months.map((m) => shortMonth(m.key))}
@@ -346,6 +347,7 @@ export function HomeView({
             label="Marcações de hoje"
             Icon={CalendarClock}
             value={String(data.today.count)}
+            count={data.today.count}
             change={data.today.change}
             changeLabel="face à semana passada"
             series={data.today.series}
@@ -360,6 +362,7 @@ export function HomeView({
             label="Clientes novas"
             Icon={UserPlus}
             value={String(data.month.newClients)}
+            count={data.month.newClients}
             change={data.month.newClientsChange}
             series={data.months.map((m) => m.newClients)}
             seriesNames={data.months.map((m) => shortMonth(m.key))}
@@ -373,6 +376,7 @@ export function HomeView({
             label="Valor médio"
             Icon={Receipt}
             value={euros(data.month.average)}
+            count={data.month.average}
             amount
             change={data.month.averageChange}
             series={data.months.map((m) => m.average)}
@@ -733,6 +737,7 @@ function Stat({
   seriesNames,
   seriesLabel,
   size = 'sm',
+  count,
 }: {
   label: string
   Icon: LucideIcon
@@ -744,7 +749,10 @@ function Stat({
   seriesNames: string[]
   seriesLabel: string
   size?: WidgetSize
+  /** The figure as a number, so it counts up when it first shows (shown with `value`'s format: euros when `amount`). */
+  count?: number
 }) {
+  const shownValue = count === undefined ? value : <CountUp value={count} format={amount ? euros : String} />
   const tone = change === null ? 'var(--c-ink-3)' : change >= 0 ? 'var(--c-pos)' : 'var(--c-neg)'
   // Big (2×2 or 1×2): the figure on top and the bars below, as large as the card allows.
   if (size === 'lg' || size === 'tall') {
@@ -755,7 +763,7 @@ function Stat({
           <IconCircle Icon={Icon} />
         </div>
         <div className="-mt-1 flex items-baseline justify-between gap-2">
-          <p className={`tabular text-[28px] font-semibold leading-tight tracking-tight text-ink ${amount ? 'amount' : ''}`}>{value}</p>
+          <p className={`tabular text-[28px] font-semibold leading-tight tracking-tight text-ink ${amount ? 'amount' : ''}`}>{shownValue}</p>
           <Change value={change} label={changeLabel} />
         </div>
         <div className="mt-3 flex min-h-0 flex-1">
@@ -770,7 +778,7 @@ function Stat({
       <div className="flex min-h-0 flex-1 gap-4">
         <div className="flex w-[38%] shrink-0 flex-col">
           <h3 className="font-subtitle text-[13px] font-semibold leading-tight tracking-tight text-onyx">{label}</h3>
-          <p className={`tabular mt-1 text-[26px] font-semibold leading-tight tracking-tight text-ink ${amount ? 'amount' : ''}`}>{value}</p>
+          <p className={`tabular mt-1 text-[26px] font-semibold leading-tight tracking-tight text-ink ${amount ? 'amount' : ''}`}>{shownValue}</p>
           <div className="mt-auto">
             <Change value={change} label={changeLabel} />
           </div>
@@ -786,7 +794,7 @@ function Stat({
         <IconCircle Icon={Icon} />
       </div>
       <div className="-mt-1 flex items-baseline justify-between gap-2">
-        <p className={`tabular text-[22px] font-semibold tracking-tight text-ink ${amount ? 'amount' : ''}`}>{value}</p>
+        <p className={`tabular text-[22px] font-semibold tracking-tight text-ink ${amount ? 'amount' : ''}`}>{shownValue}</p>
         <Change value={change} label={changeLabel} />
       </div>
       <div className="mt-auto pt-2">
@@ -881,11 +889,24 @@ function Highlight({
           <ChevronRight size={16} className="shrink-0 text-ink-3" />
         </span>
         <span className="mt-1 flex items-end justify-between gap-3">
-          <span className="amount tabular text-[26px] font-semibold leading-none tracking-tight text-ink">{euros(month.revenue)}</span>
+          <span className="amount tabular text-[26px] font-semibold leading-none tracking-tight text-ink">
+            <CountUp value={month.revenue} format={euros} />
+          </span>
           <Change value={month.revenueChange} />
         </span>
         <span className="mt-auto flex h-2 w-full gap-0.5 overflow-hidden rounded-full" aria-hidden="true">
-          {parts.map((p) => (p.value > 0 ? <span key={p.label} className="h-full rounded-full" style={{ width: `${(p.value / sum) * 100}%`, background: p.colour }} /> : null))}
+          {parts.map((p, i) =>
+            p.value > 0 ? (
+              <motion.span
+                key={p.label}
+                className="h-full rounded-full"
+                style={{ background: p.colour }}
+                initial={{ width: 0 }}
+                animate={{ width: `${(p.value / sum) * 100}%` }}
+                transition={{ duration: 0.8, delay: 0.1 + i * 0.12, ease: ENTER_EASE }}
+              />
+            ) : null,
+          )}
         </span>
         <span className="mt-1.5 flex gap-3 text-[11px] text-ink-3">
           {parts.map((p) => (
@@ -916,7 +937,9 @@ function Highlight({
         }
       />
       <div className="mt-2 flex items-end justify-between gap-3">
-        <p className="amount tabular text-[30px] font-semibold leading-none tracking-tight text-ink">{euros(month.revenue)}</p>
+        <p className="amount tabular text-[30px] font-semibold leading-none tracking-tight text-ink">
+          <CountUp value={month.revenue} format={euros} />
+        </p>
         <Change value={month.revenueChange} />
       </div>
       <button type="button" onClick={onDetail} className="mt-3 flex min-h-0 flex-1 items-center gap-4 text-left" aria-label="Ver os detalhes">
@@ -927,7 +950,7 @@ function Highlight({
           parts={parts}
           center={
             <>
-              <span className="tabular text-[17px] font-semibold leading-none text-onyx">{month.sessions}</span>
+              <span className="tabular text-[17px] font-semibold leading-none text-onyx"><CountUp value={month.sessions} /></span>
               <span className="mt-0.5 text-[10px] text-ink-3">{month.sessions === 1 ? 'sessão' : 'sessões'}</span>
             </>
           }
@@ -1934,14 +1957,20 @@ function InOutChart({ months, goal, compact = false }: { months: MonthFigures[];
                   <div className="absolute inset-0 flex items-end gap-2">
                     {months.map((m, i) => (
                       <div key={m.key} className="relative flex h-full flex-1 items-end justify-center gap-[3px]">
-                        <span
+                        <motion.span
                           className="block w-full max-w-3 rounded-t-full"
-                          style={{
-                            height: height(m.revenue),
-                            background: `linear-gradient(to bottom, color-mix(in srgb, ${trend(months, i)} 70%, white), ${trend(months, i)})`,
-                          }}
+                          style={{ background: `linear-gradient(to bottom, color-mix(in srgb, ${trend(months, i)} 70%, white), ${trend(months, i)})` }}
+                          initial={{ height: 0 }}
+                          animate={{ height: height(m.revenue) }}
+                          transition={{ duration: 0.8, delay: i * 0.06, ease: ENTER_EASE }}
                         />
-                        <span className="block w-full max-w-2 rounded-t-full" style={{ height: height(m.cancelled), background: CANCELLED }} />
+                        <motion.span
+                          className="block w-full max-w-2 rounded-t-full"
+                          style={{ background: CANCELLED }}
+                          initial={{ height: 0 }}
+                          animate={{ height: height(m.cancelled) }}
+                          transition={{ duration: 0.8, delay: 0.1 + i * 0.06, ease: ENTER_EASE }}
+                        />
                         {m.revenue > 0 && !compact && (
                           <span
                             className="amount tabular absolute inset-x-0 mb-1 whitespace-nowrap text-center text-[10px] font-bold text-onyx"
@@ -1955,6 +1984,13 @@ function InOutChart({ months, goal, compact = false }: { months: MonthFigures[];
                   </div>
                 ) : (
                   <>
+                    {/* The lines draw in from left to right. */}
+                    <motion.div
+                      className="absolute inset-0"
+                      initial={{ clipPath: 'inset(-10% 100% -10% 0)' }}
+                      animate={{ clipPath: 'inset(-10% 0% -10% 0)' }}
+                      transition={{ duration: 1.1, ease: ENTER_EASE }}
+                    >
                     <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 size-full overflow-visible">
                       <defs>
                         <linearGradient id="revenue-area" x1="0" x2="0" y1="0" y2="1">
@@ -1979,6 +2015,7 @@ function InOutChart({ months, goal, compact = false }: { months: MonthFigures[];
                         />
                       ))}
                     </svg>
+                    </motion.div>
                     {/* Each month's point, in its colour, with its takings above. */}
                     {months.map((m, i) => (
                       <span key={m.key} aria-hidden="true">
@@ -2040,6 +2077,38 @@ interface RingPart {
  * A thick ring with rounded ends and a small gap between its parts, starting at the top, with what goes in the middle
  * (usually the total). A part too small to draw still shows as a dot.
  */
+/** The board's entrance: one gentle ease, so everything that grows or fills arrives the same way. */
+const ENTER_EASE = [0.22, 1, 0.36, 1] as const
+
+/** A number that counts up from zero when it first shows (or straight to it when the phone asks for less motion). */
+function CountUp({ value, format = String, duration = 0.9 }: { value: number; format?: (n: number) => string; duration?: number }) {
+  const reduce = useReducedMotion()
+  const [shown, setShown] = useState(reduce ? value : 0)
+  const first = useRef(true)
+  useEffect(() => {
+    if (reduce) {
+      setShown(value)
+      return
+    }
+    // The first time from zero; later changes from where it was.
+    const from = first.current ? 0 : shown
+    first.current = false
+    const controls = animate(from, value, {
+      duration,
+      ease: ENTER_EASE,
+      onUpdate: (v) => setShown(Math.round(v)),
+      onComplete: () => setShown(value),
+    })
+    // Stopped early (the block left or the value changed): never leave a number half-way.
+    return () => {
+      controls.stop()
+      setShown(value)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, reduce, duration])
+  return <>{format(shown)}</>
+}
+
 function Ring({ parts, size, thickness = 14, center, label }: { parts: RingPart[]; size: number; thickness?: number; center?: ReactNode; label: string }) {
   const r = 50 - thickness / 2 - 1
   const C = 2 * Math.PI * r
@@ -2064,16 +2133,28 @@ function Ring({ parts, size, thickness = 14, center, label }: { parts: RingPart[
         {total === 0 ? (
           <circle cx="50" cy="50" r={r} fill="none" stroke="color-mix(in srgb, var(--color-onyx) 8%, transparent)" strokeWidth={thickness} />
         ) : shown.length === 1 ? (
-          <circle cx="50" cy="50" r={r} fill="none" stroke={shown[0].colour} strokeWidth={thickness} />
+          <motion.circle
+            cx="50"
+            cy="50"
+            r={r}
+            fill="none"
+            stroke={shown[0].colour}
+            strokeWidth={thickness}
+            strokeDasharray={`${C} ${C}`}
+            initial={{ strokeDashoffset: C }}
+            animate={{ strokeDashoffset: 0 }}
+            transition={{ duration: 0.9, ease: ENTER_EASE }}
+          />
         ) : (
-          shown.map((part) => {
+          shown.map((part, index) => {
             const length = lengthOf(part)
             // Round ends reach half the thickness past the dash, on each side.
             const dash = Math.max(length - thickness - gap, 0.01)
             const offset = -(start + thickness / 2 + gap / 2)
             start += length
+            // Each part draws itself round from its start, one after the other.
             return (
-              <circle
+              <motion.circle
                 key={part.label}
                 cx="50"
                 cy="50"
@@ -2082,7 +2163,9 @@ function Ring({ parts, size, thickness = 14, center, label }: { parts: RingPart[
                 stroke={part.colour}
                 strokeWidth={thickness}
                 strokeLinecap="round"
-                strokeDasharray={`${dash} ${C}`}
+                initial={{ strokeDasharray: `0.01 ${C}`, opacity: 0 }}
+                animate={{ strokeDasharray: `${dash} ${C}`, opacity: 1 }}
+                transition={{ duration: 0.7, delay: 0.15 + index * 0.18, ease: ENTER_EASE, opacity: { duration: 0.15, delay: 0.15 + index * 0.18 } }}
                 strokeDashoffset={offset}
               />
             )
@@ -2145,10 +2228,18 @@ function Goal({
     return (
       <>
         <BlockHeader title="Meta mensal" />
-        <p className="tabular -mt-0.5 text-[24px] font-semibold tracking-tight text-ink">{Math.round(share * 100)}%</p>
+        <p className="tabular -mt-0.5 text-[24px] font-semibold tracking-tight text-ink">
+          <CountUp value={Math.round(share * 100)} format={(n) => `${n}%`} />
+        </p>
         <div className="mt-auto">
           <div className="h-2 overflow-hidden rounded-full bg-onyx/[0.08]" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(share * 100)} aria-label="Progresso da meta">
-            <div className="h-full rounded-full" style={{ width: `${Math.min(share, 1) * 100}%`, background: 'var(--c-pos)' }} />
+            <motion.div
+              className="h-full rounded-full"
+              style={{ background: 'var(--c-pos)' }}
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(share, 1) * 100}%` }}
+              transition={{ duration: 1, ease: ENTER_EASE }}
+            />
           </div>
           <p className="mt-1.5 truncate text-[11px] text-ink-3">
             <span className="amount">{euros(revenue)}</span> de <span className="amount">{euros(goal)}</span>
@@ -2199,7 +2290,13 @@ function Goal({
               aria-valuenow={Math.round(share * 100)}
               aria-label="Progresso da meta"
             >
-              <div className="h-full rounded-full" style={{ width: `${Math.min(share, 1) * 100}%`, background: 'var(--c-pos)' }} />
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: 'var(--c-pos)' }}
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min(share, 1) * 100}%` }}
+                transition={{ duration: 1, ease: ENTER_EASE }}
+              />
             </div>
             <p className="mt-2 text-[12px] text-ink-3">
               {share >= 1 ? (
@@ -2295,7 +2392,13 @@ function Ranking({ items, total, rows = 5 }: { items: BoardData['ranking']; tota
                 </span>
               </div>
               <div className="ml-4 mt-1 h-1.5 overflow-hidden rounded-full bg-onyx/[0.08]">
-                <div className="h-full rounded-full" style={{ width: `${item.share * 100}%`, background: RANK_COLOURS[i] }} />
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ background: RANK_COLOURS[i] }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${item.share * 100}%` }}
+                  transition={{ duration: 0.8, delay: 0.1 + i * 0.08, ease: ENTER_EASE }}
+                />
               </div>
             </li>
           ))}
