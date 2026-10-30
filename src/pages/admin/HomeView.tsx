@@ -313,13 +313,12 @@ export function HomeView({
   const data = boardData({ bookings, testimonials: can('testemunhos') ? testimonials : [] })
   const canStats = can('estatisticas')
 
-  /** Makes a block smaller or bigger (one step through the sizes it can take); the board is laid out again with it. */
+  /** Makes a block smaller or bigger (one step through the sizes it can take); only that card changes on the board. */
   const resize = (id: BlockId, size: WidgetSize) => {
     void tap()
     const next = order.map((b) => (b.id === id ? { ...b, size } : b))
     writeStore(SIZE_KEY, Object.fromEntries(next.map((b) => [b.id, b.size])))
     setOrder(next)
-    setBoardKey((k) => k + 1)
   }
 
   const render = (id: BlockId, size: WidgetSize): ReactNode => {

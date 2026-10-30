@@ -422,6 +422,11 @@ const Widget = memo(function Widget({
   const lifted = useRef(false)
   const cleanup = useRef<(() => void) | null>(null)
   const [phase, setPhase] = useState<Phase>('idle')
+  // After the first showing, a change of size only fades the card's content in lightly (no entrance again).
+  const shown = useRef(false)
+  useEffect(() => {
+    shown.current = true
+  }, [])
 
   const release = useCallback(() => {
     if (press.current) window.clearTimeout(press.current.timer)
@@ -550,7 +555,15 @@ const Widget = memo(function Widget({
           landed ? 'ring-2 ring-accent/60' : ''
         }`}
       >
-        {renderItem(item as never, sizeOf(w, h))}
+        <motion.div
+          key={item.size}
+          initial={shown.current ? { opacity: 0, scale: 0.985 } : false}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          className="flex h-full w-full flex-col"
+        >
+          {renderItem(item as never, sizeOf(w, h))}
+        </motion.div>
       </motion.div>
     </motion.div>
   )
@@ -619,6 +632,20 @@ export function DraggableWidgetGrid<T extends WidgetItem>({
     latest.current.items = next
     setItems(next)
   }, [])
+
+  // A card's size changed from outside (made smaller or bigger): take the new size in place, keeping the order, so
+  // only that card changes and the others glide to their new places, instead of the whole board starting over.
+  useEffect(() => {
+    const wanted = new Map(initialItems.map((item) => [item.id, item.size]))
+    let changed = false
+    const next = latest.current.items.map((item) => {
+      const size = wanted.get(item.id)
+      if (!size || size === item.size) return item
+      changed = true
+      return { ...item, size }
+    })
+    if (changed) commit(next)
+  }, [initialItems, commit])
 
   const toSlot = useCallback(
     (box: Box): Slot => {
