@@ -192,7 +192,6 @@ export function HomeView({
   const currentMonth = todayKey().slice(0, 7)
   const [viewMonth, setViewMonth] = useState(currentMonth)
   const [monthMenu, setMonthMenu] = useState(false)
-  const [monthList, setMonthList] = useState(false)
   const pastMonth = viewMonth !== currentMonth
 
   useEffect(() => {
@@ -266,7 +265,6 @@ export function HomeView({
                   onClick={() => {
                     void tap()
                     setMonthMenu((v) => !v)
-                    setMonthList(false)
                   }}
                   className="relative flex size-8 items-center justify-center rounded-full text-onyx transition-colors hover:bg-onyx/[0.06]"
                 >
@@ -286,8 +284,10 @@ export function HomeView({
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -6, scale: 0.96 }}
                         transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                        className="absolute right-0 top-full z-40 mt-3 w-64 origin-top-right overflow-hidden rounded-[22px] bg-card p-1.5 shadow-[var(--shadow-pop)]"
+                        className="absolute right-0 top-full z-40 mt-3 w-[17.5rem] origin-top-right overflow-hidden rounded-[24px] bg-card p-1.5 shadow-[var(--shadow-pop)]"
                       >
+                        <p className="px-3 pb-1 pt-2 text-[12px] font-semibold text-muted-dark">Painel</p>
+
                         {/* Hide or show the values. */}
                         <button
                           type="button"
@@ -298,10 +298,13 @@ export function HomeView({
                             setHidden(!hidden)
                             writeStore(HIDE_KEY, !hidden)
                           }}
-                          className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-left hover:bg-onyx/[0.04]"
+                          className="flex w-full items-center gap-3 rounded-2xl px-2.5 py-2 text-left hover:bg-onyx/[0.04]"
                         >
-                          {hidden ? <EyeOff size={17} className="shrink-0 text-onyx" /> : <Eye size={17} className="shrink-0 text-onyx" />}
-                          <span className="min-w-0 flex-1 text-[14px] font-medium text-onyx">Esconder valores</span>
+                          <span className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-onyx">{hidden ? <EyeOff size={16} /> : <Eye size={16} />}</span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[14px] font-semibold text-onyx">Esconder valores</span>
+                            <span className="block truncate text-[12px] text-muted-dark">Montantes desfocados</span>
+                          </span>
                           <span
                             aria-hidden="true"
                             className="relative h-[26px] w-[44px] shrink-0 rounded-full transition-colors duration-200"
@@ -311,62 +314,48 @@ export function HomeView({
                           </span>
                         </button>
 
-                        {/* The month: tap to open the list right here. */}
-                        <button
-                          type="button"
-                          aria-expanded={monthList}
-                          onClick={() => {
-                            void tap()
-                            setMonthList((v) => !v)
-                          }}
-                          className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-left hover:bg-onyx/[0.04]"
-                        >
-                          <CalendarDays size={17} className="shrink-0 text-onyx" />
-                          <span className="min-w-0 flex-1 text-[14px] font-medium text-onyx">Mês</span>
-                          <span className="text-[13px] text-muted-dark">{pastMonth ? capital(monthName(viewMonth)) : 'Este mês'}</span>
-                          <ChevronDown size={15} className={`shrink-0 text-ink-3 transition-transform duration-300 ${monthList ? 'rotate-180' : ''}`} />
-                        </button>
-                        <AnimatePresence initial={false}>
-                          {monthList && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.22, ease: 'easeInOut' }}
-                              className="mx-1.5 overflow-hidden"
+                        {/* The month: the last twelve on a track that slides sideways, the chosen one a raised pill. */}
+                        <div className="rounded-2xl px-2.5 py-2">
+                          <div className="flex items-center gap-3">
+                            <span className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-onyx"><CalendarDays size={16} /></span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-[14px] font-semibold text-onyx">Mês</span>
+                              <span className="block truncate text-[12px] text-muted-dark">
+                                {pastMonth ? `A ver ${monthName(viewMonth)} ${viewMonth.slice(0, 4)}` : 'A ver este mês'}
+                              </span>
+                            </span>
+                          </div>
+                          <div className="mt-2.5 rounded-full bg-onyx/[0.06] p-1">
+                            <div
+                              role="radiogroup"
+                              aria-label="Mês"
+                              className="flex gap-0.5 overflow-x-auto rounded-full [direction:rtl] [mask-image:linear-gradient(to_right,transparent,black_12px,black_calc(100%-4px),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                             >
-                              <ul className="max-h-56 overflow-y-auto rounded-2xl bg-onyx/[0.04] p-1">
-                                {Array.from({ length: 12 }, (_, i) => shiftMonth(currentMonth, -i)).map((key, i) => (
-                                  <li key={key}>
-                                    <button
-                                      type="button"
-                                      role="menuitemradio"
-                                      aria-checked={viewMonth === key}
-                                      onClick={() => {
-                                        void tap()
-                                        setViewMonth(key)
-                                        setMonthMenu(false)
-                                      }}
-                                      className={`flex h-10 w-full items-center justify-between rounded-xl px-3 text-left text-[14px] ${
-                                        viewMonth === key ? 'bg-card font-semibold text-onyx shadow-sm' : 'text-onyx hover:bg-onyx/[0.04]'
-                                      }`}
-                                    >
-                                      <span className="capitalize">
-                                        {monthName(key)}
-                                        {key.slice(0, 4) !== currentMonth.slice(0, 4) && <span className="ml-1 text-muted-dark">{key.slice(0, 4)}</span>}
-                                      </span>
-                                      {i === 0 ? (
-                                        <span className="text-[11px] font-medium text-muted-dark">Este mês</span>
-                                      ) : (
-                                        viewMonth === key && <Check size={15} />
-                                      )}
-                                    </button>
-                                  </li>
-                                ))}
-                              </ul>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                              {Array.from({ length: 12 }, (_, i) => shiftMonth(currentMonth, -i)).map((key, i) => (
+                                <button
+                                  key={key}
+                                  type="button"
+                                  role="radio"
+                                  aria-checked={viewMonth === key}
+                                  aria-label={`${capital(monthName(key))} ${key.slice(0, 4)}`}
+                                  onClick={() => {
+                                    void tap()
+                                    setViewMonth(key)
+                                    setMonthMenu(false)
+                                  }}
+                                  className={`flex h-9 min-w-[3.1rem] flex-none flex-col items-center justify-center rounded-full px-2 [direction:ltr] text-[12px] transition-colors ${
+                                    viewMonth === key
+                                      ? 'bg-white font-semibold text-onyx shadow-[0_3px_8px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.04)] dark:bg-onyx/[0.16]'
+                                      : 'font-medium text-muted-dark'
+                                  }`}
+                                >
+                                  <span className="leading-none">{i === 0 ? 'Este' : shortMonth(key)}</span>
+                                  {key.slice(0, 4) !== currentMonth.slice(0, 4) && <span className="mt-0.5 text-[9px] leading-none opacity-70">{key.slice(2, 4)}</span>}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
 
                         {/* Personalise the board. */}
                         <button
@@ -376,10 +365,13 @@ export function HomeView({
                             setMonthMenu(false)
                             setEditing(true)
                           }}
-                          className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-left hover:bg-onyx/[0.04]"
+                          className="flex w-full items-center gap-3 rounded-2xl px-2.5 py-2 text-left hover:bg-onyx/[0.04]"
                         >
-                          <LayoutDashboard size={17} className="shrink-0 text-onyx" />
-                          <span className="min-w-0 flex-1 text-[14px] font-medium text-onyx">Personalizar cartões</span>
+                          <span className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-onyx"><LayoutDashboard size={16} /></span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[14px] font-semibold text-onyx">Personalizar cartões</span>
+                            <span className="block truncate text-[12px] text-muted-dark">Ordem e tamanho</span>
+                          </span>
                           <ChevronRight size={15} className="shrink-0 text-ink-3" />
                         </button>
                       </motion.div>
