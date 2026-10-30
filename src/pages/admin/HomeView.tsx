@@ -293,7 +293,7 @@ export function HomeView({
                 </button>
                 {createPortal(
                   // Inside the admin's colours, though drawn at the end of the page.
-                  <div className="afro-admin font-subtitle">
+                  <div className="app-neutral afro-admin font-subtitle">
                 <AnimatePresence>
                   {monthMenu && (
                     <>
