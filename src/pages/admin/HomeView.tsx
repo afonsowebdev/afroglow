@@ -152,7 +152,7 @@ function loadOrder(): Array<WidgetItem & { id: BlockId }> {
   const all = [...known, ...BLOCKS.filter((b) => !known.includes(b))]
   return all.map(({ id, size, label, sizes: allowed }) => {
     const saved = sizes[id]
-    return { id, size: saved && allowed.includes(saved) ? saved : size, label }
+    return { id, size: saved && allowed.includes(saved) ? saved : size, label, sizes: allowed }
   })
 }
 
@@ -410,8 +410,10 @@ export function HomeView({
         narrowRowRatio={0.85}
         maxRowHeight={150}
         onChange={(next) => {
+          // A drop can also shrink the card it lands on: keep its new size too.
           setOrder(next)
           writeStore(ORDER_KEY, next.map((b) => b.id))
+          writeStore(SIZE_KEY, Object.fromEntries(next.map((b) => [b.id, b.size])))
         }}
         renderItem={(item, size) => (
           <>

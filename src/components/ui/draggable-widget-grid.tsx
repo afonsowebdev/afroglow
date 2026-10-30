@@ -37,6 +37,8 @@ export interface WidgetItem {
   size: WidgetSize
   /** Accessible name for the card. */
   label?: string
+  /** The sizes the card can take; when another card is dropped on its place, it may shrink to one of these to fit. */
+  sizes?: WidgetSize[]
 }
 
 export interface DraggableWidgetGridProps<T extends WidgetItem = WidgetItem> {
@@ -307,7 +309,8 @@ function choose<T>(home: Slot, candidates: Candidate<T>[], cx: number, cy: numbe
 
 /**
  * Every arrangement one move away: group swaps (a same-shaped area filled entirely by smaller cards trades places with
- * the dragged one, keeping its inner arrangement) and sequence moves (the dragged card takes another index).
+ * the dragged one, keeping its inner arrangement) and sequence moves (the dragged card takes another index; when that
+ * leaves gaps, the card it displaces shrinks to a size it allows so the board still fits together).
  */
 function candidatesFor<T extends WidgetItem>(items: T[], id: string, columns: number, toSlot: (box: Box) => Slot): Candidate<T>[] {
   const places = layout(items, columns)
@@ -332,9 +335,24 @@ function candidatesFor<T extends WidgetItem>(items: T[], id: string, columns: nu
   }
 
   const from = items.findIndex((item) => item.id === id)
+  const area = (item: WidgetItem) => SPANS[item.size].col * SPANS[item.size].row
   for (let i = 0; i < items.length; i++) {
     if (i === from) continue
-    const order = moveTo(items, id, i)
+    let order = moveTo(items, id, i)
+    // Doesn't fit without gaps: the card whose place it takes shrinks, one size at a time, until everything fits.
+    if (!tile(order, columns)) {
+      const target = items[i]
+      const smaller = (target.sizes ?? [])
+        .filter((size) => SPANS[size].col * SPANS[size].row < area(target))
+        .sort((a, b) => SPANS[b].col * SPANS[b].row - SPANS[a].col * SPANS[a].row)
+      for (const size of smaller) {
+        const resized = order.map((item) => (item.id === target.id ? ({ ...item, size } as T) : item))
+        if (tile(resized, columns)) {
+          order = resized
+          break
+        }
+      }
+    }
     const p = layout(order, columns).find((q) => q.id === id)
     if (p) out.push({ order, slot: toSlot(p) })
   }
