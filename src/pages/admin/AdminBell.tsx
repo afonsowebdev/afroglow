@@ -155,6 +155,7 @@ export function AdminBell({
       <button
         type="button"
         onClick={toggle}
+        data-tour="bell"
         aria-label={waiting ? `Notificações, ${waiting} à espera` : 'Notificações'}
         aria-expanded={open}
         className={cn(

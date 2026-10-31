@@ -40,6 +40,7 @@ import {
   TriangleAlert,
   Trash2,
   X,
+  Compass,
 } from 'lucide-react'
 import { BackToTop } from '@/components/ui/back-to-top'
 import { BottomNavBar, type BottomNavItem } from '@/components/ui/bottom-nav-bar'
@@ -57,6 +58,7 @@ import { PromotionsView } from '@/pages/admin/PromotionsView'
 import { TeamView } from '@/pages/admin/TeamView'
 import { HomeView } from '@/pages/admin/HomeView'
 import { PullToRefresh } from '@/pages/admin/PullToRefresh'
+import { AdminTour, tourSeen } from '@/pages/admin/AdminTour'
 import { PlusSheet } from '@/pages/admin/PlusSheet'
 import { HeaderLogo } from '@/customer/HeaderLogo'
 import { tap } from '@/lib/haptics'
@@ -2356,6 +2358,8 @@ function AdminDashboard() {
   const [adminEmail, setAdminEmail] = useState<string | null>(null)
   // Who is signed in and what they may use (lib/permissions on the server); before it loads, everything.
   const [me, setMe] = useState<AdminMe | null>(null)
+  // The first-time tour: opens by itself once, after the panel has loaded; the "+" brings it back.
+  const [tourOpen, setTourOpen] = useState(false)
   const meRef = useRef<AdminMe | null>(null)
   const can = (permission: Permission) => !me || me.permissions.includes(permission)
   const isOwner = !me || me.role === 'OWNER'
@@ -2366,6 +2370,12 @@ function AdminDashboard() {
   const onPlusOpen = useCallback((open: boolean) => setOpenMenus((m) => ({ ...m, plus: open })), [])
   const onBellOpen = useCallback((open: boolean) => setOpenMenus((m) => ({ ...m, bell: open })), [])
   const anyMenuOpen = openMenus.plus || openMenus.bell
+  useEffect(() => {
+    if (checkingAuth || !me || tourSeen()) return
+    // A moment for the panel to draw itself first.
+    const t = window.setTimeout(() => setTourOpen(true), 900)
+    return () => window.clearTimeout(t)
+  }, [checkingAuth, me])
   // The fixed header shrinks a little once the page has scrolled.
   const [headerScrolled, setHeaderScrolled] = useState(false)
   useEffect(() => {
@@ -2852,6 +2862,7 @@ function AdminDashboard() {
       group: 'app',
       onClick: () => setHideNavOnScroll(!hideOnScroll),
     },
+    { Icon: Compass, label: 'Ver a visita guiada', group: 'app', onClick: () => setTourOpen(true) },
     { Icon: LogOut, label: 'Sair', group: 'app', danger: true, confirm: 'Sair?', onClick: () => void handleLogout() },
   ]
 
@@ -2942,6 +2953,7 @@ function AdminDashboard() {
             {/* The "+": its actions rise from the bottom of the screen in a sheet (the Google Photos way). */}
             <motion.button
               type="button"
+              data-tour="plus"
               aria-label={openMenus.plus ? 'Fechar as ações' : 'Abrir as ações'}
               aria-expanded={openMenus.plus}
               onClick={() => {
@@ -2959,6 +2971,7 @@ function AdminDashboard() {
             {/* The account at the far right, where the iPhone keeps it: the admin's photo (or initials). */}
             <button
               type="button"
+              data-tour="account"
               aria-label="A tua conta"
               aria-current={tab === 'seguranca' ? 'page' : undefined}
               title="A tua conta"
@@ -3429,6 +3442,14 @@ function AdminDashboard() {
 
 
       {/* Tab bar with the round options button beside it, same as the customer app. */}
+      <AdminTour
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        onOpenSchedule={() => {
+          setTab('disponibilidade')
+          window.scrollTo({ top: 0 })
+        }}
+      />
       <PlusSheet
         open={openMenus.plus}
         actions={menuActions}
