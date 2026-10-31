@@ -1408,8 +1408,6 @@ function ServiceDialog({
   }, [form, busy, onClose])
 
   const isNew = form?.id === null
-  const fieldClass =
-    'glass-chip w-full rounded-full !border-0 px-4 py-2.5 font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35'
   const glassField = 'glass-chip flex items-center gap-3 rounded-[20px] px-4'
   const plain = 'field-plain block w-full min-w-0 !border-0 !bg-transparent !p-0 font-subtitle text-base text-onyx !shadow-none outline-none placeholder:text-onyx/35'
   const section = 'mb-2 px-1 font-subtitle text-[12px] font-semibold text-muted-dark'
@@ -1533,7 +1531,7 @@ function ServiceDialog({
                 <div className="mt-2.5">
                   {form.pricing.on ? (
                     <>
-                      <PricingEditor bare draft={form.pricing} onChange={(pricing) => onChange({ ...form, pricing })} fieldClass={fieldClass} />
+                      <PricingEditor bare draft={form.pricing} onChange={(pricing) => onChange({ ...form, pricing })} />
                       <p className="mt-2 px-1 font-subtitle text-xs text-muted-dark">A cliente escolhe ao marcar; o site mostra “desde” o mais baixo.</p>
                     </>
                   ) : (
