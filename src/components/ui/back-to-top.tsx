@@ -59,7 +59,7 @@ export function BackToTop({ hidden = false, admin = false }: { hidden?: boolean;
                 : ease
             }
             className={cn(
-              cn('flex items-center justify-center rounded-full transition-colors duration-300', admin ? 'glass-clear size-[62px]' : 'liquid-glass size-14'),
+              cn('flex items-center justify-center rounded-full transition-colors duration-300', admin ? 'glass-clear relative size-[62px]' : 'liquid-glass size-14'),
               tone === 'dark' ? 'text-[#ffffff]' : 'text-[#1a1008]',
             )}
           >

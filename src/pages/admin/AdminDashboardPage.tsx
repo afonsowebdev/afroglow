@@ -61,7 +61,7 @@ import { PlusSheet } from '@/pages/admin/PlusSheet'
 import { HeaderLogo } from '@/customer/HeaderLogo'
 import { tap } from '@/lib/haptics'
 import { useScrollLock } from '@/lib/use-scroll-lock'
-import { INK_CIRCLE } from '@/components/ui/brand-logo'
+import { GLASS_BUTTON } from '@/components/ui/brand-logo'
 import { fullMe, type AdminMe, type Permission } from '@/pages/admin/admin-me'
 import { PortfolioView } from '@/pages/admin/PortfolioView'
 import { SecurityView } from '@/pages/admin/SecurityView'
@@ -2898,7 +2898,7 @@ function AdminDashboard() {
                   setTab(back === tab || back === 'fechos' || back === 'seguranca' ? (tab === 'fechos' ? 'disponibilidade' : 'inicio') : back)
                   window.scrollTo({ top: 0 })
                 }}
-                className={`flex size-12 items-center justify-center rounded-full ${INK_CIRCLE}`}
+                className={`flex size-12 items-center justify-center rounded-full ${GLASS_BUTTON}`}
               >
                 {/* Nudged towards its tip: a chevron's weight sits on its open side, so the box centre looks off. */}
                 <ChevronLeft size={22} strokeWidth={2} className="-translate-x-[1.5px]" />
@@ -2940,8 +2940,9 @@ function AdminDashboard() {
                 onPlusOpen(!openMenus.plus)
               }}
               animate={{ rotate: openMenus.plus ? 45 : 0, scale: headerScrolled ? 0.86 : 1 }}
+              whileTap={{ scale: headerScrolled ? 0.93 : 1.08 }}
               transition={{ type: 'tween', ease: [0.22, 1, 0.36, 1], duration: 0.5 }}
-              className={`relative z-[62] flex size-11 items-center justify-center rounded-full ${INK_CIRCLE}`}
+              className={`relative z-[62] flex size-11 items-center justify-center rounded-full ${GLASS_BUTTON}`}
             >
               <Plus size={20} strokeWidth={2.6} />
             </motion.button>
@@ -2957,14 +2958,13 @@ function AdminDashboard() {
                 setTab('seguranca')
                 window.scrollTo({ top: 0 })
               }}
-              // A border inside the circle (so it stays the size of the others) in the button's own colour, following the
-              // theme.
-              className={`relative z-[62] flex size-11 items-center justify-center overflow-hidden rounded-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${INK_CIRCLE} ${
+              // The photo inside a ring of the same glass (so it stays the size of the others).
+              className={`z-[62] flex size-11 items-center justify-center rounded-full p-[3px] ${GLASS_BUTTON} ${
                 headerScrolled ? 'scale-[0.86]' : ''
-              } border-[3px] border-white dark:border-[#2b1d12]`}
+              }`}
             >
               {avatar ? (
-                <img src={avatar} alt="" className="size-full object-cover" />
+                <img src={avatar} alt="" className="size-full rounded-full object-cover" />
               ) : (
                 <span className="font-subtitle text-[14px] font-semibold">
                   {(me?.name || me?.email || '?')

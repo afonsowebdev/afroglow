@@ -174,32 +174,124 @@
  */
 .glass-clear {
   isolation: isolate;
-  background: rgba(255, 255, 255, 0.1);
-  -webkit-backdrop-filter: blur(5px) saturate(1.8) brightness(1.04);
-  backdrop-filter: blur(5px) saturate(1.8) brightness(1.04);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.12));
+  -webkit-backdrop-filter: blur(12px) saturate(1.9) brightness(1.05);
+  backdrop-filter: blur(12px) saturate(1.9) brightness(1.05);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.65),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 0 0 0.5px rgba(255, 255, 255, 0.45),
-    0 0 0 0.5px rgba(0, 0, 0, 0.08),
+    inset 0 1px 1px rgba(255, 255, 255, 0.85),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.25),
+    inset 0 0 10px rgba(255, 255, 255, 0.35),
+    0 0 0 0.5px rgba(0, 0, 0, 0.07),
     var(--card-shadow, 0 8px 24px rgba(0, 0, 0, 0.12));
 }
 .dark .glass-clear {
-  background: rgba(255, 255, 255, 0.04);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    inset 0 0 0 0.5px rgba(255, 255, 255, 0.14),
+    inset 0 1px 1px rgba(255, 255, 255, 0.28),
+    inset 0 0 10px rgba(255, 255, 255, 0.08),
+    0 0 0 0.5px rgba(0, 0, 0, 0.3),
     var(--card-shadow, 0 8px 24px rgba(0, 0, 0, 0.5));
 }
+/*
+ * iOS 26 "Liquid Glass", as close as CSS gets in the iPhone's web view (it has no refraction filter): a thick lens
+ * rather than a flat pane. A strong blur that lifts the colours behind; light caught along the edges (a bright rim that
+ * fades round the shape, brightest at the top-left, a softer one at the bottom-right); a glow inside the edges, the
+ * glass's thickness; a sheen on the top half; and a soft shadow under it. Pressed, it swells a little and brightens.
+ * Used by the admin's header buttons (.liquid-btn) and over .glass-clear (the tab bar and back to top).
+ */
+.liquid-btn {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.2));
+  -webkit-backdrop-filter: blur(14px) saturate(1.9) brightness(1.06);
+  backdrop-filter: blur(14px) saturate(1.9) brightness(1.06);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.3),
+    inset 0 0 8px rgba(255, 255, 255, 0.4),
+    inset 0 -8px 12px -8px rgba(0, 0, 0, 0.07),
+    0 0 0 0.5px rgba(0, 0, 0, 0.07),
+    0 8px 22px -8px rgba(0, 0, 0, 0.28),
+    0 2px 5px rgba(0, 0, 0, 0.06);
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    scale 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.dark .liquid-btn {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05));
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.35),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.08),
+    inset 0 0 8px rgba(255, 255, 255, 0.1),
+    0 0 0 0.5px rgba(0, 0, 0, 0.3),
+    0 10px 24px -8px rgba(0, 0, 0, 0.6),
+    0 2px 5px rgba(0, 0, 0, 0.25);
+}
+/* The rim: light along the edge, strong at the top-left and bottom-right, fading in between. */
+:is(.liquid-btn, .glass-clear)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.25) 30%,
+    rgba(255, 255, 255, 0.05) 55%,
+    rgba(255, 255, 255, 0.55) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.dark :is(.liquid-btn, .glass-clear)::before {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.1) 30%,
+    rgba(255, 255, 255, 0.02) 55%,
+    rgba(255, 255, 255, 0.25) 100%
+  );
+}
+/* The sheen: a soft light on the top half, under the icon. */
+:is(.liquid-btn, .glass-clear)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(120% 75% at 30% 0%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 60%);
+  pointer-events: none;
+}
+.dark :is(.liquid-btn, .glass-clear)::after {
+  background: radial-gradient(120% 75% at 30% 0%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 60%);
+}
+.liquid-btn:active {
+  transform: scale(1.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.3));
+}
+.dark .liquid-btn:active {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.09));
+}
+
 /* The lens that marks the chosen tab: clearer glass with a brighter rim, magnifying a touch. */
 .nav-lens {
-  background: rgba(255, 255, 255, 0.22);
-  -webkit-backdrop-filter: blur(2px) saturate(1.6) brightness(1.08);
-  backdrop-filter: blur(2px) saturate(1.6) brightness(1.08);
+  background: radial-gradient(110% 80% at 35% 10%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.18) 70%);
+  -webkit-backdrop-filter: blur(2px) saturate(1.7) brightness(1.1);
+  backdrop-filter: blur(2px) saturate(1.7) brightness(1.1);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 0 0 0.5px rgba(255, 255, 255, 0.55),
-    0 2px 10px rgba(0, 0, 0, 0.08);
+    inset 0 1px 1px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.35),
+    inset 0 0 6px rgba(255, 255, 255, 0.5),
+    0 0 0 0.5px rgba(0, 0, 0, 0.05),
+    0 3px 12px rgba(0, 0, 0, 0.1);
 }
 .dark .nav-lens {
   background: rgba(255, 255, 255, 0.1);

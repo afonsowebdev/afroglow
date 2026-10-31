@@ -15,6 +15,9 @@ export const BRAND_CIRCLE =
 export const INK_CIRCLE =
   'bg-[#ffffff] text-[#1a1008] shadow-[var(--card-shadow,0_2px_10px_rgba(0,0,0,0.16))] dark:bg-[#2b1d12] dark:text-[#ffffff] dark:ring-1 dark:ring-[#ffffff]/15'
 
+/** The admin's header buttons in iOS 26 liquid glass (see .liquid-btn in index.css): the icon in black, white in the dark. */
+export const GLASS_BUTTON = 'liquid-btn text-[#1a1008] dark:text-[#ffffff]'
+
 const SIZES = {
   sm: { mark: 'size-8 text-[1.35rem]', word: 'text-[1.1rem]', gap: 'gap-3' },
   md: { mark: 'size-10 text-[1.35rem]', word: 'text-[1.35rem]', gap: 'gap-3' },
