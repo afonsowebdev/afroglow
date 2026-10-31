@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { BRAID_COLORS } from '@/lib/braid-colors'
 import { success, tap } from '@/lib/haptics'
 import { useScrollLock } from '@/lib/use-scroll-lock'
+import { serviceImageUrls } from '@/lib/service-images'
 
 const CARD = 'bg-card shadow-[0_1px_3px_rgba(0,0,0,0.06),0_8px_20px_-12px_rgba(0,0,0,0.18)]'
 /** The raised white pill of a chosen option (the iPhone's segmented control), and the plain look of the others. */
@@ -83,7 +84,7 @@ export function ManualBookingSheet({
   onDone: () => void
 }) {
   const [customers, setCustomers] = useState<AdminCustomer[]>([])
-  const [mode, setMode] = useState<'new' | 'existing'>('new')
+  const [mode, setMode] = useState<'new' | 'existing'>('existing')
   const [search, setSearch] = useState('')
   const [picked, setPicked] = useState<AdminCustomer | null>(null)
   const [name, setName] = useState('')
@@ -120,7 +121,6 @@ export function ManualBookingSheet({
     setLength('')
     setParting('')
     setColor('')
-    setServiceId((current) => current || services.find((s) => s.active !== false)?.id || '')
     if (presetCustomer) {
       setMode('existing')
       setPicked(presetCustomer)
@@ -135,7 +135,17 @@ export function ManualBookingSheet({
       .get<AdminCustomer[]>('/admin/customers')
       .then(setCustomers)
       .catch(() => setCustomers([]))
-  }, [open, presetCustomer, presetStartsAt, services, pull])
+    // Only when it opens (or its presets change): the dashboard refreshes every few seconds and hands new lists, which
+    // must not wipe what is being filled in.
+  }, [open, presetCustomer, presetStartsAt, pull])
+
+  // A model chosen from the start, and a new one if the chosen one is gone after a refresh.
+  useEffect(() => {
+    if (!open) return
+    setServiceId((current) =>
+      services.some((s) => s.id === current && s.active !== false) ? current : services.find((s) => s.active !== false)?.id || '',
+    )
+  }, [open, services])
 
   const matches = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -203,6 +213,7 @@ export function ManualBookingSheet({
   const pill = (on: boolean) => cn('h-9 shrink-0 rounded-full px-4 font-subtitle text-[13px] transition-[background-color,box-shadow]', on ? RAISED : FLAT)
   const initial = (n: string) => n.trim().charAt(0).toUpperCase()
   const close = () => !busy && onClose()
+  const activeServices = services.filter((s) => s.active !== false)
 
   return (
     <AnimatePresence>
@@ -404,59 +415,110 @@ export function ManualBookingSheet({
                   )}
                 </section>
 
-                {/* What: the model, its options and the colour, in one card. */}
+                {/* What: the models as a list with their photo, the chosen one ticked; its options and the colour below it. */}
                 <section>
                   <p className={label}>Modelo</p>
-                  <div className={`rounded-[22px] py-3 ${CARD}`}>
-                    <div className="flex gap-2 overflow-x-auto px-3 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                      {services
-                        .filter((s) => s.active !== false)
-                        .map((s) => {
-                          const on = serviceId === s.id
-                          return (
-                            <button
-                              key={s.id}
-                              type="button"
-                              aria-pressed={on}
-                              onClick={() => {
-                                setServiceId(s.id)
-                                setLength('')
-                                setParting('')
-                              }}
-                              className={cn(
-                                'flex shrink-0 flex-col items-start rounded-2xl px-3.5 py-2 text-left transition-[background-color,box-shadow]',
-                                on ? RAISED : FLAT,
-                              )}
-                            >
-                              <span className="flex items-center gap-1 whitespace-nowrap font-subtitle text-[13px]">
+                  <div className={`overflow-hidden rounded-[22px] ${CARD}`}>
+                    <div role="radiogroup" aria-label="Modelo" className="divide-y divide-onyx/[0.07]">
+                      {activeServices.map((s) => {
+                        const on = serviceId === s.id
+                        const photo = serviceImageUrls(s)[0]
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            role="radio"
+                            aria-checked={on}
+                            onClick={() => {
+                              if (on) return
+                              void tap()
+                              setServiceId(s.id)
+                              setLength('')
+                              setParting('')
+                            }}
+                            className={cn('flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors', on && 'bg-onyx/[0.03]')}
+                          >
+                            {photo ? (
+                              <img src={photo} alt="" loading="lazy" className="size-11 shrink-0 rounded-[14px] bg-onyx/[0.05] object-cover" />
+                            ) : (
+                              <span className="flex size-11 shrink-0 items-center justify-center rounded-[14px] bg-onyx/[0.05] font-subtitle text-sm font-semibold text-onyx">
+                                {initial(s.name)}
+                              </span>
+                            )}
+                            <span className="min-w-0 flex-1">
+                              <span className={cn('block truncate font-subtitle text-[15px] text-onyx', on ? 'font-semibold' : 'font-medium')}>
                                 {s.name}
-                                {on && <Check size={13} strokeWidth={3} style={{ color: 'var(--c-confirmed)' }} />}
                               </span>
-                              <span className="whitespace-nowrap font-subtitle text-[11px] font-normal text-muted-dark">
-                                {servicePriceLabel(s)}
+                              <span className="block truncate font-subtitle text-[12px] text-muted-dark">
+                                {[servicePriceLabel(s), s.durationLabel].filter(Boolean).join(' · ')}
                               </span>
-                            </button>
-                          )
-                        })}
+                            </span>
+                            {/* The iPhone's tick: a green filled circle when chosen, an empty ring otherwise. */}
+                            <span
+                              className={cn(
+                                'flex size-6 shrink-0 items-center justify-center rounded-full transition-colors',
+                                on ? 'text-white' : 'shadow-[inset_0_0_0_1.5px_rgba(0,0,0,0.18)] dark:shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.25)]',
+                              )}
+                              style={on ? { background: 'var(--c-confirmed)' } : undefined}
+                            >
+                              {on && <Check size={14} strokeWidth={3} />}
+                            </span>
+                          </button>
+                        )
+                      })}
+                      {activeServices.length === 0 && (
+                        <p className="px-4 py-4 font-subtitle text-[13px] text-muted-dark">Ainda não há modelos ativos nos Serviços.</p>
+                      )}
                     </div>
+
+                    {/* Options of the chosen model: a segmented control when they fit, chips otherwise. */}
                     {[
                       ['Comprimento', options.lengths, length, setLength] as const,
                       ['Repartição', options.partings, parting, setParting] as const,
                     ].map(([title, values, value, set]) =>
                       values.length ? (
-                        <div key={title} className="mt-3 border-t border-onyx/[0.07] px-3 pt-3">
-                          <p className="mb-2 px-1 font-subtitle text-[12px] text-muted-dark">{title}</p>
-                          <div className="flex flex-wrap gap-2">
-                            {values.map((v) => (
-                              <button key={v} type="button" onClick={() => set(v)} className={pill(value === v)}>
-                                {v}
-                              </button>
-                            ))}
-                          </div>
+                        <div key={title} className="border-t border-onyx/[0.07] px-3 pb-3 pt-2.5">
+                          <p className="mb-2 px-1 font-subtitle text-[12px] text-muted-dark">
+                            {title}
+                            {!value && <span className="text-onyx/40"> · escolher</span>}
+                          </p>
+                          {values.length <= 4 ? (
+                            <div
+                              className="grid rounded-full bg-onyx/[0.06] p-1"
+                              style={{ gridTemplateColumns: `repeat(${values.length}, minmax(0, 1fr))` }}
+                              role="radiogroup"
+                              aria-label={title}
+                            >
+                              {values.map((v) => (
+                                <button
+                                  key={v}
+                                  type="button"
+                                  role="radio"
+                                  aria-checked={value === v}
+                                  onClick={() => set(v)}
+                                  className={cn(
+                                    'h-9 truncate rounded-full px-2 font-subtitle text-[13px] transition-[background-color,box-shadow]',
+                                    value === v ? RAISED : 'text-muted-dark',
+                                  )}
+                                >
+                                  {v}
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="flex flex-wrap gap-2">
+                              {values.map((v) => (
+                                <button key={v} type="button" onClick={() => set(v)} className={pill(value === v)}>
+                                  {v}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ) : null,
                     )}
-                    <div className="mt-3 border-t border-onyx/[0.07] px-3 pt-3">
+
+                    <div className="border-t border-onyx/[0.07] px-3 pb-3.5 pt-2.5">
                       <p className="mb-2 px-1 font-subtitle text-[12px] text-muted-dark">
                         Cor{' '}
                         {color ? (
