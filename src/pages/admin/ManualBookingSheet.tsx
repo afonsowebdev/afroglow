@@ -1,11 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, animate, motion, useDragControls, useMotionValue, useTransform } from 'motion/react'
+import { ArrowRight, CalendarPlus, Check, Clock, CalendarDays, Search, UserRound, X } from 'lucide-react'
 import { api, ApiError } from '@/lib/api'
 import { formatPrice, type AvailabilitySlot, type Service } from '@/lib/types'
 import type { AdminCustomer } from '@/pages/admin/admin-types'
 import { choiceComplete, optionsOf, priceFor, servicePriceLabel } from '@/lib/pricing'
 import { cn } from '@/lib/utils'
 import { BRAID_COLORS } from '@/lib/braid-colors'
+import { success, tap } from '@/lib/haptics'
+import { useScrollLock } from '@/lib/use-scroll-lock'
+
+const CARD = 'bg-card shadow-[0_1px_3px_rgba(0,0,0,0.06),0_8px_20px_-12px_rgba(0,0,0,0.18)]'
+/** The raised white pill of a chosen option (the iPhone's segmented control), and the plain look of the others. */
+const RAISED = 'bg-card font-semibold text-onyx shadow-[0_3px_8px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.04)]'
+const FLAT = 'bg-onyx/[0.05] text-onyx/70'
 
 function localDateValue(date: Date) {
   const m = String(date.getMonth() + 1).padStart(2, '0')
@@ -33,9 +41,11 @@ function DateTimeRow({
 }) {
   return (
     <label className="relative flex h-[52px] items-center gap-3 px-4">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-onyx/[0.05] text-onyx">
+        {type === 'date' ? <CalendarDays size={15} /> : <Clock size={15} />}
+      </span>
       <span className="flex-1 font-subtitle text-[15px] text-onyx">{label}</span>
-      <span className="font-subtitle text-base lining-nums tabular-nums text-onyx">{display}</span>
-      <i className={`bx ${type === 'date' ? 'bx-calendar' : 'bx-time-five'} text-lg text-onyx/40`} aria-hidden="true" />
+      <span className="font-subtitle text-[15px] font-semibold lining-nums tabular-nums text-onyx">{display}</span>
       <input
         type={type}
         value={value}
@@ -48,10 +58,10 @@ function DateTimeRow({
 }
 
 /**
- * Adds a confirmed booking by hand: for clients who book by WhatsApp, Instagram or in person. A sheet in the
- * app's grouped style: who (an existing client or a name and phone; no account needed), the model as chips with its
- * options and the hair colour as swatches, when (the free slots of the next days in one tap, or any date and time),
- * a note, and a summary line; Cancelar and Guardar always on top.
+ * Adds a confirmed booking by hand: for clients who book by WhatsApp, Instagram or in person. A sheet in the iPhone's
+ * look, rising from the bottom on a light grey with white cards: who (an existing client or a name and phone; no account
+ * needed), the model with its options and the hair colour as swatches, when (the free slots of the next days in one tap,
+ * or any date and time) and a note. At the bottom, one white pill says what will be saved (or what is missing) and saves.
  */
 export function ManualBookingSheet({
   open,
@@ -88,9 +98,15 @@ export function ManualBookingSheet({
   const [notes, setNotes] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // The page behind stays still; the sheet is pulled down by its top (the rest scrolls) and the dim fades as it goes.
+  useScrollLock(open)
+  const drag = useDragControls()
+  const pull = useMotionValue(0)
+  const dim = useTransform(pull, [0, 320], [1, 0])
 
   useEffect(() => {
     if (!open) return
+    pull.set(0)
     setError(null)
     setNotes('')
     setSearch('')
@@ -119,7 +135,7 @@ export function ManualBookingSheet({
       .get<AdminCustomer[]>('/admin/customers')
       .then(setCustomers)
       .catch(() => setCustomers([]))
-  }, [open, presetCustomer, presetStartsAt, services])
+  }, [open, presetCustomer, presetStartsAt, services, pull])
 
   const matches = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -155,6 +171,7 @@ export function ManualBookingSheet({
           : { customerName: name.trim(), customerPhone: phone.trim() }),
         notes: notes.trim() || undefined,
       })
+      void success()
       onDone()
       onClose()
     } catch (err) {
@@ -176,269 +193,305 @@ export function ManualBookingSheet({
     options.partings.length > 0 && !parting && 'a repartição',
     (!date || !time) && 'a data e a hora',
   ].filter(Boolean) as string[]
-  const whenLabel = chosenAt
-    ? chosenAt.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' }) + ` · ${time}`
+  const whenDay = chosenAt
+    ? chosenAt.toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'short' }).replace('.', '')
     : ''
+  const whenLabel = whenDay ? `${whenDay.charAt(0).toUpperCase()}${whenDay.slice(1)} · ${time}` : ''
 
-  const section = 'mb-2 px-1 font-subtitle text-xs font-medium uppercase tracking-[0.14em] text-muted-dark'
-  const group =
-    'divide-y divide-onyx/[0.08] overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))]'
-  const plain =
-    'field-plain block w-full min-w-0 bg-transparent font-subtitle text-base text-onyx outline-none placeholder:text-onyx/35'
-  const chip = (on: boolean) =>
-    cn(
-      'h-10 shrink-0 rounded-full px-4 font-subtitle text-sm transition-colors',
-      on ? 'bg-onyx font-medium text-white' : 'border border-onyx/15 text-onyx',
-    )
+  const label = 'mb-2 px-1 font-subtitle text-[12px] font-semibold text-muted-dark'
+  const plain = 'field-plain block w-full min-w-0 bg-transparent font-subtitle text-[15px] text-onyx outline-none placeholder:text-onyx/35'
+  const pill = (on: boolean) => cn('h-9 shrink-0 rounded-full px-4 font-subtitle text-[13px] transition-[background-color,box-shadow]', on ? RAISED : FLAT)
+  const initial = (n: string) => n.trim().charAt(0).toUpperCase()
+  const close = () => !busy && onClose()
 
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center">
-          <motion.button
-            type="button"
-            aria-label="Fechar"
-            onClick={() => !busy && onClose()}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
-          <motion.form
-            role="dialog"
-            aria-modal="true"
-            aria-label="Nova marcação"
-            onSubmit={(e) => {
-              e.preventDefault()
-              if (canSubmit && !busy) void submit()
-            }}
-            className="relative flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
-            initial={{ y: 80, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 34 }}
+        <div className="app-neutral fixed inset-0 z-[90] flex items-end justify-center sm:items-center" data-no-pull>
+          <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div className="absolute inset-0" style={{ opacity: dim }}>
+              <button type="button" aria-label="Fechar" onClick={close} className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+            </motion.div>
+          </motion.div>
+          <motion.div
+            className="relative w-full max-w-md"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%', transition: { type: 'spring', stiffness: 300, damping: 34 } }}
+            transition={{ type: 'spring', stiffness: 360, damping: 36 }}
           >
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-onyx/10 px-4 py-3">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={busy}
-                className="min-w-20 text-left font-subtitle text-[15px] text-onyx/60 disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-              <h2 className="font-subtitle text-base font-semibold text-onyx">Nova marcação</h2>
-              <button
-                type="submit"
-                disabled={busy || !canSubmit}
-                className="min-w-20 text-right font-subtitle text-[15px] font-semibold text-onyx disabled:opacity-30"
-              >
-                {busy ? 'A guardar…' : 'Guardar'}
-              </button>
-            </div>
-
-            <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-5">
-              {error && (
-                <p role="alert" className="rounded-xl bg-red-700/10 px-4 py-3 font-subtitle text-sm text-red-700">
-                  {error}
-                </p>
-              )}
-
-              {/* Who. */}
-              <section>
-                <h3 className={section}>Cliente</h3>
-                {!presetCustomer && (
-                  <div
-                    className="mb-2.5 grid grid-cols-2 rounded-xl bg-onyx/[0.06] p-1"
-                    role="tablist"
-                    aria-label="Cliente"
+            <motion.form
+              role="dialog"
+              aria-modal="true"
+              aria-label="Nova marcação"
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (canSubmit && !busy) void submit()
+              }}
+              className="relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[30px] bg-[color-mix(in_srgb,var(--color-onyx)_4%,var(--color-white))] shadow-2xl sm:rounded-[30px]"
+              style={{ y: pull }}
+              // Pulled by its top only, so the fields scroll freely: down far enough or quickly closes, back up stays.
+              drag="y"
+              dragControls={drag}
+              dragListener={false}
+              dragConstraints={{ top: 0 }}
+              dragElastic={{ top: 0.06, bottom: 1 }}
+              dragMomentum={false}
+              onDragEnd={(_, info) => {
+                const goingUp = info.velocity.y < -50
+                if (!busy && !goingUp && (info.offset.y > 130 || info.velocity.y > 650)) onClose()
+                else animate(pull, 0, { type: 'spring', stiffness: 420, damping: 34 })
+              }}
+            >
+              {/* The top: the handle and the title; pull it down to close. */}
+              <div className="shrink-0 touch-none px-5 pb-3 pt-2.5" onPointerDown={(e) => drag.start(e)}>
+                <span className="mx-auto mb-3 block h-1.5 w-10 rounded-full bg-onyx/15" aria-hidden="true" />
+                <div className="flex items-center gap-3">
+                  <span className="glass-chip flex size-11 shrink-0 items-center justify-center rounded-full text-onyx">
+                    <CalendarPlus size={18} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="font-subtitle text-[19px] font-semibold tracking-tight text-onyx">Nova marcação</h2>
+                    <p className="truncate font-subtitle text-xs text-muted-dark">Fica confirmada logo, sem conta.</p>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Fechar"
+                    onClick={close}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    disabled={busy}
+                    className="glass-chip flex size-9 shrink-0 items-center justify-center rounded-full text-onyx"
                   >
-                    {(
-                      [
-                        ['existing', 'Já é cliente'],
-                        ['new', 'Nova cliente'],
-                      ] as const
-                    ).map(([id, label]) => (
-                      <button
-                        key={id}
-                        type="button"
-                        role="tab"
-                        aria-selected={mode === id}
-                        onClick={() => setMode(id)}
-                        className={cn(
-                          'h-9 rounded-[9px] font-subtitle text-sm',
-                          mode === id
-                            ? 'bg-white font-medium text-onyx shadow-sm shadow-black/10 dark:bg-onyx/[0.14]'
-                            : 'text-onyx/55',
-                        )}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {mode === 'new' ? (
-                  <div className={group}>
-                    <input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      maxLength={100}
-                      placeholder="Nome"
-                      aria-label="Nome"
-                      autoComplete="off"
-                      className={`${plain} h-[52px] px-4`}
-                    />
-                    <input
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      type="tel"
-                      maxLength={30}
-                      placeholder="Telemóvel"
-                      aria-label="Telemóvel"
-                      className={`${plain} h-[52px] px-4`}
-                    />
-                  </div>
-                ) : picked ? (
-                  <div className={`${group} flex items-center gap-3 px-4 py-3`}>
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-onyx font-subtitle text-sm font-semibold text-white">
-                      {picked.name.trim().charAt(0).toUpperCase()}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-subtitle text-[15px] font-medium text-onyx">
-                        {picked.name}
-                      </span>
-                      <span className="block font-subtitle text-xs text-muted-dark">{picked.phone}</span>
-                    </span>
-                    {!presetCustomer && (
-                      <button
-                        type="button"
-                        onClick={() => setPicked(null)}
-                        className="font-subtitle text-sm text-onyx/60"
-                      >
-                        Mudar
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className={group}>
-                    <label className="flex items-center gap-2 px-4">
-                      <i className="bx bx-search text-lg text-onyx/40" aria-hidden="true" />
-                      <input
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Nome ou telemóvel"
-                        aria-label="Pesquisar cliente"
-                        className={`${plain} h-[52px]`}
-                      />
-                    </label>
-                    {matches.length === 0 ? (
-                      <p className="px-4 py-3 font-subtitle text-sm text-muted-dark">
-                        Nenhuma cliente encontrada.{' '}
-                        <button
-                          type="button"
-                          onClick={() => setMode('new')}
-                          className="text-onyx underline underline-offset-4"
-                        >
-                          Criar nova
-                        </button>
-                      </p>
-                    ) : (
-                      matches.map((c) => (
-                        <button
-                          key={c.id}
-                          type="button"
-                          onClick={() => setPicked(c)}
-                          className="flex w-full items-center gap-3 px-4 py-2.5 text-left active:bg-onyx/[0.04]"
-                        >
-                          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-onyx/10 font-subtitle text-xs font-semibold text-onyx">
-                            {c.name.trim().charAt(0).toUpperCase()}
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="block truncate font-subtitle text-sm font-medium text-onyx">{c.name}</span>
-                            <span className="block font-subtitle text-xs text-muted-dark">{c.phone}</span>
-                          </span>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
-              </section>
-
-              {/* What: the model, its options and the colour. */}
-              <section>
-                <h3 className={section}>Modelo</h3>
-                <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  {services
-                    .filter((s) => s.active !== false)
-                    .map((s) => (
-                      <button
-                        key={s.id}
-                        type="button"
-                        aria-pressed={serviceId === s.id}
-                        onClick={() => {
-                          setServiceId(s.id)
-                          setLength('')
-                          setParting('')
-                        }}
-                        className={cn(
-                          'flex shrink-0 flex-col items-start rounded-2xl px-4 py-2.5 text-left transition-colors',
-                          serviceId === s.id ? 'bg-onyx text-white' : 'border border-onyx/15 text-onyx',
-                        )}
-                      >
-                        <span className="whitespace-nowrap font-subtitle text-sm font-medium">{s.name}</span>
-                        <span className="whitespace-nowrap font-subtitle text-xs opacity-60">
-                          {servicePriceLabel(s)}
-                        </span>
-                      </button>
-                    ))}
+                    <X size={16} />
+                  </button>
                 </div>
-                {[
-                  ['Comprimento', options.lengths, length, setLength] as const,
-                  ['Repartição', options.partings, parting, setParting] as const,
-                ].map(([label, values, value, set]) =>
-                  values.length ? (
-                    <div key={label} className="mt-3">
-                      <p className="mb-1.5 px-1 font-subtitle text-xs text-muted-dark">{label}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {values.map((v) => (
-                          <button key={v} type="button" onClick={() => set(v)} className={chip(value === v)}>
-                            {v}
+              </div>
+
+              <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 pb-4 pt-1">
+                {error && (
+                  <p
+                    role="alert"
+                    className="rounded-2xl px-4 py-3 font-subtitle text-sm text-onyx"
+                    style={{ background: 'color-mix(in srgb, var(--c-cancelled) 12%, transparent)' }}
+                  >
+                    {error}
+                  </p>
+                )}
+
+                {/* Who. */}
+                <section>
+                  <p className={label}>Cliente</p>
+                  {!presetCustomer && !picked && (
+                    <div className="mb-2.5 grid grid-cols-2 rounded-full bg-onyx/[0.06] p-1" role="tablist" aria-label="Cliente">
+                      {(
+                        [
+                          ['existing', 'Já é cliente'],
+                          ['new', 'Nova cliente'],
+                        ] as const
+                      ).map(([id, text]) => (
+                        <button
+                          key={id}
+                          type="button"
+                          role="tab"
+                          aria-selected={mode === id}
+                          onClick={() => setMode(id)}
+                          className={cn(
+                            'h-9 rounded-full font-subtitle text-[13px] transition-[background-color,box-shadow]',
+                            mode === id ? RAISED : 'text-muted-dark',
+                          )}
+                        >
+                          {text}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {mode === 'new' ? (
+                    <div className={`divide-y divide-onyx/[0.07] overflow-hidden rounded-[22px] ${CARD}`}>
+                      <input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        maxLength={100}
+                        placeholder="Nome"
+                        aria-label="Nome"
+                        autoComplete="off"
+                        className={`${plain} h-[52px] px-4`}
+                      />
+                      <input
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        type="tel"
+                        maxLength={30}
+                        placeholder="Telemóvel"
+                        aria-label="Telemóvel"
+                        className={`${plain} h-[52px] px-4`}
+                      />
+                    </div>
+                  ) : picked ? (
+                    <div className={`flex items-center gap-3 rounded-[22px] px-4 py-3 ${CARD}`}>
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-onyx/[0.06] font-subtitle text-sm font-semibold text-onyx">
+                        {initial(picked.name)}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-subtitle text-[15px] font-semibold text-onyx">{picked.name}</span>
+                        <span className="block font-subtitle text-xs text-muted-dark">{picked.phone}</span>
+                      </span>
+                      {presetCustomer ? (
+                        <Check size={18} className="shrink-0" style={{ color: 'var(--c-confirmed)' }} />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setPicked(null)}
+                          className="glass-chip h-8 shrink-0 rounded-full px-3.5 font-subtitle text-[12px] font-semibold text-onyx"
+                        >
+                          Mudar
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className={`divide-y divide-onyx/[0.07] overflow-hidden rounded-[22px] ${CARD}`}>
+                      <label className="flex items-center gap-2.5 px-4">
+                        <Search size={17} className="shrink-0 text-muted-dark" />
+                        <input
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                          placeholder="Nome ou telemóvel"
+                          aria-label="Pesquisar cliente"
+                          className={`${plain} h-[52px]`}
+                        />
+                      </label>
+                      {matches.length === 0 ? (
+                        <div className="flex items-center gap-3 px-4 py-3">
+                          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-onyx/[0.05] text-muted-dark">
+                            <UserRound size={16} />
+                          </span>
+                          <span className="flex-1 font-subtitle text-[13px] text-muted-dark">
+                            {customers.length ? 'Nenhuma cliente encontrada.' : 'Ainda sem clientes.'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMode('new')
+                              if (/\d/.test(search)) setPhone(search.trim())
+                              else setName(search.trim())
+                            }}
+                            className="glass-chip h-8 shrink-0 rounded-full px-3.5 font-subtitle text-[12px] font-semibold text-onyx"
+                          >
+                            Criar nova
                           </button>
+                        </div>
+                      ) : (
+                        matches.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => {
+                              void tap()
+                              setPicked(c)
+                            }}
+                            className="flex w-full items-center gap-3 px-4 py-2.5 text-left active:bg-onyx/[0.04]"
+                          >
+                            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-onyx/[0.06] font-subtitle text-xs font-semibold text-onyx">
+                              {initial(c.name)}
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate font-subtitle text-sm font-medium text-onyx">{c.name}</span>
+                              <span className="block font-subtitle text-xs text-muted-dark">{c.phone}</span>
+                            </span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </section>
+
+                {/* What: the model, its options and the colour, in one card. */}
+                <section>
+                  <p className={label}>Modelo</p>
+                  <div className={`rounded-[22px] py-3 ${CARD}`}>
+                    <div className="flex gap-2 overflow-x-auto px-3 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      {services
+                        .filter((s) => s.active !== false)
+                        .map((s) => {
+                          const on = serviceId === s.id
+                          return (
+                            <button
+                              key={s.id}
+                              type="button"
+                              aria-pressed={on}
+                              onClick={() => {
+                                setServiceId(s.id)
+                                setLength('')
+                                setParting('')
+                              }}
+                              className={cn(
+                                'flex shrink-0 flex-col items-start rounded-2xl px-3.5 py-2 text-left transition-[background-color,box-shadow]',
+                                on ? RAISED : FLAT,
+                              )}
+                            >
+                              <span className="flex items-center gap-1 whitespace-nowrap font-subtitle text-[13px]">
+                                {s.name}
+                                {on && <Check size={13} strokeWidth={3} style={{ color: 'var(--c-confirmed)' }} />}
+                              </span>
+                              <span className="whitespace-nowrap font-subtitle text-[11px] font-normal text-muted-dark">
+                                {servicePriceLabel(s)}
+                              </span>
+                            </button>
+                          )
+                        })}
+                    </div>
+                    {[
+                      ['Comprimento', options.lengths, length, setLength] as const,
+                      ['Repartição', options.partings, parting, setParting] as const,
+                    ].map(([title, values, value, set]) =>
+                      values.length ? (
+                        <div key={title} className="mt-3 border-t border-onyx/[0.07] px-3 pt-3">
+                          <p className="mb-2 px-1 font-subtitle text-[12px] text-muted-dark">{title}</p>
+                          <div className="flex flex-wrap gap-2">
+                            {values.map((v) => (
+                              <button key={v} type="button" onClick={() => set(v)} className={pill(value === v)}>
+                                {v}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null,
+                    )}
+                    <div className="mt-3 border-t border-onyx/[0.07] px-3 pt-3">
+                      <p className="mb-2 px-1 font-subtitle text-[12px] text-muted-dark">
+                        Cor{' '}
+                        {color ? (
+                          <span className="font-semibold text-onyx">
+                            · {color} {BRAID_COLORS.find((c) => c.code === color)?.name ?? ''}
+                          </span>
+                        ) : (
+                          '(opcional)'
+                        )}
+                      </p>
+                      <div className="flex flex-wrap gap-2.5 px-1">
+                        {BRAID_COLORS.map((c) => (
+                          <button
+                            key={c.code}
+                            type="button"
+                            aria-label={`Cor ${c.code} · ${c.name}`}
+                            aria-pressed={color === c.code}
+                            onClick={() => setColor(color === c.code ? '' : c.code)}
+                            className={cn(
+                              'size-9 rounded-full ring-offset-2 ring-offset-card transition-shadow',
+                              color === c.code ? 'ring-2 ring-onyx/70' : 'ring-1 ring-onyx/15',
+                            )}
+                            style={{ backgroundColor: c.hex }}
+                          />
                         ))}
                       </div>
                     </div>
-                  ) : null,
-                )}
-                <div className="mt-3">
-                  <p className="mb-1.5 px-1 font-subtitle text-xs text-muted-dark">
-                    Cor {color ? `· ${color} ${BRAID_COLORS.find((c) => c.code === color)?.name ?? ''}` : '(opcional)'}
-                  </p>
-                  <div className="flex flex-wrap gap-2.5">
-                    {BRAID_COLORS.map((c) => (
-                      <button
-                        key={c.code}
-                        type="button"
-                        aria-label={`Cor ${c.code} · ${c.name}`}
-                        aria-pressed={color === c.code}
-                        onClick={() => setColor(color === c.code ? '' : c.code)}
-                        className={cn(
-                          'size-9 rounded-full ring-offset-2 ring-offset-white transition-shadow',
-                          color === c.code ? 'ring-2 ring-onyx' : 'ring-1 ring-onyx/15',
-                        )}
-                        style={{ backgroundColor: c.hex }}
-                      />
-                    ))}
                   </div>
-                </div>
-              </section>
+                </section>
 
-              {/* When: a free slot in one tap, or any date and time. */}
-              <section>
-                <h3 className={section}>Quando</h3>
-                {freeSlots.length > 0 && (
-                  <>
-                    <p className="mb-1.5 px-1 font-subtitle text-xs text-muted-dark">Vagas livres</p>
-                    <div className="-mx-5 mb-3 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {/* When: a free slot in one tap, or any date and time. */}
+                <section>
+                  <p className={label}>Quando</p>
+                  {freeSlots.length > 0 && (
+                    <div className="-mx-4 mb-2.5 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                       {freeSlots.map((sl) => {
                         const at = new Date(sl.startsAt)
                         const d = localDateValue(at)
@@ -448,74 +501,85 @@ export function ManualBookingSheet({
                           <button
                             key={sl.id}
                             type="button"
+                            aria-pressed={on}
                             onClick={() => {
+                              void tap()
                               setDate(d)
                               setTime(t)
                             }}
                             className={cn(
-                              'flex shrink-0 flex-col items-center rounded-2xl px-3.5 py-2 transition-colors',
-                              on ? 'bg-onyx text-white' : 'border border-onyx/15 text-onyx',
+                              'flex shrink-0 flex-col items-center rounded-2xl px-3.5 py-2 transition-[background-color,box-shadow]',
+                              on ? RAISED : 'glass-chip text-onyx',
                             )}
                           >
-                            <span className="font-subtitle text-[11px] capitalize opacity-70">
-                              {at.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric' })}
+                            <span className="font-subtitle text-[11px] font-normal capitalize text-muted-dark">
+                              {at.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric' }).replace('.', '')}
                             </span>
-                            <span className="font-subtitle text-sm font-semibold lining-nums">{t}</span>
+                            <span className="flex items-center gap-1 font-subtitle text-sm font-semibold lining-nums">
+                              {on && <span className="size-1.5 rounded-full" style={{ background: 'var(--c-confirmed)' }} />}
+                              {t}
+                            </span>
                           </button>
                         )
                       })}
                     </div>
-                  </>
-                )}
-                <div className={group}>
-                  <DateTimeRow
-                    label="Data"
-                    type="date"
-                    value={date}
-                    display={date ? date.split('-').reverse().join('/') : 'Escolher'}
-                    onChange={setDate}
-                  />
-                  <DateTimeRow label="Hora" type="time" value={time} display={time || 'Escolher'} onChange={setTime} />
-                </div>
-              </section>
-
-              <section>
-                <h3 className={section}>Nota</h3>
-                <div className={group}>
-                  <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    rows={2}
-                    maxLength={500}
-                    placeholder="Opcional: algo a lembrar para esta sessão"
-                    aria-label="Nota"
-                    className={`${plain} resize-none px-4 py-3 leading-snug`}
-                  />
-                </div>
-              </section>
-
-              {/* What will be saved, in one line. */}
-              {service && (
-                <div className="rounded-2xl border border-onyx/10 p-4">
-                  <p className="font-subtitle text-xs uppercase tracking-[0.14em] text-muted-dark">Resumo</p>
-                  <p className="mt-1 font-subtitle text-[15px] font-medium text-onyx">
-                    {[service.name, length, parting].filter(Boolean).join(' · ')}
-                    {price !== null && (
-                      <span className="text-muted-dark"> · {formatPrice(price).replace(/,00/, '')}</span>
-                    )}
-                  </p>
-                  <p className="font-subtitle text-sm capitalize text-muted-dark">{whenLabel}</p>
-                  {missing.length > 0 ? (
-                    <p className="mt-2 font-subtitle text-xs font-medium text-red-700">Falta: {missing.join(', ')}.</p>
-                  ) : (
-                    <p className="mt-2 font-subtitle text-xs text-muted-dark">
-                      Fica confirmada logo e o horário deixa de estar livre para as clientes.
-                    </p>
                   )}
-                </div>
-              )}
-            </div>
-          </motion.form>
+                  <div className={`divide-y divide-onyx/[0.07] overflow-hidden rounded-[22px] ${CARD}`}>
+                    <DateTimeRow
+                      label="Data"
+                      type="date"
+                      value={date}
+                      display={date ? date.split('-').reverse().join('/') : 'Escolher'}
+                      onChange={setDate}
+                    />
+                    <DateTimeRow label="Hora" type="time" value={time} display={time || 'Escolher'} onChange={setTime} />
+                  </div>
+                </section>
+
+                <section>
+                  <p className={label}>Nota</p>
+                  <div className={`overflow-hidden rounded-[22px] ${CARD}`}>
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      rows={2}
+                      maxLength={500}
+                      placeholder="Opcional: algo a lembrar para esta sessão"
+                      aria-label="Nota"
+                      className={`${plain} resize-none px-4 py-3 leading-snug`}
+                    />
+                  </div>
+                </section>
+              </div>
+
+              {/* The button says what will be saved (or what is still missing): a white pill, the arrow in a round chip. */}
+              <div className="shrink-0 px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]">
+                <button
+                  type="submit"
+                  disabled={busy || !canSubmit}
+                  className={`flex h-14 w-full items-center gap-3 rounded-full pe-2 ps-5 text-left transition-transform active:scale-[0.98] disabled:opacity-60 ${CARD}`}
+                >
+                  <CalendarPlus size={19} className="shrink-0 text-onyx" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-subtitle text-[15px] font-semibold leading-tight text-onyx">
+                      {busy
+                        ? 'A marcar…'
+                        : service
+                          ? [service.name, length, parting].filter(Boolean).join(' · ') +
+                            (price !== null ? ` · ${formatPrice(price).replace(/,00/, '')}` : '')
+                          : 'Escolhe o modelo'}
+                    </span>
+                    <span className="block truncate font-subtitle text-[12px] text-muted-dark">
+                      {missing.length > 0 ? `Falta ${missing.join(', ')}` : whenLabel}
+                    </span>
+                  </span>
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-onyx/[0.05] text-onyx">
+                    <ArrowRight size={18} />
+                  </span>
+                </button>
+              </div>
+            </motion.form>
+          </motion.div>
         </div>
       )}
     </AnimatePresence>
