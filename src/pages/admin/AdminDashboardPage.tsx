@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, MotionConfig, motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
 import {
   Bell,
   BellRing,
@@ -2864,6 +2864,8 @@ function AdminDashboard() {
   }
 
   return (
+    // Every motion animation of the admin follows the iPhone's "Reduce Motion" (moves become fades).
+    <MotionConfig reducedMotion="user">
     <div className="app-neutral afro-admin relative min-h-screen bg-white font-medium">
       {/* Fixed at the top: the gold "A" on the left, the theme, the bell and the "+" on the right in black (white in the dark
           theme), all round with a soft shadow.
@@ -2874,7 +2876,15 @@ function AdminDashboard() {
         className={`pointer-events-none fixed inset-x-0 top-0 z-40 h-[calc(5.5rem+env(safe-area-inset-top))] transition-opacity duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           headerScrolled ? 'opacity-100' : 'opacity-0'
         }`}
-        style={{ background: 'linear-gradient(to bottom, var(--color-white) 55%, transparent)' }}
+        style={{ background: 'linear-gradient(to bottom, color-mix(in srgb, var(--color-white) 82%, transparent) 30%, transparent)' }}
+      >
+        {/* The iOS 26 scroll edge: the page blurs as it slides under the header, more the closer it gets to the top. */}
+        <div className="scroll-edge-top absolute inset-0" />
+      </div>
+      {/* The same edge at the bottom, under the tab bar, always there and lighter. */}
+      <div
+        aria-hidden="true"
+        className="scroll-edge-bottom pointer-events-none fixed inset-x-0 bottom-0 z-40 h-[calc(5.5rem+env(safe-area-inset-bottom))]"
       />
       <div
         className={`fixed inset-x-0 top-0 ${anyMenuOpen ? 'z-[55]' : 'z-50'} px-4 pt-[calc(1rem+env(safe-area-inset-top))] sm:px-6 sm:pt-[calc(1.5rem+env(safe-area-inset-top))]`}
@@ -2996,17 +3006,19 @@ function AdminDashboard() {
         <motion.div
           key={`${tab}-${refreshKey}`}
           // A refresh keeps the page in view (the cards play their own entrance); a new page comes in softly.
-          initial={refreshedTab.current === tab ? { opacity: 0.6, y: 4 } : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: refreshedTab.current === tab ? 0.3 : 0.5, ease: [0.22, 1, 0.36, 1] }}
+          // A new page comes up on a soft spring, out of a light blur (the iPhone's way between screens).
+          initial={refreshedTab.current === tab ? { opacity: 0.6, y: 4 } : { opacity: 0, y: 14, scale: 0.99, filter: 'blur(6px)' }}
+          // No filter left once in: it would hold the page's sheets (fixed) inside it.
+          animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', transitionEnd: { filter: 'none' } }}
+          transition={
+            refreshedTab.current === tab
+              ? { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
+              : { type: 'spring', visualDuration: 0.5, bounce: 0.12, opacity: { duration: 0.35 }, filter: { duration: 0.35 } }
+          }
+
         >
           {/* The Painel has its own title, with its board buttons. */}
-          {tab !== 'inicio' && (
-            <>
-              <h1 className="font-subtitle text-[32px] font-semibold leading-none tracking-tight text-onyx">{PAGE[tab].title}</h1>
-              <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">{PAGE[tab].hint}</p>
-            </>
-          )}
+          {tab !== 'inicio' && <LargeTitle title={PAGE[tab].title} hint={PAGE[tab].hint} />}
 
           {(tab === 'agenda' || tab === 'disponibilidade') && (
             <MonthStrip value={viewMonth} today={getLisbonYearMonth(new Date())} onSelect={goToMonth} />
@@ -3459,5 +3471,24 @@ function AdminDashboard() {
         <BackToTop admin hidden={navHidden} />
       </div>
     </div>
+    </MotionConfig>
+  )
+}
+
+/**
+ * A page's large title, the iPhone way: as the page scrolls it rises a touch slower than the page (a light parallax) and
+ * fades and shrinks a little before going under the header. Still, with Reduce Motion.
+ */
+function LargeTitle({ title, hint }: { title: string; hint: string }) {
+  const { scrollY } = useScroll()
+  const still = useReducedMotion()
+  const y = useTransform(scrollY, [0, 120], [0, 28], { clamp: true })
+  const opacity = useTransform(scrollY, [0, 90], [1, 0.25], { clamp: true })
+  const scale = useTransform(scrollY, [0, 120], [1, 0.96], { clamp: true })
+  return (
+    <motion.div style={still ? undefined : { y, opacity, scale }} className="origin-left will-change-transform">
+      <h1 className="font-subtitle text-[32px] font-semibold leading-none tracking-tight text-onyx">{title}</h1>
+      <p className="mt-2 font-subtitle text-sm font-light text-muted-dark">{hint}</p>
+    </motion.div>
   )
 }

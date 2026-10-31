@@ -73,6 +73,18 @@
 }
 
 @layer base {
+  /*
+   * A light press on the admin's buttons and links, the iPhone's way: they give a little under the finger and spring
+   * back. In the base layer, so a button with its own press (or transition) keeps it.
+   */
+  .afro-admin :is(button, a, [role='button']):not(:disabled):not([style*='transform']):not([class*='inset-0']):not(.liquid-btn) {
+    transition: scale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .afro-admin :is(button, a, [role='button']):not(:disabled):not([style*='transform']):not([class*='inset-0']):not(.liquid-btn):active {
+    scale: 0.98;
+    transition-duration: 0.12s;
+  }
+
   * {
     border-color: var(--color-gold);
   }
@@ -279,6 +291,25 @@
 }
 .dark .liquid-btn:active {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.09));
+}
+
+/*
+ * The iOS 26 scroll edge: what scrolls under the header (or the tab bar) blurs progressively, strongest at the screen's
+ * edge and gone a little further in, instead of a hard band.
+ */
+.scroll-edge-top,
+.scroll-edge-bottom {
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  backdrop-filter: blur(10px) saturate(1.4);
+}
+.scroll-edge-top {
+  -webkit-mask-image: linear-gradient(to bottom, #000 35%, transparent);
+  mask-image: linear-gradient(to bottom, #000 35%, transparent);
+}
+.scroll-edge-bottom {
+  background: linear-gradient(to top, color-mix(in srgb, var(--color-white) 55%, transparent), transparent);
+  -webkit-mask-image: linear-gradient(to top, #000 30%, transparent);
+  mask-image: linear-gradient(to top, #000 30%, transparent);
 }
 
 /* The lens that marks the chosen tab: clearer glass with a brighter rim, magnifying a touch. */
